@@ -1,5 +1,6 @@
 -- RESTRICTED (schema `linkage`). Candidates for coarsened exact matching, as (unit, event month e) pairs:
---   TREATED     each linked participant household at its own event time (first registration month), if it is not left-censored
+--   TREATED     each linked participant household that already had a fan account (status EXISTING_* or LAPSED_*: net-new fans have no pre-period) at its own event time
+--               (first registration month), if it is not left-censored
 --   COMPARISON  every unlinked account at EACH event month used by a treated household, as a candidate for a pseudo event time e
 -- For every pair the pre period (months e-12 .. e-1, at least `fan_min_pre_months` with an account) gives the matching variables, and the post period
 -- (months e .. e+11 inside the data, at least `fan_min_post_months`) gives the outcome. Everything is computed from engagement BEFORE e for matching, so
@@ -32,7 +33,9 @@ created as (select account_id, min(mi) as created_mi from eng group by 1),
 treated as (
 
     select t.account_id, t.household_id, t.first_registration_month as e, true as is_treated
-    from {{ ref('int_participant_household_timeline') }} t where t.is_linked and not t.is_left_censored
+    from {{ ref('int_participant_household_timeline') }} t
+    join {{ ref('fct_household_fan_status') }} fs using (household_id)
+    where t.is_linked and not t.is_left_censored and fs.fan_status in ('EXISTING_ACTIVE', 'EXISTING_COOLING', 'LAPSED_REACTIVATED', 'LAPSED_DORMANT')      -- existing and lapsed fans (rework spec 5.3)
 
 ),
 

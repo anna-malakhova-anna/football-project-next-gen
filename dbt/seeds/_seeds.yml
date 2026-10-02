@@ -307,3 +307,16 @@ seeds:
       - name: value
         data_tests: [not_null]
 
+  - name: rfm_segment_map
+    description: >
+      Names for RFM segments (rework spec 5.4). r_score is the recency quintile (5 = most recent) and fm_score is the rounded mean of the frequency and monetary quintiles (5 = highest).
+      Champions: recent and high value; Loyal: reasonably recent and valuable; Promising: recent but low value; At risk: valuable but not recent; Hibernating: neither.
+    config:
+      tags: [phase4]
+      column_types: {r_score: integer, fm_score: integer, segment: varchar}
+    columns:
+      - name: segment
+        data_tests:
+          - not_null
+          - accepted_values: {arguments: {values: [Champions, Loyal, Promising, At risk, Hibernating]}}
+

@@ -121,3 +121,16 @@ data starts (it used to bunch up just before each market launched, inflating the
 Consequence: in this generator the NAIVE fan-engagement estimate (+17.5%) lands on its own truth (+17.7%) by cancellation (selection pushes it up, a low-baseline net-new mix pulls it down), so the
 spec's expected "naive badly inflated" does NOT hold for engagement; it does hold for acquisition once scaled. The checks were restated accordingly and the unmatched gap is reported (+9.8% before
 registration, +33% after) so the selection is visible. This is a finding for Anna.
+
+## Step 8 status (2026-10-02)
+
+Built: `mart_fan_value_uplift` (the Phase 4 matched DiD scoped to existing and lapsed fans, by engagement type and spend category, spend net of refunds in synthetic currency), `mart_fan_survival` (Kaplan-Meier of fan
+activeness through the new `kaplan_meier` macro: months from origin to the first lapse, six quiet months, censored at the end of the data), `mart_fan_ltv` (36-month value = net spend per active month x the
+area under the survival curve, range from the survival interval), `mart_fan_activeness` (active, at risk, lapsed, new and the transitions by month), `int_fan_rfm_scores` and `mart_fan_rfm` (NTILE(5) quintiles
+over the trailing 12 months, named segments from `rfm_segment_map`), and `mart_fan_lapse_after_child_churn` (association only, person-time split at the churn month, lapse placed by its onset).
+Evaluation: `eval_fan_value_uplift` (the exact expected effect per outcome from the oracle, which now records expected net spend by category), `eval_fan_lapse_after_child_churn`, `eval_fan_value_checks`.
+Results: existing fans' net-spend total +1.13 per account-month against a truth of +1.33 (inside the interval; ticket and subscription inside too); lapsed fans' events +0.18 against +0.21 (inside);
+the existing-fans engagement estimate (+0.211) sits above its truth (+0.182) with the truth just outside the interval, reported and not tuned; fans lapse 1.71 times faster after the child stops (built-in
+hazard multiplier 1.5, an association by construction); net-new flag-prompt fans survive less (58% at 36 months) than existing fans (72%) and are less often Champions (19% against 31%).
+Caveats: percentages are unstable for LAPSED households (the counterfactual is near zero), so the per-month difference is the headline there; content_views and flag_content_views move oppositely because of a
+relabel (all_content_views is the sum); the LTV range reflects survival uncertainty only (spend per active month is treated as known).

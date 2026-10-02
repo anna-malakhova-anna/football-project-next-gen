@@ -2,3 +2,7 @@ param,value,description
 active_window_days,90,A linked fan account is ACTIVE at the first registration if it had engagement in this many days before it
 lapsed_window_days,180,A linked fan account is LAPSED at the first registration if it had NO engagement in this many days before it
 reactivation_window_months,12,A lapsed account is REACTIVATED if it engaged again within this many months after the first registration
+active_window_months,3,The month-grain version of the active window (3 calendar months of engagement) for month-end snapshots
+lapsed_window_months,6,The month-grain version of the lapsed window (6 calendar months without engagement); also the gap that ends a fan spell
+rfm_trailing_months,12,RFM scores are computed over this many trailing months
+ltv_horizon_months,36,Lifetime value counts expected active months up to this horizon

@@ -1,4 +1,4 @@
-.PHONY: acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -100,6 +100,11 @@ site:
 fan-status: dbt/profiles.yml
 	$(DBT) run --profiles-dir . --select fct_household_fan_status eval_fan_status
 	$(PY) -m scripts.print_fan_status
+
+# Rework step 8: value uplift, fan survival, lifetime value, activeness and RFM (needs `make load-eval`)
+fan-value: dbt/profiles.yml
+	$(DBT) run --profiles-dir . --select int_fan_outcome_month mart_fan_value_uplift mart_fan_survival mart_fan_ltv mart_fan_activeness int_fan_rfm_scores mart_fan_rfm mart_fan_lapse_after_child_churn eval_fan_value_uplift eval_fan_lapse_after_child_churn
+	$(PY) -m scripts.print_fan_value
 
 # Rework step 7: acquisition incrementality at market level, naive vs incremental vs truth (needs `make load-eval`)
 acquisition: dbt/profiles.yml

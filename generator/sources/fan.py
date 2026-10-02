@@ -370,8 +370,28 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
             if part and enroll is not None:
                 core = fc["base_events_per_month"] * math.exp(sigma * f) * season_m
                 cf_active = active and not (react_caused and reactivated)       # no programme: a reactivation the programme caused would not have happened
-                effect_truth.append({"account_id": a["account_id"], "month_idx": m_idx, "expected_events_observed": core * (1 + fc["true_uplift"] * uf) if active else 0.0,
-                                     "expected_events_no_programme": core if cf_active else 0.0})
+                row = {"account_id": a["account_id"], "month_idx": m_idx, "expected_events_observed": core * (1 + fc["true_uplift"] * uf) if active else 0.0,
+                       "expected_events_no_programme": core if cf_active else 0.0}
+                # expected NET spend by category (purchases less the refunds that follow), as observed and with no programme: the oracle behind the value-uplift estimate
+                spend_mult = math.exp(0.5 * sigma * f) * season_m
+                for cat in ("ticket", "merch", "other"):
+                    spec = tc[cat]
+                    mult = spend_mult
+                    up = 0.0
+                    if cat == "ticket":
+                        mult *= tc["ticket"]["team_multiplier"] if m_team else 1.0
+                        up = tc["ticket"]["uplift_team"] if m_team else tc["ticket"]["uplift_non_team"]
+                    elif cat == "merch":
+                        up = tc["merch"]["uplift"]
+                    mean_amount = sum(spec["amount"]) / 2
+                    keep = (1 - tc["refund_share"]) if cat in ("ticket", "merch") else 1.0
+                    row[f"expected_spend_{cat}_observed"] = spec["rate"] * mult * (1 + up * uf) * mean_amount * keep if active else 0.0
+                    row[f"expected_spend_{cat}_no_programme"] = spec["rate"] * mult * mean_amount * keep if cf_active else 0.0
+                amt = float(tc["subscription"]["amount"])
+                sub_on = active and (sub_flag or (uf > 0 and m_idx >= enroll and sub_up))
+                row["expected_spend_subscription_observed"] = amt if sub_on else 0.0
+                row["expected_spend_subscription_no_programme"] = amt if (cf_active and sub_flag) else 0.0
+                effect_truth.append(row)
             n_ev = 0
             if active:
                 lam = fc["base_events_per_month"] * math.exp(sigma * f) * season_m * (1 + fc["true_uplift"] * uf)
@@ -567,14 +587,16 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
                          "decay_half_life_months": half, "n_people": h["n_people"], "country": h["country"], "region": h["region"] or "", "market_id": h["market_id"],
                          "had_account_before": h["had_account_before"], "acq_type": h["acq_type"], "truth_status": truth_status(h),
                          "reactivated": bool(a and a["reactivated"]), "reactivation_caused": bool(a and a["react_caused"]),
-                         "true_acquisition_lift": aq["true_acquisition_lift"], "true_reactivation_lift": lp["reactivation_lift"]})
+                         "true_acquisition_lift": aq["true_acquisition_lift"], "true_reactivation_lift": lp["reactivation_lift"],
+                         "true_lapse_multiplier_after_child_churn": lp["after_child_churn_multiplier"]})
     for a in accounts:
         if not a["participant"] and a["dup_of"] is None:
             truth_hh.append({"household_key": a["hh"]["household_key"], "is_participant_household": False, "account_id": a["account_id"],
                              "latent_fandom": a["fandom"], "enrollment_propensity": None, "first_registration_year": None, "enroll_month": None, "last_active_year": None,
                              "true_uplift": 0.0, "decay_half_life_months": half, "n_people": 0, "country": a["country"], "region": a["region"] or "", "market_id": a["market"],
                              "had_account_before": None, "acq_type": "NONE", "truth_status": "NON_PARTICIPANT", "reactivated": False, "reactivation_caused": False,
-                             "true_acquisition_lift": aq["true_acquisition_lift"], "true_reactivation_lift": lp["reactivation_lift"]})
+                             "true_acquisition_lift": aq["true_acquisition_lift"], "true_reactivation_lift": lp["reactivation_lift"],
+                             "true_lapse_multiplier_after_child_churn": lp["after_child_churn_multiplier"]})
     truth_acct = [{"account_id": a["account_id"], "household_key": a["hh"]["household_key"], "is_participant_household": a["participant"],
                    "email_differs": "email_differs_from_registration" in a["defects"], "phone_shared": "phone_shared_with_participant_household" in a["defects"],
                    "is_duplicate_account": a["dup_of"] is not None, "canonical_account_id": a["dup_of"]["account_id"] if a["dup_of"] else a["account_id"],

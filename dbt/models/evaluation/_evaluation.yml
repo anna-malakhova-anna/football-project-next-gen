@@ -123,3 +123,15 @@ models:
       - name: passed
         data_tests:
           - accepted_values: {arguments: {values: [true]}}
+
+  - name: eval_fan_value_uplift
+    description: "GROUND TRUTH (evaluation only, synthetic). The value-uplift estimates against the generator's exact expected effect, by status group, engagement type and spend category."
+  - name: eval_fan_lapse_after_child_churn
+    description: "GROUND TRUTH (evaluation only, synthetic). The measured fan-lapse rate ratio after a child stops playing against the hazard multiplier the generator applied."
+
+  - name: eval_fan_value_checks
+    description: "GROUND TRUTH (evaluation only). Pass/fail: the value-uplift per-month estimates cover their truth for existing and lapsed fans, and the lapse rate rises after the child stops."
+    columns:
+      - name: passed
+        data_tests:
+          - accepted_values: {arguments: {values: [true]}}
