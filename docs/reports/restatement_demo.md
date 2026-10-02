@@ -148,5 +148,4 @@ visible rather than silent (2025: reported headcount 8,441; combined reach 8,690
 
 **Why this matters.** Before this change the log could only see KPIs that already existed, so a new KPI would have been invisible and a changed
 definition would have looked like an ordinary methodology change. `introduced_in` and `definition_changed_in` in the metric catalog now let the
-log say `NEW_KPI` (listed, never a restatement) or `DEFINITION_CHANGED` (a restatement). Not yet covered: a v1.1 snapshot has not been published, so
-the next `make publish` will write the four new KPIs and the log will go quiet until something changes.
+log say `NEW_KPI` (listed, never a restatement) or `DEFINITION_CHANGED` (a restatement). The v1.1 snapshots for 2021 to 2025 have since been published (21 KPI rows each), and the log is empty again: nothing published differs from the current numbers.
