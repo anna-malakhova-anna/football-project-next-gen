@@ -1,0 +1,24 @@
+version: 2
+
+models:
+  - name: share_marketing__contact_list
+    description: >
+      Outreach contact list, one row per email. Only addresses where every participant sharing the address has marketing
+      consent TRUE (NULL is not consent), excluding clusters with an open integrity issue. Never a minor's own details:
+      for a minor the contact is the guardian, with no child name or attribute.
+    columns:
+      - name: contact_email
+        meta: {pii: direct}
+        data_tests: [unique, not_null]
+      - name: contact_role
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [ADULT_PLAYER, GUARDIAN_OF_MINOR]}}
+      - {name: contact_first_name, meta: {pii: direct}}
+      - {name: country_code, meta: {pii: none}}
+      - name: consent_marketing
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [true]}}
+      - {name: consent_marketing_captured_at, meta: {pii: quasi}}
+      - {name: consent_marketing_season_year, meta: {pii: none}}

@@ -55,3 +55,12 @@ models:
           - accepted_values:
               arguments:
                 values: [TWIN, SIBLING, TRANSITIVE_CHAIN, NAME_CHANGE, BLOCKING_MISS, GUARD_OVERRIDE, BELOW_THRESHOLD, OTHER]
+
+  - name: eval_participation_accuracy
+    description: >
+      GROUND TRUTH. Per year and attributed country: true participant count vs the label-free identity bounds (low,
+      point, high), whether truth falls inside the range, the point error, and true vs predicted multi-country and
+      multi-org counts. The only Phase 3 model that reads ground truth.
+    columns:
+      - name: truth_within_range
+        data_tests: [not_null]

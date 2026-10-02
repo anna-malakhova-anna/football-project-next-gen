@@ -1,0 +1,90 @@
+version: 2
+
+# OPS share: running leagues and resolving data issues; full identifiers by design. meta.pii: direct | quasi | none.
+models:
+  - name: share_ops__registration
+    description: Registration grain with full identifiers; invalid registrations included with the reason.
+    columns:
+      - name: registration_key
+        meta: {pii: quasi}
+        data_tests: [unique, not_null]
+      - {name: participant_id, meta: {pii: direct}}
+      - {name: source_system, meta: {pii: none}}
+      - {name: source_record_id, meta: {pii: quasi}}
+      - {name: source_person_id, meta: {pii: direct}}
+      - {name: participation_year, meta: {pii: none}}
+      - {name: season_term, meta: {pii: none}}
+      - {name: organization_id, meta: {pii: quasi}}
+      - {name: organization_name, meta: {pii: quasi}}
+      - {name: country_code, meta: {pii: none}}
+      - {name: region_code, meta: {pii: quasi}}
+      - {name: first_name, meta: {pii: direct}}
+      - {name: last_name, meta: {pii: direct}}
+      - {name: dob, meta: {pii: quasi}}
+      - {name: birth_year, meta: {pii: quasi}}
+      - {name: sex, meta: {pii: quasi}}
+      - {name: contact_email, meta: {pii: direct}}
+      - {name: contact_phone, meta: {pii: direct}}
+      - {name: postal_code, meta: {pii: quasi}}
+      - {name: canonical_division, meta: {pii: none}}
+      - {name: age_at_cutoff, meta: {pii: quasi}}
+      - {name: is_valid_registration, meta: {pii: none}}
+      - {name: invalid_reason, meta: {pii: none}}
+      - {name: link_method, meta: {pii: none}}
+      - {name: match_probability, meta: {pii: none}}
+      - {name: consent_photo, meta: {pii: none}}
+      - {name: consent_marketing, meta: {pii: none}}
+      - {name: registered_at, meta: {pii: quasi}}
+      - {name: dq_flags, meta: {pii: none}}
+
+  - name: share_ops__participant
+    description: One row per resolved participant with full identifiers and survivorship results.
+    columns:
+      - name: participant_id
+        meta: {pii: direct}
+        data_tests: [unique, not_null]
+      - {name: first_name, meta: {pii: direct}}
+      - {name: last_name, meta: {pii: direct}}
+      - {name: dob, meta: {pii: quasi}}
+      - {name: birth_year, meta: {pii: quasi}}
+      - {name: dob_precision, meta: {pii: none}}
+      - {name: sex, meta: {pii: quasi}}
+      - {name: home_country_code, meta: {pii: none}}
+      - {name: home_region_code, meta: {pii: quasi}}
+      - {name: contact_email, meta: {pii: direct}}
+      - {name: contact_phone, meta: {pii: direct}}
+      - {name: is_minor_current, meta: {pii: none}}
+      - {name: consent_photo, meta: {pii: none}}
+      - {name: consent_photo_captured_at, meta: {pii: quasi}}
+      - {name: consent_photo_season_year, meta: {pii: none}}
+      - {name: consent_marketing, meta: {pii: none}}
+      - {name: consent_marketing_captured_at, meta: {pii: quasi}}
+      - {name: consent_marketing_season_year, meta: {pii: none}}
+      - {name: first_season, meta: {pii: none}}
+      - {name: last_season, meta: {pii: none}}
+      - {name: seasons_active, meta: {pii: none}}
+      - {name: registration_count, meta: {pii: none}}
+      - {name: source_systems, meta: {pii: none}}
+      - {name: resolution_confidence, meta: {pii: none}}
+      - {name: has_open_integrity_issue, meta: {pii: none}}
+
+  - name: share_ops__review_queue
+    description: The identity review queue with both records side by side (members holds their attributes).
+    columns:
+      - {name: priority, meta: {pii: none}}
+      - name: queue_item_id
+        meta: {pii: none}
+        data_tests: [unique, not_null]
+      - {name: matcher, meta: {pii: none}}
+      - {name: item_type, meta: {pii: none}}
+      - {name: cluster_id, meta: {pii: quasi}}
+      - {name: record_a, meta: {pii: quasi}}
+      - {name: record_b, meta: {pii: quasi}}
+      - {name: match_probability, meta: {pii: none}}
+      - {name: override_applied, meta: {pii: none}}
+      - {name: suggested_action, meta: {pii: none}}
+      - {name: integrity_issues, meta: {pii: none}}
+      - {name: members, meta: {pii: direct}}
+      - {name: feature_levels, meta: {pii: none}}
+      - {name: weight_breakdown, meta: {pii: none}}
+      - {name: reason, meta: {pii: none}}

@@ -1,0 +1,68 @@
+version: 2
+
+# EXEC share: aggregates only. meta.pii: direct | quasi | none (checked by scripts/check_share_policy.py).
+models:
+  - name: share_exec__participation_global
+    description: Unique participants and related headline counts per year, small cells suppressed.
+    columns:
+      - {name: participation_year, meta: {pii: none}}
+      - {name: unique_participants, meta: {pii: none}}
+      - {name: registrations, meta: {pii: none}}
+      - {name: registrations_per_participant, meta: {pii: none}}
+      - {name: multi_org_participants, meta: {pii: none}}
+      - {name: retention_rate, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__participation_status
+    description: Unique participants by growth status with a year total, small cells suppressed.
+    columns:
+      - {name: participation_year, meta: {pii: none}}
+      - name: status
+        meta: {pii: none}
+        data_tests:
+          - accepted_values:
+              arguments: {values: [NEW, RETURNING, REACTIVATED, CENSORED], config: {where: "status is not null"}}
+      - {name: participants, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__participation_by_country
+    description: Year x country, attributed (additive) and presence (non-additive) views; NULL country is the year total.
+    columns:
+      - {name: participation_year, meta: {pii: none}}
+      - {name: country_code, meta: {pii: quasi}}
+      - {name: participants_attributed, meta: {pii: none}}
+      - {name: participants_present, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__participation_segments
+    description: Year -> country -> age band hierarchy with girls' share of youth participation, small cells suppressed.
+    columns:
+      - {name: participation_year, meta: {pii: none}}
+      - {name: country_code, meta: {pii: quasi}}
+      - {name: age_band, meta: {pii: quasi}}
+      - {name: participants, meta: {pii: none}}
+      - {name: girls_share_of_youth, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__participation_by_sex
+    description: Year x registration-reported sex with a year total, small cells suppressed.
+    columns:
+      - {name: participation_year, meta: {pii: none}}
+      - {name: sex, meta: {pii: quasi}}
+      - {name: participants, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

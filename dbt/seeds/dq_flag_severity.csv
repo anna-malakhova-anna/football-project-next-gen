@@ -1,0 +1,22 @@
+flag,severity,treatment
+exact_duplicate,AFFECTS_COUNT,Double submit: the copy is not a valid registration (rule C2).
+pagination_overlap_duplicate,AFFECTS_COUNT,API page overlap: the copy is not a valid registration (rule C2).
+near_duplicate,AFFECTS_COUNT,"Same person, league and season registered twice: both valid, one participant; inflates registrations."
+impossible_dob,AFFECTS_COUNT,"DOB cannot be right: the registration counts, the DOB is dropped for matching and age."
+dob_unparseable,AFFECTS_COUNT,DOB could not be read: age is unknown.
+unmapped_division,AFFECTS_COUNT,Division label not in division_map: division unknown.
+unmapped_gender,AFFECTS_COUNT,Sex value not in gender_map: reported as U.
+unmapped_country,AFFECTS_COUNT,Country value not in country_map: country unknown.
+missing_gender,MISSING_VALUE,"Sex not captured: reported as U, never imputed."
+missing_photo_consent,MISSING_VALUE,"Photo consent not captured: NULL, never FALSE."
+missing_marketing_opt_in,MISSING_VALUE,"Marketing consent not captured: NULL, never FALSE."
+null_photo_media,MISSING_VALUE,"Photo consent not captured: NULL, never FALSE."
+null_casl_marketing,MISSING_VALUE,"Marketing consent not captured: NULL, never FALSE."
+missing_consents_object,MISSING_VALUE,Whole consents object absent: both consents NULL.
+missing_media_consent,MISSING_VALUE,"Media consent not captured: NULL, never FALSE."
+zip_leading_zero_dropped,NORMALIZED,Repaired in staging (leading zero restored).
+guardian_email_case_whitespace,NORMALIZED,"Repaired in staging (lowercased, trimmed)."
+all_caps_names,NORMALIZED,Repaired in staging (title case).
+postal_code_format,NORMALIZED,Repaired in staging (standard A1A 1A1).
+uk_dob_excel_serial,NORMALIZED,Decoded in staging (Excel serial to date).
+country_value_inconsistency,NORMALIZED,Mapped in staging through country_map.

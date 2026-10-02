@@ -1,0 +1,6 @@
+source_system,onboarding_status,description
+US_LEAGUE,Modelled,US league registrations (CSV)
+CA_CLUB,Modelled,Canadian club registrations (JSON API)
+INTL_FED,Modelled,International federation returns (XLSX)
+FAN_ENGAGEMENT,Discovery,Planned for Phase 4: fan engagement feed; not onboarded
+SCHOOL_AGGREGATES,Discovery,Planned for Phase 4: school aggregate counts; not onboarded

@@ -1,0 +1,102 @@
+version: 2
+
+models:
+  - name: mart_participation_global
+    description: >
+      Global participation by year from the one counting engine. Unique participants count each person once; retention is
+      returning / prior-year participants. Methodology version stamped on every row.
+    columns:
+      - name: participation_year
+        data_tests: [unique, not_null]
+      - name: unique_participants
+        data_tests: [not_null]
+      - name: methodology_version
+        data_tests: [not_null]
+
+  - name: mart_participation_by_country
+    description: >
+      Year x country in two labelled views: participants_attributed (additive, sums to the global count) and
+      participants_present (non-additive: sums to more than the global count by the number of extra countries).
+    columns:
+      - name: participation_year
+        data_tests: [not_null]
+      - name: country_code
+        data_tests: [not_null]
+
+  - name: mart_participation_segments
+    description: >
+      Year x segment participation with subtotals from one GROUPING SETS query. A NULL dimension means rolled up;
+      grouping_id (bitmask, bit set = rolled up: country, age_band, primary_division, sex, age_group) and grouping_label
+      identify the level. Girls' share of youth participation is on every row.
+    columns:
+      - name: participation_year
+        data_tests: [not_null]
+      - name: grouping_id
+        data_tests: [not_null]
+      - name: participants
+        data_tests: [not_null]
+      - name: age_band
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['0-7', '8-9', '10-11', '12-13', '14-17', '18-29', '30-44', '45+', UNKNOWN]
+                config: {where: "age_band is not null"}
+      - name: sex
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [F, M, U]
+                config: {where: "sex is not null"}
+      - name: age_group
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [YOUTH, ADULT, UNKNOWN]
+                config: {where: "age_group is not null"}
+
+  - name: mart_identity_uncertainty
+    description: >
+      Label-free identity bounds per year (GLOBAL) and per attributed country (COUNTRY): low (every PROBABLE pair is the
+      same person), point (production) and high (flagged clusters are several people), each from the connected_components
+      macro, plus data-trust columns (open review items, participants touched by them, share high-confidence). Covers
+      identity only, not source coverage or data-entry errors.
+    columns:
+      - name: participation_year
+        data_tests: [not_null]
+      - name: grain
+        data_tests:
+          - accepted_values: {arguments: {values: [GLOBAL, COUNTRY]}}
+      - name: participants_point
+        data_tests: [not_null]
+
+  - name: mart_kpi_scorecard
+    description: >
+      The KPI scorecard in long format, one row per participation year x KPI, covering the whole KPI tree (growth, reach,
+      depth and the data-trust KPIs that are reported beside the headline numbers). NULL value = not defined (for example
+      new / returning in the first, left-censored year). low / high are identity bounds where they exist, NULL otherwise.
+    columns:
+      - name: participation_year
+        data_tests: [not_null]
+      - name: kpi_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('metric_catalog')
+                field: metric_id
+      - name: methodology_version
+        data_tests: [not_null]
+      - name: computed_at
+        data_tests: [not_null]
+
+  - name: mart_restatement_log
+    description: >
+      KPIs whose current value differs from the latest published snapshot, with old value, new value, delta, likely cause
+      (NEW_SOURCE_DATA, IDENTITY_CHANGE, METHODOLOGY_CHANGE, UNKNOWN) and whether ADR-007's threshold requires a restatement.
+      Empty when nothing published has changed.
+    columns:
+      - name: likely_cause
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [NEW_SOURCE_DATA, IDENTITY_CHANGE, METHODOLOGY_CHANGE, UNKNOWN]

@@ -1,0 +1,166 @@
+audience,model,column,allowed,treatment
+exec,share_exec__participation_global,participation_year,Y,DIMENSION
+exec,share_exec__participation_global,unique_participants,Y,AGGREGATE_SUPPRESSED
+exec,share_exec__participation_global,registrations,Y,AGGREGATE_SUPPRESSED
+exec,share_exec__participation_global,registrations_per_participant,Y,DERIVED_RATE_SUPPRESSED
+exec,share_exec__participation_global,multi_org_participants,Y,AGGREGATE_SUPPRESSED
+exec,share_exec__participation_global,retention_rate,Y,DERIVED_RATE_SUPPRESSED
+exec,share_exec__participation_global,suppressed,Y,SUPPRESSION_FLAG
+exec,share_exec__participation_status,participation_year,Y,DIMENSION
+exec,share_exec__participation_status,status,Y,DIMENSION
+exec,share_exec__participation_status,participants,Y,AGGREGATE_SUPPRESSED
+exec,share_exec__participation_status,suppressed,Y,SUPPRESSION_FLAG
+exec,share_exec__participation_by_country,participation_year,Y,DIMENSION
+exec,share_exec__participation_by_country,country_code,Y,DIMENSION
+exec,share_exec__participation_by_country,participants_attributed,Y,AGGREGATE_SUPPRESSED
+exec,share_exec__participation_by_country,participants_present,Y,AGGREGATE_SUPPRESSED
+exec,share_exec__participation_by_country,suppressed,Y,SUPPRESSION_FLAG
+exec,share_exec__participation_segments,participation_year,Y,DIMENSION
+exec,share_exec__participation_segments,country_code,Y,DIMENSION
+exec,share_exec__participation_segments,age_band,Y,DIMENSION
+exec,share_exec__participation_segments,participants,Y,AGGREGATE_SUPPRESSED
+exec,share_exec__participation_segments,girls_share_of_youth,Y,DERIVED_RATE_SUPPRESSED
+exec,share_exec__participation_segments,suppressed,Y,SUPPRESSION_FLAG
+exec,share_exec__participation_by_sex,participation_year,Y,DIMENSION
+exec,share_exec__participation_by_sex,sex,Y,DIMENSION
+exec,share_exec__participation_by_sex,participants,Y,AGGREGATE_SUPPRESSED
+exec,share_exec__participation_by_sex,suppressed,Y,SUPPRESSION_FLAG
+exec,*,participant_id,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,analyst_key,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,first_name,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,last_name,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,dob,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,birth_year,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,contact_email,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,contact_phone,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,postal_code,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,postal_prefix,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,organization_id,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+exec,*,source_person_id,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
+analyst,share_analyst__participant_year,analyst_key,Y,PSEUDONYMIZED: sha256(participant_id || salt)
+analyst,share_analyst__participant_year,participation_year,Y,DIMENSION
+analyst,share_analyst__participant_year,valid_registration_count,Y,RECORD_LEVEL
+analyst,share_analyst__participant_year,org_count,Y,RECORD_LEVEL
+analyst,share_analyst__participant_year,is_multi_org,Y,RECORD_LEVEL
+analyst,share_analyst__participant_year,attributed_country_code,Y,RECORD_LEVEL
+analyst,share_analyst__participant_year,countries_played,Y,RECORD_LEVEL
+analyst,share_analyst__participant_year,birth_year,Y,"GENERALIZED: year only, never the DOB"
+analyst,share_analyst__participant_year,age_band,Y,DERIVED
+analyst,share_analyst__participant_year,is_youth,Y,DERIVED
+analyst,share_analyst__participant_year,primary_division,Y,RECORD_LEVEL
+analyst,share_analyst__participant_year,sex,Y,RECORD_LEVEL: U kept as its own value
+analyst,share_analyst__participant_year,postal_prefix,Y,GENERALIZED: first 3 characters only
+analyst,share_analyst__participant_year,status,Y,RECORD_LEVEL
+analyst,share_analyst__participant_year,resolution_confidence,Y,RECORD_LEVEL
+analyst,share_analyst__participant_year,has_open_integrity_issue,Y,RECORD_LEVEL
+analyst,*,participant_id,N,REPLACED by analyst_key (salted hash)
+analyst,*,dob,N,GENERALIZED to birth_year
+analyst,*,postal_code,N,TRUNCATED to postal_prefix
+analyst,*,first_name,N,DROPPED: direct identifier or quasi-identifier the analyst purpose does not need
+analyst,*,last_name,N,DROPPED: direct identifier or quasi-identifier the analyst purpose does not need
+analyst,*,contact_email,N,DROPPED: direct identifier or quasi-identifier the analyst purpose does not need
+analyst,*,contact_phone,N,DROPPED: direct identifier or quasi-identifier the analyst purpose does not need
+analyst,*,source_person_id,N,DROPPED: direct identifier or quasi-identifier the analyst purpose does not need
+analyst,*,organization_id,N,DROPPED: direct identifier or quasi-identifier the analyst purpose does not need
+analyst,*,consent_photo,N,DROPPED: direct identifier or quasi-identifier the analyst purpose does not need
+analyst,*,consent_marketing,N,DROPPED: direct identifier or quasi-identifier the analyst purpose does not need
+ops,share_ops__registration,registration_key,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,participant_id,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,source_system,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,source_record_id,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,source_person_id,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,participation_year,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,season_term,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,organization_id,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,organization_name,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,country_code,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,region_code,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,first_name,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,last_name,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,dob,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,birth_year,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,sex,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,contact_email,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,contact_phone,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,postal_code,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,canonical_division,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,age_at_cutoff,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,is_valid_registration,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,invalid_reason,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,link_method,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,match_probability,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,consent_photo,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,consent_marketing,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,registered_at,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__registration,dq_flags,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,participant_id,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,first_name,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,last_name,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,dob,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,birth_year,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,dob_precision,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,sex,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,home_country_code,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,home_region_code,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,contact_email,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,contact_phone,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,is_minor_current,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,consent_photo,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,consent_photo_captured_at,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,consent_photo_season_year,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,consent_marketing,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,consent_marketing_captured_at,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,consent_marketing_season_year,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,first_season,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,last_season,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,seasons_active,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,registration_count,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,source_systems,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,resolution_confidence,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__participant,has_open_integrity_issue,Y,"FULL_IDENTIFIERS: operational need (running leagues, resolving data issues)"
+ops,share_ops__review_queue,priority,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,queue_item_id,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,matcher,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,item_type,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,cluster_id,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,record_a,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,record_b,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,match_probability,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,override_applied,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,suggested_action,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,integrity_issues,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,members,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,feature_levels,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,weight_breakdown,Y,REVIEW_QUEUE: both records side by side for the steward
+ops,share_ops__review_queue,reason,Y,REVIEW_QUEUE: both records side by side for the steward
+marketing,share_marketing__contact_list,contact_email,Y,CONSENTED_CONTACT_ONLY: every participant sharing the address has marketing consent TRUE
+marketing,share_marketing__contact_list,contact_role,Y,DERIVED
+marketing,share_marketing__contact_list,contact_first_name,Y,"ADULT_ONLY: filled only for a sole adult player, never a child"
+marketing,share_marketing__contact_list,country_code,Y,RECORD_LEVEL
+marketing,share_marketing__contact_list,consent_marketing,Y,"ALWAYS_TRUE: row filter, kept for audit"
+marketing,share_marketing__contact_list,consent_marketing_captured_at,Y,AUDIT
+marketing,share_marketing__contact_list,consent_marketing_season_year,Y,AUDIT
+marketing,*,first_name,N,NEVER: a minor's own details are never shared; for a minor the contact is the guardian
+marketing,*,last_name,N,NEVER: a minor's own details are never shared; for a minor the contact is the guardian
+marketing,*,dob,N,NEVER: a minor's own details are never shared; for a minor the contact is the guardian
+marketing,*,birth_year,N,NEVER: a minor's own details are never shared; for a minor the contact is the guardian
+marketing,*,sex,N,NEVER: a minor's own details are never shared; for a minor the contact is the guardian
+marketing,*,participant_id,N,NEVER: a minor's own details are never shared; for a minor the contact is the guardian
+marketing,*,contact_phone,N,NEVER: a minor's own details are never shared; for a minor the contact is the guardian
+marketing,*,postal_code,N,NEVER: a minor's own details are never shared; for a minor the contact is the guardian
+marketing,*,consent_photo,N,NEVER: a minor's own details are never shared; for a minor the contact is the guardian
+media,share_media__roster,first_name,Y,CLEARED_ONLY: consent_photo TRUE; absent means not cleared
+media,share_media__roster,last_name,Y,CLEARED_ONLY: consent_photo TRUE; absent means not cleared
+media,share_media__roster,organization_id,Y,RECORD_LEVEL
+media,share_media__roster,organization_name,Y,RECORD_LEVEL
+media,share_media__roster,season_year,Y,RECORD_LEVEL
+media,share_media__roster,season_term,Y,RECORD_LEVEL
+media,share_media__roster,consent_photo,Y,"ALWAYS_TRUE: row filter, kept for audit"
+media,*,dob,N,NEVER: not needed for photo clearance
+media,*,birth_year,N,NEVER: not needed for photo clearance
+media,*,sex,N,NEVER: not needed for photo clearance
+media,*,participant_id,N,NEVER: not needed for photo clearance
+media,*,contact_email,N,NEVER: not needed for photo clearance
+media,*,contact_phone,N,NEVER: not needed for photo clearance
+media,*,postal_code,N,NEVER: not needed for photo clearance
+media,*,consent_marketing,N,NEVER: not needed for photo clearance

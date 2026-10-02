@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: share_media__roster
+    description: >
+      Photo / video clearance roster: name, organization and season for participants whose most recent captured photo
+      consent is TRUE. Absent means not cleared (NULL and FALSE are both absent).
+    columns:
+      - {name: first_name, meta: {pii: direct}}
+      - {name: last_name, meta: {pii: direct}}
+      - {name: organization_id, meta: {pii: quasi}}
+      - {name: organization_name, meta: {pii: quasi}}
+      - {name: season_year, meta: {pii: none}}
+      - {name: season_term, meta: {pii: none}}
+      - name: consent_photo
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [true]}}

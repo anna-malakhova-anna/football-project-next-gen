@@ -1,0 +1,30 @@
+version: 2
+
+# ANALYST share: pseudonymous participant-year rows. meta.pii: direct | quasi | none (checked by check_share_policy.py).
+models:
+  - name: share_analyst__participant_year
+    description: >
+      Participant-year rows keyed by a salted hash (analyst_key). No names, no contact details, no date of birth, no
+      organization id; birth year and a 3-character postal prefix only. Still personal data (ADR-006).
+    columns:
+      - name: analyst_key
+        meta: {pii: quasi}
+        data_tests: [not_null]
+      - {name: participation_year, meta: {pii: none}}
+      - {name: valid_registration_count, meta: {pii: none}}
+      - {name: org_count, meta: {pii: none}}
+      - {name: is_multi_org, meta: {pii: none}}
+      - {name: attributed_country_code, meta: {pii: quasi}}
+      - {name: countries_played, meta: {pii: quasi}}
+      - {name: birth_year, meta: {pii: quasi}}
+      - {name: age_band, meta: {pii: quasi}}
+      - {name: is_youth, meta: {pii: none}}
+      - {name: primary_division, meta: {pii: none}}
+      - {name: sex, meta: {pii: quasi}}
+      - {name: postal_prefix, meta: {pii: quasi}}
+      - name: status
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NEW, RETURNING, REACTIVATED, CENSORED]}}
+      - {name: resolution_confidence, meta: {pii: none}}
+      - {name: has_open_integrity_issue, meta: {pii: none}}

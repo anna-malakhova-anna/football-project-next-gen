@@ -1,0 +1,82 @@
+version: 2
+
+models:
+  - name: fct_registration
+    description: >
+      One row per registration (the grain of bridge_registration_participant) with its counting attributes. Rule C2:
+      a registration is valid unless it is an exact duplicate, outside a reporting period, or registered outside its
+      period. Impossible-DOB records are valid.
+    columns:
+      - name: registration_key
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_registrations_unioned')
+                field: registration_key
+      - name: participant_id
+        data_tests: [not_null]
+      - name: participation_year
+        data_tests: [not_null]
+      - name: is_valid_registration
+        data_tests: [not_null]
+      - name: invalid_reason
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [EXACT_DUPLICATE, NO_REPORTING_PERIOD, REGISTERED_OUTSIDE_PERIOD]
+      - name: us_season_term
+        data_tests:
+          - accepted_values: {arguments: {values: [SPRING, FALL]}}
+
+  - name: fct_participant_year
+    description: >
+      One row per participant x participation year with at least one valid registration (the counting engine behind
+      every global, country and segment number). Status: NEW (first valid year), RETURNING (valid last year),
+      REACTIVATED (a gap, then back), CENSORED (the first data year, whose history is unknown).
+    columns:
+      - name: participant_year_key
+        data_tests: [unique, not_null]
+      - name: participant_id
+        data_tests: [not_null]
+      - name: participation_year
+        data_tests: [not_null]
+      - name: attributed_country_code
+        data_tests: [not_null]
+      - name: status
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [NEW, RETURNING, REACTIVATED, CENSORED]
+      - name: age_band
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['0-7', '8-9', '10-11', '12-13', '14-17', '18-29', '30-44', '45+', UNKNOWN]
+      - name: sex
+        data_tests:
+          - accepted_values: {arguments: {values: [F, M, U]}}
+
+  - name: fct_participant_us_season
+    description: >
+      US seasonal view (rule C4): one row per participant x year x term (SPRING / FALL) with at least one valid US
+      registration. Status is defined against the same term in the prior year. Never blended with annual sources.
+    columns:
+      - name: participant_season_key
+        data_tests: [unique, not_null]
+      - name: season_term
+        data_tests:
+          - accepted_values: {arguments: {values: [SPRING, FALL]}}
+      - name: status
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [NEW, RETURNING, REACTIVATED, CENSORED]
+      - name: age_band
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['0-7', '8-9', '10-11', '12-13', '14-17', '18-29', '30-44', '45+', UNKNOWN]

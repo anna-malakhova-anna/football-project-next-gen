@@ -135,3 +135,122 @@ seeds:
         decided_by: varchar
         decided_at: timestamp
         note: varchar
+
+  - name: metric_catalog
+    description: >
+      Every metric reported in a Phase 3 mart, share or the KPI scorecard, with its definition, grain, additivity and
+      owner. A test fails if a KPI or a share metric column is missing here. docs/metrics.md is generated from it.
+      additivity: ADDITIVE (sum across any dimension of its grain), ADDITIVE_BY_ATTRIBUTION (sums across countries only
+      in the attributed view), NON_ADDITIVE (distinct counts that overlap), RATIO (recompute from parts), STATE
+      (point-in-time).
+    config:
+      tags: [phase3]
+      column_types: {metric_id: varchar, name: varchar, definition: varchar, grain: varchar, additivity: varchar, owner: varchar, methodology_version: varchar, kpi_group: varchar, unit: varchar}
+    columns:
+      - name: metric_id
+        data_tests: [unique, not_null]
+      - name: name
+        data_tests: [not_null]
+      - name: definition
+        data_tests: [not_null]
+      - name: grain
+        data_tests: [not_null]
+      - name: additivity
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ADDITIVE, ADDITIVE_BY_ATTRIBUTION, NON_ADDITIVE, RATIO, STATE]
+      - name: owner
+        data_tests: [not_null]
+      - name: methodology_version
+        data_tests: [not_null]
+      - name: kpi_group
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [north_star, growth, reach, depth, data_trust, supporting]
+      - name: unit
+        data_tests:
+          - accepted_values: {arguments: {values: [count, rate, ratio]}}
+
+  - name: reporting_periods
+    description: >
+      Participation years (calendar years, rule C3) and US seasons (rule C4) with their date ranges and the age cutoff
+      date (December 31, ADR-002).
+    config:
+      tags: [phase3]
+      column_types: {period_id: varchar, period_type: varchar, participation_year: integer, term: varchar, start_date: date, end_date: date, cutoff_date: date}
+    columns:
+      - name: period_id
+        data_tests: [unique, not_null]
+      - name: period_type
+        data_tests:
+          - accepted_values: {arguments: {values: [YEAR, US_SEASON]}}
+      - name: term
+        data_tests:
+          - accepted_values: {arguments: {values: [ANNUAL, SPRING, FALL]}}
+
+  - name: privacy_params
+    description: >
+      Privacy parameters in one place: the small-cell threshold k_min, whether secondary suppression is on, the youth
+      and minor ages, the analyst postal prefix length.
+    config:
+      tags: [phase3]
+      column_types: {param: varchar, value: varchar, description: varchar}
+    columns:
+      - name: param
+        data_tests: [unique, not_null]
+      - name: value
+        data_tests: [not_null]
+
+  - name: audience_column_policy
+    description: >
+      The column-level access policy: for each audience and share model, every column that may appear (allowed = Y,
+      with its treatment) and notable columns that may NOT (allowed = N). model '*' applies to every model of the
+      audience. scripts/check_share_policy.py fails on any column in a share that is not listed as allowed.
+    config:
+      tags: [phase3]
+      column_types: {audience: varchar, model: varchar, column: varchar, allowed: varchar, treatment: varchar}
+    columns:
+      - name: audience
+        data_tests:
+          - accepted_values: {arguments: {values: [exec, analyst, ops, marketing, media]}}
+      - name: allowed
+        data_tests:
+          - accepted_values: {arguments: {values: ['Y', 'N']}}
+      - name: treatment
+        data_tests: [not_null]
+
+  - name: source_registry
+    description: >
+      Sources known to the program and their onboarding status, mirrored from docs/source_inventory.md. Feeds the data
+      trust KPIs "sources onboarded" and "sources known". The two Phase 4 sources are known (planned) but not onboarded.
+    config:
+      tags: [phase3]
+      column_types: {source_system: varchar, onboarding_status: varchar, description: varchar}
+    columns:
+      - name: source_system
+        data_tests: [unique, not_null]
+      - name: onboarding_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [Discovery, Profiling, Staged, Modelled, Production]
+
+  - name: dq_flag_severity
+    description: >
+      Classifies every data-quality flag: AFFECTS_COUNT (duplicates, impossible or unparseable DOB, unmapped values: can
+      change what is counted or how a record is classified), MISSING_VALUE (a value that was not captured, left NULL or U),
+      NORMALIZED (cosmetic, repaired in staging). The KPI "registrations failing DQ rules" counts AFFECTS_COUNT only.
+    config:
+      tags: [phase3]
+      column_types: {flag: varchar, severity: varchar, treatment: varchar}
+    columns:
+      - name: flag
+        data_tests: [unique, not_null]
+      - name: severity
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [AFFECTS_COUNT, MISSING_VALUE, NORMALIZED]

@@ -56,7 +56,8 @@ make phase2     # Phase 1 + identity resolution + evaluation       (about 55 sec
 | `make eval` | evaluation models, headline table, and CSV exports to `docs/eval/` |
 | `make phase2` | everything: all, load-eval, idr, eval, every dbt test, the isolation check and an ID-stability check |
 | `make steward-demo` / `make steward-reset` | optional demo of the review loop with a **simulated** steward (see below) |
-| `make docs` | regenerates `docs/data_dictionary.md` from the dbt YAML |
+| `make measure` / `make shares` / `make report` / `make publish YEAR=2025` / `make phase3` | Phase 3: counting facts and marts, audience shares and the policy check, the executive report, immutable snapshots (see the Phase 3 section) |
+| `make docs` | regenerates the data dictionary, `docs/metrics.md` and `docs/access_policy.md` from their sources |
 | `make clean` | removes generated data, the warehouse and dbt artifacts |
 
 Explore the result in `warehouse/flag.duckdb`, for example:
@@ -87,6 +88,10 @@ loader/load_eval.py        ground truth -> DuckDB schema eval (Phase 2; quaranti
 dbt/                       seeds, macros, staging / intermediate / quality models, singular tests
 dbt/models/identity/       Phase 2: blocking, features, matchers, edges, clusters, integrity, review queue
 dbt/models/marts/          Phase 2: dim_participant, bridge_registration_participant, participant_identifiers
+dbt/models/facts/          Phase 3: the counting engine (fct_registration, fct_participant_year, fct_participant_us_season)
+dbt/models/measurement/    Phase 3: participation marts, identity uncertainty, KPI scorecard, restatement log
+dbt/models/shares/         Phase 3: one schema per audience (exec, analyst, ops, marketing, media)
+published/                 Phase 3: committed, immutable scorecard snapshots
 dbt/models/evaluation/     Phase 2: the ONLY models that read ground truth
 tests/                     pytest for generator, loader, seeds, docs, isolation, steward simulator
 scripts/                   data dictionary, isolation check, ID-stability check, headline output, simulated steward
@@ -184,13 +189,79 @@ recursive CTE (macro `connected_components`), cluster-integrity checks, a priori
 | Docs and ADRs; README updated | done |
 | Metric targets | precision 0.99973 and recall 0.9993 met; sibling/twin merges met at AUTO, **missed at AUTO + PROBABLE** |
 
+## Phase 3: measurement and privacy (how many people play, and how sure are we?)
+
+Turns resolved participants into numbers an executive can trust and data each audience is allowed to see. **All data is synthetic.**
+A count is **registered participants in onboarded sources**: not total participation, and a registration is not proof that
+someone played.
+
+- **A defined, versioned methodology** (v1.0): counting rules C1 to C15, in [ADR-005](docs/decisions/ADR-005-counting-rules.md) and the
+  [methodology memo](docs/methodology/counting-a-participant.md). **The memo is a draft skeleton: every heading, rule and number is in
+  place, and the prose is Anna's to write.**
+- **One counting engine** (`fct_registration` -> `fct_participant_year`, plus a US-season fact) behind every mart, share and report. Global
+  unique participants are **not** the sum of country presence counts; both views exist and are labelled, and tests prove the arithmetic.
+- **Honest uncertainty:** a low / point / high identity range computed without ground truth (the same `connected_components` macro over three
+  edge sets), reported beside the headline numbers, with a separately labelled comparison against the synthetic truth.
+- **Audience shares with privacy controls** enforced by tests: exec (aggregates, small cells suppressed), analyst (pseudonymous participant-year),
+  ops (full identifiers), marketing (consented contacts only), media (cleared roster only). [access_policy.md](docs/access_policy.md),
+  [ADR-006](docs/decisions/ADR-006-privacy-controls.md).
+- **A KPI scorecard**, **publish and restatement** (immutable snapshots; a log that names the likely cause of any change;
+  [ADR-007](docs/decisions/ADR-007-publish-and-restatement.md)) and an **executive report** rendered with no calculations
+  ([2025 report](docs/reports/participation_report_2025.md)).
+
+| 2025 headline | Value | Identity range |
+|---|---|---|
+| Unique participants | 3,962 (+18.2% on 2024) | 3,953 to 3,965 (0.3% of the estimate) |
+| Retention (returning / prior-year participants) | 67.5% (+3.6 points) | |
+| Girls' share of youth participation | 45.8% (40.2% in 2023) | |
+| International participants (attributed, outside the US) | 1,495 | 1,491 to 1,495 |
+
+Data trust is reported beside those numbers, not in an appendix: 99.3% of participants resolved with high confidence, 61 open review items,
+2.2% of registrations failing counting-affecting DQ rules, 3 of 5 known sources onboarded.
+
+```bash
+make phase3                  # phase2, then facts + marts, shares + the policy check, every test, the executive report
+make measure                 # seeds, load published snapshots, dbt run facts measurement
+make shares                  # dbt run shares, then scripts/check_share_policy.py
+make report [YEAR=2025]      # render docs/reports/participation_report_<year>.md (formatting only)
+make publish YEAR=2025       # run EVERY test, then write an immutable snapshot to published/; refuses if any test fails
+make docs                    # regenerate the data dictionary, docs/metrics.md and docs/access_policy.md
+```
+
+**Honest notes**
+- **The identity range covers identity only.** It is tight (0.3%) because it spans only the uncertainty the pipeline knows about (about 60
+  open review items, 5 flagged clusters). The synthetic truth falls inside it in every year, but two country cells (GB) fall outside, caused by a
+  look-alike merge the pipeline does not flag. Do not read the range as a confidence interval for "how many people play flag football".
+- **The analyst share is pseudonymized, not anonymous.** 74% of its rows are unique on birth year, postal prefix, sex, country and year.
+  A visible warning in the build says so (ADR-006).
+- **Small-cell suppression is simplified** (primary plus secondary) and deliberately does not suppress a zero; ADR-006 explains why and
+  names the production alternatives.
+- **Annual REACTIVATED is 0** because churn in the generator is permanent; reactivation shows only in the US spring / fall view.
+- **The first published snapshot was taken with an uncommitted working tree** and records `git_dirty = true`; a clean-commit snapshot can be
+  published at any time and becomes the latest.
+- A generator amendment (some movers play in two countries in the move year) was made so country counting is actually exercised; it shifted
+  every Phase 2 number slightly (ADR-003).
+
+| Phase 3 definition of done | Result |
+|---|---|
+| Counting rules C1 to C15 implemented and traceable | table in ADR-005 maps each to a model and column |
+| Additivity tests pass | attributed sums to global; presence minus global = extra countries (= multi-country participants) |
+| Identity bounds label-free; evaluation reports whether truth is inside | yes; truth inside in every year, 22 of 24 country cells |
+| KPI scorecard covers the full tree incl. data-trust KPIs; every metric in the catalog | 17 KPIs per year, 29 catalog metrics, tests |
+| Five shares; the policy check fails on any unlisted column; consent and minor tests pass | yes; exercised against a deliberately added DOB column |
+| Primary and secondary suppression enforced by tests | independent checker, itself tested |
+| Publish refuses on failing tests; restatement demo shows a caught change with a cause | yes ([restatement_demo.md](docs/reports/restatement_demo.md)) |
+| Exec report renders from `share_exec` and the scorecard only, trust beside the numbers | yes |
+| Memo skeleton complete; **Anna has written the prose** | skeleton complete; **prose pending** |
+| ADR-005/006/007, access policy, metrics, CHANGELOG, README | done |
+
 ## Roadmap
 
 | Phase | Theme | Key outputs |
 |---|---|---|
 | **1 Foundations** (done) | Sources, ingestion, staging, DQ | 3 synthetic sources + hidden ground truth, DuckDB raw layer, dbt staging + unioned model, DQ profile, source inventory, data dictionary v1 |
 | **2 Identity** (done) | Who is the same person? | Blocking + fuzzy match in SQL, match-confidence tiers, `dim_participant` with survivorship rules, precision/recall against ground truth |
-| 3 Measurement and privacy | What counts as a participant? | Unique participants vs registrations, methodology memo, consent-aware and minor-masked views, role-based access pattern |
+| **3 Measurement and privacy** (built; memo prose pending) | What counts as a participant? | Unique participants vs registrations, methodology memo, consent-aware and minor-masked views, role-based access pattern |
 | 4 Outcomes and scale | Does playing create fans? | Retention cohorts, participant to fan funnel, 2 more sources (fan engagement, school counts), source-onboarding playbook, polish |
 
 ## Documents
@@ -201,4 +272,7 @@ recursive CTE (macro `connected_components`), cluster-integrity checks, a priori
 - [ADR-001: Stack](docs/decisions/ADR-001-stack.md), [ADR-002: Age cutoff convention](docs/decisions/ADR-002-age-cutoff-convention.md)
 - [Identity resolution explained](docs/identity_resolution.md) (for a program lead)
 - [ADR-003: Identity resolution](docs/decisions/ADR-003-identity-resolution.md), [ADR-004: Participant ID stability](docs/decisions/ADR-004-participant-id-stability.md)
+- [Methodology memo: counting a participant](docs/methodology/counting-a-participant.md) (draft skeleton), [metric catalog](docs/metrics.md), [access policy](docs/access_policy.md), [CHANGELOG](docs/methodology/CHANGELOG.md)
+- [ADR-005: Counting rules](docs/decisions/ADR-005-counting-rules.md), [ADR-006: Privacy controls](docs/decisions/ADR-006-privacy-controls.md), [ADR-007: Publish and restatement](docs/decisions/ADR-007-publish-and-restatement.md)
+- [2025 participation report](docs/reports/participation_report_2025.md), [restatement demo](docs/reports/restatement_demo.md), [Phase 2 results](docs/phase2_results.md)
 - Evaluation exports for charts: [`docs/eval/`](docs/eval/) (threshold sweep, headline, segments)

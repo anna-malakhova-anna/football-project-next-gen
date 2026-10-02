@@ -59,6 +59,13 @@ Each issue links to a `defect_id` in `quality.dq_summary`; `quality.dq_defect_lo
 - **Category labels do not line up with canonical divisions:** `U15` maps to `U14`, `Masters` to `ADULT_MIXED`. Noted in `division_map`.
 - **Not detectable in Phase 1:** none of the rate-based defects; the two structural ones above (name order, reissued IDs) are rules, not data signals.
 
+## Known but not onboarded
+
+Two further sources are planned for Phase 4 and are tracked as `Discovery` in `dbt/seeds/source_registry.csv`, which feeds the
+data-trust KPIs "sources onboarded" and "sources known": **fan engagement** (a fan engagement feed) and **school aggregates** (school
+aggregate counts). The aggregate source will be reported as a separate, non-deduplicated "reported headcount" line and never mixed into
+resolved participants (methodology memo, section 8). No data from either exists yet.
+
 ## Onboarding status definitions
 
 `Discovery` (known, not yet profiled) -> `Profiling` (profiled in `dq_source_profile`) -> `Staged` (typed, standardized, flagged;

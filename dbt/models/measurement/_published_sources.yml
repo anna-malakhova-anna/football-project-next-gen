@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: published
+    description: >
+      Scorecard snapshots published by scripts/publish.py (committed parquet in published/), loaded into the warehouse by
+      loader/load_published.py (`make measure`). The parquet files are the system of record.
+    schema: published
+    tables:
+      - name: scorecard_snapshots
+        description: One row per published KPI value, with the methodology version, git SHA, raw row counts and identity fingerprint at publish time.

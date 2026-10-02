@@ -21,6 +21,8 @@ vars:
   # u-probability sample: keep a record pair when hash(pair) % modulus = 0. With 13,965 records (97.5M possible
   # pairs) a modulus of 488 keeps about 200,000 random pairs, drawn from ALL pairs, not from blocks.
   idr_u_sample_modulus: 488
+  # Version of the counting rules (docs/methodology/CHANGELOG.md); stamped on every scorecard row and snapshot.
+  methodology_version: '1.0'
   # Which matcher feeds the marts: fs (Fellegi-Sunter) or rules (baseline). Both are always computed.
   matcher: fs
   # Largest cluster that is plausible for one person: 3 seasons x 2 US terms x 2 concurrent leagues = 12,
@@ -55,6 +57,27 @@ models:
       +materialized: table
       +schema: evaluation
       +tags: ['phase2']
+    facts:
+      +materialized: table
+      +schema: facts
+      +tags: ['phase3']
+    measurement:
+      +materialized: table
+      +schema: measurement
+      +tags: ['phase3']
+    shares:
+      +materialized: table
+      +tags: ['phase3']
+      exec:
+        +schema: share_exec
+      analyst:
+        +schema: share_analyst
+      ops:
+        +schema: share_ops
+      marketing:
+        +schema: share_marketing
+      media:
+        +schema: share_media
 
 seeds:
   counting_flag_football:
