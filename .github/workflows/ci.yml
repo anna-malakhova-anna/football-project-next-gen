@@ -1,0 +1,56 @@
+# Build, test and publish the results site. Everything runs from an empty checkout: nothing is cached except the uv environment.
+# `make all-phases` is the supported full build: generate, load, validate contracts, every dbt model and test, pytest, and the build checks
+# (ground-truth isolation, aggregate lineage, share policy, participant-ID stability). It takes about 2.5 minutes locally.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies and create the dbt profile
+        run: make setup
+
+      - name: Full build (generate, load, contracts, dbt run and test, pytest, isolation, lineage, share policy, ID stability)
+        run: make all-phases
+
+      - name: Build the results site
+        run: make site
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
