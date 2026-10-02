@@ -87,3 +87,12 @@ models:
       - name: true_survival
         data_tests: [not_null]
 
+
+  - name: eval_retention_checks
+    description: >
+      GROUND TRUTH (evaluation only). Pass/fail checks on eval_retention: the KM curve is inside its interval, interval coverage is honest, and the naive
+      age-out-as-churn version understates retention for the oldest youth entrants.
+    columns:
+      - name: passed
+        data_tests:
+          - accepted_values: {arguments: {values: [true]}}
