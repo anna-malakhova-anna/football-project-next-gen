@@ -66,3 +66,20 @@ models:
         meta: {pii: none}
         data_tests:
           - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__reported_headcount
+    description: >
+      Reported headcount from school and recreation programs (Source E) by year x country with a year total, and the combined-reach range.
+      Program places, not participants. A country-year with fewer than k_min programs is suppressed.
+    columns:
+      - {name: participation_year, meta: {pii: none}}
+      - {name: country_code, meta: {pii: quasi}}
+      - {name: reporting_programs, meta: {pii: none}}
+      - {name: reported_headcount, meta: {pii: none}}
+      - {name: voluntary_program_headcount, meta: {pii: none}}
+      - {name: combined_reach_low, meta: {pii: none}}
+      - {name: combined_reach_high, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

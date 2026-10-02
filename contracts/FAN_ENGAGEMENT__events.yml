@@ -1,0 +1,37 @@
+# Data contract: fan engagement event stream (Source D, events component). Synthetic data.
+source_system: FAN_ENGAGEMENT
+component: events
+version: 1.0.0
+effective_date: 2026-10-02
+owner_role: "Fan Engagement Product Lead"
+partner_type: "fan app and ticketing vendor"
+delivery:
+  format: JSON Lines
+  mechanism: "one file per delivery month (data/raw/fan/events_YYYY_MM.jsonl); at-least-once delivery"
+  cadence: "monthly, with late-arriving events landing in a later month's file"
+grain: "one line per delivered event; an event_id can be delivered twice"
+raw:
+  table: raw.fan_events
+  row_filter: null
+primary_key: ["$.event_id"]
+person_identifier:
+  quality: partial
+  field: "$.account_id"
+  note: "events carry an account, never a person; an event is attributed to a household only through the governed linkage"
+minors_present: false
+consent_fields: []
+consent_exempt_reason: "events carry no consent field; the account's marketing_opt_in governs contact, and ADR-009 governs any linkage to registrations"
+schema:
+  - {column: event_id, raw: "$.event_id", type: string, required: true, pii: none, pattern: '^E\d{9}$'}
+  - {column: account_id, raw: "$.account_id", type: string, required: true, pii: quasi, pattern: '^A-\d{6}$'}
+  - {column: event_type, raw: "$.event_type", type: string, required: true, pii: none, allowed_values: [app_open, content_view, game_stream, ticket_purchase, merch_purchase, newsletter_click]}
+  - {column: event_ts, raw: "$.event_ts", type: timestamp, required: true, pii: none, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'}
+  - {column: value, raw: "$.value", type: number, required: false, pii: none}
+quality:
+  - {rule: max_null_rate, column: account_id, threshold: 0.0}
+  - {rule: max_nonmatching_rate, column: event_ts, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$', threshold: 0.0}
+  - {rule: max_invalid_rate, column: event_type, allowed_values: [app_open, content_view, game_stream, ticket_purchase, merch_purchase, newsletter_click], threshold: 0.0}
+  - {rule: max_duplicate_rate, key: [event_id], threshold: 0.01}
+  # at-least-once delivery: an event may land after the month it happened in (counted in the month of event_ts, never the file's)
+  - {rule: max_expression_rate, name: delivered_after_the_month_it_happened, threshold: 0.03,
+     expression: "regexp_extract(_source_file, 'events_(\\d{4}_\\d{2})', 1) > replace(substr(json_extract_string(record_json, '$.event_ts'), 1, 7), '-', '_')"}

@@ -135,7 +135,7 @@ def test_participation_rules(pop):
 
 
 def test_churn_higher_for_14_plus_than_8_to_11(pop):
-    _, people, parts = pop
+    cfg, people, parts = pop
     by = {p["true_person_id"]: p for p in people}
     active = collections.defaultdict(set)
     for r in parts:
@@ -146,7 +146,7 @@ def test_churn_higher_for_14_plus_than_8_to_11(pop):
             p = by[pid]
             if p["is_cross_border"] or not p["is_minor"]:
                 continue
-            for y in (2023, 2024):
+            for y in cfg["seasons"]["years"][:-1]:
                 if y in ys and lo <= y - p["dob"].year <= hi and y + 1 - p["dob"].year <= 17:
                     n += (y + 1) not in ys
                     d += 1
@@ -155,12 +155,18 @@ def test_churn_higher_for_14_plus_than_8_to_11(pop):
 
 
 def test_girls_new_player_share_grows(pop):
-    _, people, _ = pop
-    share = {}
-    for y in (2023, 2024, 2025):
+    """The girls' new-player share trends upward across the observed years (a trend, not strict monotonicity: each
+    later year has few new players, so single steps are noisy)."""
+    cfg, people, _ = pop
+    years = cfg["seasons"]["years"]
+    share = []
+    for y in years:
         new = [p for p in people if p["is_minor"] and p["first_season"] == y]
-        share[y] = sum(p["sex"] == "F" for p in new) / len(new)
-    assert share[2023] < share[2024] < share[2025]
+        share.append(sum(p["sex"] == "F" for p in new) / len(new))
+    mean_x = sum(range(len(years))) / len(years)
+    mean_y = sum(share) / len(share)
+    slope = sum((i - mean_x) * (s - mean_y) for i, s in enumerate(share)) / sum((i - mean_x) ** 2 for i in range(len(years)))
+    assert slope > 0.01 and share[-1] > share[0] + 0.05, share
 
 
 def test_consent_and_nickname_fields(pop):

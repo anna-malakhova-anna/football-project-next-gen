@@ -18,6 +18,12 @@ denominators as (
     -- what each configured rate is a share of, measured on the staged data
     select source_system, 'rows' as denominator_kind, count(*) as denominator from {{ ref('int_registrations_unioned') }} group by 1
     union all
+    select source_system, 'rows', count(*) from {{ ref('stg_school_headcounts') }} group by 1
+    union all
+    select 'FAN_ENGAGEMENT', 'events', count(*) from {{ ref('stg_fan_events') }}
+    union all
+    select 'FAN_ENGAGEMENT', 'accounts', count(*) from {{ ref('stg_fan_accounts') }}
+    union all
     select 'INTL_FED', 'uk_rows', count(*) from {{ ref('stg_intl_registrations') }} where sheet_country_code = 'GB'
     union all
     select 'CA_CLUB', 'rows_with_consents_object', count(*)

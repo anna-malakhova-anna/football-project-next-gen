@@ -83,6 +83,19 @@ policies (design only; not implemented).
 | `participants` | AGGREGATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
+**`share_exec__reported_headcount`**
+
+| Column | Treatment |
+|---|---|
+| `participation_year` | DIMENSION |
+| `country_code` | DIMENSION |
+| `reporting_programs` | AGGREGATE_SUPPRESSED |
+| `reported_headcount` | DERIVED_RATE_SUPPRESSED |
+| `voluntary_program_headcount` | DERIVED_RATE_SUPPRESSED |
+| `combined_reach_low` | DERIVED_RATE_SUPPRESSED |
+| `combined_reach_high` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
 Explicitly **not** available:
 
 | Column | Why |

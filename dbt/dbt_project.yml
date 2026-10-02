@@ -23,11 +23,10 @@ vars:
   idr_u_sample_modulus: 488
   # Version of the counting rules (docs/methodology/CHANGELOG.md); stamped on every scorecard row and snapshot.
   methodology_version: '1.0'
+  # Source D linkage: after the email rule, also link by phone when neither side has an email link (ADR-009 reports its measured precision).
+  linkage_phone_fallback: true
   # Which matcher feeds the marts: fs (Fellegi-Sunter) or rules (baseline). Both are always computed.
   matcher: fs
-  # Largest cluster that is plausible for one person: 3 seasons x 2 US terms x 2 concurrent leagues = 12,
-  # plus 2 for near-duplicate registrations. A bigger cluster fails the build (see tests/idr_clusters_within_plausible_size.sql).
-  idr_plausible_max_cluster_size: 14
   # Countries whose federation reissues Player IDs every year, so the ID cannot link a player across seasons.
   # This is documented source behaviour (docs/source_inventory.md), not ground truth.
   intl_unstable_person_id_countries: ["PA"]
@@ -65,6 +64,14 @@ models:
       +materialized: table
       +schema: measurement
       +tags: ['phase3']
+    linkage:
+      +materialized: table
+      +schema: linkage
+      +tags: ['phase4']
+    retention:
+      +materialized: table
+      +schema: retention
+      +tags: ['phase4']
     shares:
       +materialized: table
       +tags: ['phase3']

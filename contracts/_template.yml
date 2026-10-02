@@ -1,0 +1,37 @@
+# Data contract template. Copy to contracts/<SOURCE_SYSTEM>.yml and fill in. See docs/playbook/onboard-a-source.md.
+source_system: SOURCE_SYSTEM          # matches source_registry.csv and the staging models
+version: 1.0.0                        # bump on any change to the schema, thresholds or consent fields
+effective_date: 2026-01-01
+owner_role: "Role that owns the feed at the partner, or the program role that owns the relationship"
+partner_type: "league operator | club platform | federation | school district | app vendor | ..."
+delivery:
+  format: CSV | JSON | JSONL | XLSX
+  mechanism: "how the files arrive"
+  cadence: "how often (assumed)"
+grain: "one row per ..."
+raw:
+  table: raw.<table>                  # the raw table validated (strings in, strings stored)
+  row_filter: null                    # SQL predicate selecting data rows (for example to skip header and summary rows)
+primary_key: [column]                 # names as in `schema`; duplicates are measured, not removed
+person_identifier:
+  quality: none                       # none | partial | stable
+  field: null
+  note: "what the identifier is and where it is not stable"
+minors_present: false
+consent_fields:                       # every consent column, what it permits, and the values the source may send
+  - column: some_consent_column
+    permits: "what a TRUE value allows"
+    allowed_values: ["Y", "N", ""]    # '' = blank, which means NOT CAPTURED and is never treated as FALSE
+schema:                               # one entry per source column (or JSON path)
+  - column: some_column               # the source's own name
+    raw: some_column                  # raw column, or a JSON path ($.a.b) for JSON sources
+    type: string                      # string | integer | date | timestamp | boolean (the logical type)
+    required: true
+    pii: none                         # direct | quasi | none
+    pattern: null                     # optional regex a value should match
+    allowed_values: null              # optional list; '' allows blanks
+quality:                              # thresholds (rates 0 to 1). Breach = WARN, unless severity: ERROR
+  - {rule: max_null_rate, column: some_column, threshold: 0.05}
+  - {rule: max_nonmatching_rate, column: some_column, pattern: '^...$', threshold: 0.05}
+  - {rule: max_invalid_rate, column: some_column, allowed_values: [A, B], threshold: 0.0}
+  - {rule: max_duplicate_rate, key: [column], threshold: 0.02}

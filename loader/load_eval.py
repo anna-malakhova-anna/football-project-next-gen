@@ -5,6 +5,11 @@ it). The matcher never sees them. Tables:
   eval.person_registry      one row per true person (hidden true_person_id, household, twin group, ...)
   eval.registration_truth   every source record id -> true_person_id
   eval.defect_manifest      every injected defect by source record (for the per-defect-type evaluation)
+  eval.school_truth         true program-year totals and the true overlap with registered participants (Source E)
+  eval.school_overlap_truth the registered people who are also in a school or recreation program, by program-year
+  eval.fan_truth            one row per household (participant or not): latent fandom, enrollment propensity, enrollment month, true uplift (Source D)
+  eval.fan_account_truth    each fan account -> its true household, and which accounts have a different email or a shared phone
+  eval.churn_truth          the true per-season churn probability by age band (the answer key for the retention curves)
 """
 from __future__ import annotations
 
@@ -18,6 +23,11 @@ TABLES = {
     "person_registry": "person_registry.parquet",
     "registration_truth": "registration_truth.parquet",
     "defect_manifest": "defect_manifest.parquet",
+    "school_truth": "school_truth.parquet",
+    "school_overlap_truth": "school_overlap_truth.parquet",
+    "churn_truth": "churn_truth.parquet",
+    "fan_truth": "fan_truth.parquet",
+    "fan_account_truth": "fan_account_truth.parquet",
 }
 
 

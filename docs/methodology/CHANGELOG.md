@@ -3,6 +3,36 @@
 > Synthetic data. Every change to how a participant is counted, and every restatement of a published number, is recorded here
 > (ADR-007). A methodology change bumps the version and requires a restatement of published headline KPIs.
 
+## v1.1: DRAFT, not yet in force (2026-10-01)
+
+> **DRAFT: Anna to review and approve before this version is published.** The version number is bumped in `dbt_project.yml` only when the v1.0
+> baseline for 2021 to 2025 has been published (so the restatement log can show what 1.1 changed).
+
+**Added, nothing restated.** Four KPIs introduced by onboarding Source E (school and recreation program aggregate headcounts), each marked
+`introduced_in: 1.1` in the metric catalog: `reported_headcount`, `voluntary_program_headcount`, `combined_reach_low`, `combined_reach_high`.
+
+- Counting rules C1 to C15 are **unchanged**. No existing KPI changes definition (`definition_changed_in` is empty for all of them).
+- Aggregate headcounts are **never added to unique participants**. They are a separate fact (`fct_reported_headcount`), guarded by lineage
+  (`scripts/check_lineage.py`).
+- Combined reach is a **range**: low = participants (low) + reported headcount - maximum possible overlap; high = participants (high) +
+  reported headcount. The maximum overlap per country is the smaller of the reported headcount and the resolved youth participants.
+- Rules for the aggregate rows: the latest report wins when a program-year is reported twice; girls + boys replaces a stated total that
+  disagrees with it; round totals are flagged as probable estimates but kept.
+- Small programs are small cells: a country-year with fewer than 10 reporting programs is suppressed in the exec share.
+- **Retention** is defined (see the metric catalog): entry cohort, retained, churn event (the first gap while still youth-eligible), age-out and
+  the end of the data as censoring, youth-to-adult tracked separately. Reported as Kaplan-Meier curves with Greenwood intervals; no scorecard
+  KPI changes. Evaluated against the true churn parameters in `eval_retention`.
+- The restatement log gains two causes, `NEW_KPI` (listed, never a restatement) and `DEFINITION_CHANGED` (a restatement).
+
+**Evaluated against the synthetic truth** (`eval_headcount_overlap`): the true combined reach was inside the range in every year 2021 to 2025.
+The range is wide (about 1,800 to 2,600) because the overlap bound is deliberately conservative; the true overlap was 150 to 200.
+
+## Data window: 2026-10-01 (no version change)
+
+The observation window was extended from 2023 to 2025 to 2021 to 2025, configured in one place (`seasons.first_observed_year`). 2021 is now the
+censored year (new, returning and reactivated are not defined for it); 2023 is no longer censored. This is new source data, not a methodology
+change: it is recorded as Example 2 in [restatement_demo.md](../reports/restatement_demo.md) (41 KPIs changed, 23 requiring restatement).
+
 ## v1.0: 2026-10-01
 
 **Initial methodology.** Rules C1 to C15 as defined in [ADR-005](../decisions/ADR-005-counting-rules.md):
@@ -13,7 +43,7 @@
 - A person in two leagues is counted once (globally and in each organization); a person in two countries once globally, in the country of
   their most recent registration in the additive view and in each country in the presence view.
 - Age is age on December 31; youth is 17 or under; sex is registration-reported and `U` is its own group.
-- New / returning / reactivated are defined against the prior year; the first data year (2023) is censored.
+- New / returning / reactivated are defined against the prior year; the first data year is censored (2023 when v1.0 was written; 2021 since the window was extended).
 - Counts are registered participants in onboarded sources, not total participation, and not attendance.
 
 **Published snapshots.** `scorecard_2025_20261002T025126Z`: 2025 unique participants 3,962 (identity bounds 3,953 to 3,965).

@@ -1,0 +1,58 @@
+# Retrofitted data contract: Canadian club registrations (Source B). Synthetic data.
+source_system: CA_CLUB
+version: 1.0.0
+effective_date: 2026-10-01
+owner_role: "Club Platform Partnerships, Canada"
+partner_type: "club management platform"
+delivery:
+  format: JSON
+  mechanism: "paginated API dump, 200 records per page with a next_page cursor (data/raw/ca_club/page_NNNN.json)"
+  cadence: "annual season dump, with mid-season updates (updated_at)"
+grain: "one record per member per calendar-year season"
+raw:
+  table: raw.ca_club_records
+  row_filter: null
+primary_key: ["$.member_uuid", "$.season_year"]
+person_identifier:
+  quality: partial
+  field: "$.member_uuid"
+  note: "stable within a club; a new member_uuid is issued when a player switches clubs. Pagination overlap can repeat a record."
+minors_present: true
+consent_fields:
+  - column: "$.consents.casl_marketing"
+    permits: "marketing contact under CASL express consent (guardian for a minor)"
+    allowed_values: ["true", "false"]
+  - column: "$.consents.photo_media"
+    permits: "photo and media use of the participant (guardian for a minor)"
+    allowed_values: ["true", "false"]
+schema:
+  - {column: member_uuid, raw: "$.member_uuid", type: string, required: true, pii: direct, pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'}
+  - {column: club.club_code, raw: "$.club.club_code", type: string, required: true, pii: quasi}
+  - {column: club.club_name, raw: "$.club.club_name", type: string, required: true, pii: quasi}
+  - {column: club.province, raw: "$.club.province", type: string, required: true, pii: quasi, allowed_values: [QC, ON, NB, BC, AB, NS, MB]}
+  - {column: season_year, raw: "$.season_year", type: integer, required: true, pii: none, pattern: '^\d{4}$'}
+  - {column: program, raw: "$.program", type: string, required: true, pii: none}
+  - {column: participant.prenom_first, raw: "$.participant.prenom_first", type: string, required: true, pii: direct}
+  - {column: participant.nom_last, raw: "$.participant.nom_last", type: string, required: true, pii: direct}
+  - {column: participant.birth_year, raw: "$.participant.birth_year", type: integer, required: true, pii: quasi, pattern: '^\d{4}$'}
+  - {column: participant.sex, raw: "$.participant.sex", type: string, required: true, pii: quasi, allowed_values: [M, F]}
+  - {column: participant.language, raw: "$.participant.language", type: string, required: false, pii: quasi, allowed_values: [en, fr]}
+  - {column: guardian.full_name, raw: "$.guardian.full_name", type: string, required: true, pii: direct}
+  - {column: guardian.email, raw: "$.guardian.email", type: string, required: true, pii: direct}
+  - {column: guardian.phone, raw: "$.guardian.phone", type: string, required: true, pii: direct}
+  - {column: postal_code, raw: "$.postal_code", type: string, required: true, pii: quasi}
+  - {column: consents.casl_marketing, raw: "$.consents.casl_marketing", type: boolean, required: false, pii: none, allowed_values: ["true", "false"]}
+  - {column: consents.photo_media, raw: "$.consents.photo_media", type: boolean, required: false, pii: none, allowed_values: ["true", "false"]}
+  - {column: consents.consent_captured_at, raw: "$.consents.consent_captured_at", type: timestamp, required: false, pii: quasi, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'}
+  - {column: updated_at, raw: "$.updated_at", type: timestamp, required: true, pii: quasi, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'}
+quality:
+  - {rule: max_null_rate, column: participant.birth_year, threshold: 0.01}
+  - {rule: max_null_rate, column: guardian.email, threshold: 0.05}
+  - {rule: max_duplicate_rate, key: ["$.member_uuid", "$.season_year"], threshold: 0.02}
+  - {rule: max_nonmatching_rate, column: member_uuid, pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', threshold: 0.0}
+  - {rule: max_invalid_rate, column: participant.sex, allowed_values: [M, F], threshold: 0.0}
+  # consents: a missing object means consent was NOT captured (NULL, never FALSE). The partner is held to capturing it on 95% of records.
+  - {rule: max_null_rate, column: consents.casl_marketing, threshold: 0.05}
+  - {rule: max_null_rate, column: consents.photo_media, threshold: 0.05}
+  # the platform is held to the standard postal-code form: a known upstream defect
+  - {rule: max_nonmatching_rate, column: postal_code, pattern: '^[A-Z]\d[A-Z] \d[A-Z]\d$', threshold: 0.10}

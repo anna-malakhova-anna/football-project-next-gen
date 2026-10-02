@@ -9,6 +9,10 @@ Checks (any failure exits non-zero):
   SELECT_STAR            `select *` (or `alias.*`) in the compiled SQL or the source of a share model
   PII_TAG_MISSING        a share column has no meta.pii tag (direct | quasi | none)
   DIRECT_IN_EXEC_ANALYST a column tagged pii: direct is in share_exec or share_analyst
+  LINKAGE_LEAK           a share model has a model of the restricted `linkage` schema anywhere upstream and is not an approved aggregate
+                         (ADR-009): only aggregated, suppressed models in share_exec / share_analyst may reach an audience
+  LINKAGE_IN_MARKETING   share_marketing or share_media depends on `linkage` at all. Nothing linked reaches them: the both-sides consent path
+                         (consent_marketing TRUE on the registration AND the fan account) is not implemented
 This compares what is ACTUALLY in the database (information_schema) with the policy, so it tests what is absent, not
 only what is present.
 
@@ -31,6 +35,9 @@ MANIFEST = ROOT / "dbt" / "target" / "manifest.json"
 COMPILED = ROOT / "dbt" / "target" / "compiled" / "counting_flag_football" / "models" / "shares"
 SOURCE = ROOT / "dbt" / "models" / "shares"
 NO_DIRECT = {"share_exec", "share_analyst"}
+# Aggregated, small-cell-suppressed share models that may be built from `linkage` models (ADR-009). Everything else may not.
+APPROVED_LINKAGE_AGGREGATES = {"share_exec__fan_engagement_effect", "share_exec__household_link_rate"}
+NO_LINKAGE_AT_ALL = {"share_marketing", "share_media"}
 STAR = re.compile(r"\bselect\s+(distinct\s+)?\*|\b\w+\.\*", re.IGNORECASE)
 
 
@@ -82,6 +89,31 @@ def check(policy: list[dict], columns: list[tuple], sql_files: dict[str, str], p
     return sorted(set(problems))
 
 
+def check_linkage(manifest: dict) -> list[tuple[str, str]]:
+    """Share models whose lineage touches the restricted `linkage` schema, other than the approved aggregates."""
+    nodes = {**manifest["nodes"], **manifest.get("sources", {})}
+
+    def upstream(node_id: str, seen: set) -> set:
+        for parent in nodes.get(node_id, {}).get("depends_on", {}).get("nodes", []):
+            if parent not in seen:
+                seen.add(parent)
+                upstream(parent, seen)
+        return seen
+
+    problems = []
+    for node_id, node in manifest["nodes"].items():
+        if node["resource_type"] != "model" or not node["original_file_path"].startswith("models/shares/"):
+            continue
+        touches = sorted(nodes[u]["name"] for u in upstream(node_id, set()) if u in nodes and nodes[u].get("schema") == "linkage")
+        if not touches:
+            continue
+        if node["schema"] in NO_LINKAGE_AT_ALL:
+            problems.append(("LINKAGE_IN_MARKETING", f"{node['schema']}.{node['name']} <- {touches[0]}"))
+        elif node["name"] not in APPROVED_LINKAGE_AGGREGATES:
+            problems.append(("LINKAGE_LEAK", f"{node['schema']}.{node['name']} <- {touches[0]}"))
+    return problems
+
+
 def load() -> tuple[list[dict], list[tuple], dict[str, str], dict]:
     with open(POLICY, newline="", encoding="utf-8") as f:
         policy = list(csv.DictReader(f))
@@ -114,6 +146,8 @@ def main() -> int:
         print("no share_* schemas found: run `make shares` first", file=sys.stderr)
         return 2
     problems = check(policy, columns, sql_files, pii_tags)
+    if MANIFEST.exists():
+        problems = sorted(set(problems + check_linkage(json.loads(MANIFEST.read_text()))))
     tables = {(s, t) for s, t, _ in columns}
     if problems:
         print(f"SHARE POLICY VIOLATIONS ({len(problems)}):", file=sys.stderr)
@@ -122,7 +156,7 @@ def main() -> int:
         return 1
     print(f"share policy OK: {len(columns)} columns in {len(tables)} share tables across "
           f"{len({s for s, _ in tables})} audiences, all listed, none denied, no select *, every column tagged, "
-          f"no direct identifier in exec or analyst")
+          f"no direct identifier in exec or analyst, nothing from the restricted linkage schema except approved aggregates")
     return 0
 
 

@@ -4,7 +4,7 @@
 --   AUTO               deterministic + AUTO_MATCH + steward edges   (what the pipeline uses)
 --   AUTO_PLUS_PROBABLE adds PROBABLE edges                           (evaluation, and the "low" identity bound)
 -- A runaway merge cannot be stopped inside the recursion, so tests/idr_clusters_within_plausible_size.sql catches it
--- right after the build (var idr_plausible_max_cluster_size).
+-- right after the build (macro idr_plausible_max_cluster_size).
 with combos as (
 
     select distinct matcher, stage, scope

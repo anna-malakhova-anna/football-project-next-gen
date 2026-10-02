@@ -6,6 +6,10 @@
   and countries belong to the same participant, then to measure the result against the (synthetic) truth. Two errors
   matter: **under-merging** inflates participation and breaks retention; **over-merging** undercounts, and worse, can
   apply one child's consent to a sibling. The project therefore **biases toward precision**.
+> **Data window.** The figures in this ADR were measured on the original three-year window (2023 to 2025). Phase 4 extended the data to
+> 2021 to 2025 (ADR-008), which changed them; the current figures are in `docs/phase2_results.md` and the scorecard. The decisions here
+> stand; the thresholds were re-read on the new data, not re-tuned.
+
 - All data is synthetic. Every number below comes from `make phase2` at the default configuration (seed 42).
 
 ## 1. Pre-flight findings

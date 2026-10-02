@@ -31,7 +31,7 @@ RULES = [  # id, plain-language rule
     ("C8", "A person in two divisions in one year has a primary division (the one with the most registrations, ties to the most recent); all of their divisions are kept."),
     ("C9", "Sex is the registration-reported sex. Unknown stays unknown and is reported as its own group; it is never guessed."),
     ("C10", "Youth means 17 or under on December 31."),
-    ("C11", "A new participant is in their first valid year. The first year of data (2023) is left out of new and returning counts, because everyone would look new."),
+    ("C11", "A new participant is in their first valid year. The first year of data is left out of new and returning counts, because everyone would look new."),
     ("C12", "A returning participant has a valid registration this year and last year."),
     ("C13", "A reactivated participant has a valid registration this year, none last year, and at least one earlier."),
     ("C14", "Records in clusters with an open identity issue are counted, and the number of such participants is reported alongside."),
@@ -51,6 +51,7 @@ def render(con: duckdb.DuckDBPyConnection) -> str:
     q = lambda sql, *a: con.execute(sql, list(a)).fetchall()  # noqa: E731
     year = q("select max(participation_year) from measurement.mart_participation_global")[0][0]
     version = q("select max(methodology_version) from measurement.mart_participation_global")[0][0]
+    version_num = int(version.split(".")[0]) * 1000 + int(version.split(".")[1])
     g = q("select participation_year, unique_participants, registrations, new_participants, returning_participants, "
           "reactivated_participants, censored_participants, retention_rate, multi_org_participants, multi_country_participants "
           "from measurement.mart_participation_global order by 1")
@@ -162,15 +163,29 @@ def render(con: duckdb.DuckDBPyConnection) -> str:
                 "rates) or the methodology changes, and a person must approve it and record it in the changelog. A recorded demonstration is in "
                 "[restatement_demo.md](../reports/restatement_demo.md): one steward decision moved a 2025 headline number by one person and was logged, with no reissue required."),
               ""]
+    reach = q("select participation_year, reported_headcount, voluntary_headcount, combined_reach_low, combined_reach_high "
+              "from measurement.mart_reported_headcount where country_code = 'ALL' order by 1") if version_num >= 1001 else []
+    if reach:
+        aggregate = ("**Aggregate-only sources.** School and recreation program headcounts (Source E) are reported as a separate line, 'reported headcount', and are never added to unique "
+                     "participants: a count of children in a program cannot be matched to people, so some of those children are also registered participants and some are counted in more than one "
+                     "program. We therefore publish a **combined reach range** (low end: as much overlap as is possible; high end: none), not a single number. Physical education units are exposure "
+                     "during class, not participation, so the voluntary headcount (intramural and after-school) is shown separately. Programs with fewer than 10 reporting in a country-year are suppressed.")
+    else:
+        aggregate = ("**Aggregate-only sources** (school counts, coming in a later phase) will be reported as a separate, non-deduplicated 'reported headcount' line and never mixed into "
+                     "resolved participants.")
     parts += ["## 8. Known limitations and next steps\n",
-              p(f"**Coverage.** {sources[0]} sources are onboarded; counts are only as complete as our partners' registration data. **Aggregate-only sources** (school counts, coming in a later phase) "
-                "will be reported as a separate, non-deduplicated 'reported headcount' line and never mixed into resolved participants. **Attendance** is not measured. **Real-world validation** has not "
+              p(f"**Coverage.** {sources[0]} sources are onboarded; counts are only as complete as our partners' registration data. {aggregate} **Attendance** is not measured. **Real-world validation** has not "
                 "happened: this memo describes a synthetic population in which phone numbers never change and one nickname list covers every case, so real data would score lower."),
               ""]
+    if reach:
+        parts += [NUM, md_table(["Year", "Reported headcount", "Of which voluntary", "Combined reach, low", "Combined reach, high"], reach), ""]
     parts += ["## 9. Version and change control\n",
               p(f"This is methodology **version {version}**. Every scorecard row and every published snapshot carries the version. Changes to a rule bump the version and are recorded in the "
                 "[CHANGELOG](CHANGELOG.md); see [ADR-005](../decisions/ADR-005-counting-rules.md), [ADR-006](../decisions/ADR-006-privacy-controls.md) and "
-                "[ADR-007](../decisions/ADR-007-publish-and-restatement.md) for the decisions behind it."),
+                "[ADR-007](../decisions/ADR-007-publish-and-restatement.md) for the decisions behind it."
+                + (" Version 1.1 added the reported-headcount and combined-reach KPIs (new, so nothing published was restated). The data window now runs "
+                   f"{q('select first_observed_year from reference.observation_window')[0][0]} to {year}, and {q('select first_observed_year from reference.observation_window')[0][0]} is the "
+                   "first data year, so new, returning and retention figures are not defined for it." if version_num >= 1001 else "")),
               ""]
     return "\n".join(parts)
 

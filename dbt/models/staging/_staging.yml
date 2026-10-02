@@ -37,3 +37,22 @@ models:
       - name: source_system
         data_tests:
           - accepted_values: {arguments: {values: [INTL_FED]}}
+
+  - name: stg_school_headcounts
+    description: >
+      One row per raw school / recreation program CSV row (1:1 with raw grain). AGGREGATE-ONLY: no person, no contact details, no consent.
+      Typed and standardized; bad rows are flagged, never dropped. A program-year reported twice keeps the latest report
+      (`is_superseded` marks the other); `headcount` is girls + boys when the stated total disagrees with it. Facts built from this model
+      must not be joined to participants (enforced by scripts/check_lineage.py).
+    columns:
+      - name: source_record_id
+        data_tests: [not_null]
+      - name: source_system
+        data_tests:
+          - accepted_values: {arguments: {values: [SCHOOL_AGGREGATES]}}
+      - name: headcount
+        data_tests: [not_null]
+      - name: program_type
+        data_tests: [not_null]
+      - name: country_code
+        data_tests: [not_null]

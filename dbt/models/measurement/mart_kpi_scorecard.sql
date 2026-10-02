@@ -45,7 +45,9 @@ sources as (
 
 ),
 
-first_year as (select min(participation_year) as y from g),
+rh as (select * from {{ ref('mart_reported_headcount') }} where country_code = 'ALL'),
+
+first_year as (select {{ first_observed_year() }} as y),
 
 kpis as (
 
@@ -66,6 +68,11 @@ kpis as (
     union all select g.participation_year, 'sources_onboarded', s.sources_onboarded, null, null from g cross join sources s
     union all select g.participation_year, 'sources_known', s.sources_known, null, null from g cross join sources s
     union all select participation_year, 'pct_registrations_failing_dq', pct_registrations_failing_dq, null, null from dq
+    -- Source E (methodology 1.1): reported alongside, never added to, the participant counts
+    union all select participation_year, 'reported_headcount', reported_headcount::double, null, null from rh
+    union all select participation_year, 'voluntary_program_headcount', voluntary_headcount::double, null, null from rh
+    union all select participation_year, 'combined_reach_low', combined_reach_low::double, null, null from rh
+    union all select participation_year, 'combined_reach_high', combined_reach_high::double, null, null from rh
 
 )
 
@@ -85,4 +92,6 @@ select
     current_timestamp                                                       as computed_at
 from kpis k
 join {{ ref('metric_catalog') }} m on m.metric_id = k.kpi_id
+-- a KPI exists from the methodology version that introduced it (metric_catalog.introduced_in)
+where {{ version_num('m.introduced_in') }} <= {{ version_num("'" ~ var('methodology_version') ~ "'") }}
 order by k.participation_year, m.kpi_group, k.kpi_id

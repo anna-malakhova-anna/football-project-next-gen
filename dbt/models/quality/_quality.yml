@@ -40,3 +40,9 @@ models:
           - accepted_values:
               arguments:
                 values: [OK, OUT_OF_TOLERANCE, NOT_DETECTABLE_PHASE1, NOT_CONFIGURED]
+
+  - name: dq_headcount_profile
+    description: >
+      Profile of the raw aggregate headcount source (Source E): per column rows, blanks, distinct values and top values, then the issue
+      counters (total != girls + boys, round totals, missing grade band, double-reported program-years). Produced at the Profiling stage
+      of the onboarding playbook.

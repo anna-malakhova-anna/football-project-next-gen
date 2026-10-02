@@ -80,3 +80,15 @@ models:
           - accepted_values:
               arguments:
                 values: ['0-7', '8-9', '10-11', '12-13', '14-17', '18-29', '30-44', '45+', UNKNOWN]
+
+  - name: fct_reported_headcount
+    description: >
+      Source E reported headcount, program x year grain. AGGREGATE-ONLY: separate from the participant facts by design and by lineage guard
+      (scripts/check_lineage.py). Never summed into unique_participants.
+    columns:
+      - name: headcount_key
+        data_tests: [unique, not_null]
+      - name: participation_year
+        data_tests: [not_null]
+      - name: headcount
+        data_tests: [not_null]

@@ -88,11 +88,38 @@ CATALOG = [
     ("INTL_FED", "unmapped_country", "zero", ROWS, "all rows", True, "Country value missing from country_map."),
     ("INTL_FED", "dob_unparseable", "zero", ROWS, "all rows", True, "DOB is blank, ambiguous or not a real date."),
     ("INTL_FED", "exact_duplicate", "zero", ROWS, "all rows", True, "Row is identical to an earlier row on the same sheet."),
+    # ---- SCHOOL_AGGREGATES (aggregate headcounts: program x year) ----
+    ("SCHOOL_AGGREGATES", "total_mismatch", "rate", ROWS, "all rows", True,
+     "total_count differs from girls_count + boys_count."),
+    ("SCHOOL_AGGREGATES", "missing_grade_band", "rate", ROWS, "all rows", True, "grade_band is blank."),
+    ("SCHOOL_AGGREGATES", "duplicate_report", "rate", ROWS, "all rows", True,
+     "The same program-year was reported by two different reporters; one report is kept (the latest)."),
+    ("SCHOOL_AGGREGATES", "round_number", "rate", ROWS, "all rows", True,
+     "total_count is a suspiciously round number (100, 150, 200, 250, 300): possibly an estimate, not a count."),
+    ("SCHOOL_AGGREGATES", "unmapped_program_type", "zero", ROWS, "all rows", True, "program_type is not PE_UNIT, INTRAMURAL or AFTER_SCHOOL."),
+    ("SCHOOL_AGGREGATES", "unmapped_country", "zero", ROWS, "all rows", True, "country is not an ISO 3166-1 alpha-2 code in country_map."),
+    # ---- FAN_ENGAGEMENT (accounts snapshot + event stream) ----
+    ("FAN_ENGAGEMENT", "duplicate_event", "rate", "events", "all delivered event lines", True,
+     "The same event_id was delivered twice; only the first delivery is counted."),
+    ("FAN_ENGAGEMENT", "late_arriving_event", "rate", "events", "all delivered event lines", True,
+     "The event landed in a later month's file than its event_ts; it is counted in the month of event_ts."),
+    ("FAN_ENGAGEMENT", "clock_skew", "rate", "events", "all delivered event lines", False,
+     "event_ts is shifted by up to two days (a device clock error); not recoverable from the data, so not detected."),
+    ("FAN_ENGAGEMENT", "email_case_whitespace", "rate", "accounts", "all accounts", True,
+     "Account email has capitals or surrounding spaces; normalized in staging."),
+    ("FAN_ENGAGEMENT", "marketing_opt_in_blank", "rate", "accounts", "all accounts", True,
+     "marketing_opt_in is blank: not captured (NULL)."),
+    ("FAN_ENGAGEMENT", "email_differs_from_registration", "rate", "participant_accounts", "accounts that belong to a participant household", False,
+     "The account email is not the guardian's registration email. Needs the household linkage to see."),
+    ("FAN_ENGAGEMENT", "phone_shared_with_participant_household", "rate", "accounts", "accounts that carry a phone", False,
+     "The account phone number is a participant household's number: a false-link hazard for phone matching. Needs ground truth to see."),
+    ("FAN_ENGAGEMENT", "unmapped_event_type", "zero", "events", "all delivered event lines", True, "event_type is not one of the six known types."),
+    ("FAN_ENGAGEMENT", "orphan_event", "zero", "events", "all delivered event lines", True, "The event's account_id is not in the accounts snapshot."),
     # flags that can appear on any source but are never injected
     ("CA_CLUB", "impossible_dob", "zero", ROWS, "all records", True, "Age at the Dec 31 cutoff is below 0 or above 80."),
     ("INTL_FED", "impossible_dob", "zero", ROWS, "all rows", True, "Age at the Dec 31 cutoff is below 0 or above 80."),
 ]
-SOURCE_KEY = {"US_LEAGUE": "us_league", "CA_CLUB": "ca_club", "INTL_FED": "intl_federation"}
+SOURCE_KEY = {"US_LEAGUE": "us_league", "CA_CLUB": "ca_club", "INTL_FED": "intl_federation", "SCHOOL_AGGREGATES": "school_aggregates", "FAN_ENGAGEMENT": "fan"}
 COLUMNS = ["source_system", "defect_id", "kind", "configured_rate", "configured_count", "denominator_kind",
            "denominator_description", "detectable_phase1", "rule_description"]
 
@@ -125,8 +152,38 @@ def build_rows(cfg: dict) -> list[dict]:
     return rows
 
 
+def window_rows(cfg: dict) -> list[dict]:
+    years = cfg["seasons"]["years"]
+    first = cfg["seasons"]["first_observed_year"]
+    if first != years[0] or years != list(range(years[0], years[-1] + 1)):
+        raise ValueError(f"seasons.first_observed_year ({first}) must equal the first of a contiguous years list {years}")
+    return [{"first_observed_year": first, "last_observed_year": years[-1]}]
+
+
+def period_rows(cfg: dict) -> list[dict]:
+    """Participation years (calendar) and US seasons, with the December 31 age cutoff (ADR-002)."""
+    rows = []
+    for y in cfg["seasons"]["years"]:
+        rows.append((f"Y{y}", "YEAR", y, "ANNUAL", f"{y}-01-01", f"{y}-12-31", f"{y}-12-31"))
+        rows.append((f"Y{y}-SPRING", "US_SEASON", y, "SPRING", f"{y}-01-01", f"{y}-05-31", f"{y}-12-31"))
+        rows.append((f"Y{y}-FALL", "US_SEASON", y, "FALL", f"{y}-06-01", f"{y}-12-31", f"{y}-12-31"))
+    keys = ["period_id", "period_type", "participation_year", "term", "start_date", "end_date", "cutoff_date"]
+    return [dict(zip(keys, r)) for r in rows]
+
+
+def _write(path: str, fieldnames: list[str], rows: list[dict]) -> None:
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=fieldnames, lineterminator="\n")
+        w.writeheader()
+        w.writerows(rows)
+
+
 def main(cfg: dict | None = None, out: str = "dbt/seeds/dq_defect_config.csv") -> int:
     cfg = cfg or load_config()
+    seeds = Path(out).parent
+    _write(str(seeds / "observation_window.csv"), ["first_observed_year", "last_observed_year"], window_rows(cfg))
+    _write(str(seeds / "reporting_periods.csv"), ["period_id", "period_type", "participation_year", "term", "start_date", "end_date", "cutoff_date"], period_rows(cfg))
     rows = build_rows(cfg)
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w", newline="", encoding="utf-8") as f:

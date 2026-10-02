@@ -1,6 +1,7 @@
 {#-
   privacy_param(name, type)  scalar subquery reading one value from the privacy_params seed (single source of truth)
   age_band(age)              the project's age bands; NULL age -> UNKNOWN (never imputed)
+  first_observed_year()      the left-censored year, from the observation_window seed (config seasons.first_observed_year)
   term_order(term)           recency order of terms inside a participation year: SPRING 1, ANNUAL 2, FALL 3.
                              "Most recent registration in a year" needs an order that works for every source, and
                              INTL has no registration time. A US spring followed by a Canadian annual season, or a
@@ -8,6 +9,10 @@
 -#}
 {% macro privacy_param(name, type='integer') -%}
 (select cast(value as {{ type }}) from {{ ref('privacy_params') }} where param = '{{ name }}')
+{%- endmacro %}
+
+{% macro first_observed_year() -%}
+(select first_observed_year from {{ ref('observation_window') }})
 {%- endmacro %}
 
 {% macro age_band(age) -%}

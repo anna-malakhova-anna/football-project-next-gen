@@ -26,11 +26,11 @@ and loading only), DuckDB and dbt. The SQL is the showcase.
 
 | Source | Format | Rows | The mess |
 |---|---|---|---|
-| `US_LEAGUE` | CSV per season | 10,605 | mixed date and label formats, double submits, near-duplicates, dropped ZIP zeros, blank consents |
-| `CA_CLUB` | paginated JSON | 2,014 | nested records, birth year only, bilingual programs, accents and caps, missing consent objects, page-overlap duplicates |
-| `INTL_FED` | XLSX, one sheet per country | 1,670 | title rows, summary rows, Excel date serials, inconsistent country names, family-name-first sheet, reissued IDs |
+| `US_LEAGUE` | CSV per season | 12,929 | mixed date and label formats, double submits, near-duplicates, dropped ZIP zeros, blank consents |
+| `CA_CLUB` | paginated JSON | 2,522 | nested records, birth year only, bilingual programs, accents and caps, missing consent objects, page-overlap duplicates |
+| `INTL_FED` | XLSX, one sheet per country | 2,079 | title rows, summary rows, Excel date serials, inconsistent country names, family-name-first sheet, reissued IDs |
 
-The generator first builds a registry of 6,000 true people (households with siblings, churn by age, cross-border
+The generator first builds a registry of 6,000 true people observed over **five years (2021 to 2025)**; the first, 2021, is left-censored (set in config, `seasons.first_observed_year`) (households with siblings, churn by age, cross-border
 movers, a growing share of girls, multi-league play), then derives each source from it and injects every defect at an
 exact configured rate (`config/generation.yaml`). The registry and a map from every source record to its true person
 are written to `data/ground_truth/` so that Phase 2 can measure identity resolution against the truth.
@@ -129,7 +129,7 @@ evaluation targets for Phase 2.
 
 ## Phase 2: identity resolution (who is the same person?)
 
-Turns 14,289 registrations into 6,002 participants (the generator's true population is 6,000) **in SQL only**, without the
+Turns 17,530 registrations into 6,000 participants (the generator's true population is also 6,000) **in SQL only**, without the
 matcher ever seeing the answer key, then measures how well that worked. Ground truth lives in a separate `eval` schema and
 is read only by `models/evaluation/`; `scripts/check_eval_isolation.py` fails the build if anything else depends on it.
 Business explainer: [docs/identity_resolution.md](docs/identity_resolution.md). Decisions:
@@ -141,35 +141,40 @@ participation and breaks retention. *Over-merging* (two children collapsed) unde
 to a sibling, which is a privacy incident. So the project **biases toward precision**.
 
 Pipeline: exact duplicates collapsed, then deterministic links (shared source IDs), blocking (five blocks, pair
-completeness 0.9997, 44,611 candidate pairs), agreement-level features, two matchers (a rules baseline and a
+completeness 0.9998, 66,826 candidate pairs), agreement-level features, two matchers (a rules baseline and a
 Fellegi-Sunter probabilistic matcher with explainable weights and hard guardrails), connected-components clusters in a
 recursive CTE (macro `connected_components`), cluster-integrity checks, a prioritised review queue, and three marts
 (`bridge_registration_participant`, `dim_participant`, `participant_identifiers`).
 
-**Headline results** (automatic merges only, before any steward review; 737 of the 6,000 people have a sibling in the data):
+**Headline results** (automatic merges only, before any steward review; 755 of the 6,000 people have a sibling in the data;
+five-year window):
 
 | Matcher | Scope | Precision | Recall | F1 | Sibling/twin merges | Predicted vs true participants |
 |---|---|---|---|---|---|---|
-| Rules baseline | AUTO | 1.0000 | 0.9219 | 0.9594 | 0 | 6,398 vs 6,000 |
-| Fellegi-Sunter, spec-literal (`fs_naive`) | AUTO | 0.9664 | 0.9999 | 0.9829 | **75** | 5,918 vs 6,000 |
-| **Fellegi-Sunter, final (`fs`)** | **AUTO** | **0.99973** | **0.99933** | **0.99953** | **0** | **6,002 vs 6,000** |
-| Fellegi-Sunter, final (`fs`) | AUTO + PROBABLE | 0.9935 | 0.9993 | 0.9964 | 3 | 5,985 vs 6,000 |
+| Rules baseline | AUTO | 0.9994 | 0.9228 | 0.9595 | 2 | 6,513 vs 6,000 |
+| Fellegi-Sunter, spec-literal (`fs_naive`) | AUTO | 0.9635 | 0.9999 | 0.9814 | **86** | 5,906 vs 6,000 |
+| **Fellegi-Sunter, final (`fs`)** | **AUTO** | **0.9991** | **0.9996** | **0.9994** | **2** | **6,000 vs 6,000** |
+| Fellegi-Sunter, final (`fs`) | AUTO + PROBABLE | 0.9947 | 0.9998 | 0.9972 | 5 | 5,983 vs 6,000 |
 
 > **The steward in this project is simulated.** `scripts/simulate_steward.py` resolves review-queue items using the
 > ground truth, only to demonstrate the feedback loop (`make steward-demo`). Its results appear as separate `POST_REVIEW`
 > rows and **must never be quoted as matcher performance**. The committed `review_decisions` seed is empty.
 
 **Honest notes**
-- The spec-literal matcher merged siblings and twins (75 clusters) because email, phone and postal code are one household
+- The spec-literal matcher merged siblings and twins (86 clusters) because email, phone and postal code are one household
   counted three times. The final `fs` fixes the model structure (count positive household evidence once, a household
   guard, a cap on DOB disagreement). Those fixes were prompted by the evaluation, not by tuning m-values, and are
-  disclosed in ADR-003 with the step-by-step metrics. The thresholds (0.997 / 0.85) were chosen once from the sweep.
-- The final matcher **ties** the rules baseline on sibling/twin merges at AUTO (0 vs 0) instead of beating it, and has 3
-  (0.41% of households) at AUTO + PROBABLE against the 0.1% target. It wins on recall (0.9993 vs 0.922) and on counting
-  people.
-- Nine true pairs are lost to the household guard; four look-alike pairs (same first name, near-identical surname, same
-  birth year, no contact data) are merged in error across two clusters. Two of the three name-change cases are found; the
-  third (new surname, new federation ID, no contact data) is never even proposed as a candidate pair.
+  disclosed in ADR-003 with the step-by-step metrics. The thresholds (0.997 / 0.85) were chosen once from the sweep on the
+  original three-year data and re-read, not re-tuned, since.
+- **Extending the window to five years exposed a limit.** On three years `fs` had no sibling/twin false merges at AUTO; on five it
+  has 2 clusters (0.27% of the 755 multi-child households), and the rules baseline has the same 2. Both are Canadian siblings
+  with the same first and last name born in the same year in one household; Canada gives only a birth year, so no feature
+  separates them. Nothing was tuned to hide it. It misses the 0.1% target at AUTO (and at AUTO + PROBABLE, 5 clusters, 0.66%).
+- The final matcher wins on recall (0.9996 vs 0.923) and on counting people (6,000 vs 6,513), and no longer ties the baseline on
+  sibling/twin merges: it ties it at 2 each at AUTO.
+- 5 true pairs are lost to the household guard, 3 more fall below the threshold, and 2 belong to name-change cases; 16 false sibling
+  pairs and 6 transitive-chain pairs come from the two clusters above, plus 4 look-alike pairs (same first name, near-identical
+  surname, same birth year, no contact data).
 - 55 of the 100 cross-border movers also register in both countries in the year they move, so some people appear in two
   countries in one year (this matters for the Phase 3 country counts).
 - The synthetic data flatters the matcher (phone numbers never change; the nickname map covers every generated nickname).
@@ -178,16 +183,16 @@ recursive CTE (macro `connected_components`), cluster-integrity checks, a priori
 |---|---|
 | Generator amendments (twins, name changes); Phase 1 still passes | 27 twin households, 3 name changes; Phase 1 passes |
 | Ground truth only in `models/evaluation/`, enforced | isolation check in `make test` and `make phase2`; verified against a deliberate leak |
-| Blocking pair completeness reported (target 0.98) | 0.9997 (4 of 14,936 true pairs missed; caveat: easy synthetic data) |
+| Blocking pair completeness reported (target 0.98) | 0.9998 (6 of 27,951 true pairs missed; caveat: easy synthetic data) |
 | Both matchers run and are compared | yes (plus the spec-literal variant) |
 | Thresholds chosen from the sweep, justified in ADR-003 | yes |
-| Sibling/twin merges are the headline; FS beats the baseline on it | headline: yes. **Beats the baseline: no, a tie at 0** |
-| Every registration maps to exactly one participant | `bridge_registration_participant`, 14,289 rows, tested |
+| Sibling/twin merges are the headline; FS beats the baseline on it | headline: yes. **Beats the baseline: no, a tie at 2** |
+| Every registration maps to exactly one participant | `bridge_registration_participant`, 17,530 rows, tested |
 | Consent survivorship never from NULL or across participants | singular test |
 | `participant_id` stable across reruns | `make id-stability` (rebuild compared) |
-| Review queue populated with priorities and weight breakdowns | 67 items (5 cluster conflicts, 62 probable pairs) |
+| Review queue populated with priorities and weight breakdowns | 116 items (13 cluster conflicts, 103 probable pairs) |
 | Docs and ADRs; README updated | done |
-| Metric targets | precision 0.99973 and recall 0.9993 met; sibling/twin merges met at AUTO, **missed at AUTO + PROBABLE** |
+| Metric targets | precision 0.9991 and recall 0.9996 met; sibling/twin merges **missed at AUTO (0.27%) and at AUTO + PROBABLE (0.66%)** against the 0.1% target |
 
 ## Phase 3: measurement and privacy (how many people play, and how sure are we?)
 
@@ -211,13 +216,13 @@ someone played.
 
 | 2025 headline | Value | Identity range |
 |---|---|---|
-| Unique participants | 3,962 (+18.2% on 2024) | 3,953 to 3,965 (0.3% of the estimate) |
-| Retention (returning / prior-year participants) | 67.5% (+3.6 points) | |
-| Girls' share of youth participation | 45.8% (40.2% in 2023) | |
-| International participants (attributed, outside the US) | 1,495 | 1,491 to 1,495 |
+| Unique participants | 2,837 (+11.1% on 2024) | 2,828 to 2,844 (0.6% of the estimate) |
+| Retention (returning / prior-year participants) | 69.9% (+1.4 points) | |
+| Girls' share of youth participation | 45.3% (42.4% in 2021) | |
+| International participants (attributed, outside the US) | 1,086 | 1,079 to 1,086 |
 
-Data trust is reported beside those numbers, not in an appendix: 99.3% of participants resolved with high confidence, 61 open review items,
-2.2% of registrations failing counting-affecting DQ rules, 3 of 5 known sources onboarded.
+Data trust is reported beside those numbers, not in an appendix: 98.9% of participants resolved with high confidence, 101 open review items,
+2.2% of registrations failing counting-affecting DQ rules, 3 of 5 known sources onboarded. (Window: 2021 to 2025; 2021 is the left-censored year.)
 
 ```bash
 make phase3                  # phase2, then facts + marts, shares + the policy check, every test, the executive report
@@ -229,16 +234,17 @@ make docs                    # regenerate the data dictionary, docs/metrics.md a
 ```
 
 **Honest notes**
-- **The identity range covers identity only.** It is tight (0.3%) because it spans only the uncertainty the pipeline knows about (about 60
-  open review items, 5 flagged clusters). The synthetic truth falls inside it in every year, but two country cells (GB) fall outside, caused by a
-  look-alike merge the pipeline does not flag. Do not read the range as a confidence interval for "how many people play flag football".
-- **The analyst share is pseudonymized, not anonymous.** 74% of its rows are unique on birth year, postal prefix, sex, country and year.
+- **The identity range covers identity only.** It is tight (0.6%) because it spans only the uncertainty the pipeline knows about (about 100
+  open review items, 13 flagged clusters). The synthetic truth falls inside it in every year, but 5 of 40 year-by-country cells fall outside, caused by
+  look-alike merges the pipeline does not flag. Do not read the range as a confidence interval for "how many people play flag football".
+- **The analyst share is pseudonymized, not anonymous.** 80% of its rows are unique on birth year, postal prefix, sex, country and year.
   A visible warning in the build says so (ADR-006).
 - **Small-cell suppression is simplified** (primary plus secondary) and deliberately does not suppress a zero; ADR-006 explains why and
   names the production alternatives.
-- **Annual REACTIVATED is 0** because churn in the generator is permanent; reactivation shows only in the US spring / fall view.
-- **The first published snapshot was taken with an uncommitted working tree** and records `git_dirty = true`; a clean-commit snapshot can be
-  published at any time and becomes the latest.
+- **Annual REACTIVATED is almost 0** (1 person in 2023 and 1 in 2025) because churn in the generator is permanent; reactivation shows mainly in the US spring / fall view (about 100 a term).
+- **The 2025 snapshot was taken with an uncommitted working tree** and records `git_dirty = true`; a clean-commit snapshot can be
+  published at any time and becomes the latest. The 2023 to 2025 snapshots were taken on the original three-year window and are
+  superseded by the five-year data (see the second example in `docs/reports/restatement_demo.md`).
 - A generator amendment (some movers play in two countries in the move year) was made so country counting is actually exercised; it shifted
   every Phase 2 number slightly (ADR-003).
 
@@ -246,7 +252,7 @@ make docs                    # regenerate the data dictionary, docs/metrics.md a
 |---|---|
 | Counting rules C1 to C15 implemented and traceable | table in ADR-005 maps each to a model and column |
 | Additivity tests pass | attributed sums to global; presence minus global = extra countries (= multi-country participants) |
-| Identity bounds label-free; evaluation reports whether truth is inside | yes; truth inside in every year, 22 of 24 country cells |
+| Identity bounds label-free; evaluation reports whether truth is inside | yes; truth inside in every year, 35 of 40 country cells |
 | KPI scorecard covers the full tree incl. data-trust KPIs; every metric in the catalog | 17 KPIs per year, 29 catalog metrics, tests |
 | Five shares; the policy check fails on any unlisted column; consent and minor tests pass | yes; exercised against a deliberately added DOB column |
 | Primary and secondary suppression enforced by tests | independent checker, itself tested |

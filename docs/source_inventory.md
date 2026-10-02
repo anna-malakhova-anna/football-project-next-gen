@@ -20,7 +20,10 @@ Quality figures are *observed* rates from `quality.dq_summary` at the default co
 | **Minors present?** | Yes (ages 5-17), plus a small adult rec-league share | Yes (ages 5-17), plus a small adult share | Yes (youth categories), plus adult women's, men's and masters players |
 | **Consent fields captured** | `photo_consent`, `marketing_opt_in`, `waiver_signed` (Y/N/blank) | `consents.casl_marketing`, `consents.photo_media`, `consent_captured_at`; the whole object can be absent | `Media Consent` (Yes/No/blank). **No marketing consent captured** |
 | **Legal-basis assumption** | Guardian gives consent for minors at registration (COPPA-style parental consent). Marketing opt-in is an explicit opt-in | CASL express consent for marketing (field is named for it); photo/media consent by guardian for minors; Quebec Law 25 parental consent for under-14s | Media consent only; GDPR / UK GDPR apply to DE, AT and GB federations, so consent must be specific and withdrawable. Federation, not the program, is the controller of the underlying member data |
-| **Person identifier quality** (Phase 2 evaluation) | **None.** Identity rests entirely on name, DOB and contact details. The matcher links 99.93% of true US-US pairs (the rules baseline 91.0%); all 325 cross-border US-CA pairs are found | **Partial.** `member_uuid` links 874 of 980 true CA-CA pairs (89%); the other 106, mostly a player switching clubs, need the matcher. Birth year only, so name and contact carry the weight | **Partial.** `Player ID` links 725 of 838 true INTL-INTL pairs (87%). Panama's reissued IDs and the new ID issued after a family-name change leave 113 to the matcher. No marketing consent captured |
+| **Person identifier quality** (Phase 2 evaluation) | **None.** Identity rests entirely on name, DOB and contact details. The matcher links 99.98% of true US-US pairs (the rules baseline 90.8%); 99.4% of the 526 cross-border US-CA pairs are found | **Partial.** `member_uuid` links the large majority of true CA-CA pairs (see the Phase 2 results for the current split); the rest, mostly a player switching clubs, need the matcher. Birth year only, so name and contact carry the weight | **Partial.** `Player ID` links most true INTL-INTL pairs (see the Phase 2 results for the current split). Panama's reissued IDs and the new ID issued after a family-name change leave the rest to the matcher. No marketing consent captured |
+| **Data contract** | `contracts/US_LEAGUE.yml` | `contracts/CA_CLUB.yml` | `contracts/INTL_FED.yml` |
+| **Contract version** | 1.0.0 (retrofitted, effective 2026-10-01) | 1.0.0 (retrofitted, effective 2026-10-01) | 1.0.0 (retrofitted, effective 2026-10-01) |
+| **Contract status** (`make contracts`; current results in `quality.dq_contract_results`) | Validated: 0 ERROR, 1 WARN (ZIP: leading zero dropped upstream) | Validated: 0 ERROR, 3 WARN (consents missing on too many records; postal-code form) | Validated: 0 ERROR, 1 WARN (Country spelling) |
 | **Onboarding status** | `Modelled` | `Modelled` | `Modelled` |
 
 ## Known quality issues
@@ -28,9 +31,9 @@ Quality figures are *observed* rates from `quality.dq_summary` at the default co
 Each issue links to a `defect_id` in `quality.dq_summary`; `quality.dq_defect_log` has the affected records and raw values.
 
 ### US_LEAGUE
-- **Exact duplicates (double submit):** 1.5% of rows (156). `exact_duplicate`
-- **Near-duplicates** (same person, league and season, new id and timestamp): about 0.9% (100). `near_duplicate`
-- **Impossible DOB** (future date or age over 80): 0.5% (53). `impossible_dob`
+- **Exact duplicates (double submit):** 1.5% of rows (192). `exact_duplicate`
+- **Near-duplicates** (same person, league and season, new id and timestamp): about 1.0% (124). `near_duplicate`
+- **Impossible DOB** (future date or age over 80): 0.5% (67). `impossible_dob`
 - **Guardian email case or whitespace variants:** 8.0%. `guardian_email_case_whitespace`
 - **Missing gender:** 3.0%, mapped to `U`. `missing_gender`
 - **Missing photo consent:** 10%; **missing marketing opt-in:** 5%. Both stay NULL, never FALSE. `missing_photo_consent`, `missing_marketing_opt_in`
@@ -53,7 +56,7 @@ Each issue links to a `defect_id` in `quality.dq_summary`; `quality.dq_defect_lo
 - **UK DOBs as Excel date serials:** 20% of UK rows. Decoded in staging. `uk_dob_excel_serial`
 - **Country spelled inconsistently:** 25% (`MEX` / `Mexico` / `MX`). `country_value_inconsistency`
 - **Japan gives family name first;** handled by a sheet rule (`intl_family_name_first_countries`).
-- **Full Name is one field,** so multi-word surnames split imperfectly (17 of 1,670 names in the default run).
+- **Full Name is one field,** so multi-word surnames split imperfectly (18 of 2,079 names in the default run).
 - **Panama reissues Player ID every year,** so it cannot link a player across seasons.
 - **Media consent blank:** 10%. `missing_media_consent`
 - **Category labels do not line up with canonical divisions:** `U15` maps to `U14`, `Masters` to `ADULT_MIXED`. Noted in `division_map`.
@@ -61,13 +64,14 @@ Each issue links to a `defect_id` in `quality.dq_summary`; `quality.dq_defect_lo
 
 ## Known but not onboarded
 
-Two further sources are planned for Phase 4 and are tracked as `Discovery` in `dbt/seeds/source_registry.csv`, which feeds the
-data-trust KPIs "sources onboarded" and "sources known": **fan engagement** (a fan engagement feed) and **school aggregates** (school
-aggregate counts). The aggregate source will be reported as a separate, non-deduplicated "reported headcount" line and never mixed into
-resolved participants (methodology memo, section 8). No data from either exists yet.
+Two further sources are tracked in `dbt/seeds/source_registry.csv`, which feeds the data-trust KPIs "sources onboarded" and "sources known":
+**school aggregates** (Source E, `Modelled` as a separate aggregate fact; see `docs/playbook/onboarding_log_SCHOOL_AGGREGATES.md`) and
+**fan engagement** (Source D, `Staged`: an accounts snapshot and an event stream under two contracts; `Modelled` waits for the ADR-009 linkage
+decision; see `docs/playbook/onboarding_log_FAN_ENGAGEMENT.md`). The aggregate source is reported as a separate, non-deduplicated "reported
+headcount" line and never mixed into resolved participants (methodology memo, section 8).
 
 ## Onboarding status definitions
 
-`Discovery` (known, not yet profiled) -> `Profiling` (profiled in `dq_source_profile`) -> `Staged` (typed, standardized, flagged;
+`Discovery` (known, not yet profiled) -> `Profiling` (profiled in `dq_source_profile`) -> `Contracted` (a data contract is agreed; see `docs/playbook/onboard-a-source.md`) -> `Staged` (typed, standardized, flagged;
 tests pass) -> `Modelled` (resolved into the participant model) -> `Production` (monitored, with owner sign-off).
 All three sources ended Phase 1 at **Staged**. Identity resolution (Phase 2) resolves them into participants (`dim_participant`, `bridge_registration_participant`), which moves them to **Modelled**. None is `Production`: there is no monitoring, owner sign-off or persisted participant-ID registry (see ADR-004).

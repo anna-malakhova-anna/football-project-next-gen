@@ -1,10 +1,11 @@
-.PHONY: measure eval-measure shares report publish phase3 test-phase3 steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
 # Phase 1 builds and tests everything except the Phase 2 and Phase 3 models and their tests (dbt tags).
-P1  := --exclude tag:phase2 tag:phase3
-P2  := --exclude tag:phase3
+P1  := --exclude tag:phase2 tag:phase3 tag:phase4
+P2  := --exclude tag:phase3 tag:phase4
+P3  := --exclude tag:phase4
 
 setup: dbt/profiles.yml
 	uv sync
@@ -26,6 +27,7 @@ load-eval:
 isolation: dbt/profiles.yml
 	$(DBT) parse --profiles-dir .
 	$(PY) -m scripts.check_eval_isolation
+	$(PY) -m scripts.check_lineage
 
 build: dbt/profiles.yml
 	$(DBT) seed --profiles-dir .
@@ -41,17 +43,21 @@ eval: dbt/profiles.yml
 
 test: dbt/profiles.yml
 	uv run pytest
+	$(PY) -m scripts.validate_contracts
 	$(DBT) test --profiles-dir . $(P1)
 	$(DBT) parse --profiles-dir .
 	$(PY) -m scripts.check_eval_isolation
+	$(PY) -m scripts.check_lineage
 
 test-phase2: dbt/profiles.yml
 	$(DBT) test --profiles-dir . $(P2)
 	$(PY) -m scripts.check_eval_isolation
+	$(PY) -m scripts.check_lineage
 
 test-phase3: dbt/profiles.yml
-	$(DBT) test --profiles-dir .
+	$(DBT) test --profiles-dir . $(P3)
 	$(PY) -m scripts.check_eval_isolation
+	$(PY) -m scripts.check_lineage
 	$(PY) -m scripts.check_share_policy
 
 # Optional demo of the review loop. The steward is SIMULATED from ground truth; POST_REVIEW rows are not matcher performance.
@@ -69,6 +75,27 @@ steward-reset:
 
 id-stability:
 	$(PY) -m scripts.check_id_stability
+
+# Phase 4: validate every source's raw table against its data contract (writes quality.dq_contract_results)
+contracts:
+	$(PY) -m scripts.validate_contracts
+
+test-phase4: dbt/profiles.yml
+	$(PY) -m scripts.validate_contracts
+	$(DBT) test --profiles-dir .
+	$(PY) -m scripts.check_eval_isolation
+	$(PY) -m scripts.check_lineage
+	$(PY) -m scripts.check_share_policy
+
+# Phase 4: household -> fan account linkage (restricted `linkage` schema) and its evaluation (needs `make load-eval`)
+linkage: dbt/profiles.yml
+	$(DBT) run --profiles-dir . --select linkage eval_household_formation eval_household_linkage
+	$(PY) -m scripts.print_linkage
+
+# Phase 4: retention models and the printed comparison with the synthetic truth (needs `make load-eval`)
+retention: dbt/profiles.yml
+	$(DBT) run --profiles-dir . --select retention eval_retention
+	$(PY) -m scripts.print_retention
 
 # Phase 3: counting facts and marts, audience shares (with the access-policy check)
 measure: dbt/profiles.yml

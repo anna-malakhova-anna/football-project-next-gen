@@ -15,6 +15,19 @@ sources:
         description: >
           Canadian club platform API dump, one row per API record. The nested record is kept whole in
           `record_json`; `_page` is the API page number. Pagination overlap can repeat a record.
+      - name: school_headcounts
+        description: >
+          School and recreation program headcounts (CSV, Source E): one row per program per year per reporter, NO individuals. Every
+          column is VARCHAR; empty fields are ''. `_row_number` is the 1-based data row index. A program-year can appear twice when two
+          reporters both report it.
+      - name: fan_accounts
+        description: >
+          Fan app / ticketing accounts snapshot (CSV, Source D): one row per account, adults only. Every column is VARCHAR; empty fields are ''.
+          `_row_number` is the 1-based data row index. marketing_opt_in blank means not captured.
+      - name: fan_events
+        description: >
+          Fan engagement event stream (JSON Lines, Source D), one row per delivered line, kept whole in `record_json`. `_source_file` is the DELIVERY
+          month (events_YYYY_MM.jsonl): a late event sits in a later file than its event_ts. The same event_id can be delivered twice.
       - name: intl_federation_returns
         description: >
           International federation returns (XLSX). Every worksheet row is landed, including title,

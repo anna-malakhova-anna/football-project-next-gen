@@ -34,7 +34,11 @@ def test_row_counts_match_files(loaded):
     us = sum(sum(1 for _ in csv.reader(open(f, encoding="utf-8"))) - 1 for f in (raw / "us_league").glob("*.csv"))
     ca = sum(len(json.loads(f.read_text(encoding="utf-8"))["records"]) for f in (raw / "ca_club").glob("*.json"))
     intl = sum(ws.max_row for f in (raw / "intl").glob("*.xlsx") for ws in load_workbook(f))
-    assert counts == {"us_league_registrations": us, "ca_club_records": ca, "intl_federation_returns": intl}
+    school = sum(sum(1 for _ in csv.reader(open(f, encoding="utf-8"))) - 1 for f in (raw / "school").glob("*.csv"))
+    fan_acc = sum(1 for _ in csv.reader(open(raw / "fan" / "fan_accounts.csv", encoding="utf-8"))) - 1
+    fan_ev = sum(sum(1 for _ in open(f, encoding="utf-8")) for f in (raw / "fan").glob("events_*.jsonl"))
+    assert counts == {"us_league_registrations": us, "ca_club_records": ca, "intl_federation_returns": intl, "school_headcounts": school,
+                      "fan_accounts": fan_acc, "fan_events": fan_ev}
 
 
 def test_only_the_three_raw_tables_and_no_ground_truth(loaded):
@@ -56,7 +60,7 @@ def test_everything_lands_as_varchar_except_metadata(loaded):
     for (t, c), d in types.items():
         if c.startswith("_"):
             assert d in {"VARCHAR", "INTEGER", "TIMESTAMP"}
-        elif t == "ca_club_records":
+        elif t in ("ca_club_records", "fan_events"):
             assert d == "JSON"
         else:
             assert d == "VARCHAR", (t, c)
@@ -90,11 +94,13 @@ def test_ca_json_kept_whole(loaded):
 
 def test_intl_rows_incl_junk_and_serials_kept_raw(loaded):
     base, _ = loaded
+    cfg = load_config()
+    years, sc = len(cfg["seasons"]["years"]), cfg["sources"]["intl"]
     # title row, blank row, header row and summary row are all present as-is
     assert _q(base, "select c1 from raw.intl_federation_returns where _sheet_name='Germany' and _excel_row=1 and _source_file like '%2024%'")[0][0].startswith("Federation Return")
-    assert _q(base, "select count(*) from raw.intl_federation_returns where _sheet_name='Germany' and _excel_row=2 and c1 is null and c9 is null")[0][0] == 3
-    assert _q(base, "select count(*) from raw.intl_federation_returns where c1 = 'Player ID'")[0][0] == 18
-    assert _q(base, "select count(*) from raw.intl_federation_returns where c1 like 'Total: %'")[0][0] == 12
+    assert _q(base, "select count(*) from raw.intl_federation_returns where _sheet_name='Germany' and _excel_row=2 and c1 is null and c9 is null")[0][0] == years
+    assert _q(base, "select count(*) from raw.intl_federation_returns where c1 = 'Player ID'")[0][0] == 6 * years      # one header row per country sheet (6 countries) per workbook
+    assert _q(base, "select count(*) from raw.intl_federation_returns where c1 like 'Total: %'")[0][0] == len(sc["sheets_with_summary_row"]) * years
     serials = _q(base, "select c3 from raw.intl_federation_returns where _sheet_name='United Kingdom' and regexp_matches(c3, '^[0-9]+$')")
     assert serials and all(re.fullmatch(r"\d{5}", s[0]) for s in serials)
 

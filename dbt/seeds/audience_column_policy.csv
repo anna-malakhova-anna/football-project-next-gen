@@ -25,6 +25,14 @@ exec,share_exec__participation_by_sex,participation_year,Y,DIMENSION
 exec,share_exec__participation_by_sex,sex,Y,DIMENSION
 exec,share_exec__participation_by_sex,participants,Y,AGGREGATE_SUPPRESSED
 exec,share_exec__participation_by_sex,suppressed,Y,SUPPRESSION_FLAG
+exec,share_exec__reported_headcount,participation_year,Y,DIMENSION
+exec,share_exec__reported_headcount,country_code,Y,DIMENSION
+exec,share_exec__reported_headcount,reporting_programs,Y,AGGREGATE_SUPPRESSED
+exec,share_exec__reported_headcount,reported_headcount,Y,DERIVED_RATE_SUPPRESSED
+exec,share_exec__reported_headcount,voluntary_program_headcount,Y,DERIVED_RATE_SUPPRESSED
+exec,share_exec__reported_headcount,combined_reach_low,Y,DERIVED_RATE_SUPPRESSED
+exec,share_exec__reported_headcount,combined_reach_high,Y,DERIVED_RATE_SUPPRESSED
+exec,share_exec__reported_headcount,suppressed,Y,SUPPRESSION_FLAG
 exec,*,participant_id,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
 exec,*,analyst_key,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"
 exec,*,first_name,N,"NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data"

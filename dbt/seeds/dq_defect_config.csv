@@ -28,10 +28,10 @@ CA_CLUB,dob_unparseable,zero,0.0,,rows,all records,true,birth_year is not a 4-di
 INTL_FED,uk_dob_excel_serial,rate,0.2,,uk_rows,rows on the United Kingdom sheets,true,Date of birth is an Excel date serial instead of a DD/MM/YYYY string (decoded in staging).
 INTL_FED,country_value_inconsistency,rate,0.25,,rows,all rows,true,Country spelling differs from the dominant spelling on its sheet (MEX / Mexico / MX).
 INTL_FED,missing_media_consent,rate,0.1,,rows,all rows,true,Media Consent is blank: not captured (NULL).
-INTL_FED,junk_title_row,structural,,6,structural,"title rows above the header (DE, AT)",true,Worksheet title row above the header; dropped in staging.
-INTL_FED,junk_blank_row,structural,,6,structural,"blank rows above the header (DE, AT)",true,Blank row between title and header; dropped in staging.
-INTL_FED,junk_summary_row,structural,,12,structural,trailing 'Total: N' rows,true,Trailing summary row ('Total: N'); dropped in staging.
-INTL_FED,junk_header_row,structural,,18,structural,one header row per sheet,true,"The column header row, landed as data by the raw loader; dropped in staging."
+INTL_FED,junk_title_row,structural,,10,structural,"title rows above the header (DE, AT)",true,Worksheet title row above the header; dropped in staging.
+INTL_FED,junk_blank_row,structural,,10,structural,"blank rows above the header (DE, AT)",true,Blank row between title and header; dropped in staging.
+INTL_FED,junk_summary_row,structural,,20,structural,trailing 'Total: N' rows,true,Trailing summary row ('Total: N'); dropped in staging.
+INTL_FED,junk_header_row,structural,,30,structural,one header row per sheet,true,"The column header row, landed as data by the raw loader; dropped in staging."
 INTL_FED,name_order_inverted,structural,,,structural,all rows on family-name-first sheets (JP),false,"Family name precedes given name (Japan). Handled by sheet rule in staging; a configuration, not a data signal."
 INTL_FED,family_name_change,structural,,,structural,records of adult women after a change of family name,false,"Family name differs from the same player's earlier registrations, and a new Player ID is issued. Needs identity matching (Phase 2)."
 INTL_FED,player_id_reissued,structural,,,structural,all rows on unstable-ID sheets (PA),false,Player ID is reissued each year (Panama). Needs identity matching to see (Phase 2).
@@ -40,5 +40,20 @@ INTL_FED,unmapped_gender,zero,0.0,,rows,all rows,true,Gender value missing from 
 INTL_FED,unmapped_country,zero,0.0,,rows,all rows,true,Country value missing from country_map.
 INTL_FED,dob_unparseable,zero,0.0,,rows,all rows,true,"DOB is blank, ambiguous or not a real date."
 INTL_FED,exact_duplicate,zero,0.0,,rows,all rows,true,Row is identical to an earlier row on the same sheet.
+SCHOOL_AGGREGATES,total_mismatch,rate,0.08,,rows,all rows,true,total_count differs from girls_count + boys_count.
+SCHOOL_AGGREGATES,missing_grade_band,rate,0.05,,rows,all rows,true,grade_band is blank.
+SCHOOL_AGGREGATES,duplicate_report,rate,0.03,,rows,all rows,true,The same program-year was reported by two different reporters; one report is kept (the latest).
+SCHOOL_AGGREGATES,round_number,rate,0.1,,rows,all rows,true,"total_count is a suspiciously round number (100, 150, 200, 250, 300): possibly an estimate, not a count."
+SCHOOL_AGGREGATES,unmapped_program_type,zero,0.0,,rows,all rows,true,"program_type is not PE_UNIT, INTRAMURAL or AFTER_SCHOOL."
+SCHOOL_AGGREGATES,unmapped_country,zero,0.0,,rows,all rows,true,country is not an ISO 3166-1 alpha-2 code in country_map.
+FAN_ENGAGEMENT,duplicate_event,rate,0.005,,events,all delivered event lines,true,The same event_id was delivered twice; only the first delivery is counted.
+FAN_ENGAGEMENT,late_arriving_event,rate,0.02,,events,all delivered event lines,true,The event landed in a later month's file than its event_ts; it is counted in the month of event_ts.
+FAN_ENGAGEMENT,clock_skew,rate,0.01,,events,all delivered event lines,false,"event_ts is shifted by up to two days (a device clock error); not recoverable from the data, so not detected."
+FAN_ENGAGEMENT,email_case_whitespace,rate,0.05,,accounts,all accounts,true,Account email has capitals or surrounding spaces; normalized in staging.
+FAN_ENGAGEMENT,marketing_opt_in_blank,rate,0.05,,accounts,all accounts,true,marketing_opt_in is blank: not captured (NULL).
+FAN_ENGAGEMENT,email_differs_from_registration,rate,0.25,,participant_accounts,accounts that belong to a participant household,false,The account email is not the guardian's registration email. Needs the household linkage to see.
+FAN_ENGAGEMENT,phone_shared_with_participant_household,rate,0.01,,accounts,accounts that carry a phone,false,The account phone number is a participant household's number: a false-link hazard for phone matching. Needs ground truth to see.
+FAN_ENGAGEMENT,unmapped_event_type,zero,0.0,,events,all delivered event lines,true,event_type is not one of the six known types.
+FAN_ENGAGEMENT,orphan_event,zero,0.0,,events,all delivered event lines,true,The event's account_id is not in the accounts snapshot.
 CA_CLUB,impossible_dob,zero,0.0,,rows,all records,true,Age at the Dec 31 cutoff is below 0 or above 80.
 INTL_FED,impossible_dob,zero,0.0,,rows,all rows,true,Age at the Dec 31 cutoff is below 0 or above 80.

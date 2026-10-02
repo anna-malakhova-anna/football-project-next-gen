@@ -1,0 +1,78 @@
+version: 2
+
+models:
+  - name: retention_spells
+    description: >
+      One row per entry (a participant's first observed year, excluding the first data year): the survival record every retention mart is built from.
+      Holds the censoring rules once: an age-out (past the youth maximum age) and the end of the data are censored, not churn.
+    columns:
+      - name: participant_id
+        data_tests: [unique, not_null]
+      - name: outcome
+        data_tests:
+          - accepted_values: {arguments: {values: [CHURNED, AGE_OUT, FINAL_YEAR]}}
+
+  - name: mart_retention_survival
+    description: >
+      Kaplan-Meier retention by segment (sex, entry age band, entry country, multi-org at entry, entry division), in SQL, with Greenwood standard
+      errors and 95% intervals. `reliable` = at least k_min entrants at risk.
+    columns:
+      - name: survival
+        data_tests: [not_null]
+      - name: at_risk
+        data_tests: [not_null]
+
+  - name: mart_retention_cohorts
+    description: >
+      Cohort x years-since-entry triangle with active counts and shares, by entry country and sex. `retention_pct` is the simple share still registered
+      (not corrected for age-outs); `retention_among_eligible` removes players who aged out.
+
+  - name: mart_retention_transitions
+    description: >
+      Division-to-division flow year over year (steady, ageing forward, playing up, moved down, youth to adult, not returned, aged out).
+
+  - name: mart_retention_drivers
+    description: >
+      DESCRIPTIVE one-year retention rates by segment with Wilson intervals. Associations only: no causal claim is made or implied.
+
+  - name: mart_youth_to_adult
+    description: >
+      Of the players who were 17 in year t, the share registered as adults in t+1. Tracked separately from youth retention.
+
+unit_tests:
+  # Hand-built participants, window 2021-2025 (2021 is the censored first year). Each row is one participant-year the player was registered.
+  - name: retention_spells_censor_age_outs_and_the_end_of_the_data
+    description: >
+      A: aged 15 at entry in 2022, registered 2022-2024, then (age 18) nothing: age-out, censored at step 2, NOT churn.
+      B: aged 10 at entry in 2022, registered 2022 only: churn at step 1 (still youth, still observable).
+      C: adult entering 2024 and registered 2024-2025: censored at the end of the data after step 1.
+      D: adult entering 2025: nothing observable after entry, censored at step 0.
+      E: registered in 2021 (the censored first year): not an entry cohort, so not in the table.
+      F: adult entering 2022, registered 2022, skipped 2023, back in 2024: the FIRST gap is the event (reactivation is reported elsewhere).
+    model: retention_spells
+    given:
+      - input: ref('observation_window')
+        rows:
+          - {first_observed_year: 2021, last_observed_year: 2025}
+      - input: ref('privacy_params')
+        rows:
+          - {param: youth_max_age, value: 17}
+      - input: ref('fct_participant_year')
+        rows:
+          - {participant_id: A, participation_year: 2022, age_at_cutoff: 15, age_band: 14-17, sex: F, attributed_country_code: US, is_multi_org: false, primary_division: U17}
+          - {participant_id: A, participation_year: 2023, age_at_cutoff: 16, age_band: 14-17, sex: F, attributed_country_code: US, is_multi_org: false, primary_division: U17}
+          - {participant_id: A, participation_year: 2024, age_at_cutoff: 17, age_band: 14-17, sex: F, attributed_country_code: US, is_multi_org: false, primary_division: U17}
+          - {participant_id: B, participation_year: 2022, age_at_cutoff: 10, age_band: 10-11, sex: M, attributed_country_code: US, is_multi_org: false, primary_division: U12}
+          - {participant_id: C, participation_year: 2024, age_at_cutoff: 30, age_band: 30-44, sex: M, attributed_country_code: CA, is_multi_org: false, primary_division: ADULT_M}
+          - {participant_id: C, participation_year: 2025, age_at_cutoff: 31, age_band: 30-44, sex: M, attributed_country_code: CA, is_multi_org: false, primary_division: ADULT_M}
+          - {participant_id: D, participation_year: 2025, age_at_cutoff: 25, age_band: 18-29, sex: F, attributed_country_code: US, is_multi_org: false, primary_division: ADULT_W}
+          - {participant_id: E, participation_year: 2021, age_at_cutoff: 9, age_band: 8-9, sex: M, attributed_country_code: US, is_multi_org: false, primary_division: U10}
+          - {participant_id: F, participation_year: 2022, age_at_cutoff: 40, age_band: 30-44, sex: M, attributed_country_code: US, is_multi_org: false, primary_division: ADULT_M}
+          - {participant_id: F, participation_year: 2024, age_at_cutoff: 42, age_band: 30-44, sex: M, attributed_country_code: US, is_multi_org: false, primary_division: ADULT_M}
+    expect:
+      rows:
+        - {participant_id: A, entry_year: 2022, churned: false, duration_k: 2, outcome: AGE_OUT}
+        - {participant_id: B, entry_year: 2022, churned: true, duration_k: 1, outcome: CHURNED}
+        - {participant_id: C, entry_year: 2024, churned: false, duration_k: 1, outcome: FINAL_YEAR}
+        - {participant_id: D, entry_year: 2025, churned: false, duration_k: 0, outcome: FINAL_YEAR}
+        - {participant_id: F, entry_year: 2022, churned: true, duration_k: 1, outcome: CHURNED}

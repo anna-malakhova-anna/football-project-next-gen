@@ -1,3 +1,4 @@
+from scripts import check_share_policy as sps
 from scripts.check_share_policy import check, strip_comments
 
 POLICY = [
@@ -57,3 +58,30 @@ def test_stale_policy_and_unlisted_models_are_caught():
     assert "MODEL_NOT_IN_POLICY" in kinds(check(POLICY, cols, {}, {**GOOD_TAGS, ("share_media", "share_media__new", "name"): "direct"}))
     ghost = POLICY + [{"audience": "ops", "model": "share_ops__ghost", "column": "x", "allowed": "Y", "treatment": "x"}]
     assert "POLICY_MODEL_MISSING" in kinds(check(ghost, GOOD_COLS, {}, GOOD_TAGS))
+
+
+def _manifest(shares: dict[str, tuple[str, list[str]]]):
+    """shares: name -> (schema, [parent names]); parents: 'link' is a linkage model, 'plain' is an ordinary mart."""
+    nodes = {
+        "model.p.link": {"name": "link_household_fan_account", "schema": "linkage", "resource_type": "model", "original_file_path": "models/linkage/l.sql", "depends_on": {"nodes": []}},
+        "model.p.plain": {"name": "mart_x", "schema": "measurement", "resource_type": "model", "original_file_path": "models/measurement/m.sql", "depends_on": {"nodes": []}},
+        "model.p.mid": {"name": "mid", "schema": "linkage", "resource_type": "model", "original_file_path": "models/linkage/mid.sql", "depends_on": {"nodes": ["model.p.link"]}},
+    }
+    for name, (schema, parents) in shares.items():
+        nodes[f"model.p.{name}"] = {"name": name, "schema": schema, "resource_type": "model", "original_file_path": f"models/shares/{schema}/{name}.sql",
+                                    "depends_on": {"nodes": [f"model.p.{p}" for p in parents]}}
+    return {"nodes": nodes, "sources": {}}
+
+
+def test_a_share_built_from_the_linkage_schema_is_a_leak_unless_it_is_an_approved_aggregate():
+    m = _manifest({"share_exec__participation_global": ("share_exec", ["plain"]),
+                   "share_exec__fan_engagement_effect": ("share_exec", ["mid"]),        # approved aggregate, through an intermediate linkage model
+                   "share_analyst__households": ("share_analyst", ["mid"])})
+    assert [p[0] for p in sps.check_linkage(m)] == ["LINKAGE_LEAK"]
+    assert "share_analyst__households" in sps.check_linkage(m)[0][1]
+
+
+def test_nothing_linked_reaches_marketing_or_media_even_as_an_approved_name():
+    m = _manifest({"share_marketing__contact_list": ("share_marketing", ["link"]), "share_media__roster": ("share_media", ["plain"])})
+    out = sps.check_linkage(m)
+    assert [p[0] for p in out] == ["LINKAGE_IN_MARKETING"] and "contact_list" in out[0][1]

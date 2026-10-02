@@ -32,7 +32,7 @@ def _rows(base):
 def test_files_and_schema(run):
     _, base, out = run
     names = sorted(p.name for p in (base / "raw" / "us_league").glob("*.csv"))
-    assert names == sorted(f"registrations_{t}_{y}.csv" for y in (2023, 2024, 2025) for t in ("fall", "spring"))
+    assert names == sorted(f"registrations_{t}_{y}.csv" for y in load_config()["seasons"]["years"] for t in ("fall", "spring"))
     with open(base / "raw" / "us_league" / names[0], encoding="utf-8") as f:
         assert next(csv.reader(f)) == us_league.COLUMNS
     assert "SYNTHETIC" in (base / "raw" / "README_SYNTHETIC.txt").read_text()

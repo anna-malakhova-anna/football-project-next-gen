@@ -16,6 +16,23 @@ with staged as (
            raw_dob, raw_last_name, raw_sex, raw_email, raw_postal, raw_consent_photo, raw_consent_marketing,
            raw_country, division_label_raw
     from {{ ref('stg_intl_registrations') }}
+    union all by name
+    -- Source E: aggregate rows, no person fields (those columns are NULL in staging)
+    select source_system, source_record_id, record_occurrence, source_file, source_row, dq_flags,
+           raw_dob, raw_last_name, raw_sex, raw_email, raw_postal, raw_consent_photo, raw_consent_marketing,
+           raw_country, division_label_raw
+    from {{ ref('stg_school_headcounts') }}
+    union all by name
+    -- Source D: accounts and events, no registration person fields (NULL in staging)
+    select source_system, source_record_id, record_occurrence, source_file, source_row, dq_flags,
+           raw_dob, raw_last_name, raw_sex, raw_email, raw_postal, raw_consent_photo, raw_consent_marketing,
+           raw_country, division_label_raw
+    from {{ ref('stg_fan_accounts') }}
+    union all by name
+    select source_system, source_record_id, record_occurrence, source_file, source_row, dq_flags,
+           raw_dob, raw_last_name, raw_sex, raw_email, raw_postal, raw_consent_photo, raw_consent_marketing,
+           raw_country, division_label_raw
+    from {{ ref('stg_fan_events') }}
 
 ),
 
@@ -65,6 +82,17 @@ record_flags as (
             when 'unmapped_division'                        then division_label_raw
             when 'country_value_inconsistency'              then raw_country
             when 'unmapped_country'                         then raw_country
+            when 'total_mismatch'                           then source_record_id
+            when 'missing_grade_band'                       then '<blank>'
+            when 'duplicate_report'                         then source_record_id
+            when 'round_number'                             then source_record_id
+            when 'unmapped_program_type'                    then source_record_id
+            when 'duplicate_event'                          then source_record_id
+            when 'late_arriving_event'                      then source_record_id
+            when 'orphan_event'                             then source_record_id
+            when 'unmapped_event_type'                      then source_record_id
+            when 'email_case_whitespace'                    then '[' || raw_email || ']'
+            when 'marketing_opt_in_blank'                   then '<blank>'
         end                                                                 as raw_value
     from flagged
 

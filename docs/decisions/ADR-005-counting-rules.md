@@ -1,6 +1,10 @@
 # ADR-005: Counting rules (methodology v1.0)
 
 - **Status:** Accepted (Phase 3)
+> **Data window.** The figures in this ADR were measured on the original three-year window (2023 to 2025). Phase 4 extended the data to
+> 2021 to 2025 (ADR-008), which changed them; the current figures are in `docs/phase2_results.md` and the scorecard. The decisions here
+> stand; the thresholds were re-read on the new data, not re-tuned.
+
 - **Context:** "How many people play flag football in our program, and how sure are we?" needs a counting methodology that is
   defined before it is computed, implemented once, and honest about what a count is. All data here is synthetic; every number
   below is from `make phase3` at the default configuration.

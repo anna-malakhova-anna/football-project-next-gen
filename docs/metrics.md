@@ -4,7 +4,7 @@
 > file. Every KPI in `mart_kpi_scorecard` and every metric column in `share_exec` must be in the catalog; a test enforces it.
 > All data is synthetic. A count is **registered participants in onboarded sources**, not total flag football participation.
 
-Methodology version: **1.0** (see [the methodology memo](methodology/counting-a-participant.md) and the
+Methodology version: **1.0** at the time of the first metric; *Since* is the methodology version that introduced each KPI, and a KPI appears in the scorecard only from that version (see [the methodology memo](methodology/counting-a-participant.md) and the
 [CHANGELOG](methodology/CHANGELOG.md)). Counting rules C1 to C15 are in ADR-005.
 
 ## Additivity
@@ -19,59 +19,72 @@ Methodology version: **1.0** (see [the methodology memo](methodology/counting-a-
 
 ## North star
 
-| Metric | Name | Definition | Grain | Additivity | Unit | Owner |
-|---|---|---|---|---|---|---|
-| `unique_participants` | Unique participants | Resolved persons (participant_id) with at least one valid registration in the participation year (rules C1, C2, C3). The north-star metric. A person counts once however many leagues, divisions or countries they played in. | participation year (global) | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead |
+| Metric | Name | Definition | Grain | Additivity | Unit | Owner | Since |
+|---|---|---|---|---|---|---|---|
+| `unique_participants` | Unique participants | Resolved persons (participant_id) with at least one valid registration in the participation year (rules C1, C2, C3). The north-star metric. A person counts once however many leagues, divisions or countries they played in. | participation year (global) | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead | 1.0 |
 
 ## Growth
 
-| Metric | Name | Definition | Grain | Additivity | Unit | Owner |
-|---|---|---|---|---|---|---|
-| `new_participants` | New participants | Unique participants whose first valid registration year is this year (rule C11). 2023 is excluded: it is the first year of data, so every participant would look new (left-censored). | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead |
-| `returning_participants` | Returning participants | Unique participants with a valid registration this year and the prior year (rule C12). Not defined for 2023. | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead |
-| `reactivated_participants` | Reactivated participants | Unique participants with a valid registration this year, none last year, and at least one earlier year (rule C13). Only possible from 2025 in this data (it needs an earlier year plus a gap year). | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead |
-| `retention_rate` | Year-over-year retention rate | Returning participants divided by the prior year's unique participants (rule C12). Defined from 2024 (2023 has no prior year in the data). | participation year | `RATIO` | rate | Program Insights Lead |
+| Metric | Name | Definition | Grain | Additivity | Unit | Owner | Since |
+|---|---|---|---|---|---|---|---|
+| `new_participants` | New participants | Unique participants whose first valid registration year is this year (rule C11). The first observed year is excluded: with no earlier data every participant would look new (left-censored). | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead | 1.0 |
+| `returning_participants` | Returning participants | Unique participants with a valid registration this year and the prior year (rule C12). Not defined for the first observed year. | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead | 1.0 |
+| `reactivated_participants` | Reactivated participants | Unique participants with a valid registration this year, none last year, and at least one earlier year (rule C13). Only possible from the third observed year (it needs an earlier year plus a gap year). | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead | 1.0 |
+| `retention_rate` | Year-over-year retention rate | Returning participants divided by the prior year's unique participants (rule C12). Defined from the second observed year (the first has no prior year in the data). | participation year | `RATIO` | rate | Program Insights Lead | 1.0 |
 
 ## Reach
 
-| Metric | Name | Definition | Grain | Additivity | Unit | Owner |
-|---|---|---|---|---|---|---|
-| `youth_girls_participants` | Youth girls participants | Unique youth participants (age 17 or under at December 31) whose registration-reported sex is F (rules C7, C9, C10). Reported sex only; gender identity is not collected. | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead |
-| `girls_share_of_youth` | Girls' share of youth participation | Youth girls participants divided by youth participants (sex F, M and U all in the denominator; U is never imputed, rule C9). | participation year | `RATIO` | rate | Program Insights Lead |
-| `international_participants` | International participants (attributed, outside the US) | Unique participants whose attributed country (rule C6) is not US. | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead |
-| `countries_with_participants` | Countries with at least one participant | Number of countries with one or more attributed participants in the year, after reading the data (suppression does not apply to this count). | participation year | `STATE` | count | Program Insights Lead |
+| Metric | Name | Definition | Grain | Additivity | Unit | Owner | Since |
+|---|---|---|---|---|---|---|---|
+| `youth_girls_participants` | Youth girls participants | Unique youth participants (age 17 or under at December 31) whose registration-reported sex is F (rules C7, C9, C10). Reported sex only; gender identity is not collected. | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead | 1.0 |
+| `girls_share_of_youth` | Girls' share of youth participation | Youth girls participants divided by youth participants (sex F, M and U all in the denominator; U is never imputed, rule C9). | participation year | `RATIO` | rate | Program Insights Lead | 1.0 |
+| `international_participants` | International participants (attributed, outside the US) | Unique participants whose attributed country (rule C6) is not US. | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead | 1.0 |
+| `countries_with_participants` | Countries with at least one participant | Number of countries with one or more attributed participants in the year, after reading the data (suppression does not apply to this count). | participation year | `STATE` | count | Program Insights Lead | 1.0 |
+| `reported_headcount` | Reported headcount (school and recreation programs) | Children counted in school and recreation program headcounts reported by partners (Source E), summed over programs after the staging repairs (latest report per program-year; girls + boys where the stated total disagrees). NOT participants: aggregates cannot be deduplicated against people, so this is never added to unique_participants. PE_UNIT rows are exposure, not participation. | participation year (global) | `NON_ADDITIVE` | count | Program Partnerships, Education Lead | 1.1 |
+| `voluntary_program_headcount` | Voluntary program headcount | Reported headcount in INTRAMURAL and AFTER_SCHOOL programs only (children who chose to take part), excluding PE_UNIT exposure. Same aggregate caveats as reported_headcount. | participation year (global) | `NON_ADDITIVE` | count | Program Partnerships, Education Lead | 1.1 |
+| `combined_reach_low` | Combined reach, lower bound | unique_participants (point) plus the part of the reported headcount that cannot be a registered participant: reported headcount minus the maximum possible overlap. A bound, not an estimate. | participation year (global) | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `combined_reach_high` | Combined reach, upper bound | unique_participants (high) plus the full reported headcount (no overlap assumed). A bound, not an estimate. | participation year (global) | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
 
 ## Depth
 
-| Metric | Name | Definition | Grain | Additivity | Unit | Owner |
-|---|---|---|---|---|---|---|
-| `registrations_per_participant` | Registrations per participant | Valid registrations divided by unique participants for the same year and grain. A depth measure: multi-league and spring-plus-fall players raise it. | participation year | `RATIO` | ratio | Program Insights Lead |
-| `multi_org_participants` | Multi-organization participants | Unique participants with valid registrations in two or more organizations (leagues, clubs, federation clubs) in the year (rule C5). Counted once in the global count and in each organization's own count. | participation year | `NON_ADDITIVE` | count | Program Insights Lead |
+| Metric | Name | Definition | Grain | Additivity | Unit | Owner | Since |
+|---|---|---|---|---|---|---|---|
+| `registrations_per_participant` | Registrations per participant | Valid registrations divided by unique participants for the same year and grain. A depth measure: multi-league and spring-plus-fall players raise it. | participation year | `RATIO` | ratio | Program Insights Lead | 1.0 |
+| `multi_org_participants` | Multi-organization participants | Unique participants with valid registrations in two or more organizations (leagues, clubs, federation clubs) in the year (rule C5). Counted once in the global count and in each organization's own count. | participation year | `NON_ADDITIVE` | count | Program Insights Lead | 1.0 |
 
 ## Data trust (reported beside the headline numbers, never hidden)
 
-| Metric | Name | Definition | Grain | Additivity | Unit | Owner |
-|---|---|---|---|---|---|---|
-| `identity_range_pct` | Identity range (% of point estimate) | (high - low) / point estimate. How much identity resolution alone could move the count. Covers identity only, not source coverage or data entry errors in the sources. | participation year | `RATIO` | rate | Flag Football Data Lead |
-| `pct_participants_high_confidence` | Participants resolved with high confidence | Share of unique participants whose resolution confidence is SINGLETON, DETERMINISTIC_ONLY, HIGH or REVIEWED and who sit in no cluster with an open integrity issue and touch no open review item. | participation year | `RATIO` | rate | Flag Football Data Lead |
-| `open_review_items` | Open review items | Items in the identity review queue (cluster conflicts and probable pairs) awaiting a steward decision. | snapshot | `STATE` | count | Flag Football Data Lead |
-| `sources_onboarded` | Sources onboarded | Sources at Modelled or Production status in the source inventory. | snapshot | `STATE` | count | Data Governance Lead |
-| `sources_known` | Sources known | Sources in the source inventory at any status, including those not yet onboarded. | snapshot | `STATE` | count | Data Governance Lead |
-| `pct_registrations_failing_dq` | Registrations failing DQ rules | Share of ALL registration records in the year (duplicates included) carrying at least one flag classified AFFECTS_COUNT in dq_flag_severity: duplicates, impossible or unparseable DOB, unmapped values. Missing values and normalized flags are not counted. Reported next to the headline numbers. | participation year | `RATIO` | rate | Flag Football Data Lead |
+| Metric | Name | Definition | Grain | Additivity | Unit | Owner | Since |
+|---|---|---|---|---|---|---|---|
+| `identity_range_pct` | Identity range (% of point estimate) | (high - low) / point estimate. How much identity resolution alone could move the count. Covers identity only, not source coverage or data entry errors in the sources. | participation year | `RATIO` | rate | Flag Football Data Lead | 1.0 |
+| `pct_participants_high_confidence` | Participants resolved with high confidence | Share of unique participants whose resolution confidence is SINGLETON, DETERMINISTIC_ONLY, HIGH or REVIEWED and who sit in no cluster with an open integrity issue and touch no open review item. | participation year | `RATIO` | rate | Flag Football Data Lead | 1.0 |
+| `open_review_items` | Open review items | Items in the identity review queue (cluster conflicts and probable pairs) awaiting a steward decision. | snapshot | `STATE` | count | Flag Football Data Lead | 1.0 |
+| `sources_onboarded` | Sources onboarded | Sources at Modelled or Production status in the source inventory. | snapshot | `STATE` | count | Data Governance Lead | 1.0 |
+| `sources_known` | Sources known | Sources in the source inventory at any status, including those not yet onboarded. | snapshot | `STATE` | count | Data Governance Lead | 1.0 |
+| `pct_registrations_failing_dq` | Registrations failing DQ rules | Share of ALL registration records in the year (duplicates included) carrying at least one flag classified AFFECTS_COUNT in dq_flag_severity: duplicates, impossible or unparseable DOB, unmapped values. Missing values and normalized flags are not counted. Reported next to the headline numbers. | participation year | `RATIO` | rate | Flag Football Data Lead | 1.0 |
 
 ## Supporting metrics
 
-| Metric | Name | Definition | Grain | Additivity | Unit | Owner |
-|---|---|---|---|---|---|---|
-| `registrations` | Valid registrations | Registration records that are not exact duplicates and whose season falls in the participation year (rule C2). Records with an impossible DOB count: the person is real, only the DOB is bad. | participation year | `ADDITIVE` | count | Flag Football Data Lead |
-| `multi_country_participants` | Multi-country participants | Unique participants with valid registrations in two or more countries in the year (rule C6). The difference between the presence and attributed country views. | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead |
-| `censored_participants` | Censored participants (first data year) | Unique participants in the first year of data (2023), whose new / returning status cannot be known because earlier years are not in the data (rule C11). | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Flag Football Data Lead |
-| `participants_attributed` | Participants (country-attributed) | Unique participants assigned to the country of their most recent registration in the year (rule C6). Sums exactly to the global unique participants. | participation year x country | `ADDITIVE` | count | Program Insights Lead |
-| `participants_present` | Participants (country-presence) | Unique participants counted in every country they played in during the year (rule C6). Sums to MORE than the global count by the number of multi-country participants; never sum it for a global figure. | participation year x country | `NON_ADDITIVE` | count | Program Insights Lead |
-| `participants` | Participants (segment) | Unique participants in a segment (country, age band, primary division, sex, youth flag) for the year. Additive within one grouping set; subtotal rows are labelled by grouping_id. | participation year x segment | `ADDITIVE` | count | Program Insights Lead |
-| `youth_participants` | Youth participants | Unique participants aged 17 or under on December 31 of the participation year (rules C7, C10). | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead |
-| `identity_participants_low` | Unique participants, low bound | Unique participants if every PROBABLE pair is really one person (AUTO + PROBABLE + steward edges). Computed with the same connected-components macro as the point estimate, with no ground truth. | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead |
-| `identity_participants_point` | Unique participants, point estimate | Unique participants from the production edge set. Equals unique_participants. | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead |
-| `identity_participants_high` | Unique participants, high bound | Unique participants if every cluster with an open integrity issue is really several people (production edges minus the edges inside flagged clusters). | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead |
-| `participants_touched_by_review` | Participants touched by open review items | Unique participants in a cluster flagged for integrity, or with a record in an open probable pair, in the year. | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead |
-| `participants_open_integrity_issue` | Participants in clusters with an open integrity issue | Unique participants in clusters flagged by idr_cluster_integrity (rule C14). They are counted in unique_participants; this reports how many. | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead |
+| Metric | Name | Definition | Grain | Additivity | Unit | Owner | Since |
+|---|---|---|---|---|---|---|---|
+| `registrations` | Valid registrations | Registration records that are not exact duplicates and whose season falls in the participation year (rule C2). Records with an impossible DOB count: the person is real, only the DOB is bad. | participation year | `ADDITIVE` | count | Flag Football Data Lead | 1.0 |
+| `multi_country_participants` | Multi-country participants | Unique participants with valid registrations in two or more countries in the year (rule C6). The difference between the presence and attributed country views. | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead | 1.0 |
+| `censored_participants` | Censored participants (first data year) | Unique participants in the first year of data, whose new / returning status cannot be known because earlier years are not in the data (rule C11). | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Flag Football Data Lead | 1.0 |
+| `participants_attributed` | Participants (country-attributed) | Unique participants assigned to the country of their most recent registration in the year (rule C6). Sums exactly to the global unique participants. | participation year x country | `ADDITIVE` | count | Program Insights Lead | 1.0 |
+| `participants_present` | Participants (country-presence) | Unique participants counted in every country they played in during the year (rule C6). Sums to MORE than the global count by the number of multi-country participants; never sum it for a global figure. | participation year x country | `NON_ADDITIVE` | count | Program Insights Lead | 1.0 |
+| `participants` | Participants (segment) | Unique participants in a segment (country, age band, primary division, sex, youth flag) for the year. Additive within one grouping set; subtotal rows are labelled by grouping_id. | participation year x segment | `ADDITIVE` | count | Program Insights Lead | 1.0 |
+| `youth_participants` | Youth participants | Unique participants aged 17 or under on December 31 of the participation year (rules C7, C10). | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead | 1.0 |
+| `identity_participants_low` | Unique participants, low bound | Unique participants if every PROBABLE pair is really one person (AUTO + PROBABLE + steward edges). Computed with the same connected-components macro as the point estimate, with no ground truth. | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead | 1.0 |
+| `identity_participants_point` | Unique participants, point estimate | Unique participants from the production edge set. Equals unique_participants. | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead | 1.0 |
+| `identity_participants_high` | Unique participants, high bound | Unique participants if every cluster with an open integrity issue is really several people (production edges minus the edges inside flagged clusters). | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead | 1.0 |
+| `participants_touched_by_review` | Participants touched by open review items | Unique participants in a cluster flagged for integrity, or with a record in an open probable pair, in the year. | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead | 1.0 |
+| `participants_open_integrity_issue` | Participants in clusters with an open integrity issue | Unique participants in clusters flagged by idr_cluster_integrity (rule C14). They are counted in unique_participants; this reports how many. | participation year | `NON_ADDITIVE` | count | Flag Football Data Lead | 1.0 |
+| `reporting_programs` | Programs reporting headcounts | Number of school and recreation programs (program-years, after the latest report wins) that reported a headcount in the year (Source E). Used to decide small-cell suppression of the headcounts. | participation year x country | `ADDITIVE` | count | Program Partnerships, Education Lead | 1.1 |
+| `entry_cohort_size` | Entry cohort size | Participants whose first observed participation year is the cohort year, excluding the first data year (everyone active then may have started earlier, so that year is left-censored). | entry year x segment | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `km_survival` | Retention (Kaplan-Meier survival) | Probability that an entrant is still registered k years after entry, S(k) = product of (1 - churn events / at risk) over the steps up to k. A churn event is the FIRST gap: no registration in the next year while still youth-eligible. An age-out (turning 18) and the end of the data are CENSORED, not churn. Reactivation is reported separately. Reported with Greenwood 95% intervals. | entry cohorts pooled x segment x years since entry | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `km_at_risk` | Entrants at risk | Entrants observed and youth-eligible at step k whose first gap has not yet happened (the denominator of the retention step). | segment x years since entry | `STATE` | count | Program Insights Lead | 1.1 |
+| `km_churn_events` | Churn events | Entrants whose first gap, while still youth-eligible, is at step k. | segment x years since entry | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `km_censored` | Censored entrants | Entrants whose follow-up stopped after step k without an event: AGE_OUT (turned 18) or FINAL_YEAR (the future is unknown). Not churn. | segment x years since entry | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `cohort_retention_pct` | Cohort share still registered | Share of an entry cohort with a registration k years after entry. NOT corrected for age-outs, so it understates retention for older youth; retention_among_eligible removes players who aged past the youth range. | entry cohort x years since entry | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `one_year_retention_rate` | One-year retention rate (descriptive) | Share of participants in year t who register again in t+1, among those still youth-eligible in t+1 and whose next year is observed. Descriptive by segment: an association, never a cause. | participation year x segment | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `youth_to_adult_rate` | Youth-to-adult transition rate | Of the players who were 17 in year t (next year observed), the share registered as adults in t+1. Tracked separately from youth retention. | participation year | `RATIO` | rate | Program Insights Lead | 1.1 |

@@ -64,3 +64,26 @@ models:
     columns:
       - name: truth_within_range
         data_tests: [not_null]
+
+  - name: eval_headcount_overlap
+    description: >
+      GROUND TRUTH (evaluation only, synthetic). Per year: reported vs true program headcount, the true overlap with registered participants
+      against the bound used by the combined-reach range, whether the true combined reach fell inside [low, high], and the error of the naive
+      participants + headcount sum.
+    columns:
+      - name: participation_year
+        data_tests: [unique, not_null]
+      - name: overlap_within_bound
+        data_tests: [accepted_values: {arguments: {values: [true]}}]
+      - name: truth_inside_range
+        data_tests: [accepted_values: {arguments: {values: [true]}}]
+
+  - name: eval_retention
+    description: >
+      GROUND TRUTH (evaluation only, synthetic). Kaplan-Meier curves against the true churn parameters, and the naive age-out-as-churn version beside them.
+    columns:
+      - name: km_survival
+        data_tests: [not_null]
+      - name: true_survival
+        data_tests: [not_null]
+

@@ -6,6 +6,9 @@ Ground truth (data/ground_truth/) is never read here.
 
   raw.us_league_registrations   one row per CSV data row; `_row_number` = 1-based data row index
   raw.ca_club_records           one row per API record; nested JSON kept whole in `record_json`
+  raw.school_headcounts         one row per CSV data row of the aggregate school / recreation program headcounts (no individuals)
+  raw.fan_accounts              one row per account of the fan app / ticketing snapshot (CSV; adults only)
+  raw.fan_events                one row per delivered event line (JSON Lines, one file per delivery month); the line is kept whole in `record_json`
   raw.intl_federation_returns   every worksheet row, header/title/blank/summary rows included, as
                                 positional columns c1..cN; `_excel_row` = 1-based worksheet row.
                                 Staging finds the header row and drops the junk.
@@ -25,7 +28,7 @@ from openpyxl import load_workbook
 
 from generator.population import load_config
 
-RAW_TABLES = ("us_league_registrations", "ca_club_records", "intl_federation_returns")
+RAW_TABLES = ("us_league_registrations", "ca_club_records", "intl_federation_returns", "school_headcounts", "fan_accounts", "fan_events")
 
 
 def _rel(path: Path, raw: Path) -> str:
@@ -57,6 +60,41 @@ def read_ca(raw: Path) -> list[list]:
     return rows
 
 
+def read_school(raw: Path) -> tuple[list[str], list[list]]:
+    """Aggregate headcounts: one row per CSV data row, no individuals."""
+    files = sorted((raw / "school").glob("*.csv"))
+    columns = None
+    rows: list[list] = []
+    for f in files:
+        with open(f, newline="", encoding="utf-8") as fh:
+            reader = csv.reader(fh)
+            header = next(reader)
+            columns = columns or header
+            if header != columns:
+                raise ValueError(f"{f.name}: header differs from the other school files")
+            for n, rec in enumerate(reader, start=1):
+                rows.append(rec + [_rel(f, raw), n])
+    return columns, rows
+
+
+def read_fan_accounts(raw: Path) -> tuple[list[str], list[list]]:
+    path = raw / "fan" / "fan_accounts.csv"
+    with open(path, newline="", encoding="utf-8") as fh:
+        reader = csv.reader(fh)
+        header = next(reader)
+        return header, [rec + [_rel(path, raw), n] for n, rec in enumerate(reader, start=1)]
+
+
+def read_fan_events(raw: Path) -> list[list]:
+    """One row per event line, kept whole. Files are delivery months, so a late event sits in a later file than its event_ts."""
+    rows = []
+    for f in sorted((raw / "fan").glob("events_*.jsonl")):
+        with open(f, encoding="utf-8") as fh:
+            for n, line in enumerate(fh, start=1):
+                rows.append([line.rstrip("\n"), _rel(f, raw), n])
+    return rows
+
+
 def read_intl(raw: Path) -> tuple[int, list[list]]:
     rows = []
     width = 0
@@ -85,6 +123,9 @@ def load(raw_dir: str | None = None, db_path: str | None = None, cfg: dict | Non
     us_cols, us_rows = read_us(raw)
     ca_rows = read_ca(raw)
     width, intl_rows = read_intl(raw)
+    school_cols, school_rows = read_school(raw)
+    fan_cols, fan_acc_rows = read_fan_accounts(raw)
+    fan_event_rows = read_fan_events(raw)
 
     tables = {
         "us_league_registrations": _table(
@@ -94,6 +135,9 @@ def load(raw_dir: str | None = None, db_path: str | None = None, cfg: dict | Non
         "intl_federation_returns": _table(
             [f"c{i}" for i in range(1, width + 1)] + ["_sheet_name", "_source_file", "_excel_row"],
             intl_rows, {"_excel_row": pa.int32()}),
+        "school_headcounts": _table(school_cols + ["_source_file", "_row_number"], school_rows, {"_row_number": pa.int32()}),
+        "fan_accounts": _table(fan_cols + ["_source_file", "_row_number"], fan_acc_rows, {"_row_number": pa.int32()}),
+        "fan_events": _table(["record_json", "_source_file", "_line_number"], fan_event_rows, {"_line_number": pa.int32()}),
     }
     con = duckdb.connect(str(db))
     try:
@@ -105,11 +149,13 @@ def load(raw_dir: str | None = None, db_path: str | None = None, cfg: dict | Non
             con.execute(f"ALTER TABLE raw.{name} ADD COLUMN _loaded_at TIMESTAMP DEFAULT TIMESTAMP '{loaded_at}'")
             con.execute(f"UPDATE raw.{name} SET _loaded_at = TIMESTAMP '{loaded_at}'")
         con.execute("ALTER TABLE raw.ca_club_records ALTER record_json SET DATA TYPE JSON")
+        con.execute("ALTER TABLE raw.fan_events ALTER record_json SET DATA TYPE JSON")
         counts = {n: con.execute(f"SELECT count(*) FROM raw.{n}").fetchone()[0] for n in tables}
     finally:
         con.close()
     expected = {"us_league_registrations": len(us_rows), "ca_club_records": len(ca_rows),
-                "intl_federation_returns": len(intl_rows)}
+                "intl_federation_returns": len(intl_rows), "school_headcounts": len(school_rows),
+                "fan_accounts": len(fan_acc_rows), "fan_events": len(fan_event_rows)}
     if counts != expected:
         raise RuntimeError(f"row count mismatch: loaded {counts}, files have {expected}")
     return counts

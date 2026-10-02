@@ -39,6 +39,13 @@ def test_adrs_and_changelog_exist_and_state_the_policy_limits():
     assert "not legal interpretations" in privacy and "not anonymous" in privacy and "Snowflake mapping" in privacy
     assert "sdcMicro" in privacy and "tau-Argus" in privacy
     publish = adr("ADR-007-publish-and-restatement.md")
-    for cause in ("NEW_SOURCE_DATA", "IDENTITY_CHANGE", "METHODOLOGY_CHANGE", "UNKNOWN"):
+    for cause in ("NEW_SOURCE_DATA", "IDENTITY_CHANGE", "METHODOLOGY_CHANGE", "DEFINITION_CHANGED", "NEW_KPI", "UNKNOWN"):
         assert cause in publish
     assert "v1.0" in (ROOT / "docs" / "methodology" / "CHANGELOG.md").read_text(encoding="utf-8")
+
+
+def test_the_memo_generator_describes_the_headcount_line_only_from_version_1_1():
+    src = (ROOT / "scripts" / "build_methodology_memo.py").read_text(encoding="utf-8")
+    assert "version_num >= 1001" in src and "combined reach range" in src
+    log = (ROOT / "docs" / "methodology" / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert "v1.1" in log and "DRAFT" in log and "NEW_KPI" in log and "DEFINITION_CHANGED" in log

@@ -1,0 +1,43 @@
+# Data contract: fan app / ticketing accounts snapshot (Source D, accounts component). Synthetic data.
+# Adults only. The accounts are NOT registrations: linking an account to a participant household is a governed step (ADR-009).
+source_system: FAN_ENGAGEMENT
+component: accounts
+version: 1.0.0
+effective_date: 2026-10-02
+owner_role: "Fan Engagement Product Lead"
+partner_type: "fan app and ticketing vendor"
+delivery:
+  format: CSV
+  mechanism: "snapshot of all accounts (data/raw/fan/fan_accounts.csv)"
+  cadence: "monthly snapshot"
+grain: "one row per account"
+raw:
+  table: raw.fan_accounts
+  row_filter: null
+primary_key: [account_id]
+person_identifier:
+  quality: partial
+  field: account_id
+  note: "an account is a household-level fan identity, not a person; email and phone are the only keys that can reach a registration, and the email often differs from the one given at registration"
+minors_present: false
+consent_fields:
+  - column: marketing_opt_in
+    permits: "marketing contact from the fan app and its partners; says nothing about use of registration data"
+    allowed_values: ["true", "false"]
+schema:
+  - {column: account_id, raw: account_id, type: string, required: true, pii: quasi, pattern: '^A-\d{6}$'}
+  - {column: email, raw: email, type: string, required: true, pii: direct}
+  - {column: phone, raw: phone, type: string, required: false, pii: direct}
+  - {column: postal_prefix, raw: postal_prefix, type: string, required: false, pii: quasi}
+  - {column: country, raw: country, type: string, required: true, pii: quasi, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA]}
+  - {column: created_at, raw: created_at, type: timestamp, required: true, pii: none, pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'}
+  - {column: marketing_opt_in, raw: marketing_opt_in, type: boolean, required: false, pii: none, allowed_values: ["true", "false"]}
+quality:
+  - {rule: max_null_rate, column: email, threshold: 0.0}
+  - {rule: max_null_rate, column: marketing_opt_in, threshold: 0.02}
+  - {rule: max_nonmatching_rate, column: created_at, pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', threshold: 0.0}
+  - {rule: max_invalid_rate, column: country, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA], threshold: 0.0}
+  - {rule: max_duplicate_rate, key: [account_id], threshold: 0.0}
+  # emails should arrive normalized; capitals and spaces are repaired in staging
+  - {rule: max_expression_rate, name: email_not_normalized, threshold: 0.02,
+     expression: "email <> lower(trim(email))"}

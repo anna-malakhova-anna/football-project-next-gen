@@ -3,7 +3,7 @@
 --   DOB_CONFLICT       two day-precision DOBs more than 1 day apart that are not a day/month swap
 --   SEX_CONFLICT       both F and M present
 --   SIBLING_IN_CLUSTER two records in the same org and season with different first names
---   OVERSIZE           more members than one person could plausibly have (var idr_plausible_max_cluster_size)
+--   OVERSIZE           more members than one person could plausibly have (macro idr_plausible_max_cluster_size)
 --   WEAK_BRIDGE        a pair inside the cluster that the active matcher itself scored NON_MATCH
 -- Each flagged cluster lists its issues and goes to the review queue. Reads no ground truth.
 {% set matcher = var('matcher') %}
@@ -57,7 +57,7 @@ issues as (
     where a_org = b_org and a_season = b_season and {{ name_similarity('a_first', 'b_first', 'first') }} = 'DIFFERENT'
     union all
     select cluster_id, cluster_size, 'OVERSIZE'
-    from pairs where cluster_size > {{ var('idr_plausible_max_cluster_size') }}
+    from pairs where cluster_size > {{ idr_plausible_max_cluster_size() }}
     union all
     select p.cluster_id, p.cluster_size, 'WEAK_BRIDGE'
     from pairs p join scores s on s.record_a = p.ra and s.record_b = p.rb and s.tier = 'NON_MATCH'

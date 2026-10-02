@@ -1,0 +1,34 @@
+version: 2
+
+# RESTRICTED schema `linkage`: this is where registration data meets the fan accounts (ADR-009). Nothing in it is shared as it stands: only the
+# aggregated, suppressed models in share_exec / share_analyst may reach an audience (scripts/check_share_policy.py).
+models:
+  - name: int_household
+    description: "Observed households: participants grouped by shared guardian contact (adults are households of one). Restricted."
+    columns:
+      - name: participant_id
+        data_tests: [unique, not_null]
+      - name: household_id
+        data_tests: [not_null]
+  - name: int_household_profile
+    description: "One row per observed household with its contacts, country, years active and children. Restricted; contains contact values."
+    columns:
+      - name: household_id
+        data_tests: [unique, not_null]
+  - name: int_household_guarded_contacts
+    description: "Counts of guardian contacts shared by more than six participants, which never form a household."
+  - name: link_household_fan_account
+    description: >
+      Deterministic household -> fan account links (EMAIL, then PHONE for households and accounts with no email link). One to one; ambiguous candidates
+      are listed but unused. Restricted.
+    columns:
+      - name: link_method
+        data_tests:
+          - accepted_values: {arguments: {values: [EMAIL, PHONE]}}
+      - name: link_status
+        data_tests:
+          - accepted_values: {arguments: {values: [LINKED, AMBIGUOUS]}}
+  - name: linkage_summary
+    description: "Link rate and its make-up (counts only). Restricted."
+  - name: linkage_link_bias
+    description: "Linked vs unlinked households by country, years active, children and first year. Counts and shares only. Restricted."

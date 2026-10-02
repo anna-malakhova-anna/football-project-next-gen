@@ -34,7 +34,7 @@ def render(path: Path = CATALOG) -> str:
         "> file. Every KPI in `mart_kpi_scorecard` and every metric column in `share_exec` must be in the catalog; a test enforces it.",
         "> All data is synthetic. A count is **registered participants in onboarded sources**, not total flag football participation.",
         "",
-        f"Methodology version: **{rows[0]['methodology_version']}** (see [the methodology memo](methodology/counting-a-participant.md) and the",
+        f"Methodology version: **{rows[0]['methodology_version']}** at the time of the first metric; *Since* is the methodology version that introduced each KPI, and a KPI appears in the scorecard only from that version (see [the methodology memo](methodology/counting-a-participant.md) and the",
         "[CHANGELOG](methodology/CHANGELOG.md)). Counting rules C1 to C15 are in ADR-005.",
         "",
         "## Additivity",
@@ -47,8 +47,8 @@ def render(path: Path = CATALOG) -> str:
         group = [r for r in rows if r["kpi_group"] == key]
         if not group:
             continue
-        out += ["", f"## {title}", "", "| Metric | Name | Definition | Grain | Additivity | Unit | Owner |", "|---|---|---|---|---|---|---|"]
-        out += [f"| `{r['metric_id']}` | {_cell(r['name'])} | {_cell(r['definition'])} | {_cell(r['grain'])} | `{r['additivity']}` | {r['unit']} | {_cell(r['owner'])} |" for r in group]
+        out += ["", f"## {title}", "", "| Metric | Name | Definition | Grain | Additivity | Unit | Owner | Since |", "|---|---|---|---|---|---|---|---|"]
+        out += [f"| `{r['metric_id']}` | {_cell(r['name'])} | {_cell(r['definition'])} | {_cell(r['grain'])} | `{r['additivity']}` | {r['unit']} | {_cell(r['owner'])} | {r['introduced_in']}{' (definition changed ' + r['definition_changed_in'] + ')' if r['definition_changed_in'] else ''} |" for r in group]
     return "\n".join(out) + "\n"
 
 

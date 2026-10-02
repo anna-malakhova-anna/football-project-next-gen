@@ -19,7 +19,9 @@ old value, new value, delta, relative change and a `likely_cause`, decided in th
 
 | Cause | Test |
 |---|---|
-| `METHODOLOGY_CHANGE` | the methodology version differs |
+| `DEFINITION_CHANGED` | the methodology version differs and the metric catalog says this KPI's definition changed in a version after the published one (`definition_changed_in`) |
+| `METHODOLOGY_CHANGE` | the methodology version differs (the definition did not change) |
+| `NEW_KPI` | the KPI is not in the published snapshot of that year. Listed so the addition is visible; it never requires a restatement (v1.1, Phase 4) |
 | `NEW_SOURCE_DATA` | the raw row counts of the sources differ (new or late files) |
 | `IDENTITY_CHANGE` | the registration-to-participant assignment differs (new links, a steward decision, a new run) |
 | `UNKNOWN` | none of the above explains it |

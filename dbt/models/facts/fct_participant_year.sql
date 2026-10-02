@@ -57,7 +57,7 @@ with_status as (
             when d.birth_year is not null then {{ age_at_cutoff_from_birth_year('d.birth_year', 'a.participation_year') }}
         end                                                                 as age_at_cutoff,
         case
-            when a.participation_year = (select min(participation_year) from years) then 'CENSORED'
+            when a.participation_year = {{ first_observed_year() }} then 'CENSORED'
             when a.participation_year = f.first_valid_year then 'NEW'
             when exists (select 1 from years y where y.participant_id = a.participant_id
                          and y.participation_year = a.participation_year - 1) then 'RETURNING'

@@ -14,3 +14,13 @@ sources:
         description: Every source record id mapped to its true_person_id.
       - name: defect_manifest
         description: Every injected defect by source record id.
+      - name: school_truth
+        description: One row per true program x year (Source E), with the true total, girls, boys and how many registered participants sit in it.
+      - name: school_overlap_truth
+        description: Which true persons sit in which program-year (Source E). The source file never carries this.
+      - name: churn_truth
+        description: The true per-season churn probability by age band, and the youth maximum age (the answer key for the retention curves).
+      - name: fan_truth
+        description: One row per household (participant or non-participant fan household), with latent fandom, enrollment propensity, enrollment month and the true uplift (Source D).
+      - name: fan_account_truth
+        description: Each fan account mapped to its true household, with flags for a different registration email and a shared phone number.

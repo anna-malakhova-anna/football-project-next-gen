@@ -1,0 +1,56 @@
+# Retrofitted data contract: US league registrations (Source A). Synthetic data.
+source_system: US_LEAGUE
+version: 1.0.0
+effective_date: 2026-10-01
+owner_role: "League Ops, US"
+partner_type: "league operator"
+delivery:
+  format: CSV
+  mechanism: "one file per season export (data/raw/us_league/registrations_<term>_<year>.csv)"
+  cadence: "per season (spring and fall)"
+grain: "one row per registration (person x league x season)"
+raw:
+  table: raw.us_league_registrations
+  row_filter: null
+primary_key: [registration_id]
+person_identifier:
+  quality: none
+  field: null
+  note: "no person id; identity must be inferred from name, DOB and guardian contact. An exact double submit repeats its registration_id."
+minors_present: true
+consent_fields:
+  - column: photo_consent
+    permits: "photo and media use of the participant (given by the guardian for a minor)"
+    allowed_values: ["Y", "N", ""]
+  - column: marketing_opt_in
+    permits: "marketing contact of the guardian (or of an adult player)"
+    allowed_values: ["Y", "N", ""]
+schema:
+  - {column: registration_id, raw: registration_id, type: string, required: true, pii: quasi, pattern: '^USR-\d{4}[SF]-\d{6}$'}
+  - {column: league_id, raw: league_id, type: string, required: true, pii: quasi, pattern: '^L-[A-Z]{2}-\d{4}$'}
+  - {column: league_name, raw: league_name, type: string, required: true, pii: quasi}
+  - {column: season, raw: season, type: string, required: true, pii: none, pattern: '^(Spring|Fall) \d{4}$'}
+  - {column: division, raw: division, type: string, required: true, pii: none}
+  - {column: player_first_name, raw: player_first_name, type: string, required: true, pii: direct}
+  - {column: player_last_name, raw: player_last_name, type: string, required: true, pii: direct}
+  - {column: player_dob, raw: player_dob, type: date, required: true, pii: quasi, pattern: '^(\d{2}/\d{2}/\d{4}|\d{4}-\d{2}-\d{2})$'}
+  - {column: player_gender, raw: player_gender, type: string, required: false, pii: quasi, allowed_values: [M, F, Boy, Girl, Male, Female, ""]}
+  - {column: guardian_name, raw: guardian_name, type: string, required: true, pii: direct}
+  - {column: guardian_email, raw: guardian_email, type: string, required: true, pii: direct}
+  - {column: guardian_phone, raw: guardian_phone, type: string, required: true, pii: direct}
+  - {column: zip, raw: zip, type: string, required: true, pii: quasi}
+  - {column: team_name, raw: team_name, type: string, required: false, pii: none}
+  - {column: registered_at, raw: registered_at, type: timestamp, required: true, pii: quasi, pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'}
+  - {column: waiver_signed, raw: waiver_signed, type: boolean, required: true, pii: none, allowed_values: ["Y", "N", yes, no, "TRUE", "FALSE"]}
+  - {column: photo_consent, raw: photo_consent, type: boolean, required: true, pii: none, allowed_values: ["Y", "N", ""]}
+  - {column: marketing_opt_in, raw: marketing_opt_in, type: boolean, required: true, pii: none, allowed_values: ["Y", "N", ""]}
+quality:
+  - {rule: max_null_rate, column: player_dob, threshold: 0.05}
+  - {rule: max_null_rate, column: guardian_email, threshold: 0.05}
+  - {rule: max_duplicate_rate, key: [registration_id], threshold: 0.02}
+  - {rule: max_nonmatching_rate, column: registration_id, pattern: '^USR-\d{4}[SF]-\d{6}$', threshold: 0.0}
+  - {rule: max_nonmatching_rate, column: player_dob, pattern: '^(\d{2}/\d{2}/\d{4}|\d{4}-\d{2}-\d{2})$', threshold: 0.01}
+  - {rule: max_invalid_rate, column: player_gender, allowed_values: [M, F, Boy, Girl, Male, Female, ""], threshold: 0.0}
+  # the partner is held to clean, five-digit ZIPs and lowercase emails: both are known upstream defects (see source_inventory)
+  - {rule: max_nonmatching_rate, column: zip, pattern: '^\d{5}$', threshold: 0.05}
+  - {rule: max_nonmatching_rate, column: guardian_email, pattern: '^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$', threshold: 0.05}

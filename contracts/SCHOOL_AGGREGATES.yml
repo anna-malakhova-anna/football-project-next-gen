@@ -1,0 +1,48 @@
+# Data contract: school and recreation program aggregate headcounts (Source E). Synthetic data.
+# AGGREGATE-ONLY: no individual, no contact details, no consent field. Never added to resolved participants (playbook, aggregate-only sources).
+source_system: SCHOOL_AGGREGATES
+version: 1.0.0
+effective_date: 2026-10-01
+owner_role: "Program Partnerships, Education"
+partner_type: "school district / municipal recreation department"
+delivery:
+  format: CSV
+  mechanism: "one file per year (data/raw/school/headcounts_<year>.csv), one row per program per year per reporter"
+  cadence: "annual, at the end of the school year"
+grain: "one row per program x year (a program reported twice by two reporters appears twice)"
+raw:
+  table: raw.school_headcounts
+  row_filter: null
+primary_key: [district, school_or_program, _source_file]
+person_identifier:
+  quality: none
+  field: null
+  note: "there are no individuals in this source; counts cannot be linked to people, only compared with the resolved participant count as a range"
+minors_present: true     # as counts of children only
+consent_fields: []
+consent_exempt_reason: "institutional aggregate counts, no individual; small programs are small cells and are suppressed where shared"
+schema:
+  - {column: district, raw: district, type: string, required: true, pii: quasi}
+  - {column: school_or_program, raw: school_or_program, type: string, required: true, pii: quasi}
+  - {column: country, raw: country, type: string, required: true, pii: none, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA]}
+  - {column: region, raw: region, type: string, required: false, pii: quasi}
+  - {column: program_type, raw: program_type, type: string, required: true, pii: none, allowed_values: [PE_UNIT, INTRAMURAL, AFTER_SCHOOL]}
+  - {column: grade_band, raw: grade_band, type: string, required: false, pii: none, allowed_values: [K-2, 3-5, 6-8, 9-12]}
+  - {column: girls_count, raw: girls_count, type: integer, required: true, pii: none, pattern: '^\d+$'}
+  - {column: boys_count, raw: boys_count, type: integer, required: true, pii: none, pattern: '^\d+$'}
+  - {column: total_count, raw: total_count, type: integer, required: true, pii: none, pattern: '^\d+$'}
+  - {column: reported_by, raw: reported_by, type: string, required: true, pii: none}
+  - {column: report_date, raw: report_date, type: date, required: true, pii: none, pattern: '^\d{4}-\d{2}-\d{2}$'}
+quality:
+  - {rule: max_null_rate, column: total_count, threshold: 0.0}
+  - {rule: max_null_rate, column: grade_band, threshold: 0.02}
+  - {rule: max_nonmatching_rate, column: total_count, pattern: '^\d+$', threshold: 0.0}
+  - {rule: max_nonmatching_rate, column: report_date, pattern: '^\d{4}-\d{2}-\d{2}$', threshold: 0.0}
+  - {rule: max_invalid_rate, column: program_type, allowed_values: [PE_UNIT, INTRAMURAL, AFTER_SCHOOL], threshold: 0.0}
+  - {rule: max_invalid_rate, column: country, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA], threshold: 0.0}
+  - {rule: max_duplicate_rate, key: [district, school_or_program, _source_file], threshold: 0.01}
+  # the arithmetic the partner is held to: the total is the sum of girls and boys, and totals are counts, not round estimates
+  - {rule: max_expression_rate, name: total_equals_girls_plus_boys, threshold: 0.05,
+     expression: "try_cast(girls_count as integer) + try_cast(boys_count as integer) <> try_cast(total_count as integer)"}
+  - {rule: max_expression_rate, name: total_is_not_a_round_estimate, threshold: 0.05,
+     expression: "try_cast(total_count as integer) in (100, 150, 200, 250, 300)"}

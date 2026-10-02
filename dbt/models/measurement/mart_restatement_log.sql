@@ -1,11 +1,13 @@
 -- Compares the CURRENT scorecard with the LATEST published snapshot of each year and lists every KPI whose value changed,
 -- with old value, new value, delta and a likely cause (ADR-007):
---   METHODOLOGY_CHANGE  the methodology version differs
+--   DEFINITION_CHANGED  the methodology version differs AND the catalog says this KPI's definition changed in a version after the published one
+--   METHODOLOGY_CHANGE  the methodology version differs (the definition did not change; the value moved under the new version)
+--   NEW_KPI             the KPI did not exist in the published snapshot of that year (an addition, never a restatement)
 --   NEW_SOURCE_DATA     the raw row counts of the sources differ (new or late files)
 --   IDENTITY_CHANGE     the registration -> participant assignment differs (new links, a steward decision, a new run)
 --   UNKNOWN             none of the above explains it
 -- restatement_required applies the ADR-007 threshold to HEADLINE KPIs: a relative change above 1% (an absolute change of a
--- percentage point for rates) or any methodology change. Data-trust KPIs (open review items and so on) move legitimately and
+-- percentage point for rates) or any methodology change or definition change. A NEW_KPI is listed (so the addition is visible) but never restates. Data-trust KPIs (open review items and so on) move legitimately and
 -- are listed but never require a restatement. An empty log means nothing published has changed.
 with latest as (
 
@@ -27,7 +29,7 @@ now_ctx as (
 
 ),
 
-changed as (
+changed_values as (
 
     select
         c.participation_year,
@@ -43,6 +45,10 @@ changed as (
         l.methodology_version                                               as old_methodology_version,
         c.methodology_version                                               as new_methodology_version,
         case
+            when l.methodology_version <> c.methodology_version
+                 and m.definition_changed_in <> ''
+                 and {{ version_num('m.definition_changed_in') }} > {{ version_num('l.methodology_version') }}
+                 and {{ version_num('m.definition_changed_in') }} <= {{ version_num('c.methodology_version') }} then 'DEFINITION_CHANGED'
             when l.methodology_version <> c.methodology_version then 'METHODOLOGY_CHANGE'
             when (l.raw_rows_us, l.raw_rows_ca, l.raw_rows_intl) <> (n.raw_rows_us, n.raw_rows_ca, n.raw_rows_intl) then 'NEW_SOURCE_DATA'
             when l.identity_fingerprint <> n.identity_fingerprint then 'IDENTITY_CHANGE'
@@ -54,13 +60,33 @@ changed as (
     cross join now_ctx n
     where c.value is distinct from l.value and abs(coalesce(c.value, 0) - coalesce(l.value, 0)) > 1e-9
 
-)
+),
+
+published_years as (select distinct participation_year, methodology_version from latest),
+
+new_kpis as (
+
+    select
+        c.participation_year, c.kpi_id, c.kpi_group, m.unit,
+        cast(null as double) as old_value, c.value as new_value, cast(null as double) as delta, cast(null as double) as pct_change,
+        cast(null as varchar) as snapshot_id, cast(null as timestamp) as published_at,
+        y.methodology_version as old_methodology_version, c.methodology_version as new_methodology_version,
+        'NEW_KPI' as likely_cause
+    from {{ ref('mart_kpi_scorecard') }} c
+    join published_years y on y.participation_year = c.participation_year
+    join {{ ref('metric_catalog') }} m on m.metric_id = c.kpi_id
+    where not exists (select 1 from latest l where l.participation_year = c.participation_year and l.kpi_id = c.kpi_id)
+
+),
+
+changed as (select * from changed_values union all by name select * from new_kpis)
 
 select
     *,
     kpi_group in ('north_star', 'growth', 'reach', 'depth')                 as is_headline_kpi,
     kpi_group in ('north_star', 'growth', 'reach', 'depth')
-        and (likely_cause = 'METHODOLOGY_CHANGE'
+        and likely_cause <> 'NEW_KPI'
+        and (likely_cause in ('METHODOLOGY_CHANGE', 'DEFINITION_CHANGED')
              or (unit = 'rate' and abs(delta) > 0.01)
              or (unit <> 'rate' and abs(coalesce(pct_change, 1)) > 0.01)) as restatement_required
 from changed

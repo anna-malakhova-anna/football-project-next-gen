@@ -128,10 +128,12 @@ def test_categories_known_and_minor_email_mostly_blank(run):
 
 
 def test_junk_rows_in_manifest(run):
-    _, _, out = run
+    cfg, _, out = run
+    years = len(cfg["seasons"]["years"])
+    sc = cfg["sources"]["intl"]
     counts = collections.Counter(m["defect_id"] for m in out.manifest)
-    assert counts["junk_title_row"] == counts["junk_blank_row"] == 2 * 3   # DE+AT x 3 years
-    assert counts["junk_summary_row"] == 4 * 3                              # MX, GB, DE, PA x 3 years
+    assert counts["junk_title_row"] == counts["junk_blank_row"] == len(sc["sheets_with_title_rows"]) * years    # DE + AT
+    assert counts["junk_summary_row"] == len(sc["sheets_with_summary_row"]) * years                            # MX, GB, DE, PA
 
 
 def test_xlsx_deterministic(run, tmp_path):
@@ -140,7 +142,7 @@ def test_xlsx_deterministic(run, tmp_path):
     for i in range(2):
         main.run(cfg, raw_dir=str(tmp_path / f"r{i}"), truth_dir=str(tmp_path / f"t{i}"))
         hashes.append({p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (tmp_path / f"r{i}" / "intl").glob("*.xlsx")})
-    assert hashes[0] == hashes[1] and len(hashes[0]) == 3
+    assert hashes[0] == hashes[1] and len(hashes[0]) == len(cfg["seasons"]["years"])
 
 
 def test_name_change_cases_get_a_new_family_name_and_a_new_player_id(run):

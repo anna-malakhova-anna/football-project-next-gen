@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: contracts
+    description: >
+      Results of validating each source's RAW table against its data contract, written by scripts/validate_contracts.py
+      (`make contracts`). One row per rule per source per run: status PASS, WARN or ERROR; any ERROR fails the build.
+    schema: quality
+    tables:
+      - name: dq_contract_results
+        description: source_system, contract_version, rule, column_name, threshold, observed, status, severity, detail, run_at.

@@ -1,10 +1,18 @@
-# Restatement demonstration
+# Restatement demonstrations
+
+> Three recorded runs of the publish and restatement process (ADR-007): **(1)** one steward decision (`IDENTITY_CHANGE`), **(2)** new source
+> data from extending the observation window (`NEW_SOURCE_DATA`), and **(3)** a methodology version bump (`METHODOLOGY_CHANGE`, added when
+> methodology v1.1 is published). All data is synthetic; none of these is a real restatement.
+
+---
+
+## Example 1: one steward decision (`IDENTITY_CHANGE`)
 
 > Synthetic data. This is a recorded run of the publish and restatement process (ADR-007), not a real restatement. The
 > steward decision is a **demo**: `decided_by = DEMO_STEWARD`. The example was picked using the ground truth so that the
 > decision is a correct one; a real steward would reach it by looking at the two records.
 
-## 1. Publish 2025
+### 1. Publish 2025
 
 `make publish YEAR=2025` ran every test (dbt, pytest, the eval-isolation check and the share-policy check), then wrote
 `published/scorecard_2025_20261002T025126Z.parquet`: 17 KPI rows for 2025 with
@@ -18,7 +26,7 @@
 
 2025 unique participants published: **3,962** (identity bounds 3,953 to 3,965).
 
-## 2. One data steward decision
+### 2. One data steward decision
 
 Two registrations of the same child were kept apart because the first name was mistyped (`Keff` for `Jeff`) and the household
 guard blocks "same contact, different first name" (ADR-003). Same date of birth, same guardian email and phone, same year. The
@@ -30,7 +38,7 @@ uv run dbt seed --profiles-dir . --select review_decisions
 uv run dbt run  --profiles-dir . --select identity marts evaluation facts measurement shares
 ```
 
-## 3. The restatement log catches it
+### 3. The restatement log catches it
 
 `measurement.mart_restatement_log` compares the rebuilt scorecard with the latest published snapshot:
 
@@ -54,7 +62,69 @@ KPI needs a restatement only above a 1% relative change (a percentage point for 
 For the record, the synthetic truth for 2025 is 3,961 participants, so this decision moved the point estimate from 3,962 to
 3,961. That is a property of this data (the decision was correct), not evidence that every steward decision improves the count.
 
-## 4. Reset
+### 4. Reset
 
 The demo decision was removed afterwards (`review_decisions` is header-only again) and the models rebuilt, so the log is empty
 and the scorecard matches the published snapshot.
+
+
+---
+
+## Example 2: the observation window grows (`NEW_SOURCE_DATA`)
+
+Phase 4 extended the data from 2023-2025 to **2021-2025** (a configured `first_observed_year`; the first year, 2021, is now the left-censored
+one). The 2023, 2024 and 2025 scorecards had already been published on the original window:
+
+| Snapshot | Published raw rows (US / CA / INTL) |
+|---|---|
+| `scorecard_2023_20261002T030416Z` | 10,605 / 2,014 / 1,712 |
+| `scorecard_2024_20261002T030507Z` | 10,605 / 2,014 / 1,712 |
+| `scorecard_2025_20261002T025126Z` | 10,605 / 2,014 / 1,712 |
+
+After regenerating and rebuilding, the raw tables hold **12,929 / 2,522 / 2,149** rows. `mart_restatement_log` compares the rebuilt
+scorecard with those snapshots and finds **41 changed KPIs**, every one with the cause **`NEW_SOURCE_DATA`**: the raw row counts differ, and the methodology
+version is unchanged. Of those, 29 are headline KPIs and **23 exceed ADR-007's threshold** (more than 1% relative, or a percentage point for
+rates), so a restatement is required.
+
+| Year | KPI | Published (3-year data) | Now (5-year data) | Relative change | Likely cause | Restatement required |
+|---|---|---|---|---|---|---|
+| 2023 | `girls_share_of_youth` | 0.4025 | 0.4281 | +6.4% | NEW_SOURCE_DATA | **yes** |
+| 2023 | `international_participants` | 951 | 915 | -3.8% | NEW_SOURCE_DATA | **yes** |
+| 2023 | `multi_org_participants` | 171 | 152 | -11.1% | NEW_SOURCE_DATA | **yes** |
+| 2023 | `new_participants` | n/a | 945 |  | NEW_SOURCE_DATA | **yes** |
+| 2023 | `reactivated_participants` | n/a | 1 |  | NEW_SOURCE_DATA | **yes** |
+| 2023 | `registrations_per_participant` | 1.4308 | 1.4064 | -1.7% | NEW_SOURCE_DATA | **yes** |
+| 2023 | `retention_rate` | n/a | 0.6566 |  | NEW_SOURCE_DATA | n/a (was not defined) |
+| 2023 | `returning_participants` | n/a | 1,566 |  | NEW_SOURCE_DATA | **yes** |
+| 2023 | `unique_participants` | 2,639 | 2,512 | -4.8% | NEW_SOURCE_DATA | **yes** |
+| 2023 | `youth_girls_participants` | 956 | 953 | -0.3% | NEW_SOURCE_DATA | no |
+| 2024 | `girls_share_of_youth` | 0.428 | 0.4376 | +2.2% | NEW_SOURCE_DATA | no |
+| 2024 | `international_participants` | 1,205 | 963 | -20.1% | NEW_SOURCE_DATA | **yes** |
+| 2024 | `multi_org_participants` | 224 | 148 | -33.9% | NEW_SOURCE_DATA | **yes** |
+| 2024 | `new_participants` | 1,664 | 832 | -50.0% | NEW_SOURCE_DATA | **yes** |
+| 2024 | `registrations_per_participant` | 1.4106 | 1.3968 | -1.0% | NEW_SOURCE_DATA | no |
+| 2024 | `retention_rate` | 0.6393 | 0.6851 | +7.2% | NEW_SOURCE_DATA | **yes** |
+| 2024 | `returning_participants` | 1,687 | 1,721 | +2.0% | NEW_SOURCE_DATA | **yes** |
+| 2024 | `unique_participants` | 3,351 | 2,553 | -23.8% | NEW_SOURCE_DATA | **yes** |
+| 2024 | `youth_girls_participants` | 1,287 | 999 | -22.4% | NEW_SOURCE_DATA | **yes** |
+| 2025 | `girls_share_of_youth` | 0.4578 | 0.4533 | -1.0% | NEW_SOURCE_DATA | no |
+| 2025 | `international_participants` | 1,495 | 1,086 | -27.4% | NEW_SOURCE_DATA | **yes** |
+| 2025 | `multi_org_participants` | 288 | 214 | -25.7% | NEW_SOURCE_DATA | **yes** |
+| 2025 | `new_participants` | 1,699 | 1,051 | -38.1% | NEW_SOURCE_DATA | **yes** |
+| 2025 | `reactivated_participants` | 0 | 1 |  | NEW_SOURCE_DATA | **yes** |
+| 2025 | `registrations_per_participant` | 1.416 | 1.4068 | -0.6% | NEW_SOURCE_DATA | no |
+| 2025 | `retention_rate` | 0.6753 | 0.6992 | +3.5% | NEW_SOURCE_DATA | **yes** |
+| 2025 | `returning_participants` | 2,263 | 1,785 | -21.1% | NEW_SOURCE_DATA | **yes** |
+| 2025 | `unique_participants` | 3,962 | 2,837 | -28.4% | NEW_SOURCE_DATA | **yes** |
+| 2025 | `youth_girls_participants` | 1,637 | 1,169 | -28.6% | NEW_SOURCE_DATA | **yes** |
+
+Two things worth reading in this table:
+
+- **2023 gains status.** In the old data 2023 was the left-censored year, so new, returning and retention were *not defined*. With 2021 and 2022
+  in the data, 2023 now has real values for them. That is a legitimate change caused by new data, and it is why the log lists it.
+- **The numbers move a lot, and not only because of the extra years.** Regenerating the synthetic population changed the earlier years as well
+  (the random stream shifted, and the first-season weights are spread over five years instead of three). In a real restatement the cause would still be
+  `NEW_SOURCE_DATA`, but a reviewer would want to separate "new rows" from "revised rows"; the log does not, and ADR-007 lists that as a limit.
+
+**What was done.** The change is a restatement of three published years. The three old snapshots stay in `published/` (they are immutable) and a new
+baseline for 2021-2025 is published on the five-year data; `docs/methodology/CHANGELOG.md` records it.

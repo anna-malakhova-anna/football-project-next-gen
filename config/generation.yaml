@@ -11,7 +11,10 @@ paths:
   warehouse: warehouse/flag.duckdb
 
 seasons:
-  years: [2023, 2024, 2025]
+  # Five participation years. The FIRST is left-censored: history before it is unknown, so nobody in it can be classed
+  # new or returning. Models and tests read this through the observation_window seed; no model hardcodes a year.
+  first_observed_year: 2021
+  years: [2021, 2022, 2023, 2024, 2025]
   us_terms: [SPRING, FALL]      # US has two seasons a year
   # Canada and International use one calendar-year season.
 
@@ -66,13 +69,21 @@ participation:
     - {min_age: 14, max_age: 17, p: 0.40}
     - {min_age: 18, max_age: 99, p: 0.35}
   # Share of people whose first season is each year (before girls' trend adjustment).
-  first_season_weights: {2023: 0.50, 2024: 0.28, 2025: 0.22}
+  first_season_weights: {2021: 0.40, 2022: 0.22, 2023: 0.16, 2024: 0.12, 2025: 0.10}
   # Girls' participation grows: multiplier on the weight of F in later first-seasons.
-  girls_new_player_multiplier: {2023: 1.0, 2024: 1.3, 2025: 1.7}
+  girls_new_player_multiplier: {2021: 1.0, 2022: 1.15, 2023: 1.3, 2024: 1.5, 2025: 1.7}
   us_two_leagues_same_season_share: 0.05   # legitimate multi-league play, not duplicates
   us_both_terms_given_active: 0.60         # chance an active US player plays Spring and Fall
 
 defects:
+  fan:
+    email_differs_from_registration: 0.25   # of participant households with an account; caps the linkage rate on purpose
+    duplicate_event: 0.005                  # the same event_id delivered twice
+    late_arriving_event: 0.02               # lands in a later month's file; event_ts keeps the true month
+    clock_skew: 0.01                        # event_ts shifted by up to +/- 2 days (can cross a month boundary)
+    marketing_opt_in_blank: 0.05            # consent not captured on the account: NULL, never FALSE
+    email_case_whitespace: 0.05             # account email typed with capitals / trailing space
+    phone_shared_with_participant_household: 0.01   # of non-participant accounts with a phone: reuses a participant household's number (a false link if matched)
   us_league:
     name_typo_reregistration: 0.04
     nickname_reregistration: 0.03
@@ -108,6 +119,12 @@ defects:
   #   Japan: family name first
   #   Panama: Player ID reissued each year
 
+  school_aggregates:                    # Source E: school and recreation program headcounts (no individuals)
+    total_mismatch: 0.08                # total_count != girls_count + boys_count
+    missing_grade_band: 0.05
+    duplicate_report: 0.03              # the same program-year reported twice by different reporters
+    round_number: 0.10                  # suspiciously round totals (100, 150, 200, 250, 300)
+
 sources:
   ca_club:
     page_size: 200
@@ -118,3 +135,31 @@ sources:
     unstable_player_id_sheets: [PA]
     email_present_minor: 0.20           # "often blank for minors"
     email_present_adult: 0.90
+  fan:
+    # Source D: fan app / ticketing accounts and an event stream. SYNTHETIC, with a built-in causal structure for evaluation (docs/decisions/ADR-010).
+    non_participant_household_multiple: 3.0     # non-participant fan households per participant household, in the same regions
+    participant_account_share: 0.50             # share of participant households that have a fan account at all
+    phone_present: 0.60                         # share of accounts that carry a phone
+    phone_matches_when_email_differs: 0.30      # when the account email differs from the guardian's, the phone still matches this often
+    base_events_per_month: 1.0                  # events per month for an average household before fandom, season and uplift
+    fandom_sd: 0.6                              # log-scale effect of the latent fandom score on engagement
+    # SELECTION: households with higher latent fandom are more likely to enroll a child: P(enroll) = sigmoid(intercept + slope * fandom).
+    # This is why the naive participant-vs-non-participant comparison overstates the effect.
+    selection: {intercept: -0.4, slope: 0.9}
+    true_uplift: 0.15                           # after a household's first registration, events per month are x (1 + true_uplift) while a child is active
+    uplift_decay_half_life_months: 12           # after the last active season ends, the uplift halves every this many months
+    enroll_month_by_term: {SPRING: 3, FALL: 8, ANNUAL: 3}   # the month the uplift starts (first registration); the analysis uses the same rule
+    seasonality: {1: 1.2, 2: 1.25, 3: 0.85, 4: 0.8, 5: 0.8, 6: 0.8, 7: 0.85, 8: 1.0, 9: 1.35, 10: 1.4, 11: 1.4, 12: 1.35}   # NFL season peak
+    event_mix: {app_open: 0.45, content_view: 0.30, game_stream: 0.10, newsletter_click: 0.08, ticket_purchase: 0.035, merch_purchase: 0.035}
+    purchase_value: {ticket_purchase: [25.0, 220.0], merch_purchase: [12.0, 140.0]}
+    pre_enrollment_signup_months: [6, 18]       # participant accounts are created this long before the first registration (when the window allows)
+  school:
+    programs_per_100_youth_participants: 3.0     # programs are placed where registered youth live, so overlap is possible
+    program_participation_rate: 0.92             # chance a stable program reports in a given year
+    overlap_share_of_participants: 0.15          # share of registered youth who are also in a school or rec program that year
+    max_overlap_share_of_program: 0.35           # an overlapping kid never makes up more than this share of a program
+    program_types: {PE_UNIT: 0.50, INTRAMURAL: 0.25, AFTER_SCHOOL: 0.25}
+    size_range: {PE_UNIT: [80, 400], INTRAMURAL: [30, 120], AFTER_SCHOOL: [15, 60]}
+    girls_share: {PE_UNIT: 0.49, INTRAMURAL: 0.42, AFTER_SCHOOL: 0.45}
+    round_values: [100, 150, 200, 250, 300]
+    grade_bands: {K-2: [5, 7], 3-5: [8, 10], 6-8: [11, 13], 9-12: [14, 17]}   # ages at December 31

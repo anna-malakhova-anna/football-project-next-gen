@@ -145,7 +145,7 @@ seeds:
       (point-in-time).
     config:
       tags: [phase3]
-      column_types: {metric_id: varchar, name: varchar, definition: varchar, grain: varchar, additivity: varchar, owner: varchar, methodology_version: varchar, kpi_group: varchar, unit: varchar}
+      column_types: {metric_id: varchar, name: varchar, definition: varchar, grain: varchar, additivity: varchar, owner: varchar, methodology_version: varchar, kpi_group: varchar, unit: varchar, introduced_in: varchar, definition_changed_in: varchar}
     columns:
       - name: metric_id
         data_tests: [unique, not_null]
@@ -236,7 +236,7 @@ seeds:
         data_tests:
           - accepted_values:
               arguments:
-                values: [Discovery, Profiling, Staged, Modelled, Production]
+                values: [Discovery, Profiling, Contracted, Staged, Modelled, Production]
 
   - name: dq_flag_severity
     description: >
@@ -254,3 +254,17 @@ seeds:
           - accepted_values:
               arguments:
                 values: [AFFECTS_COUNT, MISSING_VALUE, NORMALIZED]
+
+  - name: observation_window
+    description: >
+      The observed data window, exported from config (seasons.first_observed_year and the last year in seasons.years) by
+      generator/export_config_seed.py. The first observed year is left-censored: nobody in it can be classed new or
+      returning. Models read the censored year from here; none hardcodes a year.
+    config:
+      tags: [phase3]
+      column_types: {first_observed_year: integer, last_observed_year: integer}
+    columns:
+      - name: first_observed_year
+        data_tests: [not_null]
+      - name: last_observed_year
+        data_tests: [not_null]

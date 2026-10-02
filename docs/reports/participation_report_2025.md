@@ -8,17 +8,17 @@
 
 | Headline | 2025 | Prior year | Change | Identity range (low to high) |
 |---|---|---|---|---|
-| Unique participants | 3,962 | 3,351 | +611 (+18.2%) | 3,953 to 3,965 |
-| New participants | 1,699 | 1,664 | +35 (+2.1%) |  |
-| Returning participants | 2,263 | 1,687 | +576 (+34.1%) |  |
-| Year-over-year retention rate | 67.5% | 63.9% | +3.6 pts |  |
-| Reactivated participants | 0 | 0 | +0 |  |
-| Youth girls participants | 1,637 | 1,287 | +350 (+27.2%) |  |
-| Girls' share of youth participation | 45.8% | 42.8% | +3.0 pts |  |
-| International participants (attributed, outside the US) | 1,495 | 1,205 | +290 (+24.1%) | 1,491 to 1,495 |
+| Unique participants | 2,837 | 2,553 | +284 (+11.1%) | 2,828 to 2,844 |
+| New participants | 1,051 | 832 | +219 (+26.3%) |  |
+| Returning participants | 1,785 | 1,721 | +64 (+3.7%) |  |
+| Year-over-year retention rate | 69.9% | 68.5% | +1.4 pts |  |
+| Reactivated participants | 1 | 0 | +1 |  |
+| Youth girls participants | 1,169 | 999 | +170 (+17.0%) |  |
+| Girls' share of youth participation | 45.3% | 43.8% | +1.6 pts |  |
+| International participants (attributed, outside the US) | 1,086 | 963 | +123 (+12.8%) | 1,079 to 1,086 |
 | Countries with at least one participant | 8 | 8 | +0 (+0.0%) |  |
-| Multi-organization participants | 288 | 224 | +64 (+28.6%) |  |
-| Registrations per participant | 1.42 | 1.41 | +0.01 |  |
+| Multi-organization participants | 214 | 148 | +66 (+44.6%) |  |
+| Registrations per participant | 1.41 | 1.40 | +0.01 |  |
 
 Identity range: how much identity resolution alone could move a number (a person split in two, or two people merged). It
 does **not** cover missing sources, informal play, or errors in the source data.
@@ -27,10 +27,10 @@ does **not** cover missing sources, informal play, or errors in the source data.
 
 | Data trust | 2025 | Prior year | Change |
 |---|---|---|---|
-| Identity range (% of point estimate) | 0.3% | 0.3% | 0.0 pts |
-| Participants resolved with high confidence | 99.3% | 99.3% | 0.0 pts |
-| Open review items | 61 | 59 | +2 (+3.4%) |
-| Registrations failing DQ rules | 2.2% | 2.5% | -0.2 pts |
+| Identity range (% of point estimate) | 0.6% | 0.4% | +0.2 pts |
+| Participants resolved with high confidence | 98.9% | 98.9% | 0.0 pts |
+| Open review items | 101 | 110 | -9 (-8.2%) |
+| Registrations failing DQ rules | 2.2% | 2.4% | -0.3 pts |
 | Sources onboarded | 3 | 3 | +0 (+0.0%) |
 | Sources known | 5 | 5 | +0 (+0.0%) |
 
@@ -38,15 +38,15 @@ does **not** cover missing sources, informal play, or errors in the source data.
 
 | Country | Participants (attributed, adds up) | Participants (present, overlaps) |
 |---|---|---|
-| All countries | 3,962 | n/a |
-| AT | 66 | 66 |
-| CA | 835 | 842 |
-| DE | 107 | 107 |
-| GB | 126 | 127 |
-| JP | 127 | 127 |
-| MX | 157 | 157 |
-| PA | 77 | 77 |
-| US | 2,467 | 2,502 |
+| All countries | 2,837 | n/a |
+| AT | 42 | 42 |
+| CA | 589 | 599 |
+| DE | 67 | 67 |
+| GB | 96 | 96 |
+| JP | 91 | 91 |
+| MX | 146 | 146 |
+| PA | 55 | 55 |
+| US | 1,751 | 1,765 |
 
 Use the **attributed** column for totals: each person is counted once, in the country of their most recent registration this
 year. The **present** column counts a person in every country they played in, so it adds up to more than the total; use it
@@ -56,15 +56,19 @@ to answer "who played here". Cells too small to publish safely are shown as *sup
 
 | Year | Participants | Girls' share of youth participation |
 |---|---|---|
-| 2023 | 2,639 | 40.2% |
-| 2024 | 3,351 | 42.8% |
-| 2025 | 3,962 | 45.8% |
+| 2021 | 2,037 | 42.4% |
+| 2022 | 2,385 | 42.8% |
+| 2023 | 2,512 | 42.8% |
+| 2024 | 2,553 | 43.8% |
+| 2025 | 2,837 | 45.3% |
 
 | Year | Youth girls participants |
 |---|---|
-| 2023 | 956 |
-| 2024 | 1,287 |
-| 2025 | 1,637 |
+| 2021 | 778 |
+| 2022 | 902 |
+| 2023 | 953 |
+| 2024 | 999 |
+| 2025 | 1,169 |
 
 Girls' share is registration-reported sex over all youth participants (sex not captured stays in the denominator, never
 guessed). Youth means 17 or under on December 31 of the year.
