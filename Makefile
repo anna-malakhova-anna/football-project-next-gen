@@ -1,4 +1,4 @@
-.PHONY: fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -100,6 +100,11 @@ site:
 fan-status: dbt/profiles.yml
 	$(DBT) run --profiles-dir . --select fct_household_fan_status eval_fan_status
 	$(PY) -m scripts.print_fan_status
+
+# Rework step 6: the fan acquisition funnel (needs `make load-eval` only for the status comparison, not for the funnel itself)
+funnel: dbt/profiles.yml
+	$(DBT) run --profiles-dir . --select int_household_funnel_base mart_fan_funnel
+	$(PY) -m scripts.print_funnel
 
 # Phase 4: fandom outcomes (naive vs matched difference-in-differences vs truth), built on the linkage (needs `make load-eval`)
 fan: dbt/profiles.yml

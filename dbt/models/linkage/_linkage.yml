@@ -40,3 +40,12 @@ models:
       - name: fan_status
         data_tests:
           - accepted_values: {arguments: {values: [UNLINKED, NET_NEW, EXISTING_ACTIVE, EXISTING_COOLING, LAPSED_REACTIVATED, LAPSED_DORMANT, INSUFFICIENT_HISTORY]}}
+  - name: int_household_funnel_base
+    description: "One row per participant household with every funnel stage worked out as of the end of its registration cohort year. Restricted."
+    columns:
+      - name: household_id
+        data_tests: [unique, not_null]
+  - name: mart_fan_funnel
+    description: >
+      The fan acquisition funnel (participant households, linked, contactable, active, monetized, retained) by registration cohort year, market type, segment and fan status. Stages are cumulative;
+      UNLINKED is its own line. Counts and rates only. Restricted.
