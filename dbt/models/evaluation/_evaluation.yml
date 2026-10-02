@@ -135,3 +135,12 @@ models:
       - name: passed
         data_tests:
           - accepted_values: {arguments: {values: [true]}}
+
+  - name: eval_consent_history
+    description: "GROUND TRUTH (evaluation only, synthetic). The resolved consent history against each account's intended final consent, with the mismatches that the out-of-order flag makes visible."
+  - name: eval_consent_checks
+    description: "GROUND TRUTH (evaluation only). Pass/fail: nearly every consent mismatch carries the out-of-order flag (a small unflagged residue is reported), and the mismatch rate is small."
+    columns:
+      - name: passed
+        data_tests:
+          - accepted_values: {arguments: {values: [true]}}

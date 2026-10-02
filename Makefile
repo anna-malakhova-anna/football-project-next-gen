@@ -1,4 +1,4 @@
-.PHONY: fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -100,6 +100,11 @@ site:
 fan-status: dbt/profiles.yml
 	$(DBT) run --profiles-dir . --select fct_household_fan_status eval_fan_status
 	$(PY) -m scripts.print_fan_status
+
+# Rework step 9: the addressable audience and the consent gap (needs `make load-eval`)
+audience: dbt/profiles.yml
+	$(DBT) run --profiles-dir . --select int_fan_account_month_state int_household_audience_month mart_addressable_audience mart_consent_capture mart_opt_out_after_contact eval_consent_history
+	$(PY) -m scripts.print_audience
 
 # Rework step 8: value uplift, fan survival, lifetime value, activeness and RFM (needs `make load-eval`)
 fan-value: dbt/profiles.yml

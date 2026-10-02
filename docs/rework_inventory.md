@@ -134,3 +134,13 @@ the existing-fans engagement estimate (+0.211) sits above its truth (+0.182) wit
 hazard multiplier 1.5, an association by construction); net-new flag-prompt fans survive less (58% at 36 months) than existing fans (72%) and are less often Champions (19% against 31%).
 Caveats: percentages are unstable for LAPSED households (the counterfactual is near zero), so the per-month difference is the headline there; content_views and flag_content_views move oppositely because of a
 relabel (all_content_views is the sum); the LTV range reflects survival uncertainty only (spend per active month is treated as known).
+
+## Step 9 status (2026-10-02)
+
+Built: `int_fan_account_month_state` (activeness state per account and month end, now shared), `int_household_audience_month`, `mart_addressable_audience` (contactable participant households by channel over time, the consent gap
+and its illustrative value in synthetic currency), `mart_consent_capture` (opt-in rate by capture point, by source system and by partner for flag-prompt accounts, partners under k_min flagged unreliable),
+`mart_opt_out_after_contact` (opt-outs per 1,000 opted-in account-months against engagement volume, a proxy for contact), `eval_consent_history` and `eval_consent_checks`, and the `fan_audience_is_sound` test. Per the
+decision that nothing linked reaches marketing, there is no audience LIST; these are counts. Result in December 2025: 13,043 participant households, 4,665 linked, 3,511 contactable (75% of linked), 803 active
+households with no channel opted in (a consent gap valued at 96,360 synthetic currency at the median monetized household's spend); flag-prompt consent capture is strongest by email (86%); opt-outs rise from
+4 to 16 per 1,000 as monthly engagement rises. Finding: resolving consent by timestamp leaves 58 of 96,660 account-channels wrong, all in the unsafe direction (the history says opt-in, the account opted out); the
+out-of-order flag catches 55 of them and 3 look like a legal sequence and cannot be seen from the data. Any contact use must fail closed on flagged accounts; the residue is the limit of timestamp resolution.

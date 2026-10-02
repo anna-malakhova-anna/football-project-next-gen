@@ -72,3 +72,13 @@ models:
     description: "ASSOCIATION ONLY: the fan lapse rate while a child plays against after the child stops, with person-time split at the churn month. Restricted."
   - name: mart_fan_value_uplift
     description: "Matched difference-in-differences among existing and lapsed fans by engagement type and spend category (net of refunds, synthetic currency), with the naive unmatched comparison. Restricted."
+  - name: int_fan_account_month_state
+    description: "The activeness state (active, at risk, lapsed, new) of every fan account at every month end, with its fan group. Restricted."
+  - name: int_household_audience_month
+    description: "One row per participant household and month end after registration: linked, channels opted in at that month end, active, trailing spend. Restricted; never shared."
+  - name: mart_addressable_audience
+    description: "The addressable audience over time by household group: contactable households by channel, the consent gap (active, no channel opted in) and its illustrative value (synthetic currency). Counts only. Restricted."
+  - name: mart_consent_capture
+    description: "Consent capture rates by capture point, by source system and by partner (net-new flag-prompt accounts). Counts and rates. Restricted."
+  - name: mart_opt_out_after_contact
+    description: "Opt-out rate per 1,000 opted-in account-months by channel and by engagement volume that month (a proxy for contact). Association only. Restricted."
