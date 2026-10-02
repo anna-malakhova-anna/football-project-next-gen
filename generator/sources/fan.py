@@ -179,7 +179,6 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
 
     # ---- accounts. Each: dict with household info, created_idx (may be negative: before the data), fandom, source, kind ----
     accounts: list[dict] = []
-    lo_b, hi_b = ac["created_before_registration_months"]
     lo_n, hi_n = aq["months_to_account"]
     for h in hh:
         ex = rng.random() < _sigmoid(ac["existing_at_registration"]["intercept"] + ac["existing_at_registration"]["slope"] * h["fandom"])
@@ -187,7 +186,9 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         h["acq_type"] = "NONE"
         h["account"] = None
         if ex:
-            created = enroll_idx(h) - rng.randint(lo_b, hi_b)
+            # an existing account was opened BEFORE THE DATA STARTS, so it never shows up as a "new account" of any market-year: the market-level series then differs between launched and
+            # unlaunched markets only by the accounts the programme caused (counterfactually, the would-be participants of an unlaunched market hold accounts opened at the same time)
+            created = -rng.randint(1, 12 * ac["stock_created_years_before_window"])
             kind, src = "EXISTING_PARTICIPANT", pick_source(0.0)
         else:
             p_org = min(0.9, aq["organic_account_prob_12m"] * math.exp(ac["account_fandom_tilt"] * h["fandom"]))

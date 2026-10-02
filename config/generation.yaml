@@ -169,8 +169,7 @@ sources:
       stock_penetration: 0.004                  # share of a market's households with a fan account on the first day of the data
       organic_new_rate_per_household_year: 0.0012   # new accounts per household per year in every market, with the NFL seasonality
       account_fandom_tilt: 0.5                  # accounts are held by fandom-heavy households: fandom of an account holder ~ N(tilt, 1)
-      created_before_registration_months: [6, 48]  # an existing account was created this long before the first registration
-      stock_created_years_before_window: 3
+      stock_created_years_before_window: 3      # accounts that already exist when the data starts (the opening stock, and a participant household's existing account) were opened this long before
       phone_present: 0.60                       # share of accounts that carry a phone
       phone_matches_when_email_differs: 0.30    # when the account email differs from the guardian's, the phone still matches this often
       acquisition_source_mix: {organic: 0.50, ticketing: 0.20, app_store: 0.20, partner_referral: 0.10}

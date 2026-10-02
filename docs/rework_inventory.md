@@ -104,3 +104,20 @@ Step 5 (built, awaiting Anna): `link_household_fan_account` now links to the **c
 engagement fact; the timeline covers every household; `fct_household_fan_status` assigns the spec's statuses from `fan_params` windows, plus two additions the spec's table leaves open (see the questions
 in the summary): `EXISTING_COOLING` (engaged 91 to 180 days before, none in the last 90) and `INSUFFICIENT_HISTORY` (the lapsed window is not observable, or the account is younger than it). `make fan-status`
 prints the distribution and the comparison with the truth. The fandom estimates were re-run on the collapsed accounts: naive +26.1%, matched +20.3%, truth +18.0%.
+
+## Step 6 and 7 status (2026-10-02)
+
+Step 6 is committed (`e125e69`): the funnel (`mart_fan_funnel`, 13,043 participant households: 37% linked, then 71% contactable, 83% active, 77% monetized; net-new fans monetize far less than
+existing fans, 45 to 48% against 91 to 93%).
+
+Step 7 (built, awaiting Anna): `mart_acquisition_incrementality` (stacked, cohort-specific group-time effects against not-yet-treated and never-treated markets, no pooled two-way fixed effects),
+`mart_acquisition_event_study` (-2 to +3), `mart_acquisition_summary`, `eval_acquisition` and its event study, `fan_incrementality_is_sound` (comparison markets never already treated). `make acquisition`
+prints it. Result on the synthetic data: the programme added **988 new fan accounts (range 622 to 1,354)** in launch cohorts 2022 to 2024, years 0 to +3; the generator's truth is **1,111** (inside the range);
+the naive claim, linked households whose account was created after registering, is 939 observed (it sees only linked households, so it lands near the truth by cancellation) and **2,543 when scaled by the
+link rate (2.3x the truth)**. The pre-period is flat and every truth lies inside its interval.
+
+Two generator corrections made on the way, both found by checking the estimate against the truth rather than by tuning the analysis: (1) a participant household's existing account is opened before the
+data starts (it used to bunch up just before each market launched, inflating the base year); (2) the fan-effect truth is now computed over the households and months each estimator averages over.
+Consequence: in this generator the NAIVE fan-engagement estimate (+17.5%) lands on its own truth (+17.7%) by cancellation (selection pushes it up, a low-baseline net-new mix pulls it down), so the
+spec's expected "naive badly inflated" does NOT hold for engagement; it does hold for acquisition once scaled. The checks were restated accordingly and the unmatched gap is reported (+9.8% before
+registration, +33% after) so the selection is visible. This is a finding for Anna.

@@ -49,3 +49,5 @@ models:
     description: >
       The fan acquisition funnel (participant households, linked, contactable, active, monetized, retained) by registration cohort year, market type, segment and fan status. Stages are cumulative;
       UNLINKED is its own line. Counts and rates only. Restricted.
+  - name: mart_acquisition_summary
+    description: "Incremental new fan accounts the programme added (market-level estimate with a range) beside the naive count of every account created after a registration. Counts only. Restricted."

@@ -111,3 +111,15 @@ models:
       - name: passed
         data_tests:
           - accepted_values: {arguments: {values: [true]}}
+
+  - name: eval_acquisition
+    description: "GROUND TRUTH (evaluation only, synthetic). Acquisition incrementality: the market-level estimate and the naive counts against the accounts the programme actually caused."
+  - name: eval_acquisition_event_study
+    description: "GROUND TRUTH (evaluation only, synthetic). The acquisition event study against the true effect by year since launch."
+
+  - name: eval_acquisition_checks
+    description: "GROUND TRUTH (evaluation only). Pass/fail: the truth lies inside the estimate's range, the pre-period is flat, and the scaled naive claim overclaims."
+    columns:
+      - name: passed
+        data_tests:
+          - accepted_values: {arguments: {values: [true]}}
