@@ -1,6 +1,6 @@
 # ADR-009: May we link participant households to fan accounts at all?
 
-- **Status:** Proposed (Phase 4). **Waiting for Anna's decision** (see the marker at the bottom). The default below is implemented.
+- **Status:** Proposed (Phase 4). **Partly decided:** the phone fallback stays on (Anna, 2026-10-02). The policy and marketing questions still wait for Anna (see the marker at the bottom). The default below is implemented.
 - **Context:** Source D (a fan app and ticketing feed) holds adults' accounts and what they do in the app. The registration data holds
   guardians' contact details, collected to run leagues. Joining them lets us ask whether being in the program changes how a household engages
   with the sport (ADR-010). That is a **purpose beyond running leagues**, and the people concerned never agreed to it when they registered.
@@ -79,4 +79,11 @@ internal learning and accepts the restricted-zone controls above.
 2. If the default stands: keep the phone fallback (more links, 78.8% precise) or switch it off (email only, 100% precise)?
 3. Is "nothing linked reaches marketing, even with both consents" the right position, or should the both-sides consent path be built?
 
-**Decision:** _(pending)_  **Decided by:** _(pending)_  **Date:** _(pending)_
+**Decisions so far**
+- **Question 2, phone fallback: keep it.** Decided by Anna, 2026-10-02. Phone links are 78.8% precise (24 false links out of 113, all accounts that reuse a
+  participant household's number) against 100% for email, and add 89 correct links. The switch (`linkage_phone_fallback`) stays on; results from linked households
+  carry this caveat.
+- **Question 1, policy (restricted zone vs explicit consent):** _(pending)_
+- **Question 3, marketing position:** _(pending)_
+
+**Decision:** _(partly decided: the phone fallback only)_  **Decided by:** Anna  **Date:** 2026-10-02 for the phone fallback
