@@ -44,3 +44,7 @@ event lands in the month it happened in. Clock skew is not detectable and is doc
 ## Modelled: pending
 Households and links are built and evaluated under the default policy in the restricted `linkage` schema; they cannot reach a share until the
 decision in [ADR-009](../decisions/ADR-009-household-linkage-governance.md) is made.
+
+## Used in analysis (2026-10-02, under the ADR-009 default)
+Step 7 built the fandom models on the linkage ([ADR-010](../decisions/ADR-010-fandom-outcomes-design.md)). They run in the restricted schema and nothing
+from them is shared yet. Source D stays `Staged` until the ADR-009 decision is made.

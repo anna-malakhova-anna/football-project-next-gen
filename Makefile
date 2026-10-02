@@ -1,4 +1,4 @@
-.PHONY: linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -91,6 +91,11 @@ test-phase4: dbt/profiles.yml
 linkage: dbt/profiles.yml
 	$(DBT) run --profiles-dir . --select linkage eval_household_formation eval_household_linkage
 	$(PY) -m scripts.print_linkage
+
+# Phase 4: fandom outcomes (naive vs matched difference-in-differences vs truth), built on the linkage (needs `make load-eval`)
+fan: dbt/profiles.yml
+	$(DBT) run --profiles-dir . --select fct_household_engagement_month int_participant_household_timeline int_fan_cem_candidates int_fan_cem_matched mart_fan_naive mart_fan_did mart_fan_outcomes_summary eval_fan_effect eval_fan_matching_diagnostics
+	$(PY) -m scripts.print_fan
 
 # Phase 4: retention models and the printed comparison with the synthetic truth (needs `make load-eval`)
 retention: dbt/profiles.yml

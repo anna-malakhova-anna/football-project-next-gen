@@ -37,3 +37,11 @@ def test_observation_window_and_reporting_periods_seeds_are_in_sync_with_config(
     bad = {**cfg, "seasons": {**cfg["seasons"], "first_observed_year": cfg["seasons"]["years"][0] + 1}}
     with pytest.raises(ValueError):
         ecs.window_rows(bad)
+
+
+def test_the_enrollment_month_rule_in_dbt_matches_the_generator_config():
+    import yaml
+    from pathlib import Path
+
+    var = yaml.safe_load((Path(__file__).resolve().parent.parent / "dbt" / "dbt_project.yml").read_text())["vars"]["enrollment_month_by_term"]
+    assert var == load_config()["sources"]["fan"]["enroll_month_by_term"]

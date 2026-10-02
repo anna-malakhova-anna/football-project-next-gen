@@ -96,3 +96,18 @@ models:
       - name: passed
         data_tests:
           - accepted_values: {arguments: {values: [true]}}
+
+  - name: eval_fan_effect
+    description: >
+      GROUND TRUTH (evaluation only, synthetic). The naive and matched difference-in-differences estimates of the fandom uplift against the true uplift.
+  - name: eval_fan_matching_diagnostics
+    description: >
+      GROUND TRUTH (evaluation only, synthetic). Comparison-group contamination, selection on latent fandom before and after matching, and the pre-trend.
+
+  - name: eval_fan_checks
+    description: >
+      GROUND TRUTH (evaluation only). Pass/fail: naive is inflated, matched is much closer, the pre-trend is small.
+    columns:
+      - name: passed
+        data_tests:
+          - accepted_values: {arguments: {values: [true]}}
