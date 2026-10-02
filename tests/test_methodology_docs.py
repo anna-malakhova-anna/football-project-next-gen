@@ -48,4 +48,4 @@ def test_the_memo_generator_describes_the_headcount_line_only_from_version_1_1()
     src = (ROOT / "scripts" / "build_methodology_memo.py").read_text(encoding="utf-8")
     assert "version_num >= 1001" in src and "combined reach range" in src
     log = (ROOT / "docs" / "methodology" / "CHANGELOG.md").read_text(encoding="utf-8")
-    assert "v1.1" in log and "DRAFT" in log and "NEW_KPI" in log and "DEFINITION_CHANGED" in log
+    assert "v1.1" in log and "Approved by Anna" in log and "NEW_KPI" in log and "DEFINITION_CHANGED" in log

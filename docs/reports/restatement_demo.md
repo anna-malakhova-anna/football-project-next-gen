@@ -128,3 +128,25 @@ Two things worth reading in this table:
 
 **What was done.** The change is a restatement of three published years. The three old snapshots stay in `published/` (they are immutable) and a new
 baseline for 2021-2025 is published on the five-year data; `docs/methodology/CHANGELOG.md` records it.
+
+## Example 3: a methodology bump that only adds KPIs (`NEW_KPI`)
+
+Methodology v1.1 (approved 2026-10-02) adds four KPIs from the school and recreation program headcounts (Source E):
+`reported_headcount`, `voluntary_program_headcount`, `combined_reach_low`, `combined_reach_high`. The counting rules C1 to C15 and every existing
+KPI definition are unchanged. The v1.0 baseline for 2021 to 2025 was published first (five snapshots, each from a clean commit), then
+`methodology_version` was bumped to 1.1 and the scorecard rebuilt.
+
+The restatement log, compared with the latest published snapshot of each year:
+
+| Cause | Rows | Distinct KPIs | Restatement required |
+|---|---|---|---|
+| `NEW_KPI` | 20 (4 KPIs x 5 years) | 4 | **no** |
+| any other cause | 0 | 0 | 0 |
+
+Every one of the 17 v1.0 KPIs is identical to its published value in all five years: nothing was restated. The log lists the additions so they are
+visible rather than silent (2025: reported headcount 8,441; combined reach 8,690 to 11,285, a range because aggregates cannot be matched to people).
+
+**Why this matters.** Before this change the log could only see KPIs that already existed, so a new KPI would have been invisible and a changed
+definition would have looked like an ordinary methodology change. `introduced_in` and `definition_changed_in` in the metric catalog now let the
+log say `NEW_KPI` (listed, never a restatement) or `DEFINITION_CHANGED` (a restatement). Not yet covered: a v1.1 snapshot has not been published, so
+the next `make publish` will write the four new KPIs and the log will go quiet until something changes.

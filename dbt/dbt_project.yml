@@ -22,7 +22,7 @@ vars:
   # pairs) a modulus of 488 keeps about 200,000 random pairs, drawn from ALL pairs, not from blocks.
   idr_u_sample_modulus: 488
   # Version of the counting rules (docs/methodology/CHANGELOG.md); stamped on every scorecard row and snapshot.
-  methodology_version: '1.0'
+  methodology_version: '1.1'
   # Source D linkage: after the email rule, also link by phone when neither side has an email link (ADR-009 reports its measured precision).
   linkage_phone_fallback: true
   # Which matcher feeds the marts: fs (Fellegi-Sunter) or rules (baseline). Both are always computed.

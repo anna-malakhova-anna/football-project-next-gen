@@ -3,10 +3,10 @@
 > Synthetic data. Every change to how a participant is counted, and every restatement of a published number, is recorded here
 > (ADR-007). A methodology change bumps the version and requires a restatement of published headline KPIs.
 
-## v1.1: DRAFT, not yet in force (2026-10-01)
+## v1.1: 2026-10-02
 
-> **DRAFT: Anna to review and approve before this version is published.** The version number is bumped in `dbt_project.yml` only when the v1.0
-> baseline for 2021 to 2025 has been published (so the restatement log can show what 1.1 changed).
+> **Approved by Anna on 2026-10-02.** The v1.0 baseline for 2021 to 2025 was published first (snapshots `scorecard_<year>_20261002T1341Z` to
+> `T1347Z`), so the restatement log can show what 1.1 changed. No v1.1 snapshot has been published yet.
 
 **Added, nothing restated.** Four KPIs introduced by onboarding Source E (school and recreation program aggregate headcounts), each marked
 `introduced_in: 1.1` in the metric catalog: `reported_headcount`, `voluntary_program_headcount`, `combined_reach_low`, `combined_reach_high`.
