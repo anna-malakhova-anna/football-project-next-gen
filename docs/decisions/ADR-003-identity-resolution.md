@@ -22,6 +22,11 @@
   spec's 0.3% is under one person at this population size, so a minimum of 3 INTL adult women get a hyphenated or new
   family name in a later season. They **also get a new Player ID**, otherwise the source id would link them and there
   would be no false negative to study. Phase 1 tests still pass.
+- **A later generator amendment (made during Phase 3, to exercise country counting):** half of the 100 cross-border
+  movers also register in both countries in the year they move, so 55 participant-years span two countries. It shifted
+  every number in this ADR slightly (the random draws changed), so all figures below are from the amended data. The
+  evolution table in section 6 and the sweep selection in section 7 were measured *before* the amendment and are marked as
+  such; the thresholds were re-read afterwards, not re-tuned.
 
 ## 2. Architecture
 
@@ -55,17 +60,20 @@ exact DOB alone.
 
 | Measure | Value |
 |---|---|
-| True pairs among 13,965 input records | 14,574 |
-| Linked deterministically (never scored) | 1,583 |
-| Found by blocking | 12,991 |
-| Missed by blocking | **0** |
-| **Pair completeness** (target 0.98) | **1.000** |
-| Candidate pairs / possible pairs | 44,168 / 97.5 M (reduction ratio 0.9996) |
+| True pairs among 14,113 input records | 14,936 |
+| Linked deterministically (never scored) | 1,599 |
+| Found by blocking | 13,333 |
+| Missed by blocking | **4** |
+| **Pair completeness** (target 0.98) | **0.9997** |
+| Candidate pairs / possible pairs | 44,611 / 99.6 M (reduction ratio 0.9996) |
 | Largest block key | 40 records (limit 500) |
-| True pairs found *only* by a block | B3 17, B4 10, B5 11, B1 0, B2 0 |
+| True pairs found *only* by a block | B3 27, B4 16, B5 11, B1 0, B2 0 |
+
+The 4 missed pairs belong to two people: one adult woman whose family name changed (a new surname, a new federation ID and
+no contact data give every block nothing to share) and one person whose three pairs are still linked through other records.
 
 **Caveat.** Synthetic phone numbers never change and guardian emails change in only 6% of re-registrations, so blocking
-is easier here than it would be on real data. A completeness of 1.000 is a property of this data, not a promise.
+is easier here than it would be on real data. A completeness of 0.9997 is a property of this data, not a promise.
 
 ## 5. Features
 
@@ -101,11 +109,11 @@ fires because Japanese records link deterministically by Player ID.
 - **m** (`match_m_probabilities.csv`): assumed, every value with a written rationale from the source descriptions and
   the documented defect behaviour (for example `first_name EXACT 0.88` because typos and nicknames break exact
   equality about 12% of the time across a pair of records). **Never tuned against ground truth.**
-- **u**: estimated with no labels from 200,347 random pairs drawn from *all* 97.5 M possible pairs (a hash filter, not
+- **u**: estimated with no labels from 204,527 random pairs drawn from *all* 99.6 M possible pairs (a hash filter, not
   from blocks), smoothed `(count + 0.5) / (n + 0.5 * levels)`. Assumption: a random pair is almost surely a non-match
-  (about 15 thousand true pairs among 97.5 million).
-- **L** (prior odds) = 0.1, assumed before any evaluation. Blocking later showed 29% of candidate pairs are true
-  matches (odds about 0.4); I did **not** feed that back, as it would use the answer key. L only shifts probabilities, and
+  (about 15 thousand true pairs among 99.6 million).
+- **L** (prior odds) = 0.1, assumed before any evaluation. Blocking later showed 30% of candidate pairs are true
+  matches (odds about 0.43); I did **not** feed that back, as it would use the answer key. L only shifts probabilities, and
   the thresholds come from the sweep.
 - **Hard overrides** (all variants): same org + season + different first name -> `NON_MATCH` (twin/sibling guard);
   both day-precision DOBs more than a year apart -> `NON_MATCH`; sex disagreement -> capped at `PROBABLE`.
@@ -113,7 +121,9 @@ fires because Japanese records link deterministically by Player ID.
 ### How the Fellegi-Sunter matcher evolved (disclosed)
 
 The first, spec-literal version was evaluated, found wanting, and corrected. The corrections change the **model
-structure**, not the m-values, but they were prompted by looking at the evaluation, so I record the sequence:
+structure**, not the m-values, but they were prompted by looking at the evaluation, so I record the sequence (all rows were
+measured on the Phase 2 data *before* the Phase 3 generator amendment; the final numbers on the amended data are in
+section 8):
 
 | Step | AUTO precision | AUTO recall | Sibling/twin false-merge clusters | Merged clusters |
 |---|---|---|---|---|
@@ -133,12 +143,13 @@ Email, phone and postal code are three views of one household, so siblings who s
 3. **`DOB_DISAGREE_CAP`:** a disagreeing DOB (a year apart is exactly how siblings look) never reaches AUTO. The rules
    baseline's R5 also sends a year-off-by-one pair to review.
 
-The trade-off is explicit: the household guard costs 6 true pairs (see the error analysis).
+The trade-off is explicit: the household guard costs 9 true pairs on the amended data (6 before it; see the error analysis).
 
-## 7. Thresholds (from the sweep, once)
+## 7. Thresholds (chosen once from the sweep)
 
-`eval_threshold_sweep` evaluates 20 thresholds from 0.50 to 0.999 on final clusters. Selected rows for `fs` (the
-review-queue columns below were read with the initial 0.99 / 0.50 settings):
+`eval_threshold_sweep` evaluates 20 thresholds from 0.50 to 0.999 on final clusters. The choice was made on the Phase 2
+data before the Phase 3 generator amendment; selected rows for `fs` (the review-queue columns were read with the initial
+0.99 / 0.50 settings):
 
 | Threshold | False merged pairs | Precision | Recall | Sibling/twin merges | Queue if T_auto | Queue if T_review |
 |---|---|---|---|---|---|---|
@@ -149,54 +160,72 @@ review-queue columns below were read with the initial 0.99 / 0.50 settings):
 | 0.997 | 2 | 0.9999 | 0.9996 | 0 | 115 | 12 |
 | 0.999 | 2 | 0.9999 | 0.9996 | 0 | 116 | 12 |
 
-- **T_auto = 0.997.** It removes 3 false pairs (5 to 2) and costs 3 review items (112 to 115).
-- **T_review = 0.85.** Recall is flat at 0.9996 from 0.50 to 0.999: the 6 missed pairs were ruled out by the household
-  guard, which no threshold can undo. A lower T_review only adds queue noise; 0.85 cuts the queue from 112 to 48.
+- **T_auto = 0.997.** It removed 3 false pairs (5 to 2) at the cost of 3 review items (112 to 115).
+- **T_review = 0.85.** Recall was flat from 0.50 to 0.999: the missed pairs were ruled out by the household guard, which
+  no threshold can undo. A lower T_review only adds queue noise; 0.85 cut the queue from 112 to 48.
 
-Final tiers: 12,982 `AUTO_MATCH`, 51 `PROBABLE`, 31,135 `NON_MATCH` pairs. The committed `docs/eval/threshold_sweep.csv`
-is read with the final thresholds and is the input for the Phase 4 chart.
+**Re-read on the amended data (not re-tuned).** After the generator amendment the sweep was read again, with the seeded
+0.997 / 0.85 for the queue columns:
 
-**Calibration.** Every one of the 12,991 scored true pairs sits at probability 0.997 or above. Below 0.997 there are
-30,849 scored pairs and **none** is a true match. The model is confident and, on this data, right; but the review queue
-(50 `PROBABLE` pairs, 0 true matches) is mostly capped look-alikes, so it demonstrates the workflow more than it finds
-errors.
+| Threshold | False merged pairs | Precision | Recall | Sibling/twin merges | Queue if T_auto | Queue if T_review |
+|---|---|---|---|---|---|---|
+| 0.50 | 148 | 0.9902 | 0.9993 | 0 | 30 | 113 |
+| 0.85 | 66 | 0.9956 | 0.9993 | 0 | 30 | 64 |
+| 0.97 | 43 | 0.9971 | 0.9993 | 0 | 54 | 34 |
+| 0.98 | 5 | 0.9997 | 0.9993 | 0 | 63 | 22 |
+| 0.997 | 4 | 0.9997 | 0.9993 | 0 | 64 | 12 |
+| 0.999 | 4 | 0.9997 | 0.9993 | 0 | 64 | 12 |
 
-## 8. Results and error analysis (before any steward review)
+The conclusion holds. Recall is flat at 0.9993 across the grid and precision is flat from 0.98 to 0.995, so 0.997 (one more
+false pair removed, one more review item) and 0.85 (queue 113 to 64) sit on the same plateaus. A cut-off chosen at 0.98 would
+have done almost as well, which is the honest reading: the model's probabilities are bimodal, so the exact threshold barely
+matters here. Final tiers on the amended data: 13,319 `AUTO_MATCH`, 64 `PROBABLE`, 31,228 `NON_MATCH` pairs. The committed
+`docs/eval/threshold_sweep.csv` is read with the final thresholds and is the input for the Phase 4 chart.
+
+**Calibration.** 13,604 scored pairs sit at probability 0.997 or above and 13,333 of them are true matches (the rest are
+sibling or look-alike pairs that a guard or cap keeps out of AUTO). Below 0.997 there are 31,007 scored pairs and **none** is a
+true match. The model is confident and, on this data, right; but the review queue (62 `PROBABLE` pairs, 0 true matches) is
+mostly capped look-alikes, so it demonstrates the workflow more than it finds errors.
+
+## 8. Results and error analysis (before any steward review, amended data)
 
 | Matcher | Scope | Precision | Recall | F1 | Sibling/twin merges | Predicted vs true participants |
 |---|---|---|---|---|---|---|
-| Rules baseline | AUTO | 1.0000 | 0.9258 | 0.9615 | 0 | 6,390 vs 6,000 |
-| Rules baseline | AUTO + PROBABLE | 0.9996 | 0.9476 | 0.9729 | 1 | 6,279 vs 6,000 |
-| FS, spec-literal (`fs_naive`) | AUTO | 0.9608 | 1.0000 | 0.9800 | 80 | 5,912 vs 6,000 |
-| **FS (`fs`)** | **AUTO** | **0.99986** | **0.99959** | **0.99973** | **0** | **6,000 vs 6,000** |
-| FS (`fs`) | AUTO + PROBABLE | 0.9949 | 0.9996 | 0.9972 | 4 | 5,984 vs 6,000 |
+| Rules baseline | AUTO | 1.0000 | 0.9219 | 0.9594 | 0 | 6,398 vs 6,000 |
+| Rules baseline | AUTO + PROBABLE | 0.9996 | 0.9475 | 0.9729 | 1 | 6,267 vs 6,000 |
+| FS, spec-literal (`fs_naive`) | AUTO | 0.9664 | 0.9999 | 0.9829 | 75 | 5,918 vs 6,000 |
+| **FS (`fs`)** | **AUTO** | **0.99973** | **0.99933** | **0.99953** | **0** | **6,002 vs 6,000** |
+| FS (`fs`) | AUTO + PROBABLE | 0.9935 | 0.9993 | 0.9964 | 3 | 5,985 vs 6,000 |
 
-The 6,000 vs 6,000 is partly luck: 2 merged clusters and 2 split people cancel out.
+The 6,002 vs 6,000 hides 2 wrong merges and 4 wrongly separated people that partly cancel out.
 
 **Against the metric targets.** FS AUTO precision >= 0.99: **met**. FS recall (AUTO + PROBABLE) >= 0.95: **met**. Sibling/twin
-merges <= 0.1% of 737 multi-child households: **met at AUTO (0)**, **not met at AUTO + PROBABLE (4, or 0.54%)**, which is
+merges <= 0.1% of 737 multi-child households: **met at AUTO (0)**, **not met at AUTO + PROBABLE (3, or 0.41%)**, which is
 what the review queue is for. **"FS beats the rules baseline on sibling/twin merges": not met.** At AUTO they tie at 0.
-The baseline's R4 guard and its strict first-name rules already protect siblings; FS wins on recall (0.9996 vs 0.926)
-and on counting people (6,000 vs 6,390), not on this metric. After 20 simulated steward decisions the AUTO + PROBABLE
-sibling merges fall from 4 to 1 and merged clusters from 18 to 13 (a simulated steward uses the ground truth, so
-those rows are not matcher performance).
+The baseline's R4 guard and its strict first-name rules already protect siblings; FS wins on recall (0.9993 vs 0.922)
+and on counting people (6,002 vs 6,398), not on this metric. After a simulated steward resolved the top 20 queue items
+(70 decisions) the AUTO + PROBABLE sibling merges fell from 3 to 1 and merged clusters from 19 to 16 (a simulated steward
+uses the ground truth, so those rows are not matcher performance).
 
 **Where the errors are** (`eval_errors`, `eval_segments`):
 
-- **6 false negatives, all `GUARD_OVERRIDE`.** Two people, three registrations each, US-US: same last name, DOB, email
-  and phone but a different first name on one registration, so `HOUSEHOLD_GUARD` blocked them. That is the price of the
-  precision-first rule.
-- **2 false positives (`OTHER`).** A UK `William Stephenson` against a Canadian `William Stephens`, and a UK `Maurice Bell`
-  against a Canadian `Maurice Bélisle`: same first name, near-identical surname, same birth year (the CA record has year
-  precision), no contact data on the INTL side. Nothing in the data distinguishes them; the integrity checks cannot flag
-  them either (3 clusters were flagged, all weak bridges, none truly merged).
-- **Name changes are not a false-negative problem here.** All 3 changed-name women are found: first name plus an exact
-  DOB (about 20 bits together) outweighs a different surname. They would be hard only without a DOB.
-- **Rules baseline:** its recall losses are a last-name typo with exact DOB and contact (about 240 pairs), swapped
-  day/month (about 220), a nulled impossible DOB (about 120) and first-name typos (about 50), none of which its few rules cover.
-  By defect type its recall is 0.00 on name typos and 0.04 on swapped DOBs, against 0.99 and 1.00 for `fs`.
-- **By source pair** (`fs`, AUTO): US-US recall 0.9995, US-CA (cross-border) 1.000, CA-CA 1.000, INTL-INTL 1.000;
-  precision 1.000 in each.
+- **10 false negatives for `fs`: 9 `GUARD_OVERRIDE`, 1 `NAME_CHANGE`.** The nine are US-US pairs with the same last name,
+  DOB, email and phone but a different first name on one registration, so `HOUSEHOLD_GUARD` blocked them. That is the
+  price of the precision-first rule. The tenth is the name-change woman below.
+- **4 false positives (`OTHER`), in 2 clusters.** CA-INTL pairs with the same first name, a near-identical surname and the
+  same birth year (the CA record has year precision), and no contact data on the INTL side. Nothing in the data
+  distinguishes them; the integrity checks cannot flag them either (5 clusters were flagged, all weak bridges, none truly
+  merged).
+- **Name changes: two of three are found.** First name plus an exact DOB (about 20 bits together) outweighs a different
+  surname for the hyphenated and the unrelated-surname cases that carry any contact signal. The one missed (a new surname,
+  a new federation ID and no contact data) is **never proposed as a candidate pair**, because no block shares a key: a
+  genuine known-hard false negative and one of the 4 true pairs lost to blocking.
+- **Rules baseline:** its recall losses are a last-name typo with exact DOB and contact (about 260 pairs), swapped
+  day/month (about 245), a nulled impossible DOB (about 125) and first-name or last-name typos below the 0.92 line (about
+  50 each), none of which its few rules cover. By defect type its recall is 0.00 on name typos (788 pairs) and 0.02 on
+  swapped DOBs (278), against 0.99 and 1.00 for `fs`.
+- **By source pair** (`fs`, AUTO): US-US recall 0.9993, US-CA (cross-border, 325 pairs) 1.000, CA-CA 1.000, INTL-INTL
+  0.9988; precision 1.000 in each. The rules baseline reaches 0.910 on US-US and 0.972 on US-CA.
 
 ## 9. Limitations and the production path
 
@@ -215,6 +244,6 @@ those rows are not matcher performance).
 
 ## Consequences
 
-`make phase2` runs everything end to end (about 50 seconds): 130 dbt tests, the pytest suite, the isolation check and an ID
+`make phase2` runs everything end to end (about 55 seconds): 131 dbt tests, the pytest suite, the isolation check and an ID
 stability check. The model is auditable (every link carries a reason and a per-feature weight breakdown) and the
 evaluation is reproducible, but its headline numbers describe this synthetic population, not real-world performance.

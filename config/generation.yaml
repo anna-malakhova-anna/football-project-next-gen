@@ -27,6 +27,7 @@ population:
   youth_age_range: [5, 17]
   adult_age_range: [18, 55]
   cross_border_share_of_us_ca: 0.02   # appear in both US and CA sources in different seasons
+  cross_border_dual_year_share: 0.5   # of movers: also register in BOTH countries in the year they move
   ca_francophone_share: 0.25          # of CA youth (QC, NB, ON)
   intl_country_shares: {MX: 0.25, GB: 0.20, JP: 0.20, DE: 0.15, AT: 0.10, PA: 0.10}
   youth_female_share: 0.45            # base share of F among youth (before girls' growth trend)

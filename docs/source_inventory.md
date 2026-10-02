@@ -20,7 +20,7 @@ Quality figures are *observed* rates from `quality.dq_summary` at the default co
 | **Minors present?** | Yes (ages 5-17), plus a small adult rec-league share | Yes (ages 5-17), plus a small adult share | Yes (youth categories), plus adult women's, men's and masters players |
 | **Consent fields captured** | `photo_consent`, `marketing_opt_in`, `waiver_signed` (Y/N/blank) | `consents.casl_marketing`, `consents.photo_media`, `consent_captured_at`; the whole object can be absent | `Media Consent` (Yes/No/blank). **No marketing consent captured** |
 | **Legal-basis assumption** | Guardian gives consent for minors at registration (COPPA-style parental consent). Marketing opt-in is an explicit opt-in | CASL express consent for marketing (field is named for it); photo/media consent by guardian for minors; Quebec Law 25 parental consent for under-14s | Media consent only; GDPR / UK GDPR apply to DE, AT and GB federations, so consent must be specific and withdrawable. Federation, not the program, is the controller of the underlying member data |
-| **Person identifier quality** (Phase 2 evaluation) | **None.** Identity rests entirely on name, DOB and contact details. The matcher links 99.95% of true US-US pairs (the rules baseline 91.5%); 240 of 240 cross-border US-CA pairs are found | **Partial.** `member_uuid` links 844 of 917 true CA-CA pairs (92%); the other 73, mostly a player switching clubs, need the matcher. Birth year only, so name and contact carry the weight | **Partial.** `Player ID` links 739 of 850 true INTL-INTL pairs (87%). Panama's reissued IDs and the new ID issued after a family-name change leave 111 to the matcher. No marketing consent captured |
+| **Person identifier quality** (Phase 2 evaluation) | **None.** Identity rests entirely on name, DOB and contact details. The matcher links 99.93% of true US-US pairs (the rules baseline 91.0%); all 325 cross-border US-CA pairs are found | **Partial.** `member_uuid` links 874 of 980 true CA-CA pairs (89%); the other 106, mostly a player switching clubs, need the matcher. Birth year only, so name and contact carry the weight | **Partial.** `Player ID` links 725 of 838 true INTL-INTL pairs (87%). Panama's reissued IDs and the new ID issued after a family-name change leave 113 to the matcher. No marketing consent captured |
 | **Onboarding status** | `Modelled` | `Modelled` | `Modelled` |
 
 ## Known quality issues
@@ -29,7 +29,7 @@ Each issue links to a `defect_id` in `quality.dq_summary`; `quality.dq_defect_lo
 
 ### US_LEAGUE
 - **Exact duplicates (double submit):** 1.5% of rows (156). `exact_duplicate`
-- **Near-duplicates** (same person, league and season, new id and timestamp): about 0.9% (97). `near_duplicate`
+- **Near-duplicates** (same person, league and season, new id and timestamp): about 0.9% (100). `near_duplicate`
 - **Impossible DOB** (future date or age over 80): 0.5% (53). `impossible_dob`
 - **Guardian email case or whitespace variants:** 8.0%. `guardian_email_case_whitespace`
 - **Missing gender:** 3.0%, mapped to `U`. `missing_gender`
@@ -53,7 +53,7 @@ Each issue links to a `defect_id` in `quality.dq_summary`; `quality.dq_defect_lo
 - **UK DOBs as Excel date serials:** 20% of UK rows. Decoded in staging. `uk_dob_excel_serial`
 - **Country spelled inconsistently:** 25% (`MEX` / `Mexico` / `MX`). `country_value_inconsistency`
 - **Japan gives family name first;** handled by a sheet rule (`intl_family_name_first_countries`).
-- **Full Name is one field,** so multi-word surnames split imperfectly (16 of 1,686 names in the default run).
+- **Full Name is one field,** so multi-word surnames split imperfectly (17 of 1,670 names in the default run).
 - **Panama reissues Player ID every year,** so it cannot link a player across seasons.
 - **Media consent blank:** 10%. `missing_media_consent`
 - **Category labels do not line up with canonical divisions:** `U15` maps to `U14`, `Masters` to `ADULT_MIXED`. Noted in `division_map`.

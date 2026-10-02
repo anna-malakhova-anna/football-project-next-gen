@@ -9,7 +9,7 @@
 `participant_id = 'P-' || upper(left(md5(min source_record_id in the cluster), 12))` (macro `participant_id`).
 
 - **Deterministic.** The same data and the same matcher give the same ids on every run. `make id-stability` rebuilds
-  the identity and mart models from scratch and compares: 6,000 participants and 14,139 registration mappings were
+  the identity and mart models from scratch and compares: 6,002 participants and 14,289 registration mappings were
   identical across a rebuild.
 - **Independent of row order and of cluster id.** It uses the smallest `source_record_id` (a source-assigned string),
   not a surrogate counter.

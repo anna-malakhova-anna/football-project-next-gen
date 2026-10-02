@@ -5,9 +5,7 @@
 --   review_items_if_review  pairs that would sit in the review queue if this threshold were T_review, with T_auto as seeded
 -- Exported to CSV by `make eval` for a chart in Phase 4.
 {% set grid = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.925, 0.95, 0.96, 0.97, 0.98, 0.985, 0.99, 0.995, 0.997, 0.998, 0.999] %}
-with recursive
-
-grid(threshold) as (select * from (values {% for t in grid %}({{ t }}){{ ',' if not loop.last }}{% endfor %}) as g(threshold)),
+with grid(threshold) as (select * from (values {% for t in grid %}({{ t }}){{ ',' if not loop.last }}{% endfor %}) as g(threshold)),
 
 matchers as (select distinct matcher from {{ ref('idr_pair_scores_fs') }}),
 
@@ -17,20 +15,12 @@ scored as (select * from {{ ref('idr_pair_scores_fs') }}),
 
 edges as (
 
-    select c.matcher, c.threshold, s.record_a as x, s.record_b as y
+    select c.matcher, c.threshold, s.record_a as a, s.record_b as b
     from combos c join scored s on s.matcher = c.matcher
     where s.match_probability >= c.threshold and not s.forced_non_match and not s.capped_at_probable
     union all
     select c.matcher, c.threshold, d.record_a, d.record_b
     from combos c cross join {{ ref('idr_deterministic_links') }} d
-
-),
-
-undirected as (
-
-    select matcher, threshold, x, y from edges
-    union all
-    select matcher, threshold, y, x from edges
 
 ),
 
@@ -40,19 +30,10 @@ nodes as (
 
 ),
 
-reach(matcher, threshold, src, node) as (
-
-    select matcher, threshold, node, node from nodes
-    union
-    select r.matcher, r.threshold, r.src, u.y
-    from reach r
-    join undirected u on u.matcher = r.matcher and u.threshold = r.threshold and u.x = r.node
-
-),
-
 cluster as (
 
-    select matcher, threshold, src as match_record_id, min(node) as cluster_id from reach group by 1, 2, 3
+    select matcher, threshold, node as match_record_id, cluster_id
+    from {{ connected_components('nodes', 'edges', ['matcher', 'threshold']) }}
 
 ),
 

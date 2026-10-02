@@ -206,3 +206,35 @@ def test_name_change_cases(pop):
         assert p["segment"] == "INTL" and p["sex"] == "F" and not p["is_minor"]
         assert p["later_family_name"] != p["family_name"]
         assert p["first_season"] < p["name_change_season"] <= p["last_season"]
+
+
+def test_some_movers_register_in_both_countries_in_the_year_they_move(pop):
+    cfg, people, parts = pop
+    movers = [p for p in people if p["is_cross_border"]]
+    dual = [p for p in movers if p["dual_country_year"]]
+    assert dual and len(dual) / len(movers) == pytest.approx(cfg["population"]["cross_border_dual_year_share"], abs=0.15)
+    assert all(p["dual_country_year"] == p["switch_season"] for p in dual)
+    countries = collections.defaultdict(set)
+    terms = collections.defaultdict(set)
+    for r in parts:
+        countries[(r["true_person_id"], r["season_year"])].add(r["country_code"])
+        terms[(r["true_person_id"], r["season_year"], r["country_code"])].add(r["season_term"])
+    two_country_years = {k for k, v in countries.items() if len(v) > 1}
+    assert {k[0] for k in two_country_years} == {p["true_person_id"] for p in dual}     # nobody else does it
+    assert len(two_country_years) == len(dual)                                           # exactly one such year each
+    by_id = {p["true_person_id"]: p for p in people}
+    for pid, year in two_country_years:
+        p = by_id[pid]
+        # the US part of a move year is one term: spring before moving out, fall after moving in
+        expected = {"SPRING"} if p["home_country"] == "US" else {"FALL"}
+        assert terms[(pid, year, "US")] == expected
+        assert terms[(pid, year, "CA")] == {"ANNUAL"}
+
+
+def test_movers_who_arrive_in_the_us_play_normal_terms_afterwards(pop):
+    _, people, parts = pop
+    by_id = {p["true_person_id"]: p for p in people}
+    later = [r for r in parts if by_id[r["true_person_id"]]["is_cross_border"]
+             and by_id[r["true_person_id"]]["alt_country"] == "US"
+             and r["season_year"] > by_id[r["true_person_id"]]["switch_season"] and r["country_code"] == "US"]
+    assert later and {r["season_term"] for r in later} == {"SPRING", "FALL"}

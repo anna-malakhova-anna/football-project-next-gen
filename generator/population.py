@@ -65,7 +65,7 @@ REGISTRY_FIELDS = [
     "guardian_name", "guardian_email", "guardian_phone", "own_email", "own_phone",
     "marketing_opt_in", "photo_consent", "first_season", "last_season",
     "is_cross_border", "alt_country", "alt_region", "switch_season", "is_multi_league",
-    "twin_group_id", "name_change_season", "later_family_name",
+    "twin_group_id", "name_change_season", "later_family_name", "dual_country_year",
 ]
 PARTICIPATION_FIELDS = [
     "true_person_id", "source_system", "country_code", "region_code",
@@ -304,6 +304,7 @@ class _Builder:
             "is_cross_border": False, "alt_country": None, "alt_region": None,
             "switch_season": None, "is_multi_league": False,
             "twin_group_id": None, "name_change_season": None, "later_family_name": None,
+            "dual_country_year": None,
             "_hh": hh_key,
         }
         if minor:
@@ -393,6 +394,10 @@ class _Builder:
             p["is_cross_border"] = True
             p["alt_country"], p["alt_region"] = other, region
             p["switch_season"] = self.rng.randint(p["first_season"] + 1, self.years[-1])
+            # some movers register in BOTH countries in the year they move (US spring, then a Canadian club season,
+            # or a Canadian season, then US fall): the same person in two countries in one year
+            if self.rng.random() < self.pop["cross_border_dual_year_share"]:
+                p["dual_country_year"] = p["switch_season"]
 
     def _flag_multi_league(self, people):
         us_youth = [p for p in people if p["segment"] == "US_YOUTH"]
@@ -426,19 +431,26 @@ class _Builder:
         mine = []
         for y in active:
             moved = p["is_cross_border"] and y >= p["switch_season"]
-            country = p["alt_country"] if moved else p["home_country"]
-            region = p["alt_region"] if moved else p["home_region"]
-            if country == "US":
-                if r.random() < self.part["us_both_terms_given_active"]:
-                    terms = ["SPRING", "FALL"]
+            dual = p["dual_country_year"] == y
+            # (country, region, only-these-US-terms) for each country played in this year
+            places = ([(p["alt_country"], p["alt_region"], "FALL" if dual else None)] if moved
+                      else [(p["home_country"], p["home_region"], None)])
+            if dual:  # the old country as well, restricted to the part of the year before the move
+                places.insert(0, (p["home_country"], p["home_region"], "SPRING"))
+            for country, region, only_term in places:
+                if country == "US":
+                    if only_term:
+                        terms = [only_term]
+                    elif r.random() < self.part["us_both_terms_given_active"]:
+                        terms = ["SPRING", "FALL"]
+                    else:
+                        terms = [r.choice(["SPRING", "FALL"])]
                 else:
-                    terms = [r.choice(["SPRING", "FALL"])]
-            else:
-                terms = ["ANNUAL"]
-            for t in terms:
-                mine.append({"source_system": SOURCE_BY_COUNTRY.get(country, "INTL_FED"),
-                             "country_code": country, "region_code": region,
-                             "season_year": y, "season_term": t, "league_slot": 1})
+                    terms = ["ANNUAL"]
+                for t in terms:
+                    mine.append({"source_system": SOURCE_BY_COUNTRY.get(country, "INTL_FED"),
+                                 "country_code": country, "region_code": region,
+                                 "season_year": y, "season_term": t, "league_slot": 1})
         return active, mine
 
     def build_participations(self, people):
