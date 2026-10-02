@@ -1,0 +1,44 @@
+# Data contract: fan transactions (Source D, transactions component). Synthetic currency and amounts: round, obviously illustrative scales, never real money.
+# Transaction rules are ERROR severity: a transaction that is not a known category, has no numeric amount or no account fails the build, because revenue and lifetime value are
+# computed from these lines.
+source_system: FAN_ENGAGEMENT
+component: transactions
+version: 1.0.0
+effective_date: 2026-10-02
+owner_role: "Fan Engagement Product Lead"
+partner_type: "fan app and ticketing vendor"
+delivery:
+  format: JSON Lines
+  mechanism: "one file per month (data/raw/fan/fan_transactions_YYYY_MM.jsonl)"
+  cadence: "monthly"
+grain: "one line per transaction; a refund is its own line with is_refund true and the original_txn_id it reverses"
+raw:
+  table: raw.fan_transactions
+  row_filter: null
+primary_key: ["$.txn_id"]
+person_identifier:
+  quality: partial
+  field: "$.account_id"
+  note: "transactions carry an account, never a person; attribution to a household goes only through the governed linkage"
+minors_present: false
+consent_fields: []
+consent_exempt_reason: "transactions carry no consent field; consent is its own event stream, and ADR-009 governs any linkage to registrations"
+schema:
+  - {column: txn_id, raw: "$.txn_id", type: string, required: true, pii: none, pattern: '^T\d{9}$'}
+  - {column: account_id, raw: "$.account_id", type: string, required: true, pii: quasi, pattern: '^A-\d{6}$'}
+  - {column: txn_ts, raw: "$.txn_ts", type: timestamp, required: true, pii: none, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'}
+  - {column: category, raw: "$.category", type: string, required: true, pii: none, allowed_values: [ticket, merch, subscription, other]}
+  - {column: amount, raw: "$.amount", type: number, required: true, pii: none, pattern: '^\d+(\.\d+)?$'}
+  - {column: is_refund, raw: "$.is_refund", type: boolean, required: true, pii: none, allowed_values: ["true", "false"]}
+  - {column: original_txn_id, raw: "$.original_txn_id", type: string, required: false, pii: none}
+quality:
+  - {rule: max_null_rate, column: txn_id, threshold: 0.0, severity: ERROR}
+  - {rule: max_null_rate, column: account_id, threshold: 0.0, severity: ERROR}
+  - {rule: max_nonmatching_rate, column: amount, pattern: '^\d+(\.\d+)?$', threshold: 0.0, severity: ERROR}
+  - {rule: max_nonmatching_rate, column: txn_ts, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$', threshold: 0.0, severity: ERROR}
+  - {rule: max_invalid_rate, column: category, allowed_values: [ticket, merch, subscription, other], threshold: 0.0, severity: ERROR}
+  - {rule: max_invalid_rate, column: is_refund, allowed_values: ["true", "false"], threshold: 0.0, severity: ERROR}
+  - {rule: max_duplicate_rate, key: [txn_id], threshold: 0.0, severity: ERROR}
+  # a refund must name an original; a few name none that exists (excluded from revenue and counted in the DQ log, never repaired)
+  - {rule: max_expression_rate, name: refund_without_an_original_id, threshold: 0.0, severity: ERROR,
+     expression: "json_extract_string(record_json, '$.is_refund') = 'true' and nullif(trim(json_extract_string(record_json, '$.original_txn_id')), '') is null"}

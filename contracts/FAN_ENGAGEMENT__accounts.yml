@@ -2,7 +2,7 @@
 # Adults only. The accounts are NOT registrations: linking an account to a participant household is a governed step (ADR-009).
 source_system: FAN_ENGAGEMENT
 component: accounts
-version: 1.0.0
+version: 1.1.0
 effective_date: 2026-10-02
 owner_role: "Fan Engagement Product Lead"
 partner_type: "fan app and ticketing vendor"
@@ -37,6 +37,9 @@ quality:
   - {rule: max_nonmatching_rate, column: created_at, pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', threshold: 0.0}
   - {rule: max_invalid_rate, column: country, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA], threshold: 0.0}
   - {rule: max_duplicate_rate, key: [account_id], threshold: 0.0}
+  # GUARDIANS ONLY (rework spec principle 4): the holder is an adult when the account is opened. A minor holder would put a child's data in a fan output: ERROR.
+  - {rule: max_expression_rate, name: holder_is_an_adult_at_signup, threshold: 0.0, severity: ERROR,
+     expression: "try_cast(birth_year as integer) > extract(year from try_cast(created_at as timestamp)) - 18"}
   # emails should arrive normalized; capitals and spaces are repaired in staging
   - {rule: max_expression_rate, name: email_not_normalized, threshold: 0.02,
      expression: "email <> lower(trim(email))"}

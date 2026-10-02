@@ -284,7 +284,8 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     blo, bhi = ac["holder_birth_year"]
     for a in accounts:
         if not a["dup_of"]:
-            a["birth_year"] = rng.randint(blo, bhi)
+            created_year = y0 + a["created_idx"] // 12                  # floor division: months before the data give earlier years
+            a["birth_year"] = rng.randint(blo, max(blo, min(bhi, created_year - 19)))        # an adult when the account is opened (guardians only); one year of margin because a pre-data creation date can fall in the year before this estimate
     for a in accounts:
         if a["dup_of"]:
             a["birth_year"] = a["dup_of"]["birth_year"]
@@ -399,8 +400,10 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
                 if sub_flag or (part and uf > 0 and enroll is not None and m_idx >= enroll and sub_up):
                     txns.append({"account": a, "category": "subscription", "amount": float(tc["subscription"]["amount"]), "ts": _ts(y0, m_idx, rng, day=sub_day), "month": m_idx,
                                  "is_refund": False, "original": None, "defects": []})
-            # preference-centre consent changes (any month with an account)
+            # preference-centre consent changes (any month after the one the account was created in: a change cannot precede the signup)
             for ch in CHANNELS:
+                if m_idx == created:
+                    break
                 cur = status[ch]
                 if cur != "opt_in":
                     if rng.random() < cc["preference_center_monthly_opt_in"]:

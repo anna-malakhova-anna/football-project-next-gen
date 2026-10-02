@@ -33,6 +33,21 @@ with staged as (
            raw_dob, raw_last_name, raw_sex, raw_email, raw_postal, raw_consent_photo, raw_consent_marketing,
            raw_country, division_label_raw
     from {{ ref('stg_fan_events') }}
+    union all by name
+    select source_system, source_record_id, record_occurrence, source_file, source_row, dq_flags,
+           raw_dob, raw_last_name, raw_sex, raw_email, raw_postal, raw_consent_photo, raw_consent_marketing,
+           raw_country, division_label_raw
+    from {{ ref('stg_fan_consent_events') }}
+    union all by name
+    select source_system, source_record_id, record_occurrence, source_file, source_row, dq_flags,
+           raw_dob, raw_last_name, raw_sex, raw_email, raw_postal, raw_consent_photo, raw_consent_marketing,
+           raw_country, division_label_raw
+    from {{ ref('stg_fan_transactions') }}
+    union all by name
+    -- duplicate accounts are found by the collapse rule, not by a single row: one flag per duplicate account
+    select 'FAN_ENGAGEMENT' as source_system, account_id as source_record_id, 1 as record_occurrence, 'fan/fan_accounts.csv' as source_file,
+           cast(null as bigint) as source_row, ['duplicate_account'] as dq_flags
+    from {{ ref('int_fan_account_xref') }} where is_duplicate
 
 ),
 
@@ -88,6 +103,15 @@ record_flags as (
             when 'round_number'                             then source_record_id
             when 'unmapped_program_type'                    then source_record_id
             when 'duplicate_event'                          then source_record_id
+            when 'duplicate_account'                        then source_record_id
+            when 'duplicate_txn'                            then source_record_id
+            when 'refund_without_original'                  then source_record_id
+            when 'consent_out_of_order'                     then source_record_id
+            when 'orphan_consent_event'                     then source_record_id
+            when 'orphan_transaction'                       then source_record_id
+            when 'unmapped_consent_value'                   then source_record_id
+            when 'unmapped_txn_category'                    then source_record_id
+            when 'non_numeric_amount'                       then source_record_id
             when 'late_arriving_event'                      then source_record_id
             when 'orphan_event'                             then source_record_id
             when 'unmapped_event_type'                      then source_record_id

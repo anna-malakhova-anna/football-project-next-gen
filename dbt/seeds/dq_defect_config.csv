@@ -52,9 +52,15 @@ FAN_ENGAGEMENT,clock_skew,rate,0.01,,events,all delivered event lines,false,"eve
 FAN_ENGAGEMENT,email_case_whitespace,rate,0.05,,accounts,all accounts,true,Account email has capitals or surrounding spaces; normalized in staging.
 FAN_ENGAGEMENT,email_differs_from_registration,rate,0.25,,participant_accounts,accounts that belong to a participant household,false,The account email is not the guardian's registration email. Needs the household linkage to see.
 FAN_ENGAGEMENT,phone_shared_with_participant_household,rate,0.01,,accounts,accounts that carry a phone,false,The account phone number is a participant household's number: a false-link hazard for phone matching. Needs ground truth to see.
-FAN_ENGAGEMENT,duplicate_account,rate,0.03,,accounts,all accounts,false,"The household opened a second account (same email, or the same phone and postal prefix). Collapsed in dim_fan_account; not yet detected."
-FAN_ENGAGEMENT,refund_without_original,rate,0.005,,transactions,all non-refund transactions,false,A refund whose original_txn_id matches no transaction. Excluded from revenue; not yet detected.
-FAN_ENGAGEMENT,consent_out_of_order,rate,0.01,,consent_pairs,opt-in followed by opt-out pairs,false,An opt-out is timestamped before the opt-in it follows. Resolved by timestamp and flagged; not yet detected.
+FAN_ENGAGEMENT,duplicate_account,rate,0.03,,accounts,all accounts,true,"The household opened a second account (same email, or the same phone and postal prefix). Collapsed in dim_fan_account. International phone numbers are not normalized, so a duplicate matched only by one is missed."
+FAN_ENGAGEMENT,refund_without_original,rate,0.005,,transactions,all non-refund transactions,true,"A refund whose original_txn_id matches no transaction. Excluded from revenue and counted here, never repaired."
+FAN_ENGAGEMENT,consent_out_of_order,rate,0.01,,consent_pairs,preference-centre opt-outs (each follows an opt-in),true,A preference-centre opt-out with no earlier opt-in on that account and channel: its timestamp predates the opt-in it follows. Resolved by timestamp and flagged.
+FAN_ENGAGEMENT,duplicate_txn,zero,0.0,,transactions,all transaction lines,true,The same txn_id was delivered twice.
+FAN_ENGAGEMENT,orphan_transaction,zero,0.0,,transactions,all transaction lines,true,The transaction's account_id is not in the accounts snapshot.
+FAN_ENGAGEMENT,unmapped_txn_category,zero,0.0,,transactions,all transaction lines,true,"category is not ticket, merch, subscription or other."
+FAN_ENGAGEMENT,non_numeric_amount,zero,0.0,,transactions,all transaction lines,true,amount is not a number.
+FAN_ENGAGEMENT,orphan_consent_event,zero,0.0,,consent_pairs,all consent lines,true,The consent line's account_id is not in the accounts snapshot.
+FAN_ENGAGEMENT,unmapped_consent_value,zero,0.0,,consent_pairs,all consent lines,true,"status, channel or capture_point is not one of the contract's values."
 FAN_ENGAGEMENT,unmapped_event_type,zero,0.0,,events,all delivered event lines,true,event_type is not one of the six known engagement event types.
 FAN_ENGAGEMENT,orphan_event,zero,0.0,,events,all delivered event lines,true,The event's account_id is not in the accounts snapshot.
 CA_CLUB,impossible_dob,zero,0.0,,rows,all records,true,Age at the Dec 31 cutoff is below 0 or above 80.

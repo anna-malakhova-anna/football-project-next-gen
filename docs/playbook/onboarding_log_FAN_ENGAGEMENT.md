@@ -49,3 +49,11 @@ marketing. Only approved, suppressed aggregates leave the schema, and a build ch
 ## Used in analysis (2026-10-02, under the ADR-009 default)
 Step 7 built the fandom models on the linkage ([ADR-010](../decisions/ADR-010-fandom-outcomes-design.md)). They run in the restricted schema and nothing
 from them reaches an audience except as approved aggregates (step 8).
+
+## Rework step 4: the fan ecosystem (2026-10-02)
+Source D was extended by the fan-acquisition rework: accounts now carry `acquisition_source` and a holder `birth_year`; consent is a stream of events (no event means not captured, never FALSE);
+purchases moved out of the event stream into a transactions file; duplicate accounts and refunds without an original appear as defects. New contracts
+(`FAN_ENGAGEMENT__consent_events.yml`, `FAN_ENGAGEMENT__transactions.yml`, accounts v1.1.0) carry **ERROR** severities for consent and transaction rules and for the guardians-only rule
+(the holder is an adult at signup). New models: `stg_fan_consent_events`, `stg_fan_transactions`, `int_fan_account_xref` and `dim_fan_account` (duplicates collapsed by shared email, or shared
+phone and postal prefix), `fct_fan_consent_history` (SCD2, resolved by timestamp), `fct_fan_engagement_month`, `fct_fan_transaction` (net of refunds, orphan refunds excluded and counted in the DQ log).
+Known limit: international phone numbers are not normalized, so a duplicate matched only by one is missed.

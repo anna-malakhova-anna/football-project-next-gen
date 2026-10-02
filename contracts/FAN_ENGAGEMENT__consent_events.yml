@@ -1,0 +1,49 @@
+# Data contract: fan consent events (Source D, consent component). Synthetic data.
+# One line per change of consent for one channel. NO EVENT means "not captured": never FALSE. Consent rules are ERROR severity: a value the contract does not allow, or a
+# line with no account or channel, fails the build, because everything downstream (the consent history, the addressable audience) trusts these lines.
+source_system: FAN_ENGAGEMENT
+component: consent_events
+version: 1.0.0
+effective_date: 2026-10-02
+owner_role: "Fan Engagement Product Lead"
+partner_type: "fan app and ticketing vendor"
+delivery:
+  format: JSON Lines
+  mechanism: "one file of all consent changes (data/raw/fan/fan_consent_events.jsonl)"
+  cadence: "monthly, appended"
+grain: "one line per consent change per account per channel"
+raw:
+  table: raw.fan_consent_events
+  row_filter: null
+primary_key: ["$.account_id", "$.channel", "$.event_ts"]
+person_identifier:
+  quality: partial
+  field: "$.account_id"
+  note: "consent belongs to the account holder (an adult); a duplicate account of the same household has its own consent lines, which the consent history merges by timestamp"
+minors_present: false
+consent_fields:
+  - column: "$.status"
+    permits: "the status of one channel: opt_in permits contact on that channel; opt_out withdraws it; absence of any line means not captured, which permits nothing"
+    allowed_values: [opt_in, opt_out]
+  - column: "$.channel"
+    permits: "which channel the status applies to"
+    allowed_values: [email, sms, push]
+  - column: "$.capture_point"
+    permits: "where the choice was made (for the consent-capture analysis; it does not change what the status permits)"
+    allowed_values: [signup, checkout, preference_center, flag_registration]
+schema:
+  - {column: account_id, raw: "$.account_id", type: string, required: true, pii: quasi, pattern: '^A-\d{6}$'}
+  - {column: channel, raw: "$.channel", type: string, required: true, pii: none, allowed_values: [email, sms, push]}
+  - {column: status, raw: "$.status", type: string, required: true, pii: none, allowed_values: [opt_in, opt_out]}
+  - {column: event_ts, raw: "$.event_ts", type: timestamp, required: true, pii: none, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'}
+  - {column: capture_point, raw: "$.capture_point", type: string, required: true, pii: none, allowed_values: [signup, checkout, preference_center, flag_registration]}
+quality:
+  - {rule: max_null_rate, column: account_id, threshold: 0.0, severity: ERROR}
+  - {rule: max_null_rate, column: channel, threshold: 0.0, severity: ERROR}
+  - {rule: max_null_rate, column: status, threshold: 0.0, severity: ERROR}
+  - {rule: max_nonmatching_rate, column: event_ts, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$', threshold: 0.0, severity: ERROR}
+  - {rule: max_invalid_rate, column: status, allowed_values: [opt_in, opt_out], threshold: 0.0, severity: ERROR}
+  - {rule: max_invalid_rate, column: channel, allowed_values: [email, sms, push], threshold: 0.0, severity: ERROR}
+  - {rule: max_invalid_rate, column: capture_point, allowed_values: [signup, checkout, preference_center, flag_registration], threshold: 0.0, severity: ERROR}
+  # an opt-out through the preference centre needs an earlier opt-in on that channel; a few arrive timestamped before it (resolved by timestamp and flagged in staging)
+  - {rule: max_duplicate_rate, key: [account_id, channel, event_ts], threshold: 0.001}

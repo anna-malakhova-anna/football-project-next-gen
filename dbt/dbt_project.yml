@@ -73,6 +73,10 @@ models:
       +materialized: table
       +schema: measurement
       +tags: ['phase3']
+    fan:
+      +materialized: table
+      +schema: fan
+      +tags: ['phase4']
     linkage:
       +materialized: table
       +schema: linkage

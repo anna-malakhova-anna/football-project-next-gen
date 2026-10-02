@@ -24,6 +24,11 @@ denominators as (
     union all
     select 'FAN_ENGAGEMENT', 'accounts', count(*) from {{ ref('stg_fan_accounts') }}
     union all
+    select 'FAN_ENGAGEMENT', 'transactions', count(*) from {{ ref('stg_fan_transactions') }} where not is_refund
+    union all
+    -- every preference-centre opt-out follows an opt-in, so the number of such events is the number of opt-in then opt-out pairs
+    select 'FAN_ENGAGEMENT', 'consent_pairs', count(*) from {{ ref('stg_fan_consent_events') }} where status = 'opt_out' and capture_point = 'preference_center'
+    union all
     select 'INTL_FED', 'uk_rows', count(*) from {{ ref('stg_intl_registrations') }} where sheet_country_code = 'GB'
     union all
     select 'CA_CLUB', 'rows_with_consents_object', count(*)

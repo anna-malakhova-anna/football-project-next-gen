@@ -56,3 +56,24 @@ models:
         data_tests: [not_null]
       - name: country_code
         data_tests: [not_null]
+
+  - name: stg_fan_consent_events
+    description: >
+      One row per raw consent line (1:1 with raw grain). No row for a channel never answered: not captured, never FALSE. Preference-centre opt-outs with no earlier opt-in are flagged
+      consent_out_of_order (resolved by timestamp downstream).
+    columns:
+      - name: source_record_id
+        data_tests: [not_null]
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: [opt_in, opt_out]}}
+
+  - name: stg_fan_transactions
+    description: >
+      One row per raw transaction line (1:1 with raw grain), synthetic currency. Duplicates, orphan refunds, unknown accounts and bad categories or amounts are flagged, never dropped or repaired.
+    columns:
+      - name: txn_id
+        data_tests: [not_null]
+      - name: category
+        data_tests:
+          - accepted_values: {arguments: {values: [ticket, merch, subscription, other]}}

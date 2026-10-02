@@ -1,0 +1,35 @@
+version: 2
+
+# The fan ecosystem (Source D, rework step 4). These models hold account contact details, so none is a share. Registration data meets them only in the restricted `linkage` schema.
+models:
+  - name: int_fan_account_xref
+    description: "Duplicate fan accounts collapsed by deterministic rules (same normalized email, or same phone and postal prefix). One row per account: its canonical fan_account_id, whether it is a duplicate and why."
+    columns:
+      - name: account_id
+        data_tests: [unique, not_null]
+      - name: fan_account_id
+        data_tests: [not_null]
+  - name: dim_fan_account
+    description: "One row per fan account after duplicates are collapsed. Guardians only: the holder is an adult at signup. Holds contact details."
+    columns:
+      - name: fan_account_id
+        data_tests: [unique, not_null]
+      - name: acquisition_source
+        data_tests:
+          - accepted_values: {arguments: {values: [organic, ticketing, app_store, partner_referral, flag_registration_prompt]}}
+  - name: fct_fan_consent_history
+    description: "Consent as a Type 2 history per fan account and channel, resolved by timestamp. A channel with no line has no interval (not captured, never FALSE). No overlaps."
+    columns:
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: [opt_in, opt_out]}}
+      - name: channel
+        data_tests:
+          - accepted_values: {arguments: {values: [email, sms, push]}}
+  - name: fct_fan_engagement_month
+    description: "Engagement by fan account x month, dense from the account's first month, with zeros. Events counted once, in the month of event_ts."
+  - name: fct_fan_transaction
+    description: "Transactions net of refunds (synthetic currency). Orphan refunds are flagged and excluded from revenue."
+    columns:
+      - name: txn_id
+        data_tests: [unique, not_null]
