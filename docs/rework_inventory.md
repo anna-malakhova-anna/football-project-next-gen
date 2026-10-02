@@ -94,3 +94,13 @@ Findings to put in front of Anna:
 2. **`eval_fan_checks` thresholds were restated** from "naive at least 2x the truth, matched error under a fifth of the naive" to orderings (naive overstates by at least 25%, matched error under half the
    naive error, matched within 30% of the truth), because the new generator weakens selection among account holders. The truth also became exact (an oracle table).
 3. **Pytest now takes about 5 minutes** (it was 80 seconds); with the build that is close to CI's 10-minute budget. Step 13 will cut it (smaller test populations, fewer full generations).
+
+## Step 4 and 5 status (2026-10-02)
+
+Step 4 is committed (`a52db22`): fan contracts with ERROR severities, staging, the account collapse, `dim_fan_account`, the consent SCD2, engagement and transaction facts; the DQ log now finds all 66
+injected out-of-order consent events, 971 of 1,000 duplicate accounts (international phones are not normalized) and every orphan refund.
+
+Step 5 (built, awaiting Anna): `link_household_fan_account` now links to the **canonical** fan account (duplicates collapsed first); `fct_household_engagement_month` and the matched DiD run on the canonical
+engagement fact; the timeline covers every household; `fct_household_fan_status` assigns the spec's statuses from `fan_params` windows, plus two additions the spec's table leaves open (see the questions
+in the summary): `EXISTING_COOLING` (engaged 91 to 180 days before, none in the last 90) and `INSUFFICIENT_HISTORY` (the lapsed window is not observable, or the account is younger than it). `make fan-status`
+prints the distribution and the comparison with the truth. The fandom estimates were re-run on the collapsed accounts: naive +26.1%, matched +20.3%, truth +18.0%.

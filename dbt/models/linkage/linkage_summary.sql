@@ -11,5 +11,5 @@ union all select 'linked_households', 'ALL', count(*), count(*) * 1.0 / (select 
 union all select 'linked_households', method, n, n * 1.0 / (select households from h)
 from (select link_method as method, count(*) as n from links group by 1)
 union all select 'ambiguous_candidates', link_method, count(*), null from {{ ref('link_household_fan_account') }} where link_status = 'AMBIGUOUS' group by link_method
-union all select 'accounts', 'ALL', count(*), null from {{ ref('stg_fan_accounts') }}
-union all select 'accounts_linked', 'ALL', count(distinct account_id), count(distinct account_id) * 1.0 / (select count(*) from {{ ref('stg_fan_accounts') }}) from links
+union all select 'accounts', 'ALL', count(*), null from {{ ref('dim_fan_account') }}
+union all select 'accounts_linked', 'ALL', count(distinct account_id), count(distinct account_id) * 1.0 / (select count(*) from {{ ref('dim_fan_account') }}) from links

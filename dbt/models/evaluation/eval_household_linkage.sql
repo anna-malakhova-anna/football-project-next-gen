@@ -36,7 +36,7 @@ links as (
 targets as (
 
     select a.account_id, a.household_key, a.email_differs
-    from {{ source('ground_truth', 'fan_account_truth') }} a where a.is_participant_household
+    from {{ source('ground_truth', 'fan_account_truth') }} a where a.is_participant_household and not a.is_duplicate_account
 
 ),
 

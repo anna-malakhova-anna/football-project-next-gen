@@ -294,3 +294,16 @@ seeds:
       - name: prefix
         data_tests: [not_null]
 
+  - name: fan_params
+    description: >
+      Windows for the fan status of a participant household (rework spec 4.2): the active window, the lapsed window and the reactivation window. Models read them
+      from here; no model hard-codes a window length.
+    config:
+      tags: [phase4]
+      column_types: {param: varchar, value: integer, description: varchar}
+    columns:
+      - name: param
+        data_tests: [unique, not_null]
+      - name: value
+        data_tests: [not_null]
+

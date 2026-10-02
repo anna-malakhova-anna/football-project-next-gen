@@ -11,3 +11,8 @@ case
     when regexp_matches(upper(coalesce({{ postal }}, '')), '^\s*[A-Z]\d[A-Z]') then upper(left(regexp_replace({{ postal }}, '\s', '', 'g'), 3))
 end
 {%- endmacro %}
+
+{# A named window from the fan_params seed (rework spec 4.2): no model hard-codes 90, 180 or 12. #}
+{% macro fan_param(name) -%}
+(select value from {{ ref('fan_params') }} where param = '{{ name }}')
+{%- endmacro %}

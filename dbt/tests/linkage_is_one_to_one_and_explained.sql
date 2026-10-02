@@ -15,7 +15,7 @@ from {{ ref('link_household_fan_account') }} l
 where l.link_method = 'PHONE' and l.household_id in (select household_id from {{ ref('link_household_fan_account') }} where link_method = 'EMAIL')
 union all
 select 'link_to_unknown_account', account_id from {{ ref('link_household_fan_account') }}
-where account_id not in (select account_id from {{ ref('stg_fan_accounts') }})
+where account_id not in (select fan_account_id from {{ ref('dim_fan_account') }})
 union all
 select 'link_to_unknown_household', household_id from {{ ref('link_household_fan_account') }}
 where household_id not in (select household_id from {{ ref('int_household_profile') }})

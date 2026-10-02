@@ -1,0 +1,4 @@
+param,value,description
+active_window_days,90,A linked fan account is ACTIVE at the first registration if it had engagement in this many days before it
+lapsed_window_days,180,A linked fan account is LAPSED at the first registration if it had NO engagement in this many days before it
+reactivation_window_months,12,A lapsed account is REACTIVATED if it engaged again within this many months after the first registration

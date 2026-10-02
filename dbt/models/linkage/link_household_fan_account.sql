@@ -3,7 +3,8 @@
 -- (ADR-009). The order is fixed and every link carries its reason:
 --   1. EMAIL   the household's normalized guardian email equals the account's normalized email
 --   2. PHONE   only for households AND accounts that have no email link: the normalized phone numbers are equal
--- A link is made only when it is one to one. If a contact value reaches several households or several accounts the candidates are kept with
+-- Matching is on RAW accounts, but a link is to the household's CANONICAL fan account (duplicate accounts of one household are collapsed first, int_fan_account_xref), so a household that
+-- opened a second account still links once. A link is made only when it is one to one at that level. If a contact value reaches several households or several accounts the candidates are kept with
 -- status AMBIGUOUS and NOT used (a shared inbox is not a family). Households with no account are simply unlinked: absence of a link is the
 -- common case (the account email often differs from the registration email) and is reported as the link rate, never imputed.
 with hh_contacts as (
@@ -16,16 +17,18 @@ with hh_contacts as (
 
 acct as (
 
-    select account_id, 'EMAIL' as contact_type, contact_email as contact_value from {{ ref('stg_fan_accounts') }} where contact_email is not null
+    select a.account_id, 'EMAIL' as contact_type, a.contact_email as contact_value from {{ ref('stg_fan_accounts') }} a where a.contact_email is not null
     union all
-    select account_id, 'PHONE', contact_phone from {{ ref('stg_fan_accounts') }} where contact_phone is not null
+    select a.account_id, 'PHONE', a.contact_phone from {{ ref('stg_fan_accounts') }} a where a.contact_phone is not null
 
 ),
 
 cand as (
 
-    select distinct h.household_id, a.account_id, h.contact_type
-    from hh_contacts h join acct a on a.contact_type = h.contact_type and a.contact_value = h.contact_value
+    select distinct h.household_id, x.fan_account_id as account_id, h.contact_type
+    from hh_contacts h
+    join acct a on a.contact_type = h.contact_type and a.contact_value = h.contact_value
+    join {{ ref('int_fan_account_xref') }} x on x.account_id = a.account_id
 
 ),
 

@@ -39,8 +39,9 @@ active as (
 )
 
 select
-    l.household_id,
+    p.household_id,
     l.account_id,
+    l.account_id is not null                                                as is_linked,
     f.first_year,
     f.first_term,
     f.first_registration_month,
@@ -49,6 +50,7 @@ select
     a.last_active_year,
     case when a.last_active_year < (select last_observed_year from {{ ref('observation_window') }})
          then make_date(a.last_active_year + 1, 1, 1) end                   as churn_month
-from (select household_id, account_id from {{ ref('link_household_fan_account') }} where link_status = 'LINKED') l
+from {{ ref('int_household_profile') }} p
+left join (select household_id, account_id from {{ ref('link_household_fan_account') }} where link_status = 'LINKED') l using (household_id)
 join first_reg f using (household_id)
 join active a using (household_id)

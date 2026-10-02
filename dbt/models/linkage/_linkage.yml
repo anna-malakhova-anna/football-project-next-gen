@@ -32,3 +32,11 @@ models:
     description: "Link rate and its make-up (counts only). Restricted."
   - name: linkage_link_bias
     description: "Linked vs unlinked households by country, years active, children and first year. Counts and shares only. Restricted."
+  - name: fct_household_fan_status
+    description: "One row per participant household: its fan status as of the month of its first registration. UNLINKED is unknown, not non-fan. Restricted."
+    columns:
+      - name: household_id
+        data_tests: [unique, not_null]
+      - name: fan_status
+        data_tests:
+          - accepted_values: {arguments: {values: [UNLINKED, NET_NEW, EXISTING_ACTIVE, EXISTING_COOLING, LAPSED_REACTIVATED, LAPSED_DORMANT, INSUFFICIENT_HISTORY]}}

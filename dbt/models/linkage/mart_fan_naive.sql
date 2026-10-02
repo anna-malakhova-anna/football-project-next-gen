@@ -32,7 +32,7 @@ select
     round((r.ratio - 1) - 1.96 * sqrt(var_samp(t.x - r.ratio * t.y) / r.n) / r.ybar, 5) as ci_low_pct,
     round((r.ratio - 1) + 1.96 * sqrt(var_samp(t.x - r.ratio * t.y) / r.n) / r.ybar, 5) as ci_high_pct,
     r.n                                                                     as treated_households,
-    (select count(*) from {{ ref('stg_fan_accounts') }}) - r.n              as comparison_units,
+    (select count(*) from {{ ref('dim_fan_account') }}) - r.n              as comparison_units,
     '{{ var("methodology_version") }}'                                      as methodology_version
 from t cross join r
 group by r.ratio, r.n, r.ybar

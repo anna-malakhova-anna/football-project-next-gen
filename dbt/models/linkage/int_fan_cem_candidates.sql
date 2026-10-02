@@ -32,7 +32,7 @@ created as (select account_id, min(mi) as created_mi from eng group by 1),
 treated as (
 
     select t.account_id, t.household_id, t.first_registration_month as e, true as is_treated
-    from {{ ref('int_participant_household_timeline') }} t where not t.is_left_censored
+    from {{ ref('int_participant_household_timeline') }} t where t.is_linked and not t.is_left_censored
 
 ),
 
@@ -41,7 +41,7 @@ event_months as (select distinct e from treated),
 comparison as (
 
     select a.account_id, cast(null as varchar) as household_id, m.e, false as is_treated
-    from (select account_id from {{ ref('stg_fan_accounts') }}
+    from (select fan_account_id as account_id from {{ ref('dim_fan_account') }}
           where account_id not in (select account_id from {{ ref('link_household_fan_account') }} where link_status = 'LINKED')) a
     cross join event_months m
 
@@ -66,7 +66,7 @@ feat as (
         a.country_code
     from pairs p
     join created c using (account_id)
-    join {{ ref('stg_fan_accounts') }} a using (account_id)
+    join {{ ref('dim_fan_account') }} a on a.fan_account_id = p.account_id
     left join cum cp on cp.account_id = p.account_id and cp.mi = p.e_mi - 1
     left join cum c0 on c0.account_id = p.account_id and c0.mi = p.e_mi - {{ pre }} - 1
     left join cum cq on cq.account_id = p.account_id and cq.mi = least(p.e_mi + {{ post }} - 1, p.last_mi)

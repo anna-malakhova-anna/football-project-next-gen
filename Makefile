@@ -1,4 +1,4 @@
-.PHONY: all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -95,6 +95,11 @@ linkage: dbt/profiles.yml
 # Phase 4: the static results site (reads share_exec and whitelisted evaluation summaries; fails if a chart computes a number in the browser)
 site:
 	$(PY) -m scripts.build_site
+
+# Rework step 5: the fan status of participant households and its comparison with the truth (needs `make load-eval`)
+fan-status: dbt/profiles.yml
+	$(DBT) run --profiles-dir . --select fct_household_fan_status eval_fan_status
+	$(PY) -m scripts.print_fan_status
 
 # Phase 4: fandom outcomes (naive vs matched difference-in-differences vs truth), built on the linkage (needs `make load-eval`)
 fan: dbt/profiles.yml
