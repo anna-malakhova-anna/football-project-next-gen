@@ -1,4 +1,4 @@
-.PHONY: site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -133,8 +133,29 @@ all: generate load build test
 # Everything: Phase 1, then ground truth load, identity resolution, evaluation, all tests, isolation, id stability
 phase2: all load-eval idr eval test-phase2 id-stability
 
-# Phase 3: phase 2, then facts + marts, shares + policy check, every test, the executive report
-phase3: phase2 measure eval-measure shares test-phase3 report
+# Everything, from an empty checkout: generate, load (raw, ground truth, published snapshots), contract validation, every dbt model and test,
+# pytest, and the build checks (eval isolation, aggregate lineage, share policy, ID stability). From Phase 4 the layers depend on each other in both
+# directions (a Phase 3 scorecard reads a Phase 4 model), so Phases 3 and 4 are no longer built separately: this is the supported full build.
+# `make site` then builds the results site; `make publish YEAR=...` is never part of it.
+all-phases: dbt/profiles.yml
+	$(PY) -m generator.main
+	$(PY) -m generator.export_config_seed
+	$(PY) -m loader.load_raw
+	$(PY) -m loader.load_eval
+	$(PY) -m loader.load_published
+	$(PY) -m scripts.validate_contracts
+	$(DBT) seed --profiles-dir .
+	$(DBT) run --profiles-dir .
+	$(DBT) test --profiles-dir .
+	uv run pytest -q
+	$(PY) -m scripts.check_eval_isolation
+	$(PY) -m scripts.check_lineage
+	$(PY) -m scripts.check_share_policy
+	$(PY) -m scripts.check_id_stability
+
+# Phases 3 and 4 are built together (see all-phases)
+phase3: all-phases
+phase4: all-phases
 
 docs:
 	$(PY) -m scripts.build_data_dictionary
