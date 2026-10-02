@@ -66,3 +66,31 @@ Spec step 3 changes the generator upstream (registrations in a market start only
 
 Remove the three cut retention models and everything that references them (listed above); demote Source E on the site and in the exec report headline only (its code stays); rebuild
 with `make all-phases` and confirm green. No generator change happens in step 2.
+
+## Anna's decisions (2026-10-02), recorded before step 3
+
+1. **Population: scale up to 15,000 people** (from 6,000), so market-level incrementality has enough households per market.
+2. **Marketing: "never" stands.** ADR-009's position is kept: nothing linked reaches `share_marketing` or `share_media`. The rework's marketing audience **list** (spec section 7) is
+   therefore **dropped** from step 11. The addressable-audience and consent-gap **counts** stay (they are aggregates in `share_exec`), and the guardians-only rule still applies to every
+   fan output. ADR-009 needs no amendment.
+3. **Market denominators: yes.** `household_population` is the market's synthetic household universe; organic fan accounts are created at a configured rate of it.
+4. **As-of dates: yes.** Funnel stages (active, contactable, retained) are measured at the end of each registration cohort year; any run-date view uses the run date; windows come from `fan_params.csv`.
+
+## Step 3 status (2026-10-02)
+
+Done and green (`make all-phases`: 296 dbt tests, 154 pytest tests, the four build checks). What changed:
+- **Markets:** `generator/markets.py` builds 46 synthetic markets (28 US, 12 CA, one per international country) with launch years (10 launch in 2021, 8 in 2022, 7 in 2023, 5 in 2024, 10 never,
+  among the 40 US and CA markets; international launches are listed), a team-market flag and a household population. Seeds `market_map.csv` and `market_geo_map.csv`; `market_id` is on
+  `fct_registration`, `fct_participant_year`, `int_household_profile` and fan accounts.
+- **Population and rollout:** 15,000 people; nobody registers before their market's launch year; never-launched markets have no registrants.
+- **Revised Source D:** accounts (with `acquisition_source` and holder `birth_year`), consent events, engagement events (with `fantasy_activity` and `flag_content_view`), transactions, duplicate
+  accounts, lapse and reactivation, true acquisition lift. New truth: `fan_market_truth`, `fan_consent_truth`, `fan_effect_truth`. Consent and transactions are loaded to raw; their contracts, staging and
+  models are step 4.
+- **Expected values updated:** the README table, `docs/phase2_results.md`, `docs/identity_resolution.md`, the generated memo numbers and report, ADR notes, the CHANGELOG, restatement Example 4.
+- **Restatement captured:** Example 4 (88 rows, 59 requiring restatement; 2025 unique participants 2,837 to 8,959). No snapshots reissued yet (v2.0, step 12).
+
+Findings to put in front of Anna:
+1. **Nine twin false merges at scale** (final matcher, international returns). Reported, not tuned (ADR-008, `docs/identity_resolution.md`). A label-free fix is available; it is Anna's call.
+2. **`eval_fan_checks` thresholds were restated** from "naive at least 2x the truth, matched error under a fifth of the naive" to orderings (naive overstates by at least 25%, matched error under half the
+   naive error, matched within 30% of the truth), because the new generator weakens selection among account holders. The truth also became exact (an oracle table).
+3. **Pytest now takes about 5 minutes** (it was 80 seconds); with the build that is close to CI's 10-minute budget. Step 13 will cut it (smaller test populations, fewer full generations).

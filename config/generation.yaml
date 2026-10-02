@@ -19,7 +19,7 @@ seasons:
   # Canada and International use one calendar-year season.
 
 population:
-  total_people: 6000
+  total_people: 15000
   # Segment shares of the true-person registry. Must sum to 1.0 with `adults_us_ca`
   # taking the remainder. Cross-border movers are a subset of US+CA youth, not a segment.
   segments:
@@ -60,6 +60,18 @@ population:
     AT: de_DE                         # faker has no de_AT locale in use here; reuse de_DE
     PA: es_MX                         # no es_PA locale; reuse es_MX
 
+markets:
+  # SYNTHETIC markets (rework spec, section 2). US markets are groups of ZIP3 prefixes inside a state, Canadian markets are groups of FSAs inside a province, and each
+  # international country is one market (its returns carry no postal code). Registrations in a market start only after its launch year; some markets never launch.
+  seed_offset: 7
+  us_markets_per_state: {TX: 4, CA: 3, FL: 3, NJ: 2, MA: 2, NY: 3, IL: 2, OH: 2, WA: 1, GA: 2, CO: 1, AZ: 1, PA: 1, CT: 1}     # 28 markets
+  ca_markets_per_province: {QC: 2, "ON": 3, NB: 1, BC: 2, AB: 2, NS: 1, MB: 1}                                             # 12 markets (ON is quoted: bare ON is a YAML boolean)
+  intl_markets: {MX: 1, GB: 1, JP: 1, DE: 1, AT: 1, PA: 1}
+  team_market_share: 0.40
+  household_population_range: [20000, 120000]      # invented households per market: the denominator for "per 1,000 households"
+  launches: {2021: 10, 2022: 8, 2023: 7, 2024: 5, never: 10}      # counts among the 40 US and CA markets
+  intl_launch_years: {MX: 2022, GB: 2021, JP: 2023, DE: 2022, AT: 2024, PA: 2023}
+
 participation:
   # Per-season churn probability by age at the season (applies after first season).
   churn_by_age:
@@ -77,13 +89,15 @@ participation:
 
 defects:
   fan:
-    email_differs_from_registration: 0.25   # of participant households with an account; caps the linkage rate on purpose
+    email_differs_from_registration: 0.25   # of participant accounts: the account email is not the guardian's registration email; caps the linkage rate on purpose
     duplicate_event: 0.005                  # the same event_id delivered twice
     late_arriving_event: 0.02               # lands in a later month's file; event_ts keeps the true month
     clock_skew: 0.01                        # event_ts shifted by up to +/- 2 days (can cross a month boundary)
-    marketing_opt_in_blank: 0.05            # consent not captured on the account: NULL, never FALSE
     email_case_whitespace: 0.05             # account email typed with capitals / trailing space
     phone_shared_with_participant_household: 0.01   # of non-participant accounts with a phone: reuses a participant household's number (a false link if matched)
+    duplicate_account: 0.03                 # the same household has a second account (same email, or same phone and postal prefix)
+    refund_without_original: 0.005          # of transactions: a refund whose original_txn_id matches no transaction
+    consent_out_of_order: 0.01              # of opt-in/opt-out pairs: the opt-out is timestamped before the opt-in
   us_league:
     name_typo_reregistration: 0.04
     nickname_reregistration: 0.03
@@ -136,23 +150,57 @@ sources:
     email_present_minor: 0.20           # "often blank for minors"
     email_present_adult: 0.90
   fan:
-    # Source D: fan app / ticketing accounts and an event stream. SYNTHETIC, with a built-in causal structure for evaluation (docs/decisions/ADR-010).
-    non_participant_household_multiple: 3.0     # non-participant fan households per participant household, in the same regions
-    participant_account_share: 0.50             # share of participant households that have a fan account at all
-    phone_present: 0.60                         # share of accounts that carry a phone
-    phone_matches_when_email_differs: 0.30      # when the account email differs from the guardian's, the phone still matches this often
-    base_events_per_month: 1.0                  # events per month for an average household before fandom, season and uplift
+    # Source D, revised for the fan-acquisition rework: fan accounts, consent events, engagement events and transactions. SYNTHETIC, with a built-in causal
+    # structure for evaluation (docs/decisions/ADR-010, ADR-011). Truth goes to ground truth, never into the raw files.
+    base_events_per_month: 0.6                  # events per active account-month before fandom, season and uplift
     fandom_sd: 0.6                              # log-scale effect of the latent fandom score on engagement
     # SELECTION: households with higher latent fandom are more likely to enroll a child: P(enroll) = sigmoid(intercept + slope * fandom).
-    # This is why the naive participant-vs-non-participant comparison overstates the effect.
     selection: {intercept: -0.4, slope: 0.9}
     true_uplift: 0.15                           # after a household's first registration, events per month are x (1 + true_uplift) while a child is active
     uplift_decay_half_life_months: 12           # after the last active season ends, the uplift halves every this many months
     enroll_month_by_term: {SPRING: 3, FALL: 8, ANNUAL: 3}   # the month the uplift starts (first registration); the analysis uses the same rule
     seasonality: {1: 1.2, 2: 1.25, 3: 0.85, 4: 0.8, 5: 0.8, 6: 0.8, 7: 0.85, 8: 1.0, 9: 1.35, 10: 1.4, 11: 1.4, 12: 1.35}   # NFL season peak
-    event_mix: {app_open: 0.45, content_view: 0.30, game_stream: 0.10, newsletter_click: 0.08, ticket_purchase: 0.035, merch_purchase: 0.035}
-    purchase_value: {ticket_purchase: [25.0, 220.0], merch_purchase: [12.0, 140.0]}
-    pre_enrollment_signup_months: [6, 18]       # participant accounts are created this long before the first registration (when the window allows)
+    event_mix: {app_open: 0.45, content_view: 0.30, game_stream: 0.12, newsletter_click: 0.08, fantasy_activity: 0.05}
+    fantasy_season_months: [9, 10, 11, 12, 1]   # fantasy_activity is x3 in these months and x0.5 outside
+    flag_content_share_after_registration: 0.5  # share of content views that are flag_content_view for an enrolled, active household (a relabel, not extra volume)
+    flag_content_share_background: 0.02         # background share for everyone else
+    account:
+      existing_at_registration: {intercept: -1.0, slope: 0.9}    # P(a participant household already had a fan account) = sigmoid(intercept + slope * fandom)
+      stock_penetration: 0.004                  # share of a market's households with a fan account on the first day of the data
+      organic_new_rate_per_household_year: 0.0012   # new accounts per household per year in every market, with the NFL seasonality
+      account_fandom_tilt: 0.5                  # accounts are held by fandom-heavy households: fandom of an account holder ~ N(tilt, 1)
+      created_before_registration_months: [6, 48]  # an existing account was created this long before the first registration
+      stock_created_years_before_window: 3
+      phone_present: 0.60                       # share of accounts that carry a phone
+      phone_matches_when_email_differs: 0.30    # when the account email differs from the guardian's, the phone still matches this often
+      acquisition_source_mix: {organic: 0.50, ticketing: 0.20, app_store: 0.20, partner_referral: 0.10}
+      holder_birth_year: [1958, 2000]           # adults only
+    acquisition:
+      true_acquisition_lift: 0.20               # extra probability that a household with no account creates one within a year of its first registration
+      organic_account_prob_12m: 0.04            # the baseline probability of the same, scaled by exp(tilt * fandom)
+      months_to_account: [0, 11]                # when, after the first registration, a net-new account is created
+      flag_prompt_share_of_induced: 0.60        # share of program-induced accounts that come through the flag registration prompt
+      flag_prompt_share_of_organic: 0.08        # share of organic net-new accounts that do
+    lapse:
+      base_monthly_hazard: 0.008                # per active account-month
+      fandom_slope: -0.3                        # hazard x exp(slope * fandom): fans lapse less
+      after_child_churn_multiplier: 1.5         # hazard x this once the household's last child season has ended (an association the data can show)
+      reactivation_base: 0.05                   # probability a lapsed participant account reactivates within 12 months of the first registration, anyway
+      reactivation_lift: 0.30                   # extra probability caused by registering (the reactivation truth)
+    transactions:
+      ticket: {rate: 0.020, uplift_non_team: 0.10, uplift_team: 0.30, team_multiplier: 1.6, amount: [40, 180]}
+      merch: {rate: 0.025, uplift: 0.15, amount: [15, 90]}
+      subscription: {share_of_accounts: 0.12, amount: 10.0, uplift_share: 0.05}     # a flat monthly amount while subscribed
+      other: {rate: 0.010, amount: [5, 40]}
+      refund_share: 0.03                        # of ticket and merch transactions
+      refund_delay_days: [1, 10]
+    consent:
+      # P(opt_in) / P(explicit opt_out) per channel at each capture point; the rest is "not captured": no event at all (NULL, never FALSE)
+      opt_in: {signup: {email: 0.45, sms: 0.15, push: 0.40}, checkout: {email: 0.60, sms: 0.20, push: 0.10}, flag_registration: {email: 0.70, sms: 0.30, push: 0.35}}
+      explicit_opt_out_given_declined: 0.30
+      preference_center_monthly_opt_in: 0.003   # per account-month, per channel not currently opted in
+      opt_out_base_monthly: 0.004               # per opted-in email account-month
+      opt_out_per_event: 0.002                  # extra opt-out hazard per engagement event that month (a stand-in for email volume)
   school:
     programs_per_100_youth_participants: 3.0     # programs are placed where registered youth live, so overlap is possible
     program_participation_rate: 0.92             # chance a stable program reports in a given year

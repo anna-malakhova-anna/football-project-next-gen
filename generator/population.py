@@ -19,6 +19,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import yaml
 from faker import Faker
+
+from generator import markets as markets_mod
 from text_unidecode import unidecode
 
 SOURCE_BY_COUNTRY = {"US": "US_LEAGUE", "CA": "CA_CLUB"}  # anything else -> INTL_FED
@@ -65,7 +67,7 @@ REGISTRY_FIELDS = [
     "guardian_name", "guardian_email", "guardian_phone", "own_email", "own_phone",
     "marketing_opt_in", "photo_consent", "first_season", "last_season",
     "is_cross_border", "alt_country", "alt_region", "switch_season", "is_multi_league",
-    "twin_group_id", "name_change_season", "later_family_name", "dual_country_year",
+    "twin_group_id", "name_change_season", "later_family_name", "dual_country_year", "home_market_id", "market_launch_year",
 ]
 PARTICIPATION_FIELDS = [
     "true_person_id", "source_system", "country_code", "region_code",
@@ -125,6 +127,8 @@ class _Builder:
         self.used_phones: set[str] = set()
         self.used_emails: set[str] = set()
         self._hh_counter = 0
+        self.markets = markets_mod.build_markets(cfg)["markets"]
+        self.market_by_id = {m["market_id"]: m for m in self.markets}
 
     # ---------- small helpers ----------
     def _weighted(self, pairs):
@@ -158,22 +162,36 @@ class _Builder:
         days = (dt.date(birth_year, 12, 31) - start).days
         return start + dt.timedelta(days=self.rng.randint(0, days))
 
-    def _place(self, country: str, francophone: bool):
-        """-> (region, postal_code)"""
-        if country == "US":
-            state = self._weighted(US_REGIONS)[0]
-            return state, random_us_zip(self.rng, state)
-        if country == "CA":
-            prov = self._weighted(CA_FR_REGIONS if francophone else CA_EN_REGIONS)[0]
-            return prov, random_ca_postal(self.rng, prov)
-        return None, None
+    def _market_for(self, country: str, region: str | None = None, by_year: int | None = None) -> dict:
+        """A launched market in `country` (optionally in `region`), weighted by its synthetic household population. Never-launched markets are never chosen."""
+        by_year = markets_mod.last_year(self.cfg) if by_year is None else by_year
+        pool = markets_mod.launched(self.markets, country, by_year)
+        if region is not None:
+            pool = [m for m in pool if m["region_code"] == region] or pool
+        return self.rng.choices(pool, weights=[m["household_population"] for m in pool])[0]
 
-    def _first_season(self, birth_year: int | None, sex: str, adult: bool) -> int:
-        """Pick a first season; youth are constrained so age at first season is 5-17."""
+    def _place(self, country: str, francophone: bool, by_year: int | None = None):
+        """-> (region, postal_code, market). The market is chosen first (weighted by its household population, among markets launched by `by_year`), then a postal
+        prefix inside it."""
+        if country == "US":
+            region = self._weighted(US_REGIONS)[0]
+            market = self._market_for("US", region, by_year)
+            return market["region_code"], f"{self.rng.choice(market['_prefixes'])}{self.rng.randint(0, 99):02d}", market
+        if country == "CA":
+            region = self._weighted(CA_FR_REGIONS if francophone else CA_EN_REGIONS)[0]
+            market = self._market_for("CA", region, by_year)
+            letter = lambda: self.rng.choice("ABCEGHJKLMNPRSTVXY")  # noqa: E731
+            fsa = self.rng.choice(market["_prefixes"])
+            return market["region_code"], f"{fsa} {self.rng.randint(0, 9)}{letter()}{self.rng.randint(0, 9)}", market
+        market = self._market_for(country, None, by_year)
+        return None, None, market
+
+    def _first_season(self, birth_year: int | None, sex: str, adult: bool, launch_year: int = 0) -> int:
+        """Pick a first season; youth are constrained so age at first season is 5-17, and nobody registers before their market's launch year."""
         lo, hi = self.pop["youth_age_range"]
-        allowed = list(self.years)
+        allowed = [y for y in self.years if y >= launch_year]
         if not adult:
-            allowed = [y for y in self.years if lo <= y - birth_year <= hi]
+            allowed = [y for y in allowed if lo <= y - birth_year <= hi]
         w = self.part["first_season_weights"]
         mult = self.part["girls_new_player_multiplier"]
         weights = [w[y] * (mult[y] if sex == "F" else 1.0) for y in allowed]
@@ -237,12 +255,13 @@ class _Builder:
     def _youth_household(self, country: str, k: int, ca_fr: bool | None = None):
         r = self.rng
         ylo, yhi = self.pop["youth_age_range"]
-        lo_by, hi_by = min(self.years) - yhi, max(self.years) - ylo
         francophone = bool(ca_fr)
         if country == "CA" and ca_fr is None:
             francophone = r.random() < self.pop["ca_francophone_share"]
         loc = self._locale(country, francophone)
-        region, postal = self._place(country, francophone)
+        region, postal, market = self._place(country, francophone)
+        # birth years: a child must be 5 to 17 in at least one season on or after the market's launch year
+        lo_by, hi_by = max(min(self.years), market["launch_year"]) - yhi, max(self.years) - ylo
         family = self.names.family(loc)
         g_sex = r.choice(["F", "M"])
         g_given = self.names.given(loc, g_sex)
@@ -257,7 +276,7 @@ class _Builder:
         for by in self._sibling_birth_years(k, lo_by, hi_by):
             kids.append(self._person(loc, country, region, postal, family, by,
                                      francophone, minor=True, guardian=guardian,
-                                     hh_key=self._hh_counter))
+                                     hh_key=self._hh_counter, market=market))
         twin_share = self.pop.get("twins", {}).get("household_share", 0)
         if k >= 2 and r.random() < twin_share / self._p_multi_household():
             self._make_twins(kids[0], kids[1], loc)
@@ -276,7 +295,7 @@ class _Builder:
         return "en" if country == "US" else INTL_LANG[country]
 
     def _person(self, loc, country, region, postal, family, birth_year, francophone,
-                minor, guardian=None, sex=None, hh_key=None):
+                minor, guardian=None, sex=None, hh_key=None, market=None):
         r = self.rng
         if sex is None:
             share = self.pop["youth_female_share"] if minor else self.pop["adult_female_share"]
@@ -288,7 +307,7 @@ class _Builder:
         else:
             given = self.names.given(loc, sex)
         dob = self._dob(birth_year)
-        first = self._first_season(birth_year, sex, adult=not minor)
+        first = self._first_season(birth_year, sex, adult=not minor, launch_year=market["launch_year"])
         c = self.pop["consent"]
         p = {
             "segment": None, "household_id": None,
@@ -305,6 +324,7 @@ class _Builder:
             "switch_season": None, "is_multi_league": False,
             "twin_group_id": None, "name_change_season": None, "later_family_name": None,
             "dual_country_year": None,
+            "home_market_id": market["market_id"], "market_launch_year": market["launch_year"],
             "_hh": hh_key,
         }
         if minor:
@@ -318,12 +338,12 @@ class _Builder:
         r = self.rng
         francophone = country == "CA" and r.random() < self.pop["ca_francophone_share"]
         loc = self._locale(country, francophone)
-        region, postal = self._place(country, francophone)
+        region, postal, market = self._place(country, francophone)
         alo = self.pop["adult_age_range"][0]
         sex = "F" if r.random() < self.pop["adult_female_share"] else "M"
         # DOB is re-derived in _fix_adult_first_seasons once first_season is known
         return self._person(loc, country, region, postal, self.names.family(loc),
-                            min(self.years) - alo, francophone, minor=False, sex=sex)
+                            min(self.years) - alo, francophone, minor=False, sex=sex, market=market)
 
     def build_people(self):
         r = self.rng
@@ -390,10 +410,10 @@ class _Builder:
         for p in self.rng.sample(pool, min(want, len(pool))):
             other = "CA" if p["home_country"] == "US" else "US"
             fr = other == "CA" and p["language"] == "fr"
-            region, _ = self._place(other, fr)
+            p["switch_season"] = self.rng.randint(p["first_season"] + 1, self.years[-1])
+            region, _, _ = self._place(other, fr, by_year=p["switch_season"])      # the market they move to must have launched by then
             p["is_cross_border"] = True
             p["alt_country"], p["alt_region"] = other, region
-            p["switch_season"] = self.rng.randint(p["first_season"] + 1, self.years[-1])
             # some movers register in BOTH countries in the year they move (US spring, then a Canadian club season,
             # or a Canadian season, then US fall): the same person in two countries in one year
             if self.rng.random() < self.pop["cross_border_dual_year_share"]:

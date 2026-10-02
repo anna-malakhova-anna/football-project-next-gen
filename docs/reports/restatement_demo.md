@@ -149,3 +149,34 @@ visible rather than silent (2025: reported headcount 8,441; combined reach 8,690
 **Why this matters.** Before this change the log could only see KPIs that already existed, so a new KPI would have been invisible and a changed
 definition would have looked like an ordinary methodology change. `introduced_in` and `definition_changed_in` in the metric catalog now let the
 log say `NEW_KPI` (listed, never a restatement) or `DEFINITION_CHANGED` (a restatement). The v1.1 snapshots for 2021 to 2025 have since been published (21 KPI rows each), and the log was empty again. It later gained one line per year when Source D became `Modelled` (the data-trust KPI `sources_onboarded` went from 4 to 5, cause `UNKNOWN`, no restatement required): a small live example of the gap ADR-008 describes, since snapshots do not record row counts for the school and fan sources or the registry status. A second set of v1.1 snapshots recorded the new value and the log is empty again.
+
+## Example 4: the generator changes upstream (`NEW_SOURCE_DATA`, at scale)
+
+The fan-acquisition rework (rework step 3) changed the synthetic population: 15,000 people instead of 6,000, synthetic markets with a **staggered programme rollout** (registrations
+in a market start only after its launch year; some markets never launch), and a revised fan source. The counting rules and every KPI definition were untouched, but every
+participation number moved. The latest published snapshot of each year (the second v1.1 set, five snapshots) was compared with the rebuilt scorecard:
+
+| Cause | Rows | Distinct KPIs | Restatement required |
+|---|---|---|---|
+| `NEW_SOURCE_DATA` | 88 (19 KPIs x up to 5 years) | 19 | **59** |
+| any other cause | 0 | 0 | 0 |
+
+By KPI group the restatements fall on the north star (5 of 5 years), growth (14 of 15), reach (33 of 38) and depth (7 of 10); the 20 data-trust rows move but never require one. Headline
+examples (published, then rebuilt):
+
+| Year | KPI | Published | Rebuilt | Change | Restatement required |
+|---|---|---|---|---|---|
+| 2022 | Unique participants | 2,385 | 3,354 | +40.6% | **yes** |
+| 2025 | Unique participants | 2,837 | 8,959 | +215.8% | **yes** |
+| 2025 | New participants | 1,051 | 3,957 | +276.5% | **yes** |
+| 2025 | International participants | 1,086 | 3,354 | +208.8% | **yes** |
+| 2025 | Retention rate | 69.9% | 68.6% | -1.9 pts | **yes** (more than a point) |
+| 2025 | Girls' share of youth | 45.3% | 46.3% | +2.1% | no |
+
+**Why the log can say only `NEW_SOURCE_DATA`.** The raw row counts of the registration sources differ (that is the cause the log tests for), and nothing else is recorded in a
+snapshot, so it cannot say the cause was a change of generator or market structure. Two things it does not separate (ADR-007 lists the second as a known limit): how much of the
+movement is new rows and how much is revised rows, and the growth caused by the staggered rollout (later-launching markets add participants only in later years, so participation
+ramps up across the window).
+
+**What was done.** Nothing was reissued yet. The published snapshots stay (they are immutable) and are now out of date against the rebuilt data. Methodology v2.0 (rework step 12)
+publishes new baselines for 2021 to 2025, records the `METHODOLOGY_CHANGE`, and the CHANGELOG ties the two together.

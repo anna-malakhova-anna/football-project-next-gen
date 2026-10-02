@@ -8,17 +8,17 @@
 
 | Headline | 2025 | Prior year | Change | Identity range (low to high) |
 |---|---|---|---|---|
-| Unique participants | 2,837 | 2,553 | +284 (+11.1%) | 2,828 to 2,844 |
-| New participants | 1,051 | 832 | +219 (+26.3%) |  |
-| Returning participants | 1,785 | 1,721 | +64 (+3.7%) |  |
-| Year-over-year retention rate | 69.9% | 68.5% | +1.4 pts |  |
-| Reactivated participants | 1 | 0 | +1 |  |
-| Youth girls participants | 1,169 | 999 | +170 (+17.0%) |  |
-| Girls' share of youth participation | 45.3% | 43.8% | +1.6 pts |  |
-| International participants (attributed, outside the US) | 1,086 | 963 | +123 (+12.8%) | 1,079 to 1,086 |
+| Unique participants | 8,959 | 7,289 | +1,670 (+22.9%) | 8,921 to 8,976 |
+| New participants | 3,957 | 3,777 | +180 (+4.8%) |  |
+| Returning participants | 5,002 | 3,511 | +1,491 (+42.5%) |  |
+| Year-over-year retention rate | 68.6% | 64.4% | +4.2 pts |  |
+| Reactivated participants | 0 | 1 | -1 (-100.0%) |  |
+| Youth girls participants | 3,746 | 2,893 | +853 (+29.5%) |  |
+| Girls' share of youth participation | 46.3% | 44.5% | +1.8 pts |  |
+| International participants (attributed, outside the US) | 3,354 | 2,718 | +636 (+23.4%) | 3,324 to 3,361 |
 | Countries with at least one participant | 8 | 8 | +0 (+0.0%) |  |
-| Multi-organization participants | 214 | 148 | +66 (+44.6%) |  |
-| Registrations per participant | 1.41 | 1.40 | +0.01 |  |
+| Multi-organization participants | 666 | 470 | +196 (+41.7%) |  |
+| Registrations per participant | 1.41 | 1.41 | +0.01 |  |
 
 Identity range: how much identity resolution alone could move a number (a person split in two, or two people merged). It
 does **not** cover missing sources, informal play, or errors in the source data.
@@ -27,10 +27,10 @@ does **not** cover missing sources, informal play, or errors in the source data.
 
 | Data trust | 2025 | Prior year | Change |
 |---|---|---|---|
-| Identity range (% of point estimate) | 0.6% | 0.4% | +0.2 pts |
-| Participants resolved with high confidence | 98.9% | 98.9% | 0.0 pts |
-| Open review items | 101 | 110 | -9 (-8.2%) |
-| Registrations failing DQ rules | 2.2% | 2.4% | -0.3 pts |
+| Identity range (% of point estimate) | 0.6% | 0.7% | 0.0 pts |
+| Participants resolved with high confidence | 98.6% | 98.5% | +0.1 pts |
+| Open review items | 399 | 415 | -16 (-3.9%) |
+| Registrations failing DQ rules | 2.4% | 2.3% | +0.1 pts |
 | Sources onboarded | 5 | 5 | +0 (+0.0%) |
 | Sources known | 5 | 5 | +0 (+0.0%) |
 
@@ -38,15 +38,15 @@ does **not** cover missing sources, informal play, or errors in the source data.
 
 | Country | Participants (attributed, adds up) | Participants (present, overlaps) |
 |---|---|---|
-| All countries | 2,837 | n/a |
-| AT | 42 | 42 |
-| CA | 589 | 599 |
-| DE | 67 | 67 |
-| GB | 96 | 96 |
-| JP | 91 | 91 |
-| MX | 146 | 146 |
-| PA | 55 | 55 |
-| US | 1,751 | 1,765 |
+| All countries | 8,959 | n/a |
+| AT | 214 | 214 |
+| CA | 1,884 | 1,902 |
+| DE | 204 | 204 |
+| GB | 242 | 243 |
+| JP | 330 | 330 |
+| MX | 325 | 326 |
+| PA | 155 | 156 |
+| US | 5,605 | 5,653 |
 
 Use the **attributed** column for totals: each person is counted once, in the country of their most recent registration this
 year. The **present** column counts a person in every country they played in, so it adds up to more than the total; use it
@@ -56,19 +56,19 @@ to answer "who played here". Cells too small to publish safely are shown as *sup
 
 | Year | Participants | Girls' share of youth participation |
 |---|---|---|
-| 2021 | 2,037 | 42.4% |
-| 2022 | 2,385 | 42.8% |
-| 2023 | 2,512 | 42.8% |
-| 2024 | 2,553 | 43.8% |
-| 2025 | 2,837 | 45.3% |
+| 2021 | 1,407 | 41.8% |
+| 2022 | 3,354 | 42.9% |
+| 2023 | 5,450 | 43.0% |
+| 2024 | 7,289 | 44.5% |
+| 2025 | 8,959 | 46.3% |
 
 | Year | Youth girls participants |
 |---|---|
-| 2021 | 778 |
-| 2022 | 902 |
-| 2023 | 953 |
-| 2024 | 999 |
-| 2025 | 1,169 |
+| 2021 | 531 |
+| 2022 | 1,283 |
+| 2023 | 2,091 |
+| 2024 | 2,893 |
+| 2025 | 3,746 |
 
 Girls' share is registration-reported sex over all youth participants (sex not captured stays in the denominator, never
 guessed). Youth means 17 or under on December 31 of the year.
@@ -77,15 +77,15 @@ guessed). Youth means 17 or under on December 31 of the year.
 
 | Country | Programs reporting | Children reported (program places) | Of which voluntary | Combined reach with participants (range) |
 |---|---|---|---|---|
-| All countries | 68 | 8,441 | 2,298 | 8,690 to 11,285 |
+| All countries | 228 | 33,906 | 7,155 | 34,734 to 42,882 |
 | AT | suppressed | suppressed | suppressed | suppressed |
-| CA | 13 | 1,934 | 272 | 1,966 to 2,523 |
+| CA | 52 | 7,328 | 1,919 | 7,423 to 9,212 |
 | DE | suppressed | suppressed | suppressed | suppressed |
 | GB | suppressed | suppressed | suppressed | suppressed |
 | JP | suppressed | suppressed | suppressed | suppressed |
 | MX | suppressed | suppressed | suppressed | suppressed |
 | PA | suppressed | suppressed | suppressed | suppressed |
-| US | 46 | 4,551 | 1,863 | 4,636 to 6,309 |
+| US | 147 | 23,483 | 4,282 | 23,810 to 29,098 |
 
 These are children counted by schools and recreation departments. They are **not** participants and are **not** added to the participant
 count: an aggregate cannot be matched to people, so some of these children are also registered participants and some are counted in more

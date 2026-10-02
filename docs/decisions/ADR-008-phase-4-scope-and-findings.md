@@ -34,12 +34,14 @@
    extended or restructured by the rework; `docs/rework_inventory.md` has the disposition of every component.
 
 ## Findings worth keeping in view
-- **Identity at five years.** With more years, same-name, same-birth-year Canadian siblings produce two sibling or twin false merges in the rules and
-  Fellegi-Sunter matchers. The matcher was not tuned in response; the merges are reported (`docs/phase2_results.md`) and are exactly what the steward review
-  queue and the `HOUSEHOLD_GUARD` exist for.
-- **Linkage is biased and its phone fallback is weak.** Link rate 35% of households, 40% in the US and Canada, 14% to 21% elsewhere; email links are 100%
-  precise, phone links 79% (ADR-009).
-- **The naive fan estimate is about three times too big; matching gets close but not exact** (ADR-010).
+- **Identity at scale.** With the rework's 15,000 people the final matcher merges **9 groups of twins** on the international returns (the rules baseline merges none, the
+  literal Fellegi-Sunter version 213). Twins share a family name, an exact birth date, an organization and a season; international returns carry no guardian email for most
+  minors and no phone, so the contact-based guard never fires. Nothing was tuned in response. A label-free fix exists (two records in the same organization and season with
+  different first names cannot be one person) but it changes the matcher after the answer key was seen, so it is left as a **decision for the project owner**; until then the
+  incidents are reported (`docs/identity_resolution.md`, `docs/phase2_results.md`).
+- **Linkage is biased and its phone fallback is weaker.** Link rate 36% of households, 40% in the US and Canada, 13% to 21% elsewhere; email links are 100%
+  precise, phone links 88% (ADR-009; the numbers were re-measured after the rework).
+- **The naive fan estimate is about 1.7 times too big; matching gets close but not exact** (ADR-010, re-measured after the rework).
 - **Published snapshots record row counts for the three registration sources only.** New school or fan data would not be named `NEW_SOURCE_DATA` by the
   restatement log. Extending the snapshot context (and the log) to every source is the obvious next change; it was not made in Phase 4 because it changes the
   snapshot schema that five baseline snapshots already use.

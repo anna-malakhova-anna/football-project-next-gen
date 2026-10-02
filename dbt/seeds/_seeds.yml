@@ -268,3 +268,29 @@ seeds:
         data_tests: [not_null]
       - name: last_observed_year
         data_tests: [not_null]
+
+  - name: market_map
+    description: >
+      SYNTHETIC markets (rework spec, section 2): US ZIP3 groups, Canadian FSA groups and one market per international country. household_population is an
+      invented denominator, not a real figure; launch_year is the year the flag programme started in the market (blank: it has not launched), an operational fact
+      the programme knows, not ground truth. About 40% are team markets.
+    config:
+      tags: [phase4]
+      column_types: {market_id: varchar, market_name: varchar, country_code: varchar, region_code: varchar, is_team_market: varchar, household_population: integer, launch_year: integer, notes: varchar}
+    columns:
+      - name: market_id
+        data_tests: [unique, not_null]
+      - name: is_team_market
+        data_tests:
+          - accepted_values: {arguments: {values: ['Y', 'N']}}
+
+  - name: market_geo_map
+    description: >
+      Which market a US ZIP3 prefix or a Canadian FSA belongs to. International returns carry no postal code and map to their country's market through market_map.
+    config:
+      tags: [phase4]
+      column_types: {country_code: varchar, prefix: varchar, market_id: varchar}
+    columns:
+      - name: prefix
+        data_tests: [not_null]
+

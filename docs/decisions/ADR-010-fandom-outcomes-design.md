@@ -32,6 +32,15 @@
 The truth column is the uplift the matched households actually received over the months averaged (below the configured +15% because of decay after
 churn). All 1,098 eligible participant households found a comparison (match rate 100%) from 15,568 comparison accounts.
 
+## Re-measured after the rework (rework step 3)
+The rework regenerated the data (15,000 people, staggered rollout, revised fan source with lapse, reactivation, duplicate accounts and transactions) and made the truth exact: the
+generator now records, for every participant account and month, the expected events as observed and with no programme (uplift, decay after churn, and reactivations the programme
+caused). On the new data: **naive +30.4% (1.7x the truth), matched difference-in-differences +21.0% (95% interval +18.9% to +23.2%), true effect +18.2%** (1.16x; the truth sits just
+outside the interval). 2,843 of 2,844 eligible participant households matched; the event-study pre-period is flat (largest gap 5.7%). The naive bias is smaller than in the table
+below because account holders as a group are fandom-heavy in the new generator, so participants differ less from the other account holders. The truth is higher than the configured
+15% because a registration can reactivate a lapsed fan. The earlier table is kept as the record of the first run. Rework step 8 re-scopes this analysis to existing and lapsed fans
+and adds spend categories; the design itself was not changed.
+
 ## What the result says and does not say
 - **Naive is inflated about threefold** by selection: participants are fandom-heavy before they enroll (mean latent fandom +0.38 vs -0.13).
 - **Matching removes most of the bias, not all.** The matched estimate is 2.4 points above the truth, and the truth sits just outside its interval.

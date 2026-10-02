@@ -20,6 +20,16 @@ contacts as (
 
 ),
 
+markets as (
+
+    select h.household_id, mode(f.market_id) as market_id
+    from {{ ref('int_household') }} h
+    join {{ ref('fct_registration') }} f on f.participant_id = h.participant_id
+    where f.is_valid_registration and f.market_id is not null
+    group by 1
+
+),
+
 agg as (
 
     select
@@ -35,5 +45,5 @@ agg as (
 
 )
 
-select a.*, a.last_year - a.first_year + 1 as years_span, c.emails, c.phones
-from agg a left join contacts c using (household_id)
+select a.*, m.market_id, a.last_year - a.first_year + 1 as years_span, c.emails, c.phones
+from agg a left join contacts c using (household_id) left join markets m using (household_id)

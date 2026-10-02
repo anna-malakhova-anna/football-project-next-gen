@@ -63,9 +63,10 @@ def loaded(tmp_path_factory):
 
 def test_load_eval_loads_the_truth_tables_into_schema_eval(loaded):
     base, counts = loaded
-    assert counts["person_registry"] == 6000
-    assert counts["registration_truth"] > 13000 and counts["defect_manifest"] > 0
+    n = load_config()["population"]["total_people"]
+    assert counts["person_registry"] == n
+    assert counts["registration_truth"] > 2 * n and counts["defect_manifest"] > 0
     con = duckdb.connect(str(base / "w.duckdb"), read_only=True)
     tables = {r[0] for r in con.execute("select table_name from information_schema.tables where table_schema='eval'").fetchall()}
-    assert tables == {"person_registry", "registration_truth", "defect_manifest", "school_truth", "school_overlap_truth", "churn_truth", "fan_truth", "fan_account_truth"}
+    assert tables == {"person_registry", "registration_truth", "defect_manifest", "school_truth", "school_overlap_truth", "churn_truth", "fan_truth", "fan_account_truth", "fan_market_truth", "fan_consent_truth", "fan_effect_truth"}
     assert con.execute("select count(*) from information_schema.schemata where schema_name='raw'").fetchone()[0] == 0

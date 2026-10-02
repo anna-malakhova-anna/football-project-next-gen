@@ -57,6 +57,14 @@ use the fan app and register with a guardian email the app also holds.
 true, as the Phase 4 spec asks). Turning it off gives 100% precision and a lower link rate. This is a decision for the owner, not a tuning
 knob: see the marker.
 
+## Re-measured after the rework (the decision above was taken on the earlier numbers)
+The fan-acquisition rework regenerated the data (15,000 people, staggered programme rollout, a revised fan source with duplicate accounts). On the new data: 13,043 observed
+households (231 true households split in two, none mixed); of the 6,830 participant households that have a fan account, **4,682 were linked (35.9% of all participant households)**.
+Email links are 100% precise (4,454); **phone links 88.4% precise (258 links, 30 false, all accounts that reuse a participant household's registration phone)**; overall precision 99.4%;
+recall 68.6%, or 86.1% among accounts whose email matches the registration email. Link rate by country: US 40.2%, CA 40.2%, international 13% to 21%. The earlier figures
+(phone precision 78.8%, link rate 35.3%) were measured on 6,000 people; the conclusion, that phone is the weaker key and the linked households are mostly North American, stands, and
+the decision to keep the phone fallback was taken knowing it. The rework spec's household may link to several accounts (duplicates); that extension arrives in rework step 4.
+
 ## The alternative: explicit research / analytics consent at registration
 Add a consent field ("may we use my registration details with my fan account for program research?") and link only households that said yes.
 That is cleaner: the purpose is stated to the person, and a NULL means no link. The cost is **coverage**. Opt-in rates for such a field are

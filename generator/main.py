@@ -35,6 +35,9 @@ def run(cfg: dict | None = None, raw_dir: str | None = None, truth_dir: str | No
     fan_out = next(o for o in outputs if o.source_system == "FAN_ENGAGEMENT")
     pq.write_table(pa.Table.from_pylist(fan_out.extra["fan_truth"]), truth_out / "fan_truth.parquet")
     pq.write_table(pa.Table.from_pylist(fan_out.extra["fan_account_truth"]), truth_out / "fan_account_truth.parquet")
+    pq.write_table(pa.Table.from_pylist(fan_out.extra["fan_market_truth"]), truth_out / "fan_market_truth.parquet")
+    pq.write_table(pa.Table.from_pylist(fan_out.extra["fan_consent_truth"]), truth_out / "fan_consent_truth.parquet")
+    pq.write_table(pa.Table.from_pylist(fan_out.extra["fan_effect_truth_rows"]), truth_out / "fan_effect_truth.parquet")
     # the true per-season churn probabilities by age (ground truth; evaluation only): what the retention curves are graded against.
     # `churn_p` applies to a player who was active the season before; people who are minors cannot continue past the youth age range.
     pq.write_table(pa.Table.from_pylist([{"min_age": b["min_age"], "max_age": b["max_age"], "churn_p": float(b["p"]),

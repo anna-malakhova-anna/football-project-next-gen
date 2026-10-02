@@ -30,6 +30,7 @@ agg as (
         list_sort(list_distinct(list(country_code)))                        as countries_played,
         list_sort(list_distinct(list(canonical_division)))                  as all_divisions,
         max(country_code) filter (where recency_rank = 1)                   as attributed_country_code,
+        max(market_id) filter (where recency_rank = 1)                      as market_id,
         -- primary division: the most registrations in the year; ties go to the most recent registration
         (array_agg(canonical_division order by division_regs desc, recency_rank))[1] as primary_division
     from ranked
@@ -79,6 +80,7 @@ select
     countries_played,
     len(countries_played) > 1                                               as is_multi_country,
     attributed_country_code,
+    market_id,
     age_at_cutoff,
     {{ age_band('age_at_cutoff') }}                                         as age_band,
     age_at_cutoff <= {{ youth_max }}                                        as is_youth,

@@ -1,5 +1,10 @@
 # ADR-007: Publish and restatement
 
+> **Numbers in this ADR are from the data at the time it was written** (6,000 people, three then five years). The fan-acquisition rework regenerated the data (15,000 people, synthetic
+> markets with a staggered programme rollout), so current figures are in `docs/phase2_results.md`, the README and the results site, and every published snapshot was restated
+> (`docs/reports/restatement_demo.md`, Example 4).
+
+
 - **Status:** Accepted (Phase 3)
 - **Context:** An executive number that quietly changes after it was reported destroys trust. Published numbers need to be versioned,
   and a change after publication needs a cause, a threshold and an owner. All data is synthetic.

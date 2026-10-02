@@ -18,9 +18,9 @@ vars:
   # Name comparison (Jaro-Winkler, 0 to 1). DuckDB scale; Snowflake's JAROWINKLER_SIMILARITY is 0 to 100.
   name_fuzzy_high: 0.92
   name_fuzzy_low: 0.85
-  # u-probability sample: keep a record pair when hash(pair) % modulus = 0. With 13,965 records (97.5M possible
-  # pairs) a modulus of 488 keeps about 200,000 random pairs, drawn from ALL pairs, not from blocks.
-  idr_u_sample_modulus: 488
+  # u-probability sample: keep a record pair when hash(pair) % modulus = 0. With about 37,700 records (about 710M possible
+  # pairs) a modulus of 3,500 keeps about 200,000 random pairs, drawn from ALL pairs, not from blocks.
+  idr_u_sample_modulus: 3500
   # Version of the counting rules (docs/methodology/CHANGELOG.md); stamped on every scorecard row and snapshot.
   methodology_version: '1.1'
   # Source D linkage: after the email rule, also link by phone when neither side has an email link (ADR-009 reports its measured precision).

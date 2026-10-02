@@ -1,5 +1,10 @@
 # ADR-005: Counting rules (methodology v1.0)
 
+> **Numbers in this ADR are from the data at the time it was written** (6,000 people, three then five years). The fan-acquisition rework regenerated the data (15,000 people, synthetic
+> markets with a staggered programme rollout), so current figures are in `docs/phase2_results.md`, the README and the results site, and every published snapshot was restated
+> (`docs/reports/restatement_demo.md`, Example 4).
+
+
 - **Status:** Accepted (Phase 3)
 > **Data window.** The figures in this ADR were measured on the original three-year window (2023 to 2025). Phase 4 extended the data to
 > 2021 to 2025 (ADR-008), which changed them; the current figures are in `docs/phase2_results.md` and the scorecard. The decisions here

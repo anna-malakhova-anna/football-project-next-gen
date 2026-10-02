@@ -23,11 +23,19 @@ sources:
       - name: fan_accounts
         description: >
           Fan app / ticketing accounts snapshot (CSV, Source D): one row per account, adults only. Every column is VARCHAR; empty fields are ''.
-          `_row_number` is the 1-based data row index. marketing_opt_in blank means not captured.
+          `_row_number` is the 1-based data row index.
       - name: fan_events
         description: >
           Fan engagement event stream (JSON Lines, Source D), one row per delivered line, kept whole in `record_json`. `_source_file` is the DELIVERY
           month (events_YYYY_MM.jsonl): a late event sits in a later file than its event_ts. The same event_id can be delivered twice.
+      - name: fan_consent_events
+        description: >
+          Fan consent changes (JSON Lines, Source D): one line per opt-in or opt-out of a channel (email, sms, push) at a capture point, kept whole in `record_json`.
+          No event means not captured (NULL), never FALSE. A few opt-outs are timestamped before the opt-in they follow.
+      - name: fan_transactions
+        description: >
+          Fan transactions (JSON Lines, one file per month, Source D): purchases (ticket, merch, subscription, other) and refunds, kept whole in `record_json`. A few
+          refunds name an original transaction that does not exist.
       - name: intl_federation_returns
         description: >
           International federation returns (XLSX). Every worksheet row is landed, including title,

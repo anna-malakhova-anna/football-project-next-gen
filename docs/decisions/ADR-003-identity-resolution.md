@@ -1,5 +1,10 @@
 # ADR-003: Identity resolution in SQL
 
+> **Numbers in this ADR are from the data at the time it was written** (6,000 people, three then five years). The fan-acquisition rework regenerated the data (15,000 people, synthetic
+> markets with a staggered programme rollout), so current figures are in `docs/phase2_results.md`, the README and the results site, and every published snapshot was restated
+> (`docs/reports/restatement_demo.md`, Example 4).
+
+
 - **Status:** Accepted (Phase 2)
 - **Context:** Phase 1 produced one row per registration. Participation numbers need people. The task is to decide,
   in SQL only and without the matcher ever seeing the answer key, which registrations across seasons, leagues, clubs

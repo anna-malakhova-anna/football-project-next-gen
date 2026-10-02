@@ -20,10 +20,8 @@ person_identifier:
   field: account_id
   note: "an account is a household-level fan identity, not a person; email and phone are the only keys that can reach a registration, and the email often differs from the one given at registration"
 minors_present: false
-consent_fields:
-  - column: marketing_opt_in
-    permits: "marketing contact from the fan app and its partners; says nothing about use of registration data"
-    allowed_values: ["true", "false"]
+consent_fields: []
+consent_exempt_reason: "consent is no longer a column on the account: it arrives as events (fan_consent_events), which have their own contract (rework step 4)"
 schema:
   - {column: account_id, raw: account_id, type: string, required: true, pii: quasi, pattern: '^A-\d{6}$'}
   - {column: email, raw: email, type: string, required: true, pii: direct}
@@ -31,10 +29,11 @@ schema:
   - {column: postal_prefix, raw: postal_prefix, type: string, required: false, pii: quasi}
   - {column: country, raw: country, type: string, required: true, pii: quasi, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA]}
   - {column: created_at, raw: created_at, type: timestamp, required: true, pii: none, pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'}
-  - {column: marketing_opt_in, raw: marketing_opt_in, type: boolean, required: false, pii: none, allowed_values: ["true", "false"]}
+  - {column: acquisition_source, raw: acquisition_source, type: string, required: true, pii: none, allowed_values: [organic, ticketing, app_store, partner_referral, flag_registration_prompt]}
+  - {column: birth_year, raw: birth_year, type: integer, required: true, pii: quasi, pattern: '^\d{4}$'}
 quality:
   - {rule: max_null_rate, column: email, threshold: 0.0}
-  - {rule: max_null_rate, column: marketing_opt_in, threshold: 0.02}
+  - {rule: max_invalid_rate, column: acquisition_source, allowed_values: [organic, ticketing, app_store, partner_referral, flag_registration_prompt], threshold: 0.0}
   - {rule: max_nonmatching_rate, column: created_at, pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', threshold: 0.0}
   - {rule: max_invalid_rate, column: country, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA], threshold: 0.0}
   - {rule: max_duplicate_rate, key: [account_id], threshold: 0.0}

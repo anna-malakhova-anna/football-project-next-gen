@@ -32,12 +32,12 @@ flowchart LR
 
 | What | Result |
 |---|---|
-| Unique registered participants | 2,837 (identity range 2,828 to 2,844, a 0.6% band) |
-| Identity resolution, final matcher (`fs`, automatic merges) | precision 99.91%, recall 99.96%; 2 sibling/twin false merges; 6,000 predicted vs 6,000 true people |
-| Rules baseline vs probabilistic | rules recall 92.3% (6,513 predicted people); literal Fellegi-Sunter `fs_naive` makes 86 sibling merges; the corrected `fs` makes 2 |
-| One-year retention of entrants (Kaplan-Meier, censored) | 73.3%; counting age-outs as churn would report 44% for entrants aged 14 to 17 (truth 61%) |
-| Fan engagement uplift after first registration | naive +45.6% (3.1x the truth), matched difference-in-differences +17.2% (truth +14.7%) |
-| Household link rate (registration to fan account) | 35% overall; email links 100% precise, phone links 79% |
+| Unique registered participants | 8,959 in 2025 (identity range 8,921 to 8,976, a 0.6% band) |
+| Identity resolution, final matcher (`fs`, automatic merges) | precision 99.81%, recall 99.99%; **9 sibling/twin false merges (a finding, not yet fixed: ADR-008)**; 14,991 predicted vs 15,000 true people |
+| Rules baseline vs probabilistic | rules recall 92.7% (16,044 predicted people, no sibling merges); literal Fellegi-Sunter `fs_naive` makes 213 sibling merges; the corrected `fs` makes 9 |
+| One-year retention of entrants (Kaplan-Meier, censored) | 72.2%; counting age-outs as churn would report 37% for entrants aged 14 to 17 (truth 61%) |
+| Fan engagement uplift after first registration | naive +30.4% (1.7x the truth), matched difference-in-differences +21.0% (truth +18.2%) |
+| Household link rate (registration to fan account) | 36% overall; email links 100% precise, phone links 88% |
 
 Counts are **registered participants in onboarded sources**, not total participation. Details and caveats: the [methodology memo](docs/methodology/counting-a-participant.md) (prose still
 being written), [phase 2 results](docs/phase2_results.md), and the [results site](site/index.html).

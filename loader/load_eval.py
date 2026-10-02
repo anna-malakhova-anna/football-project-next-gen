@@ -9,6 +9,9 @@ it). The matcher never sees them. Tables:
   eval.school_overlap_truth the registered people who are also in a school or recreation program, by program-year
   eval.fan_truth            one row per household (participant or not): latent fandom, enrollment propensity, enrollment month, true uplift (Source D)
   eval.fan_account_truth    each fan account -> its true household, and which accounts have a different email or a shared phone
+  eval.fan_market_truth     per market-year: launch year, new accounts, and how many the programme caused (the answer key for acquisition incrementality)
+  eval.fan_consent_truth    each account's intended final consent status per channel (the answer key for the consent history)
+  eval.fan_effect_truth     per participant account-month: expected events as observed and with no programme (the oracle behind the fandom estimate)
   eval.churn_truth          the true per-season churn probability by age band (the answer key for the retention curves)
 """
 from __future__ import annotations
@@ -28,6 +31,9 @@ TABLES = {
     "churn_truth": "churn_truth.parquet",
     "fan_truth": "fan_truth.parquet",
     "fan_account_truth": "fan_account_truth.parquet",
+    "fan_market_truth": "fan_market_truth.parquet",
+    "fan_consent_truth": "fan_consent_truth.parquet",
+    "fan_effect_truth": "fan_effect_truth.parquet",
 }
 
 

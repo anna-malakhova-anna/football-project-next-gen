@@ -56,7 +56,7 @@ Each issue links to a `defect_id` in `quality.dq_summary`; `quality.dq_defect_lo
 - **UK DOBs as Excel date serials:** 20% of UK rows. Decoded in staging. `uk_dob_excel_serial`
 - **Country spelled inconsistently:** 25% (`MEX` / `Mexico` / `MX`). `country_value_inconsistency`
 - **Japan gives family name first;** handled by a sheet rule (`intl_family_name_first_countries`).
-- **Full Name is one field,** so multi-word surnames split imperfectly (18 of 2,079 names in the default run).
+- **Full Name is one field,** so multi-word surnames split imperfectly (a small share of names; the exact count changes with the generated size).
 - **Panama reissues Player ID every year,** so it cannot link a player across seasons.
 - **Media consent blank:** 10%. `missing_media_consent`
 - **Category labels do not line up with canonical divisions:** `U15` maps to `U14`, `Masters` to `ADULT_MIXED`. Noted in `division_map`.

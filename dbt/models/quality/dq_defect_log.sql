@@ -92,7 +92,6 @@ record_flags as (
             when 'orphan_event'                             then source_record_id
             when 'unmapped_event_type'                      then source_record_id
             when 'email_case_whitespace'                    then '[' || raw_email || ']'
-            when 'marketing_opt_in_blank'                   then '<blank>'
         end                                                                 as raw_value
     from flagged
 

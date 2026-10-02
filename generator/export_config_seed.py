@@ -98,7 +98,7 @@ CATALOG = [
      "total_count is a suspiciously round number (100, 150, 200, 250, 300): possibly an estimate, not a count."),
     ("SCHOOL_AGGREGATES", "unmapped_program_type", "zero", ROWS, "all rows", True, "program_type is not PE_UNIT, INTRAMURAL or AFTER_SCHOOL."),
     ("SCHOOL_AGGREGATES", "unmapped_country", "zero", ROWS, "all rows", True, "country is not an ISO 3166-1 alpha-2 code in country_map."),
-    # ---- FAN_ENGAGEMENT (accounts snapshot + event stream) ----
+    # ---- FAN_ENGAGEMENT (accounts, consent events, engagement events, transactions) ----
     ("FAN_ENGAGEMENT", "duplicate_event", "rate", "events", "all delivered event lines", True,
      "The same event_id was delivered twice; only the first delivery is counted."),
     ("FAN_ENGAGEMENT", "late_arriving_event", "rate", "events", "all delivered event lines", True,
@@ -107,13 +107,17 @@ CATALOG = [
      "event_ts is shifted by up to two days (a device clock error); not recoverable from the data, so not detected."),
     ("FAN_ENGAGEMENT", "email_case_whitespace", "rate", "accounts", "all accounts", True,
      "Account email has capitals or surrounding spaces; normalized in staging."),
-    ("FAN_ENGAGEMENT", "marketing_opt_in_blank", "rate", "accounts", "all accounts", True,
-     "marketing_opt_in is blank: not captured (NULL)."),
     ("FAN_ENGAGEMENT", "email_differs_from_registration", "rate", "participant_accounts", "accounts that belong to a participant household", False,
      "The account email is not the guardian's registration email. Needs the household linkage to see."),
     ("FAN_ENGAGEMENT", "phone_shared_with_participant_household", "rate", "accounts", "accounts that carry a phone", False,
      "The account phone number is a participant household's number: a false-link hazard for phone matching. Needs ground truth to see."),
-    ("FAN_ENGAGEMENT", "unmapped_event_type", "zero", "events", "all delivered event lines", True, "event_type is not one of the six known types."),
+    ("FAN_ENGAGEMENT", "duplicate_account", "rate", "accounts", "all accounts", False,
+     "The household opened a second account (same email, or the same phone and postal prefix). Collapsed in dim_fan_account; not yet detected."),
+    ("FAN_ENGAGEMENT", "refund_without_original", "rate", "transactions", "all non-refund transactions", False,
+     "A refund whose original_txn_id matches no transaction. Excluded from revenue; not yet detected."),
+    ("FAN_ENGAGEMENT", "consent_out_of_order", "rate", "consent_pairs", "opt-in followed by opt-out pairs", False,
+     "An opt-out is timestamped before the opt-in it follows. Resolved by timestamp and flagged; not yet detected."),
+    ("FAN_ENGAGEMENT", "unmapped_event_type", "zero", "events", "all delivered event lines", True, "event_type is not one of the six known engagement event types."),
     ("FAN_ENGAGEMENT", "orphan_event", "zero", "events", "all delivered event lines", True, "The event's account_id is not in the accounts snapshot."),
     # flags that can appear on any source but are never injected
     ("CA_CLUB", "impossible_dob", "zero", ROWS, "all records", True, "Age at the Dec 31 cutoff is below 0 or above 80."),
@@ -125,12 +129,18 @@ COLUMNS = ["source_system", "defect_id", "kind", "configured_rate", "configured_
 
 
 def _structural_count(cfg: dict, defect_id: str) -> int | None:
-    sc, years = cfg["sources"]["intl"], len(cfg["seasons"]["years"])
+    """Expected counts of the structural international defects. A country has a worksheet only in the years its market has launched (and so has registrations):
+    one sheet per country per season workbook from the launch year on."""
+    sc = cfg["sources"]["intl"]
+    years = cfg["seasons"]["years"]
+    launch = cfg["markets"]["intl_launch_years"]
+    sheet_years = {c: sum(1 for y in years if y >= int(launch[c])) for c in launch}
+    title = sum(sheet_years[c] for c in sc["sheets_with_title_rows"])
     return {
-        "junk_title_row": len(sc["sheets_with_title_rows"]) * years,
-        "junk_blank_row": len(sc["sheets_with_title_rows"]) * years,
-        "junk_summary_row": len(sc["sheets_with_summary_row"]) * years,
-        "junk_header_row": 6 * years,   # one sheet per country (6) per season workbook
+        "junk_title_row": title,
+        "junk_blank_row": title,
+        "junk_summary_row": sum(sheet_years[c] for c in sc["sheets_with_summary_row"]),
+        "junk_header_row": sum(sheet_years.values()),
     }.get(defect_id)
 
 
@@ -179,9 +189,22 @@ def _write(path: str, fieldnames: list[str], rows: list[dict]) -> None:
         w.writerows(rows)
 
 
+def market_rows(cfg: dict) -> tuple[list[dict], list[dict]]:
+    """market_map and market_geo_map, from the same function the population generator uses (generator/markets.py): they cannot disagree."""
+    from generator import markets
+    built = markets.build_markets(cfg)
+    mm = [{"market_id": m["market_id"], "market_name": m["market_name"], "country_code": m["country_code"], "region_code": m["region_code"],
+           "is_team_market": "Y" if m["is_team_market"] else "N", "household_population": m["household_population"],
+           "launch_year": "" if m["launch_year"] is None else m["launch_year"], "notes": m["notes"]} for m in built["markets"]]
+    return mm, built["geo"]
+
+
 def main(cfg: dict | None = None, out: str = "dbt/seeds/dq_defect_config.csv") -> int:
     cfg = cfg or load_config()
     seeds = Path(out).parent
+    mm, geo = market_rows(cfg)
+    _write(str(seeds / "market_map.csv"), ["market_id", "market_name", "country_code", "region_code", "is_team_market", "household_population", "launch_year", "notes"], mm)
+    _write(str(seeds / "market_geo_map.csv"), ["country_code", "prefix", "market_id"], geo)
     _write(str(seeds / "observation_window.csv"), ["first_observed_year", "last_observed_year"], window_rows(cfg))
     _write(str(seeds / "reporting_periods.csv"), ["period_id", "period_type", "participation_year", "term", "start_date", "end_date", "cutoff_date"], period_rows(cfg))
     rows = build_rows(cfg)

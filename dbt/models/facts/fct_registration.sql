@@ -29,6 +29,7 @@ select
     case when r.source_system = 'US_LEAGUE' then r.season_term end          as us_season_term,
     r.organization_id,
     r.country_code,
+    m.market_id,
     r.canonical_division,
     r.age_at_cutoff,
     case
@@ -53,3 +54,4 @@ from b
 join r using (registration_key)
 left join periods p on p.participation_year = r.season_year
 left join flags f on f.registration_key = b.registration_key
+left join {{ ref('int_registration_market') }} m on m.registration_key = b.registration_key

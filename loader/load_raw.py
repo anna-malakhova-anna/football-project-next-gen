@@ -8,6 +8,8 @@ Ground truth (data/ground_truth/) is never read here.
   raw.ca_club_records           one row per API record; nested JSON kept whole in `record_json`
   raw.school_headcounts         one row per CSV data row of the aggregate school / recreation program headcounts (no individuals)
   raw.fan_accounts              one row per account of the fan app / ticketing snapshot (CSV; adults only)
+  raw.fan_consent_events        one row per consent change line (JSON Lines), kept whole in `record_json`
+  raw.fan_transactions          one row per transaction line (JSON Lines, one file per month), kept whole in `record_json`
   raw.fan_events                one row per delivered event line (JSON Lines, one file per delivery month); the line is kept whole in `record_json`
   raw.intl_federation_returns   every worksheet row, header/title/blank/summary rows included, as
                                 positional columns c1..cN; `_excel_row` = 1-based worksheet row.
@@ -28,7 +30,8 @@ from openpyxl import load_workbook
 
 from generator.population import load_config
 
-RAW_TABLES = ("us_league_registrations", "ca_club_records", "intl_federation_returns", "school_headcounts", "fan_accounts", "fan_events")
+RAW_TABLES = ("us_league_registrations", "ca_club_records", "intl_federation_returns", "school_headcounts", "fan_accounts", "fan_events",
+              "fan_consent_events", "fan_transactions")
 
 
 def _rel(path: Path, raw: Path) -> str:
@@ -85,6 +88,15 @@ def read_fan_accounts(raw: Path) -> tuple[list[str], list[list]]:
         return header, [rec + [_rel(path, raw), n] for n, rec in enumerate(reader, start=1)]
 
 
+def _read_jsonl(raw: Path, pattern: str) -> list[list]:
+    rows = []
+    for f in sorted((raw / "fan").glob(pattern)):
+        with open(f, encoding="utf-8") as fh:
+            for n, line in enumerate(fh, start=1):
+                rows.append([line.rstrip("\n"), _rel(f, raw), n])
+    return rows
+
+
 def read_fan_events(raw: Path) -> list[list]:
     """One row per event line, kept whole. Files are delivery months, so a late event sits in a later file than its event_ts."""
     rows = []
@@ -126,6 +138,8 @@ def load(raw_dir: str | None = None, db_path: str | None = None, cfg: dict | Non
     school_cols, school_rows = read_school(raw)
     fan_cols, fan_acc_rows = read_fan_accounts(raw)
     fan_event_rows = read_fan_events(raw)
+    fan_consent_rows = _read_jsonl(raw, "fan_consent_events.jsonl")
+    fan_txn_rows = _read_jsonl(raw, "fan_transactions_*.jsonl")
 
     tables = {
         "us_league_registrations": _table(
@@ -138,6 +152,8 @@ def load(raw_dir: str | None = None, db_path: str | None = None, cfg: dict | Non
         "school_headcounts": _table(school_cols + ["_source_file", "_row_number"], school_rows, {"_row_number": pa.int32()}),
         "fan_accounts": _table(fan_cols + ["_source_file", "_row_number"], fan_acc_rows, {"_row_number": pa.int32()}),
         "fan_events": _table(["record_json", "_source_file", "_line_number"], fan_event_rows, {"_line_number": pa.int32()}),
+        "fan_consent_events": _table(["record_json", "_source_file", "_line_number"], fan_consent_rows, {"_line_number": pa.int32()}),
+        "fan_transactions": _table(["record_json", "_source_file", "_line_number"], fan_txn_rows, {"_line_number": pa.int32()}),
     }
     con = duckdb.connect(str(db))
     try:
@@ -149,13 +165,15 @@ def load(raw_dir: str | None = None, db_path: str | None = None, cfg: dict | Non
             con.execute(f"ALTER TABLE raw.{name} ADD COLUMN _loaded_at TIMESTAMP DEFAULT TIMESTAMP '{loaded_at}'")
             con.execute(f"UPDATE raw.{name} SET _loaded_at = TIMESTAMP '{loaded_at}'")
         con.execute("ALTER TABLE raw.ca_club_records ALTER record_json SET DATA TYPE JSON")
-        con.execute("ALTER TABLE raw.fan_events ALTER record_json SET DATA TYPE JSON")
+        for t in ("fan_events", "fan_consent_events", "fan_transactions"):
+            con.execute(f"ALTER TABLE raw.{t} ALTER record_json SET DATA TYPE JSON")
         counts = {n: con.execute(f"SELECT count(*) FROM raw.{n}").fetchone()[0] for n in tables}
     finally:
         con.close()
     expected = {"us_league_registrations": len(us_rows), "ca_club_records": len(ca_rows),
                 "intl_federation_returns": len(intl_rows), "school_headcounts": len(school_rows),
-                "fan_accounts": len(fan_acc_rows), "fan_events": len(fan_event_rows)}
+                "fan_accounts": len(fan_acc_rows), "fan_events": len(fan_event_rows),
+                "fan_consent_events": len(fan_consent_rows), "fan_transactions": len(fan_txn_rows)}
     if counts != expected:
         raise RuntimeError(f"row count mismatch: loaded {counts}, files have {expected}")
     return counts

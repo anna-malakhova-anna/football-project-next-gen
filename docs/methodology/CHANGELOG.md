@@ -29,6 +29,14 @@
 **Evaluated against the synthetic truth** (`eval_headcount_overlap`): the true combined reach was inside the range in every year 2021 to 2025.
 The range is wide (about 1,800 to 2,600) because the overlap bound is deliberately conservative; the true overlap was 150 to 200.
 
+## Data: fan-acquisition rework, 2026-10-02 (no version change)
+
+The generator changed upstream (rework step 3): 15,000 people instead of 6,000, synthetic markets with a staggered programme rollout (registrations in a market start only after
+its launch year; some markets never launch), and a revised Source D (fan accounts, consent events, engagement events and transactions). The counting rules and every KPI
+definition are unchanged. Every participation number moved, so this is `NEW_SOURCE_DATA`, not a methodology change: the restatement log shows 88 changed KPI rows across 19 KPIs,
+59 of them requiring a restatement (2025 unique participants 2,837 to 8,959). It is Example 4 in [restatement_demo.md](../reports/restatement_demo.md). The published snapshots
+(v1.0 and v1.1) were **not** reissued yet: methodology v2.0 (rework step 12) publishes on the new data and records the `METHODOLOGY_CHANGE`.
+
 ## Data window: 2026-10-01 (no version change)
 
 The observation window was extended from 2023 to 2025 to 2021 to 2025, configured in one place (`seasons.first_observed_year`). 2021 is now the

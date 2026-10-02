@@ -3,7 +3,7 @@
 --   duplicate_event      the same event_id delivered again (record_occurrence > 1): `is_duplicate` marks every extra delivery, which the fact never counts
 --   late_arriving_event  delivered in a later month's file than the month of event_ts: the event belongs to the month of event_ts, not the file
 --   orphan_event         account_id is not in the accounts snapshot
---   unmapped_event_type  event_type is not one of the six known types
+--   unmapped_event_type  event_type is not one of the six known engagement event types (purchases are transactions now, not events)
 -- event_month comes from event_ts (UTC), never from the file. Clock skew cannot be seen from the data and is not flagged.
 with raw as (
 
@@ -50,7 +50,7 @@ select
         case when record_occurrence > 1                                     then 'duplicate_event' end,
         case when record_occurrence = 1 and delivered_month > event_month   then 'late_arriving_event' end,
         case when account_id not in (select account_id from {{ ref('stg_fan_accounts') }}) then 'orphan_event' end,
-        case when event_type not in ('app_open', 'content_view', 'game_stream', 'ticket_purchase', 'merch_purchase', 'newsletter_click')
+        case when event_type not in ('app_open', 'content_view', 'game_stream', 'newsletter_click', 'fantasy_activity', 'flag_content_view')
                   or event_type is null                                     then 'unmapped_event_type' end
     ], _f -> _f is not null)                                                as dq_flags,
     cast(null as varchar)                                                   as raw_email,

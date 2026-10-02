@@ -54,7 +54,8 @@ def test_defect_counts_are_exact_and_visible_in_the_raw_files(run):
         assert counts[d] == round(rates[d] * base_rows), d
     mismatch = sum(int(r["girls_count"]) + int(r["boys_count"]) != int(r["total_count"]) for r in rows)
     assert mismatch >= counts["total_mismatch"] - 1                      # the duplicate-report perturbation can add a few
-    assert sum(r["grade_band"] == "" for r in rows) == counts["missing_grade_band"]
+    blank = sum(r["grade_band"] == "" for r in rows)
+    assert counts["missing_grade_band"] <= blank <= counts["missing_grade_band"] + counts["duplicate_report"]      # a duplicate report of a blank-band row repeats the blank
     assert sum(int(r["total_count"]) in cfg["sources"]["school"]["round_values"] for r in rows) >= counts["round_number"]
 
 

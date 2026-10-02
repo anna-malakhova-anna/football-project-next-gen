@@ -45,29 +45,32 @@ records, whether they were put together correctly.
 
 | Matcher | Right when it merges | Finds the true matches | Sibling/twin groups merged in error | People counted vs actual |
 |---|---|---|---|---|
-| Rules baseline | 99.94% | 92.3% | 2 | 6,513 vs 6,000 |
-| Probabilistic, as first built | 96.3% | 100.0% | **86** | 5,906 vs 6,000 |
-| **Probabilistic, final** | **99.91%** | **99.96%** | **2** | **6,000 vs 6,000** |
+| Rules baseline | 99.995% | 92.7% | 0 | 16,044 vs 15,000 |
+| Probabilistic, as first built | 96.6% | 100.0% | **213** | 14,765 vs 15,000 |
+| **Probabilistic, final** | **99.81%** | **99.99%** | **9** | **14,991 vs 15,000** |
 
-*(automatic merges only; before any human review. 755 of the 6,000 people have a brother or sister in the data.)*
+*(automatic merges only; before any human review. 4,071 of the 15,000 people have a brother or sister in the data. The data now has 15,000 people with a staggered programme rollout; the earlier version of this table was measured on 6,000.)*
 
 - The first probabilistic version failed in exactly the way described above: email, phone and postal code all say "same
-  household", so it counted one fact three times and merged 86 sibling or twin groups. We fixed the model structure and
+  household", so it counted one fact three times and merged 213 sibling or twin groups. We fixed the model structure and
   said so openly; the history is in [ADR-003](decisions/ADR-003-identity-resolution.md).
-- The rules baseline almost never merges a sibling (the same two as below), but it misses 7.7% of true matches (anyone with a misspelled surname, a
-  swapped birth date or an unreadable birth date) and so **overcounts people by 8.6%**.
-- The final matcher counts 6,000 people against the true 6,000, partly by luck: four wrongly separated people and four wrongly
-  merged groups happen to cancel out.
-- **Extending the data from three to five years exposed a limit.** Two groups of Canadian siblings with the same first and last
-  name, born in the same year, were merged. Canada records only a birth year, so nothing tells them apart; both matchers do it. We
-  report it, and did not tune anything to hide it.
+- The rules baseline almost never merges a sibling (the same two as below), but it misses 7.3% of true matches (anyone with a misspelled surname, a
+  swapped birth date or an unreadable birth date) and so **overcounts people by 7%**.
+- The final matcher counts 14,991 people against the true 15,000, partly by luck: four wrongly separated people and thirteen wrongly
+  merged groups largely cancel out.
+- **Scale exposed a limit, and we have not tuned it away.** At 15,000 people the final matcher merges **9 groups of twins** who register on the international
+  returns. Twins share a family name and an exact birth date, are in the same organization and season, and have different first names; international returns carry no
+  guardian email for most minors and no phone, so the guard that depends on a shared contact never fires, and the exact birth date outweighs the different first name.
+  Earlier, with 6,000 people, there were two such merges of Canadian siblings (Canada records only a birth year). A label-free rule would fix it (two records in the same
+  organization and season with different first names cannot be one person), but changing the matcher after seeing the answer key is exactly what we promised not to do
+  silently: it is recorded as a finding and a decision for the project owner (ADR-008).
 
 ## Why we chose to be careful rather than complete
 
 We would rather leave a child's records apart than merge them wrongly. That is a **consent-protection** decision: a wrong
 merge can apply one child's choices to another, while a missed match only means a child is counted twice until a person
 confirms it. It is also a **trustworthy-counts** decision: a merge we cannot explain is a number we cannot defend. So the
-guardrails above deliberately accept a small loss. The cost shows up in the results: five genuinely matching pairs (people
+guardrails above deliberately accept a small loss. The cost shows up in the results: seven genuinely matching pairs (people
 whose first name differs between registrations, usually a mistyped first letter, but whose contact details are identical) are kept apart.
 
 ## What a data steward does

@@ -24,3 +24,9 @@ sources:
         description: One row per household (participant or non-participant fan household), with latent fandom, enrollment propensity, enrollment month and the true uplift (Source D).
       - name: fan_account_truth
         description: Each fan account mapped to its true household, with flags for a different registration email and a shared phone number.
+      - name: fan_market_truth
+        description: Per market and year, the new accounts and how many of them the programme caused (the answer key for acquisition incrementality).
+      - name: fan_consent_truth
+        description: Each account's intended final consent status per channel (the answer key for the consent history).
+      - name: fan_effect_truth
+        description: Per participant account and month, the expected events as observed (with the uplift and any reactivation) and with no programme (the oracle behind the fandom estimate).

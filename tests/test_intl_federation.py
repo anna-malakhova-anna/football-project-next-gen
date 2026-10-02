@@ -5,6 +5,7 @@ import pyarrow.parquet as pq
 import pytest
 from openpyxl import load_workbook
 
+from generator import export_config_seed as ecs
 from generator import main
 from generator.population import load_config
 from generator.sources import intl_federation as intl
@@ -132,8 +133,9 @@ def test_junk_rows_in_manifest(run):
     years = len(cfg["seasons"]["years"])
     sc = cfg["sources"]["intl"]
     counts = collections.Counter(m["defect_id"] for m in out.manifest)
-    assert counts["junk_title_row"] == counts["junk_blank_row"] == len(sc["sheets_with_title_rows"]) * years    # DE + AT
-    assert counts["junk_summary_row"] == len(sc["sheets_with_summary_row"]) * years                            # MX, GB, DE, PA
+    # a country has a worksheet only in the years its market has launched, so the expected counts come from the config's launch years (DE + AT titles; MX, GB, DE, PA totals)
+    assert counts["junk_title_row"] == counts["junk_blank_row"] == ecs._structural_count(cfg, "junk_title_row")
+    assert counts["junk_summary_row"] == ecs._structural_count(cfg, "junk_summary_row")
 
 
 def test_xlsx_deterministic(run, tmp_path):
