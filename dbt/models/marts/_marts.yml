@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: bridge_registration_participant
+    description: >
+      Every registration in int_registrations_unioned, exact duplicates included, mapped to exactly one participant.
+      The table Phase 3 counts from. Cluster = active matcher (var matcher), final clusters.
+    columns:
+      - name: registration_key
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int_registrations_unioned')
+                field: registration_key
+      - name: participant_id
+        data_tests: [not_null]
+      - name: link_method
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [SINGLETON, SOURCE_ID, STEWARD, FS, RULES, EXACT_DUPLICATE]
+
+  - name: dim_participant
+    description: >
+      One row per resolved person with survivorship rules applied (see the model header and docs/identity_resolution.md).
+      Consent values are the most recent captured value of that participant only, NULL if never captured.
+    columns:
+      - name: participant_id
+        data_tests: [unique, not_null]
+      - name: sex
+        data_tests:
+          - accepted_values: {arguments: {values: [F, M, U]}}
+      - name: dob_precision
+        data_tests:
+          - accepted_values: {arguments: {values: [DAY, YEAR]}}
+      - name: resolution_confidence
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [DETERMINISTIC_ONLY, HIGH, REVIEWED, SINGLETON]
+
+  - name: participant_identifiers
+    description: >
+      Participant to source system to identifier (source person ids and contact emails seen). One row per distinct
+      identifier. Direct identifiers: mask in Phase 3 views.
+    columns:
+      - name: participant_id
+        data_tests: [not_null]
+      - name: identifier_type
+        data_tests:
+          - accepted_values: {arguments: {values: [SOURCE_PERSON_ID, CONTACT_EMAIL]}}

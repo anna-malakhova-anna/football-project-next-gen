@@ -39,3 +39,14 @@ def test_country_and_gender_maps_cover_generated_values():
     for female, male in intl.GENDER_LABELS.values():      # intl labels are (F, M)
         assert genders[male.lower()] == "M" and genders[female.lower()] == "F"
     assert genders["female"] == "F" and genders["male"] == "M"
+
+
+def test_nickname_map_covers_the_generator_nicknames():
+    """Documented optimism: the generator draws nicknames from common English ones, and the map is a general
+    list of common nicknames, so coverage is complete. A real feed would have nicknames the map lacks."""
+    from generator.population import NICKNAMES
+    with open(SEEDS / "nickname_map.csv", newline="", encoding="utf-8") as f:
+        pairs = {(r["given_key"], r["nickname_key"]) for r in csv.DictReader(f)}
+    for table in NICKNAMES.values():
+        for given, nick in table.items():
+            assert (given.lower(), nick.lower()) in pairs, (given, nick)

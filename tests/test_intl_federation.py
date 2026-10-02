@@ -91,14 +91,17 @@ def test_japan_family_name_first_and_panama_ids_reissued(run):
         for r in _data_rows(rows):
             p = reg[truth[f"{r[0]}|{year}"]]
             ids_by_person[(name, p["true_person_id"])].add(r[0])
+            changed = p["name_change_season"] and year >= p["name_change_season"]
+            family = p["later_family_name"] if changed else p["family_name"]
             if name == "Japan":
-                assert r[1] == f"{p['family_name']} {p['given_name']}"
+                assert r[1] == f"{family} {p['given_name']}"
             else:
-                assert r[1] == f"{p['given_name']} {p['family_name']}"
+                assert r[1] == f"{p['given_name']} {family}"
     multi = [(k, v) for k, v in ids_by_person.items()]
     # Panama: a returning player gets a new id each year; all other countries keep one
-    for (name, _), ids in multi:
-        if name != "Panama":
+    changers = {pid for pid, p in reg.items() if p["name_change_season"]}
+    for (name, pid), ids in multi:
+        if name != "Panama" and pid not in changers:
             assert len(ids) == 1
     assert any(len(ids) > 1 for (name, _), ids in multi if name == "Panama")
 
@@ -138,3 +141,29 @@ def test_xlsx_deterministic(run, tmp_path):
         main.run(cfg, raw_dir=str(tmp_path / f"r{i}"), truth_dir=str(tmp_path / f"t{i}"))
         hashes.append({p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (tmp_path / f"r{i}" / "intl").glob("*.xlsx")})
     assert hashes[0] == hashes[1] and len(hashes[0]) == 3
+
+
+def test_name_change_cases_get_a_new_family_name_and_a_new_player_id(run):
+    _, base, out = run
+    reg = {p["true_person_id"]: p for p in pq.read_table(base / "truth" / "person_registry.parquet").to_pylist()}
+    changers = {pid: p for pid, p in reg.items() if p["name_change_season"]}
+    assert len(changers) >= 3
+    truth = {t["source_record_id"]: t["true_person_id"] for t in out.truth}
+    seen = collections.defaultdict(list)
+    for (year, name), rows in _sheets(base).items():
+        for r in _data_rows(rows):
+            pid = truth[f"{r[0]}|{year}"]
+            if pid in changers:
+                seen[pid].append((year, r[0], r[1]))
+    for pid, recs in seen.items():
+        p = changers[pid]
+        assert p["sex"] == "F" and not p["is_minor"] and p["segment"] == "INTL"
+        before = [x for x in recs if x[0] < p["name_change_season"]]
+        after = [x for x in recs if x[0] >= p["name_change_season"]]
+        assert before and after
+        assert {x[1] for x in before}.isdisjoint({x[1] for x in after})      # no id links the two names
+        assert all(p["family_name"] in x[2] for x in before)
+        assert all(p["later_family_name"] in x[2] for x in after)
+    manifest = [m for m in out.manifest if m["defect_id"] == "family_name_change"]
+    expected = sum(1 for pid, recs in seen.items() for x in recs if x[0] >= changers[pid]["name_change_season"])
+    assert len(manifest) == expected

@@ -1,0 +1,34 @@
+feature,level,m_probability,rationale
+first_name,EXACT,0.88,"Same person, first-name keys equal. Per record about 7% of re-registrations carry a typo (4%) or a nickname (3%); a pair has two records, so about 12% break exact equality."
+first_name,NICKNAME,0.06,"Nickname used on one of the two records: 3% per re-registration record, about 6% per pair, covered by nickname_map."
+first_name,FUZZY_HIGH,0.04,"One-character typo (4% per record, split between first and last name) leaves Jaro-Winkler at or above 0.92 for most names."
+first_name,FUZZY_LOW,0.01,Short names or transpositions where one typo drops similarity into 0.85-0.92.
+first_name,DIFFERENT,0.008,"Nickname missing from the map, or an unrecoverable edit. Assumed small."
+first_name,MISSING,0.002,Names are required fields in all three sources; a small allowance for blanks.
+last_name,EXACT,0.94,"Typos land on first or last name equally, so about 2% per record; plus the rare family-name change."
+last_name,FUZZY_HIGH,0.035,"One-character typo in the family name (2% per record, about 4% per pair)."
+last_name,FUZZY_LOW,0.01,Typos in short family names.
+last_name,DIFFERENT,0.01,"Marriage or hyphenation (a family-name change), and severe edits; deliberately non-zero."
+last_name,MISSING,0.005,Required field; small allowance. CA all-caps and accent stripping are normalized away by the name key.
+dob,EXACT,0.832,"Both records have a full DOB. About 85% of true pairs are day-precision (US, INTL); minus swaps and impossible values."
+dob,SAME_YEAR_ONLY,0.13,One or both records are CA (birth year only). CA is 18% of the population and appears in most CA-CA pairs.
+dob,DAY_MONTH_SWAPPED,0.015,"Day and month swapped on one record: 1% per record, about 2% per pair, only when day <= 12."
+dob,YEAR_OFF_BY_ONE,0.005,"CA birth year one off: 1.5% per CA record, about 3% of CA-involved pairs."
+dob,DIFFERENT,0.008,Allowance for errors beyond the known swap and off-by-one patterns.
+dob,MISSING,0.01,"Impossible DOBs (0.5% per record) are nulled before matching, so pairs involving them have no DOB."
+email,EXACT,0.78,"Guardian email is stable unless changed between seasons (6% per re-registration, about 12% per pair)."
+email,DIFFERENT,0.1,Email changed between seasons.
+email,MISSING,0.12,INTL emails are optional and mostly blank for minors.
+phone,EXACT,0.86,Phones are normalized to digits and rarely change; reasoned from the sources having no phone-change defect.
+phone,DIFFERENT,0.03,Assumed allowance for a changed number; the source descriptions give no rate.
+phone,MISSING,0.11,INTL has no phone column.
+postal,EXACT,0.83,Families move rarely; cross-border movers are about 2% of US and CA people.
+postal,PREFIX,0.03,"Same ZIP3 or FSA, different full code (a nearby move or a typo)."
+postal,DIFFERENT,0.04,"Moves, and cross-border movers (US ZIP vs Canadian postal code)."
+postal,MISSING,0.1,INTL has no postal code.
+sex,AGREE,0.935,Registration-reported sex does not change for a person.
+sex,DISAGREE,0.005,Assumed allowance for data-entry error; none is described in the sources.
+sex,UNKNOWN,0.06,"Missing gender (3% per US record, about 6% per pair) maps to U."
+context,DIFF_SEASON,0.92,Most re-registrations are in a later season.
+context,SAME_SEASON_DIFF_ORG,0.05,Multi-league play (5% of US youth) and a spring-then-fall league switch.
+context,SAME_ORG_SAME_SEASON,0.03,Near-duplicate registrations (1% of rows) are the only same-person pairs here.

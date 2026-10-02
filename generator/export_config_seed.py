@@ -79,6 +79,8 @@ CATALOG = [
      "The column header row, landed as data by the raw loader; dropped in staging."),
     ("INTL_FED", "name_order_inverted", "structural", "structural", "all rows on family-name-first sheets (JP)", False,
      "Family name precedes given name (Japan). Handled by sheet rule in staging; a configuration, not a data signal."),
+    ("INTL_FED", "family_name_change", "structural", "structural", "records of adult women after a change of family name", False,
+     "Family name differs from the same player's earlier registrations, and a new Player ID is issued. Needs identity matching (Phase 2)."),
     ("INTL_FED", "player_id_reissued", "structural", "structural", "all rows on unstable-ID sheets (PA)", False,
      "Player ID is reissued each year (Panama). Needs identity matching to see (Phase 2)."),
     ("INTL_FED", "unmapped_division", "zero", ROWS, "all rows", True, "Category label is missing from division_map."),

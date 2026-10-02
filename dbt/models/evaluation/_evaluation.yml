@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: eval_truth_pairs
+    description: >
+      GROUND TRUTH. Every true matching pair among the matcher's input records (the recall denominator).
+      Only models in models/evaluation/ may read ground truth.
+    columns:
+      - name: record_a
+        data_tests: [not_null]
+      - name: record_b
+        data_tests: [not_null]
+
+  - name: eval_blocking
+    description: >
+      GROUND TRUTH. Blocking quality: pair completeness, reduction ratio, completeness by block, unique
+      contribution of each block and the largest block keys.
+
+  - name: eval_record_truth
+    description: GROUND TRUTH. The true person, household and twin group behind each matcher input record.
+    columns:
+      - name: match_record_id
+        data_tests: [unique, not_null]
+
+  - name: eval_pairwise
+    description: >
+      GROUND TRUTH. Pairwise precision, recall and F1 for each matcher, review stage and scope, computed on final
+      clusters (so transitive errors count). recall_nondeterministic excludes pairs that source ids already link.
+
+  - name: eval_clusters
+    description: >
+      GROUND TRUTH. Cluster quality per matcher, stage and scope: split rate, merge rate, sibling/twin false merges
+      (headline metric) and predicted vs true participant counts.
+
+  - name: eval_threshold_sweep
+    description: >
+      GROUND TRUTH. Precision, recall, false merges and review-queue size for the Fellegi-Sunter matchers at 20
+      probability thresholds between 0.50 and 0.999. Justifies T_auto and T_review.
+    columns:
+      - name: threshold
+        data_tests: [not_null]
+
+  - name: eval_segments
+    description: >
+      GROUND TRUTH. Pairwise recall by source pair, by injected defect type and by situation (near-duplicate,
+      multi-league same season), plus precision by source pair, per matcher, stage and scope.
+
+  - name: eval_errors
+    description: >
+      GROUND TRUTH. Every false positive and false negative pair at the AUTO scope (first 200 of each kind per matcher
+      and stage) with a SQL-assigned likely_cause. Feeds the error analysis.
+    columns:
+      - name: likely_cause
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [TWIN, SIBLING, TRANSITIVE_CHAIN, NAME_CHANGE, BLOCKING_MISS, GUARD_OVERRIDE, BELOW_THRESHOLD, OTHER]

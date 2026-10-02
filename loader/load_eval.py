@@ -1,0 +1,46 @@
+"""Load the quarantined ground truth into DuckDB schema `eval`. Separate from `make load` on purpose.
+
+Only dbt models under dbt/models/evaluation/ may read these tables (scripts/check_eval_isolation.py enforces
+it). The matcher never sees them. Tables:
+  eval.person_registry      one row per true person (hidden true_person_id, household, twin group, ...)
+  eval.registration_truth   every source record id -> true_person_id
+  eval.defect_manifest      every injected defect by source record (for the per-defect-type evaluation)
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+import duckdb
+
+from generator.population import load_config
+
+TABLES = {
+    "person_registry": "person_registry.parquet",
+    "registration_truth": "registration_truth.parquet",
+    "defect_manifest": "defect_manifest.parquet",
+}
+
+
+def load(truth_dir: str | None = None, db_path: str | None = None, cfg: dict | None = None) -> dict[str, int]:
+    cfg = cfg or load_config()
+    src = Path(truth_dir or cfg["paths"]["ground_truth_dir"])
+    db = Path(db_path or cfg["paths"]["warehouse"])
+    db.parent.mkdir(parents=True, exist_ok=True)
+    con = duckdb.connect(str(db))
+    try:
+        con.execute("CREATE SCHEMA IF NOT EXISTS eval")
+        counts = {}
+        for table, fname in TABLES.items():
+            path = src / fname
+            if not path.exists():
+                raise FileNotFoundError(f"{path} not found; run `make generate` first")
+            con.execute(f"CREATE OR REPLACE TABLE eval.{table} AS SELECT * FROM read_parquet('{path.as_posix()}')")
+            counts[table] = con.execute(f"SELECT count(*) FROM eval.{table}").fetchone()[0]
+    finally:
+        con.close()
+    return counts
+
+
+if __name__ == "__main__":
+    for table, n in load().items():
+        print(f"eval.{table}: {n} rows")

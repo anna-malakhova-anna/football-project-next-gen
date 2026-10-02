@@ -110,6 +110,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     # ---- 1. base rows (clean) ----
     rows: list[dict] = []
     home_league: dict[tuple, dict] = {}
+    season_league: dict[tuple, dict] = {}
     seen_time: dict[str, tuple] = {}
     zips: dict[tuple, str] = {}
     for r in plan:
@@ -118,11 +119,15 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         t = (year, TERM_ORDER[term])
         rereg = r["true_person_id"] in seen_time and seen_time[r["true_person_id"]] < t
         seen_time.setdefault(r["true_person_id"], t)
-        key = (p["true_person_id"], st)
+        group = p["twin_group_id"] or p["true_person_id"]    # twins share their league every season
+        key = (group, st)
         if r["league_slot"] == 1:
-            if key not in home_league or (rereg and rng.random() < 0.15):
-                home_league[key] = rng.choice(catalog[st])
-            league = home_league[key]
+            cache_key = (group, year, term)
+            if cache_key not in season_league:
+                if key not in home_league or (rereg and rng.random() < 0.15):
+                    home_league[key] = rng.choice(catalog[st])
+                season_league[cache_key] = home_league[key]
+            league = season_league[cache_key]
         else:
             first = home_league[key]
             league = rng.choice([l for l in catalog[st] if l is not first])

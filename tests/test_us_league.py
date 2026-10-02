@@ -124,3 +124,25 @@ def test_deterministic_file_hashes(tmp_path):
              for p in (tmp_path / f"raw{i}").rglob("*") if p.is_file()}
         hashes.append(h)
     assert hashes[0] == hashes[1] and hashes[0]
+
+
+def test_twins_share_league_season_guardian_and_dob_but_not_first_name(run):
+    import pyarrow.parquet as pq
+    _, base, out = run
+    reg = {p["true_person_id"]: p for p in pq.read_table(base / "truth" / "person_registry.parquet").to_pylist()}
+    truth = {(t["source_file"], t["source_record_id"]): t["true_person_id"] for t in out.truth}
+    twins = collections.defaultdict(list)
+    for rel, rows in out.files.items():
+        for r in rows:
+            pid = truth[(rel, r["registration_id"])]
+            if reg[pid]["twin_group_id"]:
+                twins[(reg[pid]["twin_group_id"], r["season"])].append((pid, r))
+    pairs = [v for v in twins.values() if len({pid for pid, _ in v}) == 2]
+    assert len(pairs) >= 5
+    for v in pairs:
+        by_pid = {}
+        for pid, r in v:
+            by_pid.setdefault(pid, r)
+        a, b = by_pid.values()
+        assert a["league_id"] == b["league_id"] and a["season"] == b["season"]
+        assert a["player_first_name"].lower() != b["player_first_name"].lower()

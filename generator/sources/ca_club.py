@@ -107,18 +107,22 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     # ---- 1. clean records ----
     recs: list[dict] = []
     home_club: dict[str, dict] = {}
+    season_club: dict[tuple, dict] = {}
     uuids: dict[tuple, str] = {}
     postals: dict[str, str] = {}
     for r in plan:
         p = by_id[r["true_person_id"]]
         prov, year = r["region_code"], r["season_year"]
-        old = home_club.get(p["true_person_id"])
-        if old is None or old["province"] != prov or rng.random() < 0.10:  # new club: new member_uuid
-            pool = catalog[prov]
-            same_lang = [c for c in pool if c["lang"] == p["language"]]
-            use = same_lang if same_lang and rng.random() < 0.85 else pool
-            home_club[p["true_person_id"]] = rng.choice(use)
-        club = home_club[p["true_person_id"]]
+        group = p["twin_group_id"] or p["true_person_id"]    # twins share their club every season
+        if (group, year) not in season_club:
+            old = home_club.get(group)
+            if old is None or old["province"] != prov or rng.random() < 0.10:  # new club: new member_uuid
+                pool = catalog[prov]
+                same_lang = [c for c in pool if c["lang"] == p["language"]]
+                use = same_lang if same_lang and rng.random() < 0.85 else pool
+                home_club[group] = rng.choice(use)
+            season_club[(group, year)] = home_club[group]
+        club = season_club[(group, year)]
         key = (p["true_person_id"], club["club_code"])
         if key not in uuids:
             uuids[key] = str(uuid.UUID(int=rng.getrandbits(128), version=4))

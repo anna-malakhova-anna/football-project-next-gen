@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: ground_truth
+    description: >
+      The generator's answer key (SYNTHETIC data), loaded into schema `eval` by `make load-eval`. Only models
+      under models/evaluation/ may reference this source; scripts/check_eval_isolation.py fails the build
+      otherwise. The matcher (models/identity, models/marts) never sees it.
+    schema: eval
+    tables:
+      - name: person_registry
+        description: One row per true person, with the hidden true_person_id, household and twin group.
+      - name: registration_truth
+        description: Every source record id mapped to its true_person_id.
+      - name: defect_manifest
+        description: Every injected defect by source record id.

@@ -36,6 +36,11 @@ population:
   household:
     youth_with_sibling_share: 0.30    # of youth, share with >=1 sibling in the data
     max_siblings: 3                   # max minors per household
+  twins:
+    household_share: 0.005            # of youth households: one pair of twins (same DOB, season, guardian)
+  name_change:
+    rate: 0.003                       # of INTL adult women: a different family name in a later season
+    min_count: 3                      # the rate alone gives under one person at this population size
   nickname_share: 0.15                # people with a nickname (used by the nickname defect)
   consent:
     marketing_opt_in_rate: 0.35

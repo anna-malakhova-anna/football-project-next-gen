@@ -1,0 +1,173 @@
+version: 2
+
+models:
+  - name: idr_input_records
+    description: >
+      One row per registration the matcher sees: exact duplicates collapsed (all keys carried in
+      member_registration_keys), impossible DOBs nulled. Never reads ground truth.
+    columns:
+      - name: match_record_id
+        description: Registration key of the surviving record.
+        data_tests: [unique, not_null]
+      - name: source_record_id
+        data_tests: [not_null]
+
+  - name: idr_deterministic_links
+    description: >
+      Pairs the source itself declares to be the same person (shared member_uuid, or a stable federation
+      Player ID). record_a < record_b.
+    columns:
+      - name: record_a
+        data_tests: [not_null]
+      - name: record_b
+        data_tests: [not_null]
+      - name: link_method
+        data_tests:
+          - accepted_values: {arguments: {values: [SOURCE_ID]}}
+      - name: link_tier
+        data_tests:
+          - accepted_values: {arguments: {values: [DETERMINISTIC]}}
+
+  - name: idr_blocking_keys
+    description: One row per record per blocking rule (B1 to B5) with its block key. Null keys never block.
+    columns:
+      - name: block
+        data_tests:
+          - accepted_values: {arguments: {values: [B1, B2, B3, B4, B5]}}
+
+  - name: idr_candidate_pairs
+    description: >
+      Union of all blocks, de-duplicated, record_a < record_b, minus deterministic links. `blocks_hit` lists the
+      blocks that produced the pair.
+    columns:
+      - name: record_a
+        data_tests: [not_null]
+      - name: record_b
+        data_tests: [not_null]
+      - name: blocks_hit
+        data_tests: [not_null]
+
+  - name: idr_pair_features
+    description: >
+      One row per candidate pair with agreement levels for first name, last name, DOB, email, phone, postal code,
+      sex and context (same org / season). `sibling_twin_signal` marks two different children registered together
+      in the same household. Levels are exactly those listed in the match_m_probabilities seed.
+    columns:
+      - name: first_name_level
+        data_tests:
+          - accepted_values: {arguments: {values: [EXACT, NICKNAME, FUZZY_HIGH, FUZZY_LOW, DIFFERENT, MISSING]}}
+      - name: last_name_level
+        data_tests:
+          - accepted_values: {arguments: {values: [EXACT, FUZZY_HIGH, FUZZY_LOW, DIFFERENT, MISSING]}}
+      - name: dob_level
+        data_tests:
+          - accepted_values: {arguments: {values: [EXACT, DAY_MONTH_SWAPPED, SAME_YEAR_ONLY, YEAR_OFF_BY_ONE, DIFFERENT, MISSING]}}
+      - name: email_level
+        data_tests:
+          - accepted_values: {arguments: {values: [EXACT, DIFFERENT, MISSING]}}
+      - name: phone_level
+        data_tests:
+          - accepted_values: {arguments: {values: [EXACT, DIFFERENT, MISSING]}}
+      - name: postal_level
+        data_tests:
+          - accepted_values: {arguments: {values: [EXACT, PREFIX, DIFFERENT, MISSING]}}
+      - name: sex_level
+        data_tests:
+          - accepted_values: {arguments: {values: [AGREE, DISAGREE, UNKNOWN]}}
+      - name: context_level
+        data_tests:
+          - accepted_values: {arguments: {values: [SAME_ORG_SAME_SEASON, SAME_SEASON_DIFF_ORG, DIFF_SEASON]}}
+      - name: source_pair
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [US-US, US-CA, CA-CA, US-INTL, CA-INTL, INTL-INTL]
+
+  - name: idr_pair_scores_rules
+    description: >
+      Matcher A, the rules baseline. One row per candidate pair with the rule that fired (first match wins),
+      its tier and a plain-language reason.
+    columns:
+      - name: tier
+        data_tests:
+          - accepted_values: {arguments: {values: [AUTO_MATCH, PROBABLE, NON_MATCH]}}
+      - name: rule_id
+        data_tests:
+          - accepted_values: {arguments: {values: [R1, R2, R3, R4, R5, R6]}}
+
+  - name: idr_match_edges
+    description: >
+      Edges that merge records into people, per matcher and review stage: deterministic links, AUTO_MATCH and
+      PROBABLE pairs, steward MATCH decisions, minus steward NO_MATCH decisions. PROBABLE edges are carried only
+      for the AUTO_PLUS_PROBABLE evaluation scope.
+    columns:
+      - name: link_method
+        data_tests:
+          - accepted_values: {arguments: {values: [SOURCE_ID, RULES, FS, STEWARD]}}
+      - name: tier
+        data_tests:
+          - accepted_values: {arguments: {values: [DETERMINISTIC, AUTO_MATCH, PROBABLE, STEWARD]}}
+      - name: stage
+        data_tests:
+          - accepted_values: {arguments: {values: [PRE_REVIEW, POST_REVIEW]}}
+
+  - name: idr_clusters
+    description: >
+      Connected components of the match edges (recursive CTE), for every matcher x stage x scope. cluster_id is
+      the smallest match_record_id in the component; a record with no edges is a singleton cluster.
+    columns:
+      - name: match_record_id
+        data_tests: [not_null]
+      - name: cluster_id
+        data_tests: [not_null]
+      - name: scope
+        data_tests:
+          - accepted_values: {arguments: {values: [AUTO, AUTO_PLUS_PROBABLE]}}
+
+  - name: idr_u_probabilities
+    description: >
+      u = P(feature level | random non-matching pair), estimated from about 200,000 random record pairs drawn
+      from all possible pairs (not from blocks), with add-0.5 smoothing. No labels are used.
+    columns:
+      - name: u_probability
+        data_tests: [not_null]
+
+  - name: idr_pair_scores_fs
+    description: >
+      Matcher B (Fellegi-Sunter). Per candidate pair: match_weight (sum of log2(m/u)), match_probability, tier,
+      the override that applied (twin/sibling guard, DOB conflict, sex-disagreement cap) and a per-feature
+      weight_breakdown.
+    columns:
+      - name: tier
+        data_tests:
+          - accepted_values: {arguments: {values: [AUTO_MATCH, PROBABLE, NON_MATCH]}}
+      - name: match_probability
+        data_tests: [not_null]
+
+  - name: idr_cluster_integrity
+    description: >
+      Clusters (active matcher, final scope) showing a transitive-chain symptom: conflicting DOBs, both sexes, two
+      different-named children in one org and season, oversize, or an internal pair the matcher itself scored
+      NON_MATCH. Each flagged cluster lists its integrity_issues.
+    columns:
+      - name: cluster_id
+        data_tests: [unique, not_null]
+      - name: integrity_issues
+        data_tests: [not_null]
+
+  - name: idr_review_queue
+    description: >
+      The steward worklist in priority order: conflicted clusters first (SPLIT_CLUSTER), then PROBABLE pairs closest
+      to T_auto (CONFIRM_MATCH / CONFIRM_NON_MATCH), each with both records side by side, feature levels, the weight
+      breakdown and a suggested action.
+    columns:
+      - name: priority
+        data_tests: [unique, not_null]
+      - name: queue_item_id
+        data_tests: [unique, not_null]
+      - name: item_type
+        data_tests:
+          - accepted_values: {arguments: {values: [CLUSTER_CONFLICT, PROBABLE_PAIR]}}
+      - name: suggested_action
+        data_tests:
+          - accepted_values: {arguments: {values: [SPLIT_CLUSTER, CONFIRM_MATCH, CONFIRM_NON_MATCH]}}

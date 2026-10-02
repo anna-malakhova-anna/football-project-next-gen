@@ -41,7 +41,8 @@ Requires [`uv`](https://docs.astral.sh/uv/) and `make`. Python 3.11 to 3.13 is f
 
 ```bash
 make setup      # install dependencies, create dbt/profiles.yml from the example
-make all        # generate -> load -> build -> test   (about 30 seconds)
+make all        # Phase 1: generate -> load -> build -> test   (about 30 seconds)
+make phase2     # Phase 1 + identity resolution + evaluation       (about 50 seconds)
 ```
 
 | Command | What it does |
@@ -50,6 +51,11 @@ make all        # generate -> load -> build -> test   (about 30 seconds)
 | `make load` | lands the files in DuckDB schema `raw` with no transformation |
 | `make build` | `dbt seed` and `dbt run` |
 | `make test` | `pytest` (generator, loader, seeds, docs) and `dbt test` |
+| `make load-eval` | loads the quarantined ground truth into schema `eval` (Phase 2; separate from `make load`) |
+| `make idr` | identity resolution and marts: `dbt run --select identity marts` |
+| `make eval` | evaluation models, headline table, and CSV exports to `docs/eval/` |
+| `make phase2` | everything: all, load-eval, idr, eval, every dbt test, the isolation check and an ID-stability check |
+| `make steward-demo` / `make steward-reset` | optional demo of the review loop with a **simulated** steward (see below) |
 | `make docs` | regenerates `docs/data_dictionary.md` from the dbt YAML |
 | `make clean` | removes generated data, the warehouse and dbt artifacts |
 
@@ -76,12 +82,16 @@ select * from intermediate.int_registrations_unioned;   -- the common schema
 ```
 config/generation.yaml     seed, sizes, behaviour, defect rates
 generator/                 population, three source generators, defect injectors, config-to-seed export
-loader/load_raw.py         files -> DuckDB raw schema
+loader/load_raw.py         files -> DuckDB raw schema (no transformation)
+loader/load_eval.py        ground truth -> DuckDB schema eval (Phase 2; quarantined)
 dbt/                       seeds, macros, staging / intermediate / quality models, singular tests
-tests/                     pytest for generator, loader, seeds and docs
-scripts/                   data dictionary generator
-docs/                      source inventory, data dictionary, user stories, ADRs
-phase-1-spec.md            the build spec
+dbt/models/identity/       Phase 2: blocking, features, matchers, edges, clusters, integrity, review queue
+dbt/models/marts/          Phase 2: dim_participant, bridge_registration_participant, participant_identifiers
+dbt/models/evaluation/     Phase 2: the ONLY models that read ground truth
+tests/                     pytest for generator, loader, seeds, docs, isolation, steward simulator
+scripts/                   data dictionary, isolation check, ID-stability check, headline output, simulated steward
+docs/                      source inventory, data dictionary, identity explainer, user stories, ADRs, eval CSVs
+phase-1-spec.md, phase-2-spec.md   the build specs
 ```
 
 ## Phase 1 status: complete
@@ -112,12 +122,70 @@ evaluation targets for Phase 2.
 - `defect_manifest.parquet` (ground truth) lists every injected defect by record, for Phase 2 evaluation;
 - division boundaries do not line up exactly across sources (CA `Atome` and intl `U15` notes in `division_map`).
 
+## Phase 2: identity resolution (who is the same person?)
+
+Turns 14,139 registrations into 6,000 participants **in SQL only**, without the matcher ever seeing the answer key, then
+measures how well that worked. Ground truth lives in a separate `eval` schema and is read only by `models/evaluation/`;
+`scripts/check_eval_isolation.py` fails the build if anything else depends on it. Business explainer:
+[docs/identity_resolution.md](docs/identity_resolution.md). Decisions: [ADR-003](docs/decisions/ADR-003-identity-resolution.md),
+[ADR-004](docs/decisions/ADR-004-participant-id-stability.md).
+
+**Why it matters.** Every participation number in Phase 3 depends on it. *Under-merging* (one child split in two) inflates
+participation and breaks retention. *Over-merging* (two children collapsed) undercounts, and can apply one child's consent
+to a sibling, which is a privacy incident. So the project **biases toward precision**.
+
+Pipeline: exact duplicates collapsed, then deterministic links (shared source IDs), blocking (five blocks, pair
+completeness 1.000, 44,168 candidate pairs), agreement-level features, two matchers (a rules baseline and a
+Fellegi-Sunter probabilistic matcher with explainable weights and hard guardrails), connected-components clusters in a
+recursive CTE, cluster-integrity checks, a prioritised review queue, and three marts (`bridge_registration_participant`,
+`dim_participant`, `participant_identifiers`).
+
+**Headline results** (automatic merges only, before any steward review; 737 of the 6,000 people have a sibling in the data):
+
+| Matcher | Scope | Precision | Recall | F1 | Sibling/twin merges | Predicted vs true participants |
+|---|---|---|---|---|---|---|
+| Rules baseline | AUTO | 1.0000 | 0.9258 | 0.9615 | 0 | 6,390 vs 6,000 |
+| Fellegi-Sunter, spec-literal (`fs_naive`) | AUTO | 0.9608 | 1.0000 | 0.9800 | **80** | 5,912 vs 6,000 |
+| **Fellegi-Sunter, final (`fs`)** | **AUTO** | **0.99986** | **0.99959** | **0.99973** | **0** | **6,000 vs 6,000** |
+| Fellegi-Sunter, final (`fs`) | AUTO + PROBABLE | 0.9949 | 0.9996 | 0.9972 | 4 | 5,984 vs 6,000 |
+
+> **The steward in this project is simulated.** `scripts/simulate_steward.py` resolves review-queue items using the
+> ground truth, only to demonstrate the feedback loop (`make steward-demo`). Its results appear as separate `POST_REVIEW`
+> rows and **must never be quoted as matcher performance**. The committed `review_decisions` seed is empty.
+
+**Honest notes**
+- The spec-literal matcher merged siblings and twins (80 clusters) because email, phone and postal code are one household
+  counted three times. The final `fs` fixes the model structure (count positive household evidence once, a household
+  guard, a cap on DOB disagreement). Those fixes were prompted by the evaluation, not by tuning m-values, and are
+  disclosed in ADR-003 with the step-by-step metrics. The thresholds (0.997 / 0.85) were chosen once from the sweep.
+- The final matcher **ties** the rules baseline on sibling/twin merges at AUTO (0 vs 0) instead of beating it, and has 4
+  (0.54% of households) at AUTO + PROBABLE against the 0.1% target. It wins on recall (0.9996 vs 0.926) and on counting
+  people.
+- Six true pairs are lost to the household guard; two look-alike pairs (same first name, near-identical surname, same
+  birth year, no contact data) are merged in error. All three name-change cases are found.
+- The synthetic data flatters the matcher (phone numbers never change; the nickname map covers every generated nickname).
+
+| Phase 2 definition of done | Result |
+|---|---|
+| Generator amendments (twins, name changes); Phase 1 still passes | 27 twin households, 3 name changes; Phase 1 passes |
+| Ground truth only in `models/evaluation/`, enforced | isolation check in `make test` and `make phase2`; verified against a deliberate leak |
+| Blocking pair completeness reported (target 0.98) | 1.000 (caveat: easy synthetic data) |
+| Both matchers run and are compared | yes (plus the spec-literal variant) |
+| Thresholds chosen from the sweep, justified in ADR-003 | yes |
+| Sibling/twin merges are the headline; FS beats the baseline on it | headline: yes. **Beats the baseline: no, a tie at 0** |
+| Every registration maps to exactly one participant | `bridge_registration_participant`, 14,139 rows, tested |
+| Consent survivorship never from NULL or across participants | singular test |
+| `participant_id` stable across reruns | `make id-stability` (rebuild compared) |
+| Review queue populated with priorities and weight breakdowns | 53 items (3 cluster conflicts, 50 probable pairs) |
+| Docs and ADRs; README updated | done |
+| Metric targets | precision 0.99986 and recall 0.9996 met; sibling/twin merges met at AUTO, **missed at AUTO + PROBABLE** |
+
 ## Roadmap
 
 | Phase | Theme | Key outputs |
 |---|---|---|
 | **1 Foundations** (done) | Sources, ingestion, staging, DQ | 3 synthetic sources + hidden ground truth, DuckDB raw layer, dbt staging + unioned model, DQ profile, source inventory, data dictionary v1 |
-| 2 Identity | Who is the same person? | Blocking + fuzzy match in SQL, match-confidence tiers, `dim_participant` with survivorship rules, precision/recall against ground truth |
+| **2 Identity** (done) | Who is the same person? | Blocking + fuzzy match in SQL, match-confidence tiers, `dim_participant` with survivorship rules, precision/recall against ground truth |
 | 3 Measurement and privacy | What counts as a participant? | Unique participants vs registrations, methodology memo, consent-aware and minor-masked views, role-based access pattern |
 | 4 Outcomes and scale | Does playing create fans? | Retention cohorts, participant to fan funnel, 2 more sources (fan engagement, school counts), source-onboarding playbook, polish |
 
@@ -127,3 +195,6 @@ evaluation targets for Phase 2.
 - [Data dictionary](docs/data_dictionary.md) (generated)
 - [User stories: onboarding a new source](docs/user_stories/onboard-new-source.md)
 - [ADR-001: Stack](docs/decisions/ADR-001-stack.md), [ADR-002: Age cutoff convention](docs/decisions/ADR-002-age-cutoff-convention.md)
+- [Identity resolution explained](docs/identity_resolution.md) (for a program lead)
+- [ADR-003: Identity resolution](docs/decisions/ADR-003-identity-resolution.md), [ADR-004: Participant ID stability](docs/decisions/ADR-004-participant-id-stability.md)
+- Evaluation exports for charts: [`docs/eval/`](docs/eval/) (threshold sweep, headline, segments)

@@ -79,12 +79,21 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     first_year: dict[str, int] = {}
     for r in plan:
         first_year.setdefault(r["true_person_id"], r["season_year"])
+
+    def id_year(p: dict, year: int, country: str) -> int:
+        """Year in which the ID shown for this player-season was issued."""
+        if country in sc["unstable_player_id_sheets"]:
+            return year                                  # reissued every year
+        if p["name_change_season"] and year >= p["name_change_season"]:
+            return p["name_change_season"]               # new ID when she re-registers under a new name
+        return first_year[p["true_person_id"]]
+
     issued: dict[tuple, int] = {}
     for year in cfg["seasons"]["years"]:
         for c in COUNTRY_ORDER:
             needs = [r["true_person_id"] for r in plan
                      if r["season_year"] == year and r["country_code"] == c
-                     and (c in sc["unstable_player_id_sheets"] or first_year[r["true_person_id"]] == year)]
+                     and id_year(by_id[r["true_person_id"]], year, c) == year]
             rng.shuffle(needs)
             for n, pid in enumerate(needs, start=1):
                 issued[(pid, year)] = n
@@ -92,17 +101,20 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     # ---- 2. clean rows ----
     rows: list[dict] = []
     club_of: dict[str, str] = {}
+    season_club: dict[tuple, str] = {}
     for r in plan:
         p, c, year = by_id[r["true_person_id"]], r["country_code"], r["season_year"]
-        if c in sc["unstable_player_id_sheets"]:
-            pid = f"{ISO3[c]}-{year % 100:02d}-{issued[(p['true_person_id'], year)]:04d}"
-        else:
-            fy = first_year[p["true_person_id"]]
-            pid = f"{ISO3[c]}-{fy % 100:02d}-{issued[(p['true_person_id'], fy)]:04d}"
-        if p["true_person_id"] not in club_of or rng.random() < 0.15:
-            club_of[p["true_person_id"]] = rng.choice(clubs[c])
-        name = (f"{p['family_name']} {p['given_name']}" if c in sc["family_name_first_sheets"]
-                else f"{p['given_name']} {p['family_name']}")
+        iy = id_year(p, year, c)
+        pid = f"{ISO3[c]}-{iy % 100:02d}-{issued[(p['true_person_id'], iy)]:04d}"
+        group = p["twin_group_id"] or p["true_person_id"]     # twins share their club every season
+        if (group, year) not in season_club:
+            if group not in club_of or rng.random() < 0.15:
+                club_of[group] = rng.choice(clubs[c])
+            season_club[(group, year)] = club_of[group]
+        changed = bool(p["name_change_season"]) and year >= p["name_change_season"]
+        family = p["later_family_name"] if changed else p["family_name"]
+        name = (f"{family} {p['given_name']}" if c in sc["family_name_first_sheets"]
+                else f"{p['given_name']} {family}")
         age = year - p["dob"].year
         if p["is_minor"]:
             email = p["guardian_email"] if rng.random() < sc["email_present_minor"] else None
@@ -111,10 +123,12 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         rows.append({
             "pid": p["true_person_id"], "country": c, "year": year, "player_id": pid, "name": name,
             "dob": p["dob"], "serial": False, "gender": GENDER_LABELS[c][0 if p["sex"] == "F" else 1],
-            "category": _category(rng, c, age, p["sex"]), "club": club_of[p["true_person_id"]],
+            "category": _category(rng, c, age, p["sex"]), "club": season_club[(group, year)],
             "country_cell": ISO3[c], "email": email,
             "media": "Yes" if p["photo_consent"] else "No", "defects": [],
         })
+        if changed:
+            rows[-1]["defects"].append("family_name_change")
         if c in sc["family_name_first_sheets"]:
             rows[-1]["defects"].append("name_order_inverted")
         if c in sc["unstable_player_id_sheets"]:

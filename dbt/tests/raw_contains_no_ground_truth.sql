@@ -6,4 +6,5 @@ where table_schema = 'raw'
 union all
 select table_schema || '.' || table_name, 'table named like ground truth'
 from information_schema.tables
-where lower(table_name) like '%person_registry%' or lower(table_name) like '%registration_truth%'
+where table_schema = 'raw'
+  and (lower(table_name) like '%person_registry%' or lower(table_name) like '%registration_truth%')

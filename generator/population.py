@@ -65,6 +65,7 @@ REGISTRY_FIELDS = [
     "guardian_name", "guardian_email", "guardian_phone", "own_email", "own_phone",
     "marketing_opt_in", "photo_consent", "first_season", "last_season",
     "is_cross_border", "alt_country", "alt_region", "switch_season", "is_multi_league",
+    "twin_group_id", "name_change_season", "later_family_name",
 ]
 PARTICIPATION_FIELDS = [
     "true_person_id", "source_system", "country_code", "region_code",
@@ -179,6 +180,24 @@ class _Builder:
         return self.rng.choices(allowed, weights=weights)[0]
 
     # ---------- people ----------
+    def _p_multi_household(self) -> float:
+        """Probability a youth household has 2+ children (solved from the sibling-share target)."""
+        hh = self.pop["household"]
+        target, max_sib = hh["youth_with_sibling_share"], hh["max_siblings"]
+        mean_multi = (2 * 0.8 + 3 * 0.2) if max_sib >= 3 else 2.0
+        return target / (mean_multi * (1 - target) + target)
+
+    def _make_twins(self, lead: dict, other: dict, loc: str):
+        """Turn `other` into lead's twin: same DOB, season, household; different first name."""
+        for _ in range(50):
+            given = self.names.given(loc, other["sex"])
+            if given.lower() != lead["given_name"].lower():
+                break
+        other["given_name"], other["nickname"] = given, None
+        other["dob"], other["first_season"] = lead["dob"], lead["first_season"]
+        gid = f"T{lead['_hh']}"
+        lead["twin_group_id"] = other["twin_group_id"] = gid
+
     def _household_sizes(self, n_youth: int) -> list[int]:
         """Household sizes summing to n_youth; sized so ~30% of youth have a sibling."""
         hh = self.pop["household"]
@@ -239,6 +258,9 @@ class _Builder:
             kids.append(self._person(loc, country, region, postal, family, by,
                                      francophone, minor=True, guardian=guardian,
                                      hh_key=self._hh_counter))
+        twin_share = self.pop.get("twins", {}).get("household_share", 0)
+        if k >= 2 and r.random() < twin_share / self._p_multi_household():
+            self._make_twins(kids[0], kids[1], loc)
         return kids
 
     def _locale(self, country: str, francophone: bool = False) -> str:
@@ -281,6 +303,7 @@ class _Builder:
             "first_season": first, "last_season": None,
             "is_cross_border": False, "alt_country": None, "alt_region": None,
             "switch_season": None, "is_multi_league": False,
+            "twin_group_id": None, "name_change_season": None, "later_family_name": None,
             "_hh": hh_key,
         }
         if minor:
@@ -358,7 +381,7 @@ class _Builder:
 
     def _designate_movers(self, people):
         pool = [p for p in people
-                if p["home_country"] in ("US", "CA")
+                if p["home_country"] in ("US", "CA") and not p["twin_group_id"]
                 and p["first_season"] in self.years[:-1]
                 and (not p["is_minor"] or self.years[-1] - p["dob"].year <= self.pop["youth_age_range"][1])]
         n_usca = sum(1 for p in people if p["home_country"] in ("US", "CA"))
@@ -374,7 +397,8 @@ class _Builder:
     def _flag_multi_league(self, people):
         us_youth = [p for p in people if p["segment"] == "US_YOUTH"]
         k = round(len(us_youth) * self.part["us_two_leagues_same_season_share"])
-        for p in self.rng.sample(us_youth, k):
+        eligible = [p for p in us_youth if not p["twin_group_id"]]   # twins always register together
+        for p in self.rng.sample(eligible, k):
             p["is_multi_league"] = True
 
     # ---------- participation ----------
@@ -384,44 +408,76 @@ class _Builder:
                 return band["p"]
         return 0.0
 
-    def build_participations(self, people):
+    def _plan_person(self, p):
+        """-> (active years, planned registrations) for one person."""
         r = self.rng
         ymax = self.pop["youth_age_range"][1]
+        by = p["dob"].year
+        active = []
+        for y in self.years:
+            if y < p["first_season"]:
+                continue
+            if y > p["first_season"] and not p["is_cross_border"]:
+                if p["is_minor"] and y - by > ymax:
+                    break
+                if r.random() < self._churn(y - by):
+                    break
+            active.append(y)
+        mine = []
+        for y in active:
+            moved = p["is_cross_border"] and y >= p["switch_season"]
+            country = p["alt_country"] if moved else p["home_country"]
+            region = p["alt_region"] if moved else p["home_region"]
+            if country == "US":
+                if r.random() < self.part["us_both_terms_given_active"]:
+                    terms = ["SPRING", "FALL"]
+                else:
+                    terms = [r.choice(["SPRING", "FALL"])]
+            else:
+                terms = ["ANNUAL"]
+            for t in terms:
+                mine.append({"source_system": SOURCE_BY_COUNTRY.get(country, "INTL_FED"),
+                             "country_code": country, "region_code": region,
+                             "season_year": y, "season_term": t, "league_slot": 1})
+        return active, mine
+
+    def build_participations(self, people):
+        r = self.rng
+        leaders: dict[str, str] = {}      # twin group -> lead person id (lowest id)
+        for p in people:
+            if p["twin_group_id"]:
+                leaders.setdefault(p["twin_group_id"], p["true_person_id"])
+        is_follower = lambda p: bool(p["twin_group_id"]) and leaders[p["twin_group_id"]] != p["true_person_id"]  # noqa: E731
+        planned: dict[str, tuple] = {}
+        for p in [q for q in people if not is_follower(q)] + [q for q in people if is_follower(q)]:
+            if is_follower(p):                       # twins share seasons, terms and country
+                active, mine = planned[leaders[p["twin_group_id"]]]
+                mine = [dict(m) for m in mine]
+            else:
+                active, mine = self._plan_person(p)
+                if p["is_multi_league"]:
+                    base = r.choice([m for m in mine if m["source_system"] == "US_LEAGUE"])
+                    mine.append({**base, "league_slot": 2})
+            planned[p["true_person_id"]] = (active, mine)
+            p["last_season"] = active[-1]
+        self._assign_name_changes(people, planned)
         rows = []
         for p in people:
-            by = p["dob"].year
-            active = []
-            for y in self.years:
-                if y < p["first_season"]:
-                    continue
-                if y > p["first_season"] and not p["is_cross_border"]:
-                    if p["is_minor"] and y - by > ymax:
-                        break
-                    if r.random() < self._churn(y - by):
-                        break
-                active.append(y)
-            p["last_season"] = active[-1]
-            mine = []
-            for y in active:
-                moved = p["is_cross_border"] and y >= p["switch_season"]
-                country = p["alt_country"] if moved else p["home_country"]
-                region = p["alt_region"] if moved else p["home_region"]
-                if country == "US":
-                    if r.random() < self.part["us_both_terms_given_active"]:
-                        terms = ["SPRING", "FALL"]
-                    else:
-                        terms = [r.choice(["SPRING", "FALL"])]
-                else:
-                    terms = ["ANNUAL"]
-                for t in terms:
-                    mine.append({"source_system": SOURCE_BY_COUNTRY.get(country, "INTL_FED"),
-                                 "country_code": country, "region_code": region,
-                                 "season_year": y, "season_term": t, "league_slot": 1})
-            if p["is_multi_league"]:
-                base = r.choice([m for m in mine if m["source_system"] == "US_LEAGUE"])
-                mine.append({**base, "league_slot": 2})
-            rows.extend({"true_person_id": p["true_person_id"], **m} for m in mine)
+            rows.extend({"true_person_id": p["true_person_id"], **m} for m in planned[p["true_person_id"]][1])
         return rows
+
+    def _assign_name_changes(self, people, planned):
+        """A few adult women in INTL appear under a different family name in a later season.
+        The federation also issues a new Player ID, so no source id links the two (a known-hard case)."""
+        cfg = self.pop.get("name_change", {})
+        women = [p for p in people if p["segment"] == "INTL" and not p["is_minor"] and p["sex"] == "F"]
+        eligible = [p for p in women if len(planned[p["true_person_id"]][0]) >= 2]
+        want = max(cfg.get("min_count", 0), round(cfg.get("rate", 0) * len(women)))
+        for p in self.rng.sample(eligible, min(want, len(eligible))):
+            loc = self.pop["locales"][p["home_country"]]
+            new = self.names.family(loc)
+            p["name_change_season"] = planned[p["true_person_id"]][0][1]
+            p["later_family_name"] = f"{p['family_name']}-{new}" if self.rng.random() < 0.5 else new
 
 
 def _assign_ids(people: list[dict], rng: random.Random):

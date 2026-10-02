@@ -75,3 +75,63 @@ seeds:
       - name: kind
         data_tests:
           - accepted_values: {arguments: {values: [rate, structural, zero]}}
+
+  - name: nickname_map
+    description: >
+      Given name to nickname pairs (English, French, Spanish), as lowercase accent-stripped name keys.
+      Used in both directions by the name comparison. Written from general knowledge of common nicknames,
+      not derived from the generator.
+    config:
+      column_types: {given_key: varchar, nickname_key: varchar, language: varchar}
+    columns:
+      - name: given_key
+        data_tests: [not_null]
+      - name: nickname_key
+        data_tests: [not_null]
+      - name: language
+        data_tests:
+          - accepted_values: {arguments: {values: [en, fr, es]}}
+
+  - name: match_m_probabilities
+    description: >
+      Assumed m-probabilities for the Fellegi-Sunter matcher: P(feature level | same person). Reasoned from the
+      source descriptions and documented defect behaviour in the `rationale` column. NEVER tuned against ground
+      truth. Probabilities for each feature sum to 1.
+    config:
+      column_types: {feature: varchar, level: varchar, m_probability: double, rationale: varchar}
+    columns:
+      - name: feature
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [first_name, last_name, dob, email, phone, postal, sex, context]
+      - name: level
+        data_tests: [not_null]
+      - name: m_probability
+        data_tests: [not_null]
+      - name: rationale
+        data_tests: [not_null]
+
+  - name: match_thresholds
+    description: >
+      Tier cut-offs and prior odds, one row per matcher version. AUTO_MATCH at probability >= t_auto;
+      PROBABLE (review queue) from t_review up to t_auto; NON_MATCH below t_review.
+    config:
+      column_types: {matcher_version: varchar, t_auto: double, t_review: double, prior_odds: double, rationale: varchar}
+    columns:
+      - name: matcher_version
+        data_tests: [not_null, unique]
+
+  - name: review_decisions
+    description: >
+      Data steward overrides. Starts empty (header only). decision is MATCH or NO_MATCH for the pair
+      (record_a, record_b) of match_record_ids; record_a < record_b.
+    config:
+      column_types:
+        record_a: varchar
+        record_b: varchar
+        decision: varchar
+        decided_by: varchar
+        decided_at: timestamp
+        note: varchar

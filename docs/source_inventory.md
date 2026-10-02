@@ -20,7 +20,8 @@ Quality figures are *observed* rates from `quality.dq_summary` at the default co
 | **Minors present?** | Yes (ages 5-17), plus a small adult rec-league share | Yes (ages 5-17), plus a small adult share | Yes (youth categories), plus adult women's, men's and masters players |
 | **Consent fields captured** | `photo_consent`, `marketing_opt_in`, `waiver_signed` (Y/N/blank) | `consents.casl_marketing`, `consents.photo_media`, `consent_captured_at`; the whole object can be absent | `Media Consent` (Yes/No/blank). **No marketing consent captured** |
 | **Legal-basis assumption** | Guardian gives consent for minors at registration (COPPA-style parental consent). Marketing opt-in is an explicit opt-in | CASL express consent for marketing (field is named for it); photo/media consent by guardian for minors; Quebec Law 25 parental consent for under-14s | Media consent only; GDPR / UK GDPR apply to DE, AT and GB federations, so consent must be specific and withdrawable. Federation, not the program, is the controller of the underlying member data |
-| **Onboarding status** | `Staged` | `Staged` | `Staged` |
+| **Person identifier quality** (Phase 2 evaluation) | **None.** Identity rests entirely on name, DOB and contact details. The matcher links 99.95% of true US-US pairs (the rules baseline 91.5%); 240 of 240 cross-border US-CA pairs are found | **Partial.** `member_uuid` links 844 of 917 true CA-CA pairs (92%); the other 73, mostly a player switching clubs, need the matcher. Birth year only, so name and contact carry the weight | **Partial.** `Player ID` links 739 of 850 true INTL-INTL pairs (87%). Panama's reissued IDs and the new ID issued after a family-name change leave 111 to the matcher. No marketing consent captured |
+| **Onboarding status** | `Modelled` | `Modelled` | `Modelled` |
 
 ## Known quality issues
 
@@ -62,4 +63,4 @@ Each issue links to a `defect_id` in `quality.dq_summary`; `quality.dq_defect_lo
 
 `Discovery` (known, not yet profiled) -> `Profiling` (profiled in `dq_source_profile`) -> `Staged` (typed, standardized, flagged;
 tests pass) -> `Modelled` (resolved into the participant model) -> `Production` (monitored, with owner sign-off).
-All three sources end Phase 1 at **Staged**; identity resolution (Phase 2) moves them to **Modelled**.
+All three sources ended Phase 1 at **Staged**. Identity resolution (Phase 2) resolves them into participants (`dim_participant`, `bridge_registration_participant`), which moves them to **Modelled**. None is `Production`: there is no monitoring, owner sign-off or persisted participant-ID registry (see ADR-004).

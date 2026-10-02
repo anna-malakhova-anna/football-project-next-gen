@@ -170,3 +170,39 @@ def test_consent_and_nickname_fields(pop):
     assert nick == pytest.approx(cfg["population"]["nickname_share"], abs=0.03)
     assert all(isinstance(p["marketing_opt_in"], bool) and isinstance(p["photo_consent"], bool)
                for p in people)
+
+
+def test_twins_exist_and_look_like_twins(pop):
+    cfg, people, parts = pop
+    groups = collections.defaultdict(list)
+    for p in people:
+        if p["twin_group_id"]:
+            groups[p["twin_group_id"]].append(p)
+    youth_households = len({p["household_id"] for p in people if p["household_id"]})
+    assert len(groups) >= 10
+    assert len(groups) / youth_households == pytest.approx(cfg["population"]["twins"]["household_share"], abs=0.004)
+    for pair in groups.values():
+        a, b = pair
+        assert len(pair) == 2 and a["household_id"] == b["household_id"]
+        assert a["dob"] == b["dob"] and a["family_name"] == b["family_name"]
+        assert a["guardian_email"] == b["guardian_email"] and a["first_season"] == b["first_season"]
+        assert a["given_name"].lower() != b["given_name"].lower()
+        assert not a["is_cross_border"] and not b["is_cross_border"] and not a["is_multi_league"] and not b["is_multi_league"]
+    assert any(a["sex"] == b["sex"] for a, b in groups.values())          # sometimes the same sex
+    assert any(a["sex"] != b["sex"] for a, b in groups.values())
+    # twins register in the same seasons, terms and country
+    plan = collections.defaultdict(list)
+    for r in parts:
+        plan[r["true_person_id"]].append((r["season_year"], r["season_term"], r["country_code"], r["league_slot"]))
+    for a, b in groups.values():
+        assert sorted(plan[a["true_person_id"]]) == sorted(plan[b["true_person_id"]])
+
+
+def test_name_change_cases(pop):
+    cfg, people, _ = pop
+    changers = [p for p in people if p["name_change_season"]]
+    assert len(changers) >= cfg["population"]["name_change"]["min_count"]
+    for p in changers:
+        assert p["segment"] == "INTL" and p["sex"] == "F" and not p["is_minor"]
+        assert p["later_family_name"] != p["family_name"]
+        assert p["first_season"] < p["name_change_season"] <= p["last_season"]
