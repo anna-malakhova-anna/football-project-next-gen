@@ -13,7 +13,7 @@
 | Profiling | 2026-10-02 | `quality.dq_summary` rows for FAN_ENGAGEMENT (observed vs configured) | |
 | Contracted | 2026-10-02 | `contracts/FAN_ENGAGEMENT__accounts.yml`, `__events.yml` v1.0.0: 0 ERROR | playbook v1.3 (two components) |
 | Staged | 2026-10-02 | `stg_fan_accounts`, `stg_fan_events`; `dq_summary`: 6 detectable defects OK | |
-| Modelled | **not yet** | `int_household`, `link_household_fan_account` run in the restricted `linkage` schema under the default policy | **gated on ADR-009** (Anna) |
+| Modelled | 2026-10-02 | `int_household`, `link_household_fan_account` in the restricted `linkage` schema; fandom models; ADR-009 decided | restricted zone, phone fallback kept, never to marketing |
 
 ## Discovery (2026-10-02)
 - **Purpose:** program-impact analysis: does a household's engagement change after its first registration? Aggregate output only.
@@ -41,10 +41,11 @@ Two contracts, one per delivered table. `make contracts`: 0 ERROR. Warnings acce
 marks every extra delivery of an event_id and the fact never counts it; `event_month` comes from `event_ts`, never from the file, so a late
 event lands in the month it happened in. Clock skew is not detectable and is documented as such.
 
-## Modelled: pending
-Households and links are built and evaluated under the default policy in the restricted `linkage` schema; they cannot reach a share until the
-decision in [ADR-009](../decisions/ADR-009-household-linkage-governance.md) is made.
+## Modelled (2026-10-02)
+Households and links are built and evaluated in the restricted `linkage` schema. [ADR-009](../decisions/ADR-009-household-linkage-governance.md) was decided by Anna on
+2026-10-02: aggregate linkage in a restricted zone is the project policy, the phone fallback stays on (78.8% precise, caveated), and nothing linked ever reaches
+marketing. Only approved, suppressed aggregates leave the schema, and a build check enforces it. Source D is now `Modelled`.
 
 ## Used in analysis (2026-10-02, under the ADR-009 default)
 Step 7 built the fandom models on the linkage ([ADR-010](../decisions/ADR-010-fandom-outcomes-design.md)). They run in the restricted schema and nothing
-from them is shared yet. Source D stays `Staged` until the ADR-009 decision is made.
+from them reaches an audience except as approved aggregates (step 8).

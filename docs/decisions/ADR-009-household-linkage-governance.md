@@ -1,6 +1,6 @@
 # ADR-009: May we link participant households to fan accounts at all?
 
-- **Status:** Proposed (Phase 4). **Partly decided:** the phone fallback stays on and nothing linked ever reaches marketing (Anna, 2026-10-02). The policy question still waits for Anna (see the marker at the bottom). The default below is implemented.
+- **Status:** Accepted (Phase 4), decided by Anna on 2026-10-02: restricted-zone linkage is the project policy, the phone fallback stays on, and nothing linked ever reaches marketing. The default described below is what is implemented.
 - **Context:** Source D (a fan app and ticketing feed) holds adults' accounts and what they do in the app. The registration data holds
   guardians' contact details, collected to run leagues. Joining them lets us ask whether being in the program changes how a household engages
   with the sport (ADR-010). That is a **purpose beyond running leagues**, and the people concerned never agreed to it when they registered.
@@ -73,8 +73,8 @@ internal learning and accepts the restricted-zone controls above.
   have an account email that differs from the registration email; 1% of non-participant accounts reuse a participant's phone number), not
   estimates for a real program.
 
-<!-- DECISION: Anna -->
-**Decision needed from Anna** (until then the default above runs):
+<!-- DECISION: Anna (resolved 2026-10-02: see below) -->
+**The three questions put to Anna, and the answers:**
 1. Is aggregate linkage in a restricted zone acceptable for this project, or should the explicit-consent alternative be the policy?
 2. If the default stands: keep the phone fallback (more links, 78.8% precise) or switch it off (email only, 100% precise)?
 3. Is "nothing linked reaches marketing, even with both consents" the right position, or should the both-sides consent path be built?
@@ -83,9 +83,11 @@ internal learning and accepts the restricted-zone controls above.
 - **Question 2, phone fallback: keep it.** Decided by Anna, 2026-10-02. Phone links are 78.8% precise (24 false links out of 113, all accounts that reuse a
   participant household's number) against 100% for email, and add 89 correct links. The switch (`linkage_phone_fallback`) stays on; results from linked households
   carry this caveat.
-- **Question 1, policy (restricted zone vs explicit consent):** _(pending)_
+- **Question 1, policy: restricted-zone linkage.** Decided by Anna, 2026-10-02. Aggregate program-impact analysis in the restricted `linkage` schema under the
+  legitimate-interest-style rationale above (project policy, not legal advice). The explicit-consent alternative is **not** adopted; it stays documented as the option
+  to move to if the program ever wants to publish findings about households, and it would cost the 2021 to 2025 history.
 - **Question 3, marketing: keep "never".** Decided by Anna, 2026-10-02. Nothing linked reaches `share_marketing` or `share_media`, even where both the registration
   and the fan account have `consent_marketing = TRUE`. The both-sides consent path is not built; if it ever were, it would be a second purpose with its own consent question
   and would have to fail closed on NULL. `scripts/check_share_policy.py` enforces the position (`LINKAGE_IN_MARKETING`).
 
-**Decision:** _(partly decided: the phone fallback and the marketing position; the policy question is open)_  **Decided by:** Anna  **Date:** 2026-10-02
+**Decision:** restricted-zone linkage as the policy; phone fallback kept; marketing never.  **Decided by:** Anna  **Date:** 2026-10-02

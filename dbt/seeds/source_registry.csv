@@ -2,5 +2,5 @@ source_system,onboarding_status,description
 US_LEAGUE,Modelled,US league registrations (CSV)
 CA_CLUB,Modelled,Canadian club registrations (JSON API)
 INTL_FED,Modelled,International federation returns (XLSX)
-FAN_ENGAGEMENT,Staged,Fan app and ticketing accounts and events (CSV + JSON Lines); Modelled only after the ADR-009 decision
+FAN_ENGAGEMENT,Modelled,Fan app and ticketing accounts and events (CSV + JSON Lines); linked to households only in the restricted linkage schema (ADR-009)
 SCHOOL_AGGREGATES,Modelled,School and recreation program aggregate headcounts (CSV); aggregate-only

@@ -20,7 +20,7 @@
 5. **Censoring is the point of the retention analysis.** An age-out (turning 18) and the end of the data are censored, never churn; the naive version is
    computed beside the correct one against the generator's true churn parameters. The generator has no adult continuation, so the youth-to-adult rate is about
    zero by construction: reported, not interpreted.
-6. **Linking registrations to fan accounts is a governance decision, not an engineering one** (ADR-009, still awaiting Anna's decision; the default runs). The
+6. **Linking registrations to fan accounts is a governance decision, not an engineering one** (ADR-009, decided by Anna on 2026-10-02: restricted zone, phone fallback kept, never to marketing). The
    result of the analysis it enables is ADR-010.
 7. **The Phase 3 and Phase 4 layers are built together.** A Phase 3 scorecard reads a Phase 4 model, and Phase 4 marts read Phase 3 marts, so the tag-based
    phase targets no longer build independently. `make all-phases` is the supported full build; `make phase3` and `make phase4` are aliases for it.

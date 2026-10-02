@@ -66,8 +66,8 @@ Each issue links to a `defect_id` in `quality.dq_summary`; `quality.dq_defect_lo
 
 Two further sources are tracked in `dbt/seeds/source_registry.csv`, which feeds the data-trust KPIs "sources onboarded" and "sources known":
 **school aggregates** (Source E, `Modelled` as a separate aggregate fact; see `docs/playbook/onboarding_log_SCHOOL_AGGREGATES.md`) and
-**fan engagement** (Source D, `Staged`: an accounts snapshot and an event stream under two contracts; `Modelled` waits for the ADR-009 linkage
-decision; see `docs/playbook/onboarding_log_FAN_ENGAGEMENT.md`). The aggregate source is reported as a separate, non-deduplicated "reported
+**fan engagement** (Source D, `Modelled`: an accounts snapshot and an event stream under two contracts, linked to households only in the restricted
+`linkage` schema, ADR-009; see `docs/playbook/onboarding_log_FAN_ENGAGEMENT.md`). The aggregate source is reported as a separate, non-deduplicated "reported
 headcount" line and never mixed into resolved participants (methodology memo, section 8).
 
 ## Onboarding status definitions
