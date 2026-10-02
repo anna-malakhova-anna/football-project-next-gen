@@ -1,0 +1,114 @@
+# Counting Flag Football: generation config (ALL DATA IS SYNTHETIC)
+# Everything the generator needs lives here: seed, sizes, behaviour, defect rates.
+# Defect rates are fractions (0.04 = 4%). Keys under `defects` are the stable
+# defect ids that dq_summary compares observed rates against (see spec 7.5).
+
+seed: 42
+
+paths:
+  raw_dir: data/raw
+  ground_truth_dir: data/ground_truth
+  warehouse: warehouse/flag.duckdb
+
+seasons:
+  years: [2023, 2024, 2025]
+  us_terms: [SPRING, FALL]      # US has two seasons a year
+  # Canada and International use one calendar-year season.
+
+population:
+  total_people: 6000
+  # Segment shares of the true-person registry. Must sum to 1.0 with `adults_us_ca`
+  # taking the remainder. Cross-border movers are a subset of US+CA youth, not a segment.
+  segments:
+    us_youth: 0.60
+    ca_youth: 0.18
+    intl: 0.17
+    adults_us_ca: 0.05          # remainder
+  youth_age_range: [5, 17]
+  adult_age_range: [18, 55]
+  cross_border_share_of_us_ca: 0.02   # appear in both US and CA sources in different seasons
+  ca_francophone_share: 0.25          # of CA youth (QC, NB, ON)
+  intl_country_shares: {MX: 0.25, GB: 0.20, JP: 0.20, DE: 0.15, AT: 0.10, PA: 0.10}
+  youth_female_share: 0.45            # base share of F among youth (before girls' growth trend)
+  adult_female_share: 0.50
+  us_adult_share_of_adults_us_ca: 0.77
+  intl_adult_share: 0.30              # of the intl segment: adult women's and men's players
+  household:
+    youth_with_sibling_share: 0.30    # of youth, share with >=1 sibling in the data
+    max_siblings: 3                   # max minors per household
+  nickname_share: 0.15                # people with a nickname (used by the nickname defect)
+  consent:
+    marketing_opt_in_rate: 0.35
+    photo_consent_rate: 0.70
+  locales:
+    US: en_US
+    CA_EN: en_CA
+    CA_FR: fr_CA
+    MX: es_MX
+    GB: en_GB
+    JP: ja_JP
+    DE: de_DE
+    AT: de_DE                         # faker has no de_AT locale in use here; reuse de_DE
+    PA: es_MX                         # no es_PA locale; reuse es_MX
+
+participation:
+  # Per-season churn probability by age at the season (applies after first season).
+  churn_by_age:
+    - {min_age: 5,  max_age: 7,  p: 0.25}
+    - {min_age: 8,  max_age: 11, p: 0.15}
+    - {min_age: 12, max_age: 13, p: 0.25}
+    - {min_age: 14, max_age: 17, p: 0.40}
+    - {min_age: 18, max_age: 99, p: 0.35}
+  # Share of people whose first season is each year (before girls' trend adjustment).
+  first_season_weights: {2023: 0.50, 2024: 0.28, 2025: 0.22}
+  # Girls' participation grows: multiplier on the weight of F in later first-seasons.
+  girls_new_player_multiplier: {2023: 1.0, 2024: 1.3, 2025: 1.7}
+  us_two_leagues_same_season_share: 0.05   # legitimate multi-league play, not duplicates
+  us_both_terms_given_active: 0.60         # chance an active US player plays Spring and Fall
+
+defects:
+  us_league:
+    name_typo_reregistration: 0.04
+    nickname_reregistration: 0.03
+    exact_duplicate: 0.015
+    near_duplicate: 0.01
+    impossible_dob: 0.005
+    dob_day_month_swapped: 0.01
+    guardian_email_case_whitespace: 0.08
+    guardian_email_changed_between_seasons: 0.06
+    missing_gender: 0.03
+    missing_photo_consent: 0.10
+    # Not in the spec's defect list; added so every consent column can be NULL:
+    missing_marketing_opt_in: 0.05
+    zip_leading_zero_dropped: 0.50      # of zips that start with 0 (NJ, MA, CT)
+  ca_club:
+    accents_stripped: 0.10
+    all_caps_names: 0.05
+    postal_code_format: 0.15            # no space or lowercase
+    missing_consents_object: 0.07
+    pagination_overlap_duplicate: 0.01
+    birth_year_off_by_one: 0.015
+    # Not in the spec's defect list; added so each consent field can be null:
+    null_photo_media: 0.10
+    null_casl_marketing: 0.05
+  intl_federation:
+    uk_dob_excel_serial: 0.20           # of DOBs on the UK sheet
+    country_value_inconsistency: 0.25
+    # Not in the spec's defect list; added so Media Consent can be blank:
+    missing_media_consent: 0.10
+  # Structural (not rate-based) intl defects, injected deterministically:
+  #   Germany + Austria sheets: title row + blank row above the header
+  #   Some sheets: trailing "Total: N" summary row
+  #   Japan: family name first
+  #   Panama: Player ID reissued each year
+
+sources:
+  ca_club:
+    page_size: 200
+  intl:
+    sheets_with_title_rows: [DE, AT]
+    sheets_with_summary_row: [MX, GB, DE, PA]
+    family_name_first_sheets: [JP]
+    unstable_player_id_sheets: [PA]
+    email_present_minor: 0.20           # "often blank for minors"
+    email_present_adult: 0.90

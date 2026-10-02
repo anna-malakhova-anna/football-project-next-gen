@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: dq_source_profile
+    description: >
+      One row per source x column of the staged common-schema data: row count, null count and rate,
+      distinct count, top 5 values and parse-failure rate (dob, postal_code). A NULL rate for consent
+      columns means "not captured". Top values are suppressed for identifiers and quasi-identifiers.
+    columns:
+      - name: source_system
+        data_tests: [not_null]
+      - name: column_name
+        data_tests: [not_null]
+
+  - name: dq_defect_log
+    description: >
+      One row per flagged record per flag, with the raw value the rule fired on and a rule description.
+      Also logs every INTL junk row (title, blank, header, summary) that staging dropped.
+      `registration_key` is NULL for dropped junk rows, which are not registrations.
+    columns:
+      - name: source_system
+        data_tests: [not_null]
+      - name: flag
+        data_tests: [not_null]
+      - name: rule_description
+        data_tests: [not_null]
+
+  - name: dq_summary
+    description: >
+      One row per source x defect comparing observed vs configured defect rates. `status` is OK,
+      OUT_OF_TOLERANCE, NOT_DETECTABLE_PHASE1 (observed NULL; needs Phase 2 identity matching or a
+      second source) or NOT_CONFIGURED (a flag the pipeline raised that the config does not expect).
+    columns:
+      - name: source_system
+        data_tests: [not_null]
+      - name: defect_id
+        data_tests: [not_null]
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [OK, OUT_OF_TOLERANCE, NOT_DETECTABLE_PHASE1, NOT_CONFIGURED]

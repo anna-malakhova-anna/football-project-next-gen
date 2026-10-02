@@ -1,0 +1,43 @@
+source_system,defect_id,kind,configured_rate,configured_count,denominator_kind,denominator_description,detectable_phase1,rule_description
+US_LEAGUE,name_typo_reregistration,rate,0.04,,reregistrations,re-registrations,false,Name has a one-character typo on a re-registration. Needs identity matching to see (Phase 2).
+US_LEAGUE,nickname_reregistration,rate,0.03,,reregistrations,re-registrations (drawn only from people who have a nickname),false,Nickname used instead of given name on a re-registration. Needs identity matching (Phase 2).
+US_LEAGUE,exact_duplicate,rate,0.015,,rows,all rows,true,Row is byte-identical to an earlier row in the same file (double submit).
+US_LEAGUE,near_duplicate,rate,0.01,,rows,all rows,true,"Same name keys, league and season as an earlier row but a different registration_id and timestamp."
+US_LEAGUE,impossible_dob,rate,0.005,,rows,all rows,true,Age at the Dec 31 cutoff is below 0 (future DOB) or above 80.
+US_LEAGUE,dob_day_month_swapped,rate,0.01,,rows,all rows,false,Day and month of the DOB are swapped but the date is still plausible. Not detectable in isolation.
+US_LEAGUE,guardian_email_case_whitespace,rate,0.08,,rows,all rows,true,"Guardian email differs from its lowercased, trimmed form."
+US_LEAGUE,guardian_email_changed_between_seasons,rate,0.06,,reregistrations,re-registrations,false,Guardian email differs from the person's earlier registration. Needs identity matching (Phase 2).
+US_LEAGUE,missing_gender,rate,0.03,,rows,all rows,true,player_gender is blank (mapped to U).
+US_LEAGUE,missing_photo_consent,rate,0.1,,rows,all rows,true,"photo_consent is blank: not captured (NULL), never FALSE."
+US_LEAGUE,missing_marketing_opt_in,rate,0.05,,rows,all rows,true,"marketing_opt_in is blank: not captured (NULL), never FALSE."
+US_LEAGUE,zip_leading_zero_dropped,rate,0.5,,zip_eligible_rows,zips that start with 0 (including those that lost it),true,ZIP has 4 digits: a leading zero was dropped upstream and is restored in staging.
+US_LEAGUE,unmapped_division,zero,0.0,,rows,all rows,true,Division label is missing from division_map.
+US_LEAGUE,unmapped_gender,zero,0.0,,rows,all rows,true,Non-blank gender value missing from gender_map.
+US_LEAGUE,dob_unparseable,zero,0.0,,rows,all rows,true,"DOB is blank, ambiguous or not a real date."
+CA_CLUB,accents_stripped,rate,0.1,,accented_records,records whose participant name has an accent,false,"Accents removed from a name (Élodie -> Elodie). The original is unknown, so not detectable."
+CA_CLUB,all_caps_names,rate,0.05,,rows,all records,true,Participant family name is entirely upper case.
+CA_CLUB,postal_code_format,rate,0.15,,rows,all records,true,Postal code is not in the standard 'A1A 1A1' form (lowercase or no space).
+CA_CLUB,missing_consents_object,rate,0.07,,rows,all records,true,The record has no consents object: consent not captured (NULL).
+CA_CLUB,pagination_overlap_duplicate,rate,0.01,,rows,all records,true,Record is identical to one already seen on an earlier API page.
+CA_CLUB,birth_year_off_by_one,rate,0.015,,rows,all records,false,Birth year is one year off the truth. Not detectable without a second source.
+CA_CLUB,null_photo_media,rate,0.1,,rows_with_consents_object,records that have a consents object,true,consents.photo_media is null: not captured (NULL).
+CA_CLUB,null_casl_marketing,rate,0.05,,rows_with_consents_object,records that have a consents object,true,consents.casl_marketing is null: not captured (NULL).
+CA_CLUB,unmapped_division,zero,0.0,,rows,all records,true,Program label is missing from division_map.
+CA_CLUB,unmapped_gender,zero,0.0,,rows,all records,true,Sex value missing from gender_map.
+CA_CLUB,dob_unparseable,zero,0.0,,rows,all records,true,birth_year is not a 4-digit year.
+INTL_FED,uk_dob_excel_serial,rate,0.2,,uk_rows,rows on the United Kingdom sheets,true,Date of birth is an Excel date serial instead of a DD/MM/YYYY string (decoded in staging).
+INTL_FED,country_value_inconsistency,rate,0.25,,rows,all rows,true,Country spelling differs from the dominant spelling on its sheet (MEX / Mexico / MX).
+INTL_FED,missing_media_consent,rate,0.1,,rows,all rows,true,Media Consent is blank: not captured (NULL).
+INTL_FED,junk_title_row,structural,,6,structural,"title rows above the header (DE, AT)",true,Worksheet title row above the header; dropped in staging.
+INTL_FED,junk_blank_row,structural,,6,structural,"blank rows above the header (DE, AT)",true,Blank row between title and header; dropped in staging.
+INTL_FED,junk_summary_row,structural,,12,structural,trailing 'Total: N' rows,true,Trailing summary row ('Total: N'); dropped in staging.
+INTL_FED,junk_header_row,structural,,18,structural,one header row per sheet,true,"The column header row, landed as data by the raw loader; dropped in staging."
+INTL_FED,name_order_inverted,structural,,,structural,all rows on family-name-first sheets (JP),false,"Family name precedes given name (Japan). Handled by sheet rule in staging; a configuration, not a data signal."
+INTL_FED,player_id_reissued,structural,,,structural,all rows on unstable-ID sheets (PA),false,Player ID is reissued each year (Panama). Needs identity matching to see (Phase 2).
+INTL_FED,unmapped_division,zero,0.0,,rows,all rows,true,Category label is missing from division_map.
+INTL_FED,unmapped_gender,zero,0.0,,rows,all rows,true,Gender value missing from gender_map.
+INTL_FED,unmapped_country,zero,0.0,,rows,all rows,true,Country value missing from country_map.
+INTL_FED,dob_unparseable,zero,0.0,,rows,all rows,true,"DOB is blank, ambiguous or not a real date."
+INTL_FED,exact_duplicate,zero,0.0,,rows,all rows,true,Row is identical to an earlier row on the same sheet.
+CA_CLUB,impossible_dob,zero,0.0,,rows,all records,true,Age at the Dec 31 cutoff is below 0 or above 80.
+INTL_FED,impossible_dob,zero,0.0,,rows,all rows,true,Age at the Dec 31 cutoff is below 0 or above 80.

@@ -1,0 +1,26 @@
+[project]
+name = "counting-flag-football"
+version = "0.1.0"
+description = "Governed participation data platform for a SYNTHETIC global flag football program (Phase 1: foundations)."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "faker",
+    "duckdb",
+    "dbt-core",
+    "dbt-duckdb",
+    "openpyxl",
+    "pyarrow",
+    "pyyaml",
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools]
+packages = ["generator", "generator.sources", "loader", "scripts"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

@@ -1,0 +1,350 @@
+version: 2
+
+# Descriptions and metadata here are the single source for docs/data_dictionary.md
+# (`make docs` regenerates it; tests/test_data_dictionary.py fails if it drifts).
+# meta keys: group (business | helper), nullable, pii, derivation, source_mapping.
+
+models:
+  - name: int_registrations_unioned
+    description: >
+      Common schema across US_LEAGUE, CA_CLUB and INTL_FED. One row per registration record.
+      Exact duplicates, near-duplicates and impossible DOBs are flagged (see `dq_flags`), not removed.
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: registration_key
+        data_type: varchar
+        description: Unique key of one registration record.
+        meta:
+          group: business
+          nullable: "No"
+          pii: Quasi-identifier
+          derivation: "md5(source_system | source_record_id | record_occurrence). Occurrence numbers repeats of the same source_record_id (exact double-submits and pagination overlaps), so every copy gets its own key."
+          source_mapping: {US_LEAGUE: "same rule", CA_CLUB: "same rule", INTL_FED: "same rule"}
+        data_tests: [unique, not_null]
+      - name: source_system
+        data_type: varchar
+        description: Source the record came from.
+        meta:
+          group: business
+          nullable: "No"
+          pii: Non-PII
+          derivation: "Constant per staging model: US_LEAGUE, CA_CLUB or INTL_FED."
+          source_mapping: {US_LEAGUE: "'US_LEAGUE'", CA_CLUB: "'CA_CLUB'", INTL_FED: "'INTL_FED'"}
+        data_tests:
+          - accepted_values: {arguments: {values: [US_LEAGUE, CA_CLUB, INTL_FED]}}
+      - name: source_record_id
+        data_type: varchar
+        description: The source's identifier for the registration; unique per source except for duplicate copies.
+        meta:
+          group: business
+          nullable: "No"
+          pii: Quasi-identifier
+          derivation: "Taken from the source; composite where the source has no record id."
+          source_mapping: {US_LEAGUE: "registration_id", CA_CLUB: "member_uuid | season_year (the API has no record id)", INTL_FED: "Player ID | season year (from the file name)"}
+        data_tests: [not_null]
+      - name: source_person_id
+        data_type: varchar
+        description: The source's own person identifier, if it has one. Stable only within a club or federation; see source_inventory.
+        meta:
+          group: business
+          nullable: "Yes (always NULL for US_LEAGUE)"
+          pii: Direct identifier
+          derivation: "Passed through."
+          source_mapping: {US_LEAGUE: "none (NULL)", CA_CLUB: "member_uuid (changes if the player switches clubs)", INTL_FED: "Player ID (reissued each year in Panama)"}
+      - name: season_label
+        data_type: varchar
+        description: Season label exactly as the source expresses it.
+        meta:
+          group: business
+          nullable: "No"
+          pii: Non-PII
+          derivation: "Passed through."
+          source_mapping: {US_LEAGUE: "season (e.g. 'Spring 2024')", CA_CLUB: "season_year as text", INTL_FED: "year taken from the workbook file name"}
+      - name: season_year
+        data_type: integer
+        description: Calendar year of the season.
+        meta:
+          group: business
+          nullable: "No"
+          pii: Non-PII
+          derivation: "Year parsed from the label."
+          source_mapping: {US_LEAGUE: "4-digit year in season", CA_CLUB: "season_year", INTL_FED: "file name"}
+        data_tests: [not_null]
+      - name: season_term
+        data_type: varchar
+        description: SPRING or FALL for US; ANNUAL for sources with one calendar-year season.
+        meta:
+          group: business
+          nullable: "No"
+          pii: Non-PII
+          derivation: "Upper-cased first word of the US season label; constant ANNUAL elsewhere."
+          source_mapping: {US_LEAGUE: "first word of season", CA_CLUB: "'ANNUAL'", INTL_FED: "'ANNUAL'"}
+        data_tests:
+          - accepted_values: {arguments: {values: [SPRING, FALL, ANNUAL]}}
+      - name: organization_id
+        data_type: varchar
+        description: League, club or federation club the player registered with.
+        meta:
+          group: business
+          nullable: "No"
+          pii: Quasi-identifier
+          derivation: "Passed through; INTL ids are country code | club name because the file has no club id."
+          source_mapping: {US_LEAGUE: "league_id", CA_CLUB: "club.club_code", INTL_FED: "country code | Club"}
+      - name: organization_name
+        data_type: varchar
+        description: Display name of the organization.
+        meta:
+          group: business
+          nullable: "Yes"
+          pii: Quasi-identifier
+          derivation: "Trimmed; blank becomes NULL."
+          source_mapping: {US_LEAGUE: "league_name", CA_CLUB: "club.club_name", INTL_FED: "Club"}
+      - name: country_code
+        data_type: varchar
+        description: ISO 3166-1 alpha-2 country of the registration.
+        meta:
+          group: business
+          nullable: "Yes (only if a Country value is unmapped; warn-level test)"
+          pii: Non-PII
+          derivation: "Mapped through the country_map seed (case-insensitive). US and CA sources are single-country."
+          source_mapping: {US_LEAGUE: "'US'", CA_CLUB: "'CA'", INTL_FED: "Country column through country_map (no fallback to the sheet name)"}
+        data_tests:
+          - not_null: {config: {severity: warn}}
+      - name: region_code
+        data_type: varchar
+        description: State or province where available.
+        meta:
+          group: business
+          nullable: "Yes (always NULL for INTL_FED)"
+          pii: Quasi-identifier
+          derivation: "Passed through or derived from the league id."
+          source_mapping: {US_LEAGUE: "state segment of league_id (L-TX-0142 -> TX)", CA_CLUB: "club.province", INTL_FED: "not collected (NULL)"}
+      - name: first_name
+        data_type: varchar
+        description: Given name, display form.
+        meta:
+          group: business
+          nullable: "Yes"
+          pii: Direct identifier
+          derivation: "normalize_name: trimmed, whitespace collapsed; title-cased only if all upper or all lower case."
+          source_mapping: {US_LEAGUE: "player_first_name", CA_CLUB: "participant.prenom_first", INTL_FED: "Full Name, split (first space on family-name-first sheets, otherwise last space)"}
+      - name: last_name
+        data_type: varchar
+        description: Family name, display form.
+        meta:
+          group: business
+          nullable: "Yes"
+          pii: Direct identifier
+          derivation: "normalize_name, as for first_name."
+          source_mapping: {US_LEAGUE: "player_last_name", CA_CLUB: "participant.nom_last", INTL_FED: "Full Name, split. Multi-word surnames split imperfectly."}
+      - name: first_name_key
+        data_type: varchar
+        description: "Match form of the given name: lowercase and accent-stripped."
+        meta:
+          group: business
+          nullable: "Yes"
+          pii: Direct identifier
+          derivation: "name_key: lower(strip_accents(normalize_name(...)))."
+          source_mapping: {US_LEAGUE: "from player_first_name", CA_CLUB: "from participant.prenom_first", INTL_FED: "from the split Full Name"}
+      - name: last_name_key
+        data_type: varchar
+        description: "Match form of the family name: lowercase and accent-stripped."
+        meta:
+          group: business
+          nullable: "Yes"
+          pii: Direct identifier
+          derivation: "name_key, as for first_name_key."
+          source_mapping: {US_LEAGUE: "from player_last_name", CA_CLUB: "from participant.nom_last", INTL_FED: "from the split Full Name"}
+      - name: dob
+        data_type: date
+        description: Full date of birth. NULL when the source gives only a birth year.
+        meta:
+          group: business
+          nullable: "Yes (always NULL for CA_CLUB; NULL if unparseable)"
+          pii: Quasi-identifier
+          derivation: "parse_flexible_date; never guesses (ambiguous or invalid values stay NULL)."
+          source_mapping: {US_LEAGUE: "player_dob, MM/DD/YYYY or ISO", CA_CLUB: "not available", INTL_FED: "Date of Birth, DD/MM/YYYY or Excel serial"}
+      - name: birth_year
+        data_type: integer
+        description: Year of birth.
+        meta:
+          group: business
+          nullable: "Yes (if no DOB could be read)"
+          pii: Quasi-identifier
+          derivation: "Year of dob, or the source's birth year."
+          source_mapping: {US_LEAGUE: "year of player_dob", CA_CLUB: "participant.birth_year", INTL_FED: "year of Date of Birth"}
+      - name: dob_precision
+        data_type: varchar
+        description: DAY when a full DOB is known, YEAR when only the birth year is.
+        meta:
+          group: business
+          nullable: "No"
+          pii: Non-PII
+          derivation: "Constant per source."
+          source_mapping: {US_LEAGUE: "'DAY'", CA_CLUB: "'YEAR'", INTL_FED: "'DAY'"}
+        data_tests:
+          - accepted_values: {arguments: {values: [DAY, YEAR]}}
+      - name: sex
+        data_type: varchar
+        description: Registration-reported sex (F / M / U for unknown). Gender identity is not collected.
+        meta:
+          group: business
+          nullable: "No"
+          pii: Quasi-identifier
+          derivation: "Mapped through gender_map; blank or unmapped values become U, never guessed."
+          source_mapping: {US_LEAGUE: "player_gender (M/F/Boy/Girl/Male/Female/blank)", CA_CLUB: "participant.sex", INTL_FED: "Gender (W/M/F/Mujer/Hombre)"}
+        data_tests:
+          - accepted_values: {arguments: {values: [F, M, U]}}
+      - name: age_at_cutoff
+        data_type: integer
+        description: Age in whole years on December 31 of the season year (ADR-002).
+        meta:
+          group: business
+          nullable: "Yes (if no DOB or birth year)"
+          pii: Quasi-identifier
+          derivation: "age_at_cutoff(dob, season_year); for CA, season_year - birth_year."
+          source_mapping: {US_LEAGUE: "from dob", CA_CLUB: "from birth_year (exact under the Dec 31 cutoff)", INTL_FED: "from dob"}
+      - name: canonical_division
+        data_type: varchar
+        description: Project division (U6 to U17, ADULT_W, ADULT_M, ADULT_MIXED) the source label maps to.
+        meta:
+          group: business
+          nullable: "Yes (only if a label is unmapped; a singular test fails the build)"
+          pii: Non-PII
+          derivation: "Source label joined to the division_map seed. The label's own boundaries are used, not age_at_cutoff."
+          source_mapping: {US_LEAGUE: "division", CA_CLUB: "program", INTL_FED: "Category"}
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [U6, U8, U10, U12, U14, U17, ADULT_W, ADULT_M, ADULT_MIXED]
+          - relationships:
+              arguments:
+                to: ref('division_map')
+                field: canonical_division
+      - name: is_minor
+        data_type: boolean
+        description: True when age_at_cutoff is under 18.
+        meta:
+          group: business
+          nullable: "Yes (if age is unknown)"
+          pii: Non-PII
+          derivation: "age_at_cutoff < 18."
+          source_mapping: {US_LEAGUE: "from dob", CA_CLUB: "from birth_year", INTL_FED: "from dob"}
+      - name: contact_email
+        data_type: varchar
+        description: Guardian email for minors, the player's own email for adults.
+        meta:
+          group: business
+          nullable: "Yes"
+          pii: Direct identifier
+          derivation: "normalize_email: lowercased and trimmed. Gmail dot/plus folding is off by default."
+          source_mapping: {US_LEAGUE: "guardian_email (own email for adults)", CA_CLUB: "guardian.email (own email for adults)", INTL_FED: "Email (often blank for minors)"}
+      - name: contact_phone
+        data_type: varchar
+        description: Guardian phone for minors, own phone for adults, digits-only with country code.
+        meta:
+          group: business
+          nullable: "Yes (always NULL for INTL_FED)"
+          pii: Direct identifier
+          derivation: "normalize_phone: '+1' plus 10 digits; anything else becomes NULL."
+          source_mapping: {US_LEAGUE: "guardian_phone", CA_CLUB: "guardian.phone", INTL_FED: "not collected"}
+      - name: postal_code
+        data_type: varchar
+        description: US ZIP (5 digits) or Canadian postal code (A1A 1A1).
+        meta:
+          group: business
+          nullable: "Yes (always NULL for INTL_FED)"
+          pii: Quasi-identifier
+          derivation: "normalize_us_zip restores a dropped leading zero; normalize_ca_postal uppercases and adds the space."
+          source_mapping: {US_LEAGUE: "zip", CA_CLUB: "postal_code", INTL_FED: "not collected"}
+      - name: consent_photo
+        data_type: boolean
+        description: Photo / media consent. NULL means not captured, never FALSE.
+        meta:
+          group: business
+          nullable: "Yes (NULL = not captured)"
+          pii: Non-PII
+          derivation: "to_consent_boolean: Y/yes/true -> TRUE, N/no/false -> FALSE, blank or absent -> NULL."
+          source_mapping: {US_LEAGUE: "photo_consent", CA_CLUB: "consents.photo_media", INTL_FED: "Media Consent"}
+      - name: consent_marketing
+        data_type: boolean
+        description: Marketing consent. NULL means not captured, never FALSE.
+        meta:
+          group: business
+          nullable: "Yes (NULL = not captured; always NULL for INTL_FED)"
+          pii: Non-PII
+          derivation: "to_consent_boolean, as for consent_photo."
+          source_mapping: {US_LEAGUE: "marketing_opt_in", CA_CLUB: "consents.casl_marketing", INTL_FED: "not captured"}
+      - name: registered_at
+        data_type: timestamp
+        description: When the registration was made, where the source says.
+        meta:
+          group: business
+          nullable: "Yes (always NULL for INTL_FED)"
+          pii: Quasi-identifier
+          derivation: "Cast to timestamp; no time zone handling (sources do not state one)."
+          source_mapping: {US_LEAGUE: "registered_at", CA_CLUB: "consents.consent_captured_at (NULL when the consents object is missing)", INTL_FED: "not collected"}
+      - name: dq_flags
+        data_type: "varchar[]"
+        description: Every data-quality flag raised on the record (see dq_defect_log for raw values and rules).
+        meta:
+          group: business
+          nullable: "No (empty list when clean)"
+          pii: Non-PII
+          derivation: "Staging flags collected into a list."
+          source_mapping: {US_LEAGUE: "up to 11 flags", CA_CLUB: "up to 10 flags", INTL_FED: "up to 9 flags"}
+      - name: record_occurrence
+        data_type: integer
+        description: 1 for the first copy of a source_record_id, 2 and up for repeats.
+        meta:
+          group: helper
+          nullable: "No"
+          pii: Non-PII
+          derivation: "row_number over the source's record id (and file, for US)."
+          source_mapping: {US_LEAGUE: "per file + registration_id", CA_CLUB: "per member_uuid + season_year, by API page", INTL_FED: "always 1"}
+      - name: source_file
+        data_type: varchar
+        description: Raw file the record came from, relative to data/raw.
+        meta:
+          group: helper
+          nullable: "No"
+          pii: Non-PII
+          derivation: "Raw lineage column _source_file."
+          source_mapping: {US_LEAGUE: "CSV file", CA_CLUB: "JSON page file", INTL_FED: "XLSX workbook"}
+      - name: source_row
+        data_type: integer
+        description: Row position within the source file.
+        meta:
+          group: helper
+          nullable: "Yes (NULL for CA_CLUB)"
+          pii: Non-PII
+          derivation: "Raw lineage column."
+          source_mapping: {US_LEAGUE: "1-based data row in the CSV", CA_CLUB: "not tracked", INTL_FED: "1-based worksheet row"}
+      - name: is_exact_duplicate
+        data_type: boolean
+        description: True for second and later byte-identical copies of a record.
+        meta:
+          group: helper
+          nullable: "No"
+          pii: Non-PII
+          derivation: "row_number over a hash of all source columns > 1."
+          source_mapping: {US_LEAGUE: "double submit", CA_CLUB: "pagination overlap", INTL_FED: "identical row on a sheet (none injected)"}
+      - name: is_near_duplicate
+        data_type: boolean
+        description: True for a later record with the same name keys, league and season but a different record id.
+        meta:
+          group: helper
+          nullable: "No"
+          pii: Non-PII
+          derivation: "Window over organization, season and name keys, excluding exact duplicates."
+          source_mapping: {US_LEAGUE: "detected", CA_CLUB: "always false", INTL_FED: "always false"}
+      - name: is_impossible_dob
+        data_type: boolean
+        description: True when age_at_cutoff is below 0 or above 80.
+        meta:
+          group: helper
+          nullable: "Yes (if age is unknown)"
+          pii: Non-PII
+          derivation: "age_at_cutoff < 0 or > 80."
+          source_mapping: {US_LEAGUE: "from dob", CA_CLUB: "from birth_year", INTL_FED: "from dob"}

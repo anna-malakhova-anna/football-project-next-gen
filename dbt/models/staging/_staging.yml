@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: stg_us_registrations
+    description: >
+      One row per raw US league CSV row (1:1 with raw grain). Typed and standardized; bad records are
+      flagged, never dropped. Exact double-submit copies are kept and flagged `is_exact_duplicate`;
+      `record_occurrence` numbers repeats of the same `source_record_id`.
+    columns:
+      - name: source_record_id
+        data_tests: [not_null]
+      - name: source_system
+        data_tests:
+          - accepted_values: {arguments: {values: [US_LEAGUE]}}
+
+  - name: stg_ca_registrations
+    description: >
+      One row per raw Canadian club API record (1:1 with raw grain), JSON flattened. Birth year only
+      (`dob` is NULL, `dob_precision` = YEAR). `registered_at` is the consent capture time, NULL when
+      the `consents` object is missing. Pagination-overlap repeats are kept and flagged.
+    columns:
+      - name: source_record_id
+        data_tests: [not_null]
+      - name: source_system
+        data_tests:
+          - accepted_values: {arguments: {values: [CA_CLUB]}}
+
+  - name: stg_intl_registrations
+    description: >
+      One row per real player row in the federation workbooks. Title, blank, header and summary rows
+      are dropped here (and logged in dq_defect_log). Excel serial dates are decoded; Full Name is split
+      into given/family (family-name-first sheets configured in `intl_family_name_first_countries`).
+      `consent_marketing` is always NULL: this source does not capture it.
+    columns:
+      - name: source_record_id
+        data_tests: [not_null, unique]
+      - name: source_system
+        data_tests:
+          - accepted_values: {arguments: {values: [INTL_FED]}}

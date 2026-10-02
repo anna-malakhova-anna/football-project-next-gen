@@ -1,0 +1,21 @@
+# Generated data (synthetic, reproducible from seed)
+data/raw/*
+data/ground_truth/*
+!data/raw/.gitkeep
+!data/ground_truth/.gitkeep
+warehouse/*
+!warehouse/.gitkeep
+
+# dbt
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+dbt/profiles.yml
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dbt/.user.yml

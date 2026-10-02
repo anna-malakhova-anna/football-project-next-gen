@@ -1,0 +1,35 @@
+name: counting_flag_football
+version: "0.1.0"
+config-version: 2
+profile: counting_flag_football
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: target
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # Age convention (ADR-002): age is computed as of this month-day of the season year.
+  age_cutoff_month_day: "12-31"
+  # Gmail dot/plus-address folding is OFF: it can merge distinct people (see normalize_email).
+  email_fold_gmail: false
+  # INTL sheets whose "Full Name" column gives the family name first (Japan).
+  intl_family_name_first_countries: ["JP"]
+
+models:
+  counting_flag_football:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: table
+      +schema: intermediate
+    quality:
+      +materialized: table
+      +schema: quality
+
+seeds:
+  counting_flag_football:
+    +schema: reference

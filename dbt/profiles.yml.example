@@ -1,0 +1,7 @@
+counting_flag_football:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../warehouse/flag.duckdb
+      threads: 4

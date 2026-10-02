@@ -1,0 +1,31 @@
+source_value,country_code,notes
+MEX,MX,Intl Country column spelling
+MX,MX,Intl Country column spelling
+Mexico,MX,Intl Country column spelling
+México,MX,Intl Country column spelling
+GBR,GB,Intl Country column spelling
+GB,GB,Intl Country column spelling
+United Kingdom,GB,Intl Country column spelling
+UK,GB,Intl Country column spelling
+JPN,JP,Intl Country column spelling
+JP,JP,Intl Country column spelling
+Japan,JP,Intl Country column spelling
+Nippon,JP,Intl Country column spelling
+DEU,DE,Intl Country column spelling
+DE,DE,Intl Country column spelling
+Germany,DE,Intl Country column spelling
+Deutschland,DE,Intl Country column spelling
+AUT,AT,Intl Country column spelling
+AT,AT,Intl Country column spelling
+Austria,AT,Intl Country column spelling
+Österreich,AT,Intl Country column spelling
+PAN,PA,Intl Country column spelling
+PA,PA,Intl Country column spelling
+Panama,PA,Intl Country column spelling
+Panamá,PA,Intl Country column spelling
+US,US,US/CA are implicit in their sources; listed for completeness
+USA,US,US/CA are implicit in their sources; listed for completeness
+United States,US,US/CA are implicit in their sources; listed for completeness
+CA,CA,US/CA are implicit in their sources; listed for completeness
+CAN,CA,US/CA are implicit in their sources; listed for completeness
+Canada,CA,US/CA are implicit in their sources; listed for completeness

@@ -1,0 +1,77 @@
+version: 2
+
+seeds:
+  - name: division_map
+    description: >
+      Maps every source division / program / category label to a canonical division. Owned by the
+      project (not the sources). Matching is exact on trimmed `source_label` within `source_system`.
+      Boundaries follow the Dec 31 age convention (ADR-002); `notes` records where a source label
+      does not line up with the canonical age bands.
+    config:
+      column_types: {source_system: varchar, source_label: varchar, canonical_division: varchar, notes: varchar}
+    columns:
+      - name: source_system
+        data_tests:
+          - not_null
+          - accepted_values: {arguments: {values: [US_LEAGUE, CA_CLUB, INTL_FED]}}
+      - name: source_label
+        data_tests: [not_null]
+      - name: canonical_division
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [U6, U8, U10, U12, U14, U17, ADULT_W, ADULT_M, ADULT_MIXED]
+
+  - name: country_map
+    description: >
+      Any country representation seen in the sources -> ISO 3166-1 alpha-2. Matching is
+      case-insensitive on trimmed `source_value`.
+    config:
+      column_types: {source_value: varchar, country_code: varchar, notes: varchar}
+    columns:
+      - name: source_value
+        data_tests: [not_null]
+      - name: country_code
+        data_tests:
+          - not_null
+          - accepted_values: {arguments: {values: [US, CA, MX, GB, JP, DE, AT, PA]}}
+
+  - name: gender_map
+    description: >
+      Registration-reported sex value -> F / M / U. Gender identity is out of scope and not
+      collected. Blank or unmapped values become U in staging (never guessed).
+    config:
+      column_types: {source_value: varchar, sex_code: varchar, notes: varchar}
+    columns:
+      - name: source_value
+        data_tests: [not_null]
+      - name: sex_code
+        data_tests:
+          - not_null
+          - accepted_values: {arguments: {values: [F, M, U]}}
+
+  - name: dq_defect_config
+    description: >
+      CONFIGURED defect-injection rates, exported from config/generation.yaml by
+      generator/export_config_seed.py (`make generate`). Used by dq_summary to compare observed vs
+      configured. `kind`: rate = configured rate, structural = configured exact count, zero = nothing
+      injected (expect 0). `denominator_kind` says what the rate is a share of. `detectable_phase1` is
+      false when only identity matching (Phase 2) or a second source could reveal the defect.
+    config:
+      column_types:
+        source_system: varchar
+        defect_id: varchar
+        kind: varchar
+        configured_rate: double
+        configured_count: integer
+        denominator_kind: varchar
+        denominator_description: varchar
+        detectable_phase1: boolean
+        rule_description: varchar
+    columns:
+      - name: defect_id
+        data_tests: [not_null]
+      - name: kind
+        data_tests:
+          - accepted_values: {arguments: {values: [rate, structural, zero]}}

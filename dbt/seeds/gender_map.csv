@@ -1,0 +1,10 @@
+source_value,sex_code,notes
+F,F,US/CA/UK/JP intl value
+Female,F,
+Girl,F,US league label style
+W,F,"Women / weiblich (DE, AT sheets)"
+Mujer,F,"MX, PA sheets"
+M,M,
+Male,M,
+Boy,M,US league label style
+Hombre,M,"MX, PA sheets"
