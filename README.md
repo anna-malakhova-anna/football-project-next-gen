@@ -38,7 +38,6 @@ flowchart LR
 | One-year retention of entrants (Kaplan-Meier, censored) | 73.3%; counting age-outs as churn would report 44% for entrants aged 14 to 17 (truth 61%) |
 | Fan engagement uplift after first registration | naive +45.6% (3.1x the truth), matched difference-in-differences +17.2% (truth +14.7%) |
 | Household link rate (registration to fan account) | 35% overall; email links 100% precise, phone links 79% |
-| Combined reach with school and recreation headcounts | 8,690 to 11,285 (a range: aggregates cannot be matched to people) |
 
 Counts are **registered participants in onboarded sources**, not total participation. Details and caveats: the [methodology memo](docs/methodology/counting-a-participant.md) (prose still
 being written), [phase 2 results](docs/phase2_results.md), and the [results site](site/index.html).

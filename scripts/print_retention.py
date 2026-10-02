@@ -41,10 +41,6 @@ def main() -> None:
         flag = "  <== age-outs counted as churn" if gap > 0.05 else ""
         print(f"{seg:>9} {k:>2} {n:>8} {pct(tr):>8} {pct(km):>8} {pct(nv):>8} {gap * 100:>20.1f}p{flag}")
 
-    y2a = q("select participation_year, aged_out_n, continued_n, youth_to_adult_rate from retention.mart_youth_to_adult order by participation_year nulls first")
-    print(f"\n3. Youth-to-adult: of {y2a[0][1]} players aged 17 with a next year observed, {y2a[0][2]} registered as adults the next year ({pct(y2a[0][3]).strip()}).")
-    print("   The generator has no adult continuation, so ~0% is the truth here; real data would not look like this.")
-
     OUT.mkdir(parents=True, exist_ok=True)
     for name, sql in (("retention_km_vs_truth.csv", "select * from evaluation.eval_retention order by segment_type, segment_value, years_since_entry"),
                       ("retention_survival.csv", "select * exclude (methodology_version) from retention.mart_retention_survival order by 1, 2, 4")):

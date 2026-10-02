@@ -249,7 +249,7 @@ def charts():
         shows="The share of youth participants (17 or under) whose registration says female; a person with no recorded sex stays in the denominator.",
         doesnt="Why the share moves, or whether girls play as often as boys. It is registration-reported sex, not gender identity.")
     C["reach"] = dict(
-        page="participation", title="Combined reach: participants plus school and recreation program headcounts", datasets=["combined_reach"],
+        page="appendix", title="Combined reach: participants plus school and recreation program headcounts", datasets=["combined_reach"],
         spec={"data": _src("combined_reach"), "width": "container", "height": 300, "layer": [
             {"mark": {"type": "area", "opacity": 0.25, "color": "#d98a2b"}, "encoding": {"x": {"field": "participation_year", "type": "ordinal", "title": "Participation year"},
              "y": {"field": "combined_reach_low", "type": "quantitative", "scale": {"zero": False}, "title": "Children reached"}, "y2": {"field": "combined_reach_high"}}},
@@ -339,6 +339,7 @@ def charts():
 
 # ------------------------------------------------------------------ pages
 PAGES = [("index", "Overview"), ("participation", "Participation"), ("identity", "Identity"), ("retention", "Retention"), ("fandom", "Fandom"), ("governance", "Governance")]
+APPENDIX = [("appendix", "Appendix")]          # a stretch source (school and recreation headcounts): built, linked from the footer, not in the main navigation
 CSS = """
 :root{--bg:#fbfbf9;--fg:#1c1f24;--muted:#5b6470;--line:#dfe2e6;--card:#ffffff;--accent:#2b6cb0;--warn:#b7791f}
 @media (prefers-color-scheme: dark){:root{--bg:#14171b;--fg:#e8eaed;--muted:#9aa4b0;--line:#2a2f36;--card:#1b1f24;--accent:#63a4e8;--warn:#e0a84a}}
@@ -405,12 +406,13 @@ def chart_block(cid: str, ch: dict, data: dict) -> str:
 
 def page(slug: str, title: str, body: str, built: str) -> str:
     nav = "".join(f'<a href="{"index" if s == "index" else s}.html" class="{"on" if s == slug else ""}">{esc(t)}</a>' for s, t in PAGES)
+    appendix_link = '<a href="appendix.html">Appendix: school and recreation programs (a stretch source)</a>' 
     libs = "".join(f'<script src="{u}"></script>' for u in LIBS)
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<title>Counting Flag Football: {esc(title)}</title><style>{CSS}</style></head><body><header><nav><strong>Counting Flag Football</strong>{nav}</nav></header>'
             f'<main><div class="banner"><b>Synthetic data.</b> Every person on this site is generated. Numbers count registered participants in onboarded sources, '
             f'not total participation. Charts marked "synthetic truth" compare the pipeline with the generator\'s answer key, which no real project would have.</div>'
-            f'{body}</main><footer>Built {built} by scripts/build_site.py from share_exec exports and whitelisted evaluation summaries. No number on this site is computed in the browser.</footer>'
+            f'{body}</main><footer>Built {built} by scripts/build_site.py from share_exec exports and whitelisted evaluation summaries. No number on this site is computed in the browser. {appendix_link}</footer>'
             f'{libs}<script>{EMBED_JS}</script></body></html>')
 
 
@@ -420,7 +422,7 @@ def kv(data: dict, name: str) -> dict:
 
 def build_pages(data: dict, chart_defs: dict, facts: dict) -> dict[str, tuple[str, str]]:
     built = {}
-    blocks = {p: [] for p, _ in PAGES}
+    blocks = {p: [] for p, _ in PAGES + APPENDIX}
     for cid, ch in chart_defs.items():
         blocks[ch["page"]].append(chart_block(cid, ch, data))
 
@@ -459,6 +461,9 @@ counted by written rules, shared by audience with small numbers suppressed, and 
     built["fandom"] = ("Fandom", "<h1>Fandom</h1><p class='note'>Estimates describe households linked to a fan account, under a restricted-zone policy (ADR-009). Nothing household-level is shown.</p>"
                        + "".join(blocks["fandom"]) + "<h2>Why the matched estimate is where it is</h2>" + table_html(data["fan_diagnostics"])
                        + "<h2>Who can be linked</h2>" + table_html(data["link_rate"]) + "<h2>Linkage precision and recall against the synthetic truth</h2>" + table_html(data["household_linkage_vs_truth"]))
+    built["appendix"] = ("Appendix", "<h1>Appendix: school and recreation programs</h1><p class='note'>A <b>stretch</b> source: school districts and recreation departments report how many "
+                         "children are in their programs. The counts have no people in them, so they are never added to participants.</p>" + "".join(blocks["appendix"])
+                         + "<h2>Against the synthetic truth</h2>" + table_html(data["reach_vs_truth"]))
     built["governance"] = ("Governance", f"""<h1>Governance</h1>
 <h2>Who sees what</h2>{table_html(data['audience_matrix'])}
 <p class="note"><b>What this shows.</b> Five audiences, each with a column-level allow list; the executive audience gets aggregates only. <b>What it does not show.</b> Real access control: this is a policy enforced by a build check, not by a database role (ADR-006).</p>

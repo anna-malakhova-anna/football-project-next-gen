@@ -18,8 +18,8 @@
 4. **The methodology memo stays a skeleton until Anna writes it.** The generator marks every prose paragraph `DRAFT: Anna to rewrite` and refuses to overwrite
    rewritten prose. Phase 4 proceeded with the skeleton (Option B) rather than waiting; v1.1 changes are drafted with the same markers.
 5. **Censoring is the point of the retention analysis.** An age-out (turning 18) and the end of the data are censored, never churn; the naive version is
-   computed beside the correct one against the generator's true churn parameters. The generator has no adult continuation, so the youth-to-adult rate is about
-   zero by construction: reported, not interpreted.
+   computed beside the correct one against the generator's true churn parameters. The generator has no adult continuation, so a youth-to-adult rate would be about
+   zero by construction. (The youth-to-adult, transition and driver models were built and then removed by the rework, below.)
 6. **Linking registrations to fan accounts is a governance decision, not an engineering one** (ADR-009, decided by Anna on 2026-10-02: restricted zone, phone fallback kept, never to marketing). The
    result of the analysis it enables is ADR-010.
 7. **The Phase 3 and Phase 4 layers are built together.** A Phase 3 scorecard reads a Phase 4 model, and Phase 4 marts read Phase 3 marts, so the tag-based
@@ -28,6 +28,10 @@
    publish gate. Truth-reading checks are now models with a pass/fail column and an `accepted_values` test.
 9. **The site is generated and computes nothing.** `scripts/build_site.py` reads only `share_exec`, an approved aggregate, whitelisted evaluation summaries and
    governance metadata, and fails the build if a chart spec calculates, aggregates, bins, folds or windows in the browser.
+10. **The fan-acquisition rework (`rework-fan-acquisition-spec.md`) supersedes parts of this phase.** Retention transitions, drivers and the youth-to-adult
+   model were cut (nothing published depended on them). Source E (school headcounts) was demoted to a stretch: its code, data, contract, tests and v1.1 KPIs
+   stay, but it is off the site's main pages and the report headline (it has an appendix page). Source D, the household linkage, the fan DiD and the site are
+   extended or restructured by the rework; `docs/rework_inventory.md` has the disposition of every component.
 
 ## Findings worth keeping in view
 - **Identity at five years.** With more years, same-name, same-birth-year Canadian siblings produce two sibling or twin false merges in the rules and

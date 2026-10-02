@@ -27,18 +27,6 @@ models:
       Cohort x years-since-entry triangle with active counts and shares, by entry country and sex. `retention_pct` is the simple share still registered
       (not corrected for age-outs); `retention_among_eligible` removes players who aged out.
 
-  - name: mart_retention_transitions
-    description: >
-      Division-to-division flow year over year (steady, ageing forward, playing up, moved down, youth to adult, not returned, aged out).
-
-  - name: mart_retention_drivers
-    description: >
-      DESCRIPTIVE one-year retention rates by segment with Wilson intervals. Associations only: no causal claim is made or implied.
-
-  - name: mart_youth_to_adult
-    description: >
-      Of the players who were 17 in year t, the share registered as adults in t+1. Tracked separately from youth retention.
-
 unit_tests:
   # Hand-built participants, window 2021-2025 (2021 is the censored first year). Each row is one participant-year the player was registered.
   - name: retention_spells_censor_age_outs_and_the_end_of_the_data

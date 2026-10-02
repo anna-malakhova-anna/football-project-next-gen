@@ -21,7 +21,8 @@
   disagrees with it; round totals are flagged as probable estimates but kept.
 - Small programs are small cells: a country-year with fewer than 10 reporting programs is suppressed in the exec share.
 - **Retention** is defined (see the metric catalog): entry cohort, retained, churn event (the first gap while still youth-eligible), age-out and
-  the end of the data as censoring, youth-to-adult tracked separately. Reported as Kaplan-Meier curves with Greenwood intervals; no scorecard
+  the end of the data as censoring, youth-to-adult tracked separately (the youth-to-adult, transition and driver models were removed later by the fan-acquisition
+  rework; the censoring definitions stand). Reported as Kaplan-Meier curves with Greenwood intervals; no scorecard
   KPI changes. Evaluated against the true churn parameters in `eval_retention`.
 - The restatement log gains two causes, `NEW_KPI` (listed, never a restatement) and `DEFINITION_CHANGED` (a restatement).
 

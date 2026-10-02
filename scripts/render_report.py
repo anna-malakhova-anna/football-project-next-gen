@@ -105,7 +105,7 @@ def render(con: duckdb.DuckDBPyConnection, year: int) -> str:
             "from share_exec.share_exec__reported_headcount where participation_year = ? order by country_code nulls first", [year]).fetchall()
         rh_rows = [["All countries" if c is None else c, fmt_cell(p, sup), fmt_cell(h, sup), fmt_cell(v, sup),
                     "suppressed" if lo is None else f"{lo:,.0f} to {hi:,.0f}"] for c, p, h, v, lo, hi, sup in rh]
-        reach_section = f"""## School and recreation program reach, {year}
+        reach_section = f"""## Appendix: school and recreation program reach, {year} (a stretch source, not part of the headline)
 
 {table(["Country", "Programs reporting", "Children reported (program places)", "Of which voluntary", "Combined reach with participants (range)"], rh_rows)}
 

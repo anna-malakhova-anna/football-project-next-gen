@@ -52,7 +52,7 @@ def test_every_defined_chart_passes_the_checks_and_has_a_shows_and_a_does_not_sh
         assert bs.check_spec(ch["spec"], known, cid) == [], cid
         assert set(ch["datasets"]) <= names, cid
         assert ch["shows"].strip().endswith(".") and ch["doesnt"].strip().endswith("."), cid
-        assert ch["page"] in {p for p, _ in bs.PAGES}, cid
+        assert ch["page"] in {p for p, _ in bs.PAGES + bs.APPENDIX}, cid
     assert all(bs.check_dataset(d) == [] for d in bs.DATASETS)
 
 
@@ -68,8 +68,12 @@ def test_the_site_builds_from_the_warehouse_with_every_page_and_data_file(tmp_pa
     except duckdb.Error as e:
         pytest.skip(f"warehouse not fully built: {e}")
     site = tmp_path / "site"
-    for slug, _ in bs.PAGES:
+    for slug, _ in bs.PAGES + bs.APPENDIX:
         assert (site / f"{slug}.html").exists()
+    nav = (site / "index.html").read_text().split("</nav>")[0]
+    assert "appendix.html" not in nav                       # the stretch source is off the main navigation, linked from the footer only
+    assert "appendix.html" in (site / "index.html").read_text()
+    assert "combined reach" not in (site / "participation.html").read_text().lower()
     manifest = json.loads((site / "data" / "manifest.json").read_text())
     assert len(manifest["datasets"]) == res["datasets"]
     assert {d["kind"] for d in manifest["datasets"]} <= {"share_exec", "approved_aggregate", "evaluation", "governance"}
