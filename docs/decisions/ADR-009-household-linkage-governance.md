@@ -1,6 +1,6 @@
 # ADR-009: May we link participant households to fan accounts at all?
 
-- **Status:** Proposed (Phase 4). **Partly decided:** the phone fallback stays on (Anna, 2026-10-02). The policy and marketing questions still wait for Anna (see the marker at the bottom). The default below is implemented.
+- **Status:** Proposed (Phase 4). **Partly decided:** the phone fallback stays on and nothing linked ever reaches marketing (Anna, 2026-10-02). The policy question still waits for Anna (see the marker at the bottom). The default below is implemented.
 - **Context:** Source D (a fan app and ticketing feed) holds adults' accounts and what they do in the app. The registration data holds
   guardians' contact details, collected to run leagues. Joining them lets us ask whether being in the program changes how a household engages
   with the sport (ADR-010). That is a **purpose beyond running leagues**, and the people concerned never agreed to it when they registered.
@@ -84,6 +84,8 @@ internal learning and accepts the restricted-zone controls above.
   participant household's number) against 100% for email, and add 89 correct links. The switch (`linkage_phone_fallback`) stays on; results from linked households
   carry this caveat.
 - **Question 1, policy (restricted zone vs explicit consent):** _(pending)_
-- **Question 3, marketing position:** _(pending)_
+- **Question 3, marketing: keep "never".** Decided by Anna, 2026-10-02. Nothing linked reaches `share_marketing` or `share_media`, even where both the registration
+  and the fan account have `consent_marketing = TRUE`. The both-sides consent path is not built; if it ever were, it would be a second purpose with its own consent question
+  and would have to fail closed on NULL. `scripts/check_share_policy.py` enforces the position (`LINKAGE_IN_MARKETING`).
 
-**Decision:** _(partly decided: the phone fallback only)_  **Decided by:** Anna  **Date:** 2026-10-02 for the phone fallback
+**Decision:** _(partly decided: the phone fallback and the marketing position; the policy question is open)_  **Decided by:** Anna  **Date:** 2026-10-02
