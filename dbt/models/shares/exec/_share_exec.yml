@@ -83,3 +83,74 @@ models:
         meta: {pii: none}
         data_tests:
           - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__fan_engagement_effect
+    description: >
+      Naive and matched estimates of the change in fan engagement after a household's first registration, aggregate only, small cells suppressed, with a
+      caveat per row. Built from the restricted linkage schema (ADR-009); describes linked households only.
+    columns:
+      - {name: estimator, meta: {pii: none}}
+      - {name: fan_uplift_pct, meta: {pii: none}}
+      - {name: fan_uplift_ci_low_pct, meta: {pii: none}}
+      - {name: fan_uplift_ci_high_pct, meta: {pii: none}}
+      - {name: fan_treated_households, meta: {pii: none}}
+      - {name: fan_match_rate, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+      - {name: caveat, meta: {pii: none}}
+
+  - name: share_exec__household_link_rate
+    description: >
+      Program households, households linked to a fan account and the link rate, by country with a total. Counts and a rate only, small cells suppressed.
+    columns:
+      - {name: country_code, meta: {pii: quasi}}
+      - {name: program_households, meta: {pii: none}}
+      - {name: linked_households, meta: {pii: none}}
+      - {name: household_link_rate, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__participation_bounds
+    description: Unique participants per year with the label-free identity bounds (low, point, high), small cells suppressed.
+    columns:
+      - {name: participation_year, meta: {pii: none}}
+      - {name: identity_participants_low, meta: {pii: none}}
+      - {name: identity_participants_point, meta: {pii: none}}
+      - {name: identity_participants_high, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__retention_survival
+    description: Kaplan-Meier retention by segment and years since entry with 95% intervals; age-outs and the end of the data are censored. Small cells suppressed.
+    columns:
+      - {name: segment_type, meta: {pii: none}}
+      - {name: segment_value, meta: {pii: quasi}}
+      - {name: years_since_entry, meta: {pii: none}}
+      - {name: entry_cohort_size, meta: {pii: none}}
+      - {name: km_at_risk, meta: {pii: none}}
+      - {name: km_survival, meta: {pii: none}}
+      - {name: km_survival_ci_low, meta: {pii: none}}
+      - {name: km_survival_ci_high, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__retention_cohorts
+    description: Cohort triangle for all entrants, with the share still registered and the share among players not yet aged out. Small cells suppressed.
+    columns:
+      - {name: entry_year, meta: {pii: none}}
+      - {name: years_since_entry, meta: {pii: none}}
+      - {name: entry_cohort_size, meta: {pii: none}}
+      - {name: cohort_retention_pct, meta: {pii: none}}
+      - {name: cohort_retention_among_eligible_pct, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

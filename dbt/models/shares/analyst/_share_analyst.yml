@@ -28,3 +28,19 @@ models:
           - accepted_values: {arguments: {values: [NEW, RETURNING, REACTIVATED, CENSORED]}}
       - {name: resolution_confidence, meta: {pii: none}}
       - {name: has_open_integrity_issue, meta: {pii: none}}
+
+  - name: share_analyst__fan_event_study
+    description: >
+      The event study at aggregate level: participants vs matched comparisons by month relative to first registration (-12 to +18), small cells suppressed.
+      Built from the restricted linkage schema (ADR-009); linked households only; nothing household-level.
+    columns:
+      - {name: months_since_event, meta: {pii: none}}
+      - {name: fan_treated_households, meta: {pii: none}}
+      - {name: fan_treated_mean_events, meta: {pii: none}}
+      - {name: fan_comparison_mean_events, meta: {pii: none}}
+      - {name: fan_event_study_effect_pct, meta: {pii: none}}
+      - {name: fan_event_study_diff_se, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

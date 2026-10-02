@@ -32,6 +32,39 @@ policies (design only; not implemented).
 
 ### exec
 
+**`share_exec__fan_engagement_effect`**
+
+| Column | Treatment |
+|---|---|
+| `estimator` | DIMENSION |
+| `fan_uplift_pct` | DERIVED_RATE_SUPPRESSED |
+| `fan_uplift_ci_low_pct` | DERIVED_RATE_SUPPRESSED |
+| `fan_uplift_ci_high_pct` | DERIVED_RATE_SUPPRESSED |
+| `fan_treated_households` | AGGREGATE_SUPPRESSED |
+| `fan_match_rate` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+| `caveat` | CAVEAT_LABEL |
+
+**`share_exec__household_link_rate`**
+
+| Column | Treatment |
+|---|---|
+| `country_code` | DIMENSION |
+| `program_households` | AGGREGATE_SUPPRESSED |
+| `linked_households` | AGGREGATE_SUPPRESSED |
+| `household_link_rate` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_exec__participation_bounds`**
+
+| Column | Treatment |
+|---|---|
+| `participation_year` | DIMENSION |
+| `identity_participants_low` | DERIVED_RATE_SUPPRESSED |
+| `identity_participants_point` | AGGREGATE_SUPPRESSED |
+| `identity_participants_high` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
 **`share_exec__participation_by_country`**
 
 | Column | Treatment |
@@ -96,6 +129,31 @@ policies (design only; not implemented).
 | `combined_reach_high` | DERIVED_RATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
+**`share_exec__retention_cohorts`**
+
+| Column | Treatment |
+|---|---|
+| `entry_year` | DIMENSION |
+| `years_since_entry` | DIMENSION |
+| `entry_cohort_size` | AGGREGATE_SUPPRESSED |
+| `cohort_retention_pct` | DERIVED_RATE_SUPPRESSED |
+| `cohort_retention_among_eligible_pct` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_exec__retention_survival`**
+
+| Column | Treatment |
+|---|---|
+| `segment_type` | DIMENSION |
+| `segment_value` | DIMENSION |
+| `years_since_entry` | DIMENSION |
+| `entry_cohort_size` | AGGREGATE_SUPPRESSED |
+| `km_at_risk` | AGGREGATE_SUPPRESSED |
+| `km_survival` | DERIVED_RATE_SUPPRESSED |
+| `km_survival_ci_low` | DERIVED_RATE_SUPPRESSED |
+| `km_survival_ci_high` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
 Explicitly **not** available:
 
 | Column | Why |
@@ -114,6 +172,18 @@ Explicitly **not** available:
 | `source_person_id` | NOT_AVAILABLE: the exec audience receives aggregates only, never record-level data |
 
 ### analyst
+
+**`share_analyst__fan_event_study`**
+
+| Column | Treatment |
+|---|---|
+| `months_since_event` | DIMENSION |
+| `fan_treated_households` | AGGREGATE_SUPPRESSED |
+| `fan_treated_mean_events` | DERIVED_RATE_SUPPRESSED |
+| `fan_comparison_mean_events` | DERIVED_RATE_SUPPRESSED |
+| `fan_event_study_effect_pct` | DERIVED_RATE_SUPPRESSED |
+| `fan_event_study_diff_se` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
 
 **`share_analyst__participant_year`**
 
