@@ -386,6 +386,8 @@ def fmt_cell(v) -> str:
 
 def table_html(ds: dict, limit: int = 60) -> str:
     cols, rows = ds["columns"], ds["rows"][:limit]
+    if not rows:
+        return f"<p class='note'><b>No rows.</b> The query returned nothing, which is the expected result when {esc(ds['title'].lower())} has nothing to report.</p>"
     head = "".join(f"<th>{esc(c)}</th>" for c in cols)
     body = "".join("<tr>" + "".join(f"<td>{esc(fmt_cell(r[c]))}</td>" for c in cols) + "</tr>" for r in rows)
     more = f"<p class='note'>First {limit} of {len(ds['rows'])} rows; the full file is data/{ds['name']}.json.</p>" if len(ds["rows"]) > limit else ""

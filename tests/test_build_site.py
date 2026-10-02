@@ -74,7 +74,8 @@ def test_the_site_builds_from_the_warehouse_with_every_page_and_data_file(tmp_pa
     assert len(manifest["datasets"]) == res["datasets"]
     assert {d["kind"] for d in manifest["datasets"]} <= {"share_exec", "approved_aggregate", "evaluation", "governance"}
     for d in manifest["datasets"]:
-        assert (site / "data" / f"{d['name']}.json").exists() and d["rows"] > 0, d["name"]
+        assert (site / "data" / f"{d['name']}.json").exists(), d["name"]
+        assert d["rows"] > 0 or d["name"] == "restatement_log", d["name"]       # an empty restatement log is the good case: nothing published has changed
     index = (site / "index.html").read_text()
     assert "Synthetic data" in index and "5-minute" in index.lower() or "five-minute" in index.lower()
     for slug in ("participation", "identity", "retention", "fandom"):
