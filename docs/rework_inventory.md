@@ -186,4 +186,4 @@ a local claim until it is pushed.
 
 Approved by Anna ("approve v2.0 and bump the version"). Done: a v1.1 baseline for 2021 to 2025 on the reworked data (commit `cda4dfc`); `methodology_version` 2.0 in `dbt_project.yml`; four fan KPIs in the scorecard
 (`net_new_households`, `incremental_fan_accounts` with its interval, `audience_contactable`, `consent_gap_households`; 21 to 25 KPIs); the steps 11 and 12 catalog rows and the new KPI marked `introduced_in: 2.0`;
-CHANGELOG and memo header updated. The restatement log against the baseline: 19 `NEW_KPI` rows, none requiring restatement. v2.0 snapshots: see the next commit. The earlier v1.0 and v1.1 snapshots describe the pre-rework world.
+CHANGELOG and memo header updated. The restatement log against the baseline: 19 `NEW_KPI` rows, none requiring restatement. v2.0 snapshots for 2021 to 2025 published (`20261003T0256Z` to `20261003T0320Z`); the restatement log against them is empty. The earlier v1.0 and v1.1 snapshots describe the pre-rework world.

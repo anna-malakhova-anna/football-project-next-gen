@@ -6,7 +6,7 @@
 ## v2.0: 2026-10-03
 
 > **Approved by Anna on 2026-10-03.** The fan-acquisition rework adds a second memo, [Flag as fan acquisition](flag-as-fan-acquisition.md) (skeleton with DRAFT markers; her prose), and the fan KPIs.
-> A fresh **v1.1 baseline for 2021 to 2025 was published first** on the reworked data (snapshots `scorecard_<year>_20261003T0219Z` to `T0243Z`), so the restatement log can show what 2.0 changed. The v2.0 snapshots follow.
+> A fresh **v1.1 baseline for 2021 to 2025 was published first** on the reworked data (snapshots `scorecard_<year>_20261003T0219Z` to `T0243Z`), so the restatement log can show what 2.0 changed. The v2.0 snapshots for 2021 to 2025 were then published (`scorecard_<year>_20261003T0256Z` to `20261003T0320Z`, 25 KPI rows each); the restatement log against them is empty (against the v1.1 baseline it listed only the four new KPIs as `NEW_KPI`).
 
 **Added, nothing restated.** Four scorecard KPIs, each `introduced_in: 2.0`: `net_new_households` (linked households with no account before their first registration, by cohort year), `incremental_fan_accounts`
 (the market-level estimate with its 95% interval as low / high; 2022 onward, where a launched market has a pre-period), `audience_contactable` (registered households a guardian has opted in on at least one channel, December
