@@ -17,3 +17,11 @@ union all
 select 'addressable_audience', * from {{ suppression_group_violations(ref('share_exec__addressable_audience'), ['month', 'household_group'], 'audience_registered') }}
 union all
 select 'fan_value', * from {{ suppression_group_violations(ref('share_exec__fan_value'), ['fan_group'], 'value_accounts') }}
+union all
+select 'fan_rfm', * from {{ suppression_group_violations(ref('share_exec__fan_rfm'), ['year', 'fan_group', 'segment'], 'rfm_accounts') }}
+union all
+select 'fan_survival', * from {{ suppression_group_violations(ref('share_exec__fan_survival'), ['fan_group', 'months_since_origin'], 'survival_at_risk') }}
+union all
+select 'fan_value_uplift', * from {{ suppression_group_violations(ref('share_exec__fan_value_uplift'), ['uplift_status_group', 'uplift_outcome'], 'uplift_households') }}
+union all
+select 'consent_capture', * from {{ suppression_group_violations(ref('share_exec__consent_capture'), ['consent_cut', 'consent_dimension_value', 'consent_channel'], 'consent_lines') }}

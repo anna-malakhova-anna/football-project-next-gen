@@ -166,3 +166,12 @@ naive net-new count), `share_exec__fan_value` (LTV with a range, synthetic curre
 rows added; the suppression singular tests cover the funnel, audience and value shares independently of the macro.
 Deviations from the spec, on purpose: NO marketing audience list (ADR-009, "never to marketing", the user's decision) and NO pseudonymized household-month panel for analysts (a household-level table from the
 restricted linkage schema would break the aggregates-only rule; the market-year panel serves re-estimation instead).
+
+## Step 12 status (2026-10-02)
+
+Built: the site restructured into Overview, Fan acquisition (first chart: incremental vs naive vs truth), Fan value & activeness, Audience & consent, Participation (with retention), Data trust & governance (identity,
+contracts, access, restatements); 25 charts, 42 datasets, every spec compiled and rendered against its data in a Vega check. Four more exec shares were needed for it (`share_exec__fan_rfm`, `fan_survival`,
+`fan_value_uplift`, `consent_capture`, each with policy rows, catalog entries and a suppression test). README headline and results table rewritten around the fan question; demo-script skeleton restructured
+(talking points still Anna's); ADR-011 written; ADR-008/009/010 refreshed with the final numbers (phone precision 85.8%, naive +17.5%, matched +22.6%); v2.0 fan-acquisition memo skeleton with DRAFT markers.
+NOT done, on purpose: the methodology version bump to 2.0, publishing a new 2021 to 2025 baseline and v2.0 snapshots, and the restatement capture. Bumping and publishing are Anna's approval (as for v1.1); the CHANGELOG
+records v2.0 as proposed and what the bump would do. The new fan metrics carry `introduced_in: 1.1` until then. The memo's numbers are typed in from the marts (no generator script yet).

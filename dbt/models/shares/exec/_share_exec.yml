@@ -255,3 +255,65 @@ models:
         meta: {pii: none}
         data_tests:
           - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__fan_rfm
+    description: >
+      RFM segment mix by year and fan group. Aggregate only, small cells suppressed.
+    columns:
+      - {name: year, meta: {pii: none}}
+      - {name: fan_group, meta: {pii: none}}
+      - {name: segment, meta: {pii: none}}
+      - {name: rfm_accounts, meta: {pii: none}}
+      - {name: rfm_share, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__fan_survival
+    description: >
+      Kaplan-Meier fan survival by fan group and months since origin with interval. Aggregate only.
+    columns:
+      - {name: fan_group, meta: {pii: none}}
+      - {name: months_since_origin, meta: {pii: none}}
+      - {name: survival_at_risk, meta: {pii: none}}
+      - {name: fan_survival, meta: {pii: none}}
+      - {name: fan_survival_ci_low, meta: {pii: none}}
+      - {name: fan_survival_ci_high, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__fan_value_uplift
+    description: >
+      Matched value uplift among existing fans by status group and outcome. Linked households only; synthetic currency.
+    columns:
+      - {name: uplift_status_group, meta: {pii: none}}
+      - {name: uplift_outcome, meta: {pii: none}}
+      - {name: uplift_outcome_kind, meta: {pii: none}}
+      - {name: uplift_households, meta: {pii: none}}
+      - {name: uplift_per_month, meta: {pii: none}}
+      - {name: uplift_ci_low_per_month, meta: {pii: none}}
+      - {name: uplift_ci_high_per_month, meta: {pii: none}}
+      - {name: uplift_pct, meta: {pii: none}}
+      - {name: uplift_naive_pct, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__consent_capture
+    description: >
+      Opt-in rate by capture point and channel. No record is not a no. Aggregate only.
+    columns:
+      - {name: consent_cut, meta: {pii: none}}
+      - {name: consent_dimension_value, meta: {pii: none}}
+      - {name: consent_channel, meta: {pii: none}}
+      - {name: consent_lines, meta: {pii: none}}
+      - {name: consent_opt_ins, meta: {pii: none}}
+      - {name: consent_opt_in_rate, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

@@ -65,6 +65,10 @@ recall 68.6%, or 86.1% among accounts whose email matches the registration email
 (phone precision 78.8%, link rate 35.3%) were measured on 6,000 people; the conclusion, that phone is the weaker key and the linked households are mostly North American, stands, and
 the decision to keep the phone fallback was taken knowing it. The rework spec's household may link to several accounts (duplicates); that extension arrives in rework step 4.
 
+**Final measurement after the rework (step 10, with markets and staggered launches, 15,000 people).** 4,665 links, 4,629 correct: overall precision **99.2%**; **email links 99.98% precise (4,418), phone links 85.8% precise
+(247 links, 35 of the 36 false links are accounts that reuse a participant household's phone)**; recall 71.7% of participant households with an account, 91.2% among accounts whose email matches the registration email;
+link rate 35.5% of all participant households (35.8% of the 13,043 registered households in the share). The earlier figures above are kept as the record of each run; the conclusion is unchanged.
+
 ## The alternative: explicit research / analytics consent at registration
 Add a consent field ("may we use my registration details with my fan account for program research?") and link only households that said yes.
 That is cleaner: the purpose is stated to the person, and a NULL means no link. The cost is **coverage**. Opt-in rates for such a field are

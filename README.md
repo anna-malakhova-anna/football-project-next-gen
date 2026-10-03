@@ -1,10 +1,11 @@
 # Counting Flag Football
 
-**[Results site](site/index.html)** (built by `make site`; CI publishes it to GitHub Pages) · [Methodology memo](docs/methodology/counting-a-participant.md) · [Decisions](docs/decisions/) · [Demo script](docs/demo_script.md)
+**[Results site](site/index.html)** (built by `make site`; CI publishes it to GitHub Pages) · [Participation memo](docs/methodology/counting-a-participant.md) · [Fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) · [Decisions](docs/decisions/) · [Demo script](docs/demo_script.md)
 
-A governed participation data platform for a **synthetic** global flag football program. Five messy sources (a league CSV, a club API, a federation workbook, school headcounts
-and a fan feed) go in; out come a count of how many people play, how sure we are of it, who stays, and what registering a child does to a household's engagement, each graded
-against an answer key the generator keeps. Python generates and loads; **SQL (dbt on DuckDB) is the showcase**.
+**How many fans does flag football create, how engaged and valuable are they, and how many can we contact?** This is a governed data platform for a **synthetic** global flag football
+program that answers that question, and then shows how sure it is: the fans the programme added (an estimate with an interval, next to the naive count that is more than twice too big), what a fan
+is worth, and how much of the engaged audience governance lets the organisation talk to. It started as "how many people play" and still answers that too. Five messy sources (a league CSV, a club API,
+a federation workbook, school headcounts and a fan feed) go in; every claim is graded against an answer key the generator keeps. Python generates and loads; **SQL (dbt on DuckDB) is the showcase**.
 
 > ## All data in this project is synthetic
 > Every person, email and phone number is fake, generated from a fixed seed (42). The real equivalent is **minors' personal information**: children aged 5 to 17, their
@@ -15,7 +16,7 @@ against an answer key the generator keeps. Python generates and loads; **SQL (db
 
 ```mermaid
 flowchart LR
-  S[Sources A to E<br/>CSV, JSON, XLSX, aggregates, event stream] --> K[Contracts<br/>validated every build]
+  S[Sources A to E<br/>CSV, JSON, XLSX, aggregates, fan accounts, events, consent] --> K[Contracts<br/>validated every build]
   K --> R[raw<br/>strings as-is]
   R --> ST[staging<br/>typed, flagged]
   ST --> I[identity<br/>blocking, Fellegi-Sunter,<br/>components]
@@ -28,19 +29,26 @@ flowchart LR
   G[(ground truth<br/>schema eval)] -.evaluation models only.-> M
 ```
 
-## Results (synthetic data, 2021 to 2025; 2025 shown)
+## Results (synthetic data, 2021 to 2025; latest period shown)
 
 | What | Result |
 |---|---|
+| **Fan accounts the programme added** (incremental, stacked market-launch comparison) | **1,264** (95% interval 897 to 1,630); truth 1,111. The naive count of net-new households is 939 linked (0.85x the truth) and 2,543 scaled by the link rate (**2.3x**) |
+| **Addressable audience** (guardian opted in on at least one channel, December 2025) | **3,511 of 13,043** registered households (email 2,107, SMS 1,231, push 1,748; channels overlap) |
+| **Consent gap** (active households with no opt-in at all) | **803 households, about 25% of the active**, worth about 96,360 in synthetic currency at the median monetized household's spend (an opportunity size, not revenue) |
+| Fan lifetime value (36-month horizon, synthetic currency) | existing fans 387 (381 to 393), net-new 368 to 372 (352 to 386); 12-month survival 95% for existing fans, 89% for net-new |
+| Value uplift after registering a child (existing fans) | +0.21 events per household-month (truth +0.18); net spend up about 1.1 per household-month (synthetic currency) |
+| Fan engagement uplift after first registration (linked households) | naive +17.5% (0.99x the truth), matched difference-in-differences +22.6% (truth +20.5%) |
+| Markets (46 synthetic) | 15 retention-and-engagement, 8 program-growth, 3 acquisition white space, 20 long-term build |
 | Unique registered participants | 8,959 in 2025 (identity range 8,921 to 8,976, a 0.6% band) |
 | Identity resolution, final matcher (`fs`, automatic merges) | precision 99.81%, recall 99.99%; **9 sibling/twin false merges (a finding, not yet fixed: ADR-008)**; 14,991 predicted vs 15,000 true people |
 | Rules baseline vs probabilistic | rules recall 92.7% (16,044 predicted people, no sibling merges); literal Fellegi-Sunter `fs_naive` makes 213 sibling merges; the corrected `fs` makes 9 |
 | One-year retention of entrants (Kaplan-Meier, censored) | 72.2%; counting age-outs as churn would report 37% for entrants aged 14 to 17 (truth 61%) |
-| Fan engagement uplift after first registration | naive +30.4% (1.7x the truth), matched difference-in-differences +21.0% (truth +18.2%) |
-| Household link rate (registration to fan account) | 36% overall; email links 100% precise, phone links 88% |
+| Household link rate (registration to fan account) | 36% overall; email links 99.98% precise, phone links 85.8% (UNLINKED means unknown: about 23% of unlinked households do have an account) |
 
-Counts are **registered participants in onboarded sources**, not total participation. Details and caveats: the [methodology memo](docs/methodology/counting-a-participant.md) (prose still
-being written), [phase 2 results](docs/phase2_results.md), and the [results site](site/index.html).
+Counts are **registered participants in onboarded sources**, not total participation; fan results describe **households linked to a fan account**. Details and caveats: the
+[participation memo](docs/methodology/counting-a-participant.md) and the [fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) (both prose still being written), and the [results site](site/index.html).
+Governance sets the size of the marketable audience: nothing linked reaches marketing or media, so the audience is published as counts only (ADR-009).
 
 ## Design decisions
 
@@ -56,6 +64,7 @@ being written), [phase 2 results](docs/phase2_results.md), and the [results site
 | [008 Phase 4 scope and findings](docs/decisions/ADR-008-phase-4-scope-and-findings.md) | Config-driven window, contracts and a playbook, aggregate-only sources, and what Phase 4 found |
 | [009 Household linkage governance](docs/decisions/ADR-009-household-linkage-governance.md) | Linking registrations to fan accounts is a governance decision; restricted zone, aggregates out. Decided by Anna (2026-10-02) |
 | [010 Fandom outcomes](docs/decisions/ADR-010-fandom-outcomes-design.md) | Matched difference-in-differences, designed before the truth was read and never tuned to it |
+| [011 Acquisition measurement](docs/decisions/ADR-011-acquisition-measurement-design.md) | Fan acquisition is measured at market level from staggered launches: stacked cohort comparison against not-yet-treated markets, not a pooled two-way regression |
 
 ## If this were real
 
@@ -73,7 +82,7 @@ Requires [`uv`](https://docs.astral.sh/uv/) and `make`. Python 3.11 to 3.13 is f
 
 ```bash
 make setup        # install dependencies, create dbt/profiles.yml from the example
-make all-phases   # the supported full build, from an empty checkout: about 2.5 minutes
+make all-phases   # the supported full build, from an empty checkout: about 8 minutes, most of it the test suite
 make site         # build the results site into site/ (open site/index.html, or serve the folder)
 ```
 
@@ -84,7 +93,7 @@ checks: ground-truth isolation, aggregate lineage, share policy and participant-
 |---|---|
 | `make generate` / `make load` / `make load-eval` | write the synthetic files; land them in `raw`; load the quarantined ground truth into `eval` |
 | `make contracts` | validate every source contract against the raw tables (an `ERROR` fails the build) |
-| `make retention` / `make linkage` / `make fan` | run one Phase 4 analysis and print its comparison with the truth |
+| `make fan-status` / `make funnel` / `make acquisition` / `make fan-value` / `make audience` | run one fan analysis and print its comparison with the truth (also `make retention`, `make linkage`, `make fan`) |
 | `make docs` | regenerate the data dictionary, metric catalog and access policy |
 | `make publish YEAR=2025` | write an immutable snapshot (refuses unless every test passes; never part of `all-phases`) |
 | `make site` | build the results site; fails if a chart would compute a number in the browser |
@@ -95,7 +104,8 @@ Explore `warehouse/flag.duckdb`:
 select * from share_exec.share_exec__participation_bounds;       -- the headline with identity bounds
 select * from quality.dq_summary;                                -- observed vs configured defect rates
 select * from retention.mart_retention_survival;                 -- Kaplan-Meier with Greenwood intervals
-select * from evaluation.eval_fan_effect;                        -- naive vs matched vs truth
+select * from evaluation.eval_acquisition;                       -- incremental vs naive vs truth
+select * from share_exec.share_exec__addressable_audience;       -- audience and consent gap (counts only)
 ```
 
 ## Principles
@@ -110,6 +120,6 @@ select * from evaluation.eval_fan_effect;                        -- naive vs mat
 
 ## Documents
 
-[Methodology memo](docs/methodology/counting-a-participant.md) · [Changelog](docs/methodology/CHANGELOG.md) · [Metric catalog](docs/metrics.md) · [Access policy](docs/access_policy.md) ·
+[Participation memo](docs/methodology/counting-a-participant.md) · [Fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) · [Changelog](docs/methodology/CHANGELOG.md) · [Metric catalog](docs/metrics.md) · [Access policy](docs/access_policy.md) ·
 [Data dictionary](docs/data_dictionary.md) · [Source inventory](docs/source_inventory.md) · [Onboarding playbook](docs/playbook/onboard-a-source.md) ·
 [Restatement examples](docs/reports/restatement_demo.md) · [Earlier build notes (phases 1 to 3)](docs/build_notes_phases_1_to_3.md)

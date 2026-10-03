@@ -40,7 +40,7 @@
   different first names cannot be one person) but it changes the matcher after the answer key was seen, so it is left as a **decision for the project owner**; until then the
   incidents are reported (`docs/identity_resolution.md`, `docs/phase2_results.md`).
 - **Linkage is biased and its phone fallback is weaker.** Link rate 36% of households, 40% in the US and Canada, 13% to 21% elsewhere; email links are 100%
-  precise, phone links 88% (ADR-009; the numbers were re-measured after the rework).
+  precise, phone links 85.8% (ADR-009; the numbers were re-measured after the rework, the latest in step 10).
 - **The naive fan estimate is about 1.7 times too big; matching gets close but not exact** (ADR-010, re-measured after the rework).
 - **Published snapshots record row counts for the three registration sources only.** New school or fan data would not be named `NEW_SOURCE_DATA` by the
   restatement log. Extending the snapshot context (and the log) to every source is the obvious next change; it was not made in Phase 4 because it changes the

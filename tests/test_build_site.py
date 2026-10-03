@@ -82,10 +82,25 @@ def test_the_site_builds_from_the_warehouse_with_every_page_and_data_file(tmp_pa
         assert d["rows"] > 0 or d["name"] == "restatement_log", d["name"]       # an empty restatement log is the good case: nothing published has changed
     index = (site / "index.html").read_text()
     assert "Synthetic data" in index and "5-minute" in index.lower() or "five-minute" in index.lower()
-    for slug in ("participation", "identity", "retention", "fandom"):
+    for slug in ("acquisition", "value", "audience", "participation", "governance"):
         text = (site / f"{slug}.html").read_text()
-        assert text.count("What this shows") == text.count("What it does not show") >= 1 or slug == "identity"
+        assert text.count("What this shows") == text.count("What it does not show") >= 1
     # no JavaScript in the pages computes anything: the only script is the embed loop
     for slug, _ in bs.PAGES:
         text = (site / f"{slug}.html").read_text()
         assert "Math." not in text and ".reduce(" not in text and ".map(" not in text
+
+
+@pytest.mark.skipif(not WAREHOUSE.exists(), reason="needs a built warehouse (make all-phases)")
+def test_fan_acquisition_comes_first_and_the_first_chart_is_the_incremental_estimate(tmp_path):
+    try:
+        bs.build(WAREHOUSE, tmp_path / "site")
+    except duckdb.Error as e:
+        pytest.skip(f"warehouse not fully built: {e}")
+    assert [slug for slug, _ in bs.PAGES][:4] == ["index", "acquisition", "value", "audience"]
+    page = (tmp_path / "site" / "acquisition.html").read_text()
+    assert page.index('id="sec-acq_estimates"') < page.index('id="sec-funnel_status"')
+    index = (tmp_path / "site" / "index.html").read_text()
+    assert "fans" in index.split("<h2>")[0].lower() and "contact" in index.lower()
+    audience = (tmp_path / "site" / "audience.html").read_text().lower()
+    assert "not a marketing list" in audience or "no household is identified" in audience

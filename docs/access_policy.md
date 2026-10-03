@@ -65,6 +65,18 @@ policies (design only; not implemented).
 | `consent_gap_value` | DERIVED_RATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
+**`share_exec__consent_capture`**
+
+| Column | Treatment |
+|---|---|
+| `consent_cut` | DIMENSION |
+| `consent_dimension_value` | DIMENSION |
+| `consent_channel` | DIMENSION |
+| `consent_lines` | AGGREGATE_SUPPRESSED |
+| `consent_opt_ins` | AGGREGATE_SUPPRESSED |
+| `consent_opt_in_rate` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
 **`share_exec__fan_engagement_effect`**
 
 | Column | Treatment |
@@ -96,6 +108,29 @@ policies (design only; not implemented).
 | `funnel_monetized_rate` | DERIVED_RATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
+**`share_exec__fan_rfm`**
+
+| Column | Treatment |
+|---|---|
+| `year` | DIMENSION |
+| `fan_group` | DIMENSION |
+| `segment` | DIMENSION |
+| `rfm_accounts` | AGGREGATE_SUPPRESSED |
+| `rfm_share` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_exec__fan_survival`**
+
+| Column | Treatment |
+|---|---|
+| `fan_group` | DIMENSION |
+| `months_since_origin` | DIMENSION |
+| `survival_at_risk` | AGGREGATE_SUPPRESSED |
+| `fan_survival` | DERIVED_RATE_SUPPRESSED |
+| `fan_survival_ci_low` | DERIVED_RATE_SUPPRESSED |
+| `fan_survival_ci_high` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
 **`share_exec__fan_value`**
 
 | Column | Treatment |
@@ -109,6 +144,21 @@ policies (design only; not implemented).
 | `fan_ltv_high` | DERIVED_RATE_SUPPRESSED |
 | `horizon_months` | DIMENSION |
 | `currency_label` | DIMENSION |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_exec__fan_value_uplift`**
+
+| Column | Treatment |
+|---|---|
+| `uplift_status_group` | DIMENSION |
+| `uplift_outcome` | DIMENSION |
+| `uplift_outcome_kind` | DIMENSION |
+| `uplift_households` | AGGREGATE_SUPPRESSED |
+| `uplift_per_month` | DERIVED_RATE_SUPPRESSED |
+| `uplift_ci_low_per_month` | DERIVED_RATE_SUPPRESSED |
+| `uplift_ci_high_per_month` | DERIVED_RATE_SUPPRESSED |
+| `uplift_pct` | DERIVED_RATE_SUPPRESSED |
+| `uplift_naive_pct` | DERIVED_RATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
 **`share_exec__household_link_rate`**

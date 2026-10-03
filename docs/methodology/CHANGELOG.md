@@ -3,6 +3,19 @@
 > Synthetic data. Every change to how a participant is counted, and every restatement of a published number, is recorded here
 > (ADR-007). A methodology change bumps the version and requires a restatement of published headline KPIs.
 
+## v2.0 (proposed, not approved, not published)
+
+> **Waiting for Anna.** The fan-acquisition rework (rework steps 1 to 12) adds a second memo, [Flag as fan acquisition](flag-as-fan-acquisition.md) (skeleton with DRAFT markers; her prose), and new KPIs.
+> The version in `dbt_project.yml` and the metric catalog is still **1.1**, and no v2.0 snapshot has been published: bumping the version and publishing are hers to approve, as v1.1 was.
+
+**What the bump would do.** Add the fan KPIs, each with `introduced_in: 2.0`: net-new households, incremental fan accounts (with interval), funnel stage counts and rates, addressable audience (by channel),
+consent capture rate, consent gap households and its illustrative value, RFM segment shares, fan survival, lifetime value (range), value uplift, and market quadrant counts. (They are in the catalog now as
+`introduced_in: 1.1`; the approval step would change that.) Counting rules C1 to C15 are unchanged, so the participation KPIs would not be restated.
+**Restatement expected:** the bump is a `NEW_KPI` change for the fan KPIs (listed, never a restatement). The rework did change what the generator produces (a 15,000-person population, markets, staggered launches),
+which is a regeneration, not a methodology change: the old v1.1 snapshots in `published/` describe the earlier synthetic world and would show as differences against a fresh 2021 to 2025 baseline, which should be published
+first, as for v1.1.
+**Not done yet:** version bump, new baseline and v2.0 snapshots, restatement log capture.
+
 ## v1.1: 2026-10-02
 
 > **Approved by Anna on 2026-10-02.** The v1.0 baseline for 2021 to 2025 was published first (snapshots `scorecard_<year>_20261002T1341Z` to

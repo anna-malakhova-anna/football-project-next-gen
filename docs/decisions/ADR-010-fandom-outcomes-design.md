@@ -41,6 +41,12 @@ below because account holders as a group are fandom-heavy in the new generator, 
 15% because a registration can reactivate a lapsed fan. The earlier table is kept as the record of the first run. Rework step 8 re-scopes this analysis to existing and lapsed fans
 and adds spend categories; the design itself was not changed.
 
+## Final re-measure (rework step 10, markets and staggered launches)
+After the market-level changes (movers register inside launched markets, existing accounts opened before the data window) the same estimators give **naive +17.5% (95% interval +14.7% to +20.4%, 0.99x the truth),
+matched difference-in-differences +22.6% (+20.3% to +24.9%), truth +20.5%** (1.11x; the truth is inside the interval). **The naive estimate is no longer inflated in this generator**: account holders as a group are
+fandom-heavy, so participants differ little from the other account holders, and the earlier "naive is inflated threefold" reading belongs to the first run only. The reading that stands is the design one: a
+naive comparison has no protection against selection, and the matched estimate adds the before/after difference. The sentences below describe the first run and are kept as its record.
+
 ## What the result says and does not say
 - **Naive is inflated about threefold** by selection: participants are fandom-heavy before they enroll (mean latent fandom +0.38 vs -0.13).
 - **Matching removes most of the bias, not all.** The matched estimate is 2.4 points above the truth, and the truth sits just outside its interval.

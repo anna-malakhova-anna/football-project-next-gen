@@ -46,6 +46,7 @@ Methodology version: **1.0** at the time of the first metric; *Since* is the met
 | `combined_reach_low` | Combined reach, lower bound | unique_participants (point) plus the part of the reported headcount that cannot be a registered participant: reported headcount minus the maximum possible overlap. A bound, not an estimate. | participation year (global) | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
 | `combined_reach_high` | Combined reach, upper bound | unique_participants (high) plus the full reported headcount (no overlap assumed). A bound, not an estimate. | participation year (global) | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
 | `audience_contactable` | Addressable audience | Linked households with a guardian opted in on at least one channel. The size of the audience the organisation may talk to. A count, never a list. | month x household group | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `consent_opt_in_rate` | Consent capture rate | consent_opt_ins / consent_lines for a capture point and channel. | capture point x channel | `RATIO` | rate | Program Insights Lead | 1.1 |
 
 ## Depth
 
@@ -55,6 +56,8 @@ Methodology version: **1.0** at the time of the first metric; *Since* is the met
 | `multi_org_participants` | Multi-organization participants | Unique participants with valid registrations in two or more organizations (leagues, clubs, federation clubs) in the year (rule C5). Counted once in the global count and in each organization's own count. | participation year | `NON_ADDITIVE` | count | Program Insights Lead | 1.0 |
 | `fan_ltv` | Fan lifetime value | Net spend per active month x expected active months over the horizon. Synthetic currency, illustrative, not revenue. | fan group | `RATIO` | ratio | Program Insights Lead | 1.1 |
 | `consent_gap_households` | Consent gap | Active households with no channel opted in: engaged and not contactable. | month x household group | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `fan_survival` | Fan survival | Kaplan-Meier probability a fan account has not lapsed by months since origin. Active accounts at the end of the data are censored. | fan group x month | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `uplift_per_month` | Value uplift per household-month | Matched before/after difference in the outcome per household-month (events or synthetic currency). | status group x outcome | `RATIO` | ratio | Program Insights Lead | 1.1 |
 
 ## Data trust (reported beside the headline numbers, never hidden)
 
@@ -139,3 +142,15 @@ Methodology version: **1.0** at the time of the first metric; *Since* is the met
 | `fan_accounts_per_1000` | Fan accounts per 1,000 | Fan accounts per 1,000 households in the (synthetic) market population. | market | `RATIO` | rate | Program Insights Lead | 1.1 |
 | `net_new_rate` | Net-new rate | Net-new households / linked households in a market. | market | `RATIO` | rate | Program Insights Lead | 1.1 |
 | `link_rate` | Link rate (market) | Linked / participant households in a market. | market | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `rfm_accounts` | RFM accounts | Fan accounts in an RFM segment (quintile-based recency, frequency, monetary) for the year and fan group. | year x fan group x segment | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `rfm_share` | RFM segment share | rfm_accounts / accounts in the fan group. | year x fan group x segment | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `survival_at_risk` | Fan accounts at risk | Accounts still under observation and not lapsed at the start of a month since origin. | fan group x month | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `fan_survival_ci_low` | Fan survival, lower bound | Lower end of the 95% Greenwood interval. | fan group x month | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `fan_survival_ci_high` | Fan survival, upper bound | Upper end of the 95% Greenwood interval. | fan group x month | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `uplift_households` | Households in the value uplift | Linked existing-fan households matched to a comparison for the outcome. | status group x outcome | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `uplift_ci_low_per_month` | Value uplift, lower bound | Lower end of the 95% interval of uplift_per_month. | status group x outcome | `RATIO` | ratio | Program Insights Lead | 1.1 |
+| `uplift_ci_high_per_month` | Value uplift, upper bound | Upper end of the 95% interval of uplift_per_month. | status group x outcome | `RATIO` | ratio | Program Insights Lead | 1.1 |
+| `uplift_pct` | Value uplift, percent | uplift as a share of the counterfactual level; shown only where the baseline is large enough to be stable. | status group x outcome | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `uplift_naive_pct` | Value uplift, naive percent | Participants vs non-participants without matching or a before period. Shown to be read against the matched estimate. | status group x outcome | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `consent_lines` | Consent lines | Latest consent status per account and channel with a record. No record is not in the count. | capture point x channel | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `consent_opt_ins` | Consent opt-ins | Consent lines whose latest status is opt-in. | capture point x channel | `ADDITIVE` | count | Program Insights Lead | 1.1 |
