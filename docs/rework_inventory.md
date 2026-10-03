@@ -144,3 +144,15 @@ decision that nothing linked reaches marketing, there is no audience LIST; these
 households with no channel opted in (a consent gap valued at 96,360 synthetic currency at the median monetized household's spend); flag-prompt consent capture is strongest by email (86%); opt-outs rise from
 4 to 16 per 1,000 as monthly engagement rises. Finding: resolving consent by timestamp leaves 58 of 96,660 account-channels wrong, all in the unsafe direction (the history says opt-in, the account opted out); the
 out-of-order flag catches 55 of them and 3 look like a legal sequence and cannot be seen from the data. Any contact use must fail closed on flagged accounts; the residue is the limit of timestamp resolution.
+
+## Step 10 status (2026-10-02)
+
+Built: `mart_market_profile` (per market: participation and fan accounts per 1,000 households, net-new rate, link rate, girls' share, consent capture rate, and the quadrant against thresholds from
+`market_quadrant_params`, blank = the median) and `mart_household_shape_profile` (adult player vs youth households by years active against fan status and value), with `fan_market_profile_is_sound`.
+Result (46 synthetic markets): 15 Retention and engagement play, 8 Program growth opportunity, 3 Acquisition white space, 20 Long-term build (the never-launched markets and the small, thin ones);
+thresholds 5.5 participant households and 10.5 fan accounts per 1,000 households.
+Two real bugs found by the soundness test and fixed (no change to the random stream): (1) the INTL markets have a blank region, which the seed loads as NULL, so international accounts and registrations
+had no market (the lookup compared with an empty string); (2) cross-border movers registered in the new country with a random postal code in the state, which could be a market that had not launched; their
+postal code now comes from the market chosen for the move.
+Numbers to refresh in step 12 (the README, ADR-009 and ADR-010 still quote earlier runs): fan engagement uplift is now naive +17.5% (0.99x its truth), matched +22.6% (truth +20.5%); phone links are 85.8% precise;
+acquisition incremental estimate 1,264 (897 to 1,630) against a truth of 1,111.

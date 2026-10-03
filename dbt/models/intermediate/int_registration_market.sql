@@ -3,7 +3,7 @@
 -- international returns, which carry no postal code. NULL market_id means the postal code did not map (a defect worth seeing, never guessed).
 with r as (select registration_key, country_code, postal_code, {{ market_prefix('postal_code') }} as prefix from {{ ref('int_registrations_unioned') }}),
 
-country_market as (select country_code, any_value(market_id) as market_id from {{ ref('market_map') }} where region_code = '' group by 1)
+country_market as (select country_code, any_value(market_id) as market_id from {{ ref('market_map') }} where (region_code is null or region_code = '') group by 1)
 
 select
     r.registration_key,

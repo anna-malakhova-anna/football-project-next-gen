@@ -320,3 +320,14 @@ seeds:
           - not_null
           - accepted_values: {arguments: {values: [Champions, Loyal, Promising, At risk, Hibernating]}}
 
+  - name: market_quadrant_params
+    description: >
+      Thresholds for the market quadrants (rework spec 5.6). A blank value means "use the median" (of launched markets for participation, of all markets for fan accounts); a number overrides it.
+      No model hard-codes a threshold.
+    config:
+      tags: [phase4]
+      column_types: {param: varchar, value: double, description: varchar}
+    columns:
+      - name: param
+        data_tests: [unique, not_null]
+

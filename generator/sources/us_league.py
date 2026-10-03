@@ -136,7 +136,8 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         if st == p["home_region"]:
             zip_code = p["postal_code"]
         else:  # cross-border mover registering in the US
-            zip_code = zips.setdefault(key, random_us_zip(rng, st))
+            zip_code = zips.setdefault(key, random_us_zip(rng, st))      # (drawn as before, so the random stream is unchanged)
+            zip_code = p["alt_postal"] or zip_code                       # the mover's postal code in the market they moved to, which has launched by then
         if p["is_minor"]:
             contact = (p["guardian_name"], p["guardian_email"], p["guardian_phone"])
         else:  # adult rows carry the registrant's own contact in the guardian_* columns

@@ -129,7 +129,8 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         if prov == p["home_region"]:
             postal = p["postal_code"]
         else:  # cross-border mover registering in Canada
-            postal = postals.setdefault(p["true_person_id"], random_ca_postal(rng, prov))
+            postal = postals.setdefault(p["true_person_id"], random_ca_postal(rng, prov))      # (drawn as before, so the random stream is unchanged)
+            postal = p["alt_postal"] or postal                                                 # the mover's postal code in the market they moved to, which has launched by then
         program, division = _program(rng, year - p["dob"].year, p["sex"], club["lang"])
         if p["is_minor"]:
             contact = {"full_name": p["guardian_name"], "email": p["guardian_email"], "phone": _fmt_phone(p["guardian_phone"])}

@@ -67,7 +67,7 @@ REGISTRY_FIELDS = [
     "guardian_name", "guardian_email", "guardian_phone", "own_email", "own_phone",
     "marketing_opt_in", "photo_consent", "first_season", "last_season",
     "is_cross_border", "alt_country", "alt_region", "switch_season", "is_multi_league",
-    "twin_group_id", "name_change_season", "later_family_name", "dual_country_year", "home_market_id", "market_launch_year",
+    "twin_group_id", "name_change_season", "later_family_name", "dual_country_year", "home_market_id", "market_launch_year", "alt_market_id",
 ]
 PARTICIPATION_FIELDS = [
     "true_person_id", "source_system", "country_code", "region_code",
@@ -324,7 +324,7 @@ class _Builder:
             "switch_season": None, "is_multi_league": False,
             "twin_group_id": None, "name_change_season": None, "later_family_name": None,
             "dual_country_year": None,
-            "home_market_id": market["market_id"], "market_launch_year": market["launch_year"],
+            "home_market_id": market["market_id"], "market_launch_year": market["launch_year"], "alt_postal": None, "alt_market_id": None,
             "_hh": hh_key,
         }
         if minor:
@@ -411,9 +411,10 @@ class _Builder:
             other = "CA" if p["home_country"] == "US" else "US"
             fr = other == "CA" and p["language"] == "fr"
             p["switch_season"] = self.rng.randint(p["first_season"] + 1, self.years[-1])
-            region, _, _ = self._place(other, fr, by_year=p["switch_season"])      # the market they move to must have launched by then
+            region, alt_postal, alt_market = self._place(other, fr, by_year=p["switch_season"])      # the market they move to must have launched by then
             p["is_cross_border"] = True
             p["alt_country"], p["alt_region"] = other, region
+            p["alt_postal"], p["alt_market_id"] = alt_postal, alt_market["market_id"]       # their registrations in the new country carry THIS postal code, inside that market
             # some movers register in BOTH countries in the year they move (US spring, then a Canadian club season,
             # or a Canadian season, then US fall): the same person in two countries in one year
             if self.rng.random() < self.pop["cross_border_dual_year_share"]:

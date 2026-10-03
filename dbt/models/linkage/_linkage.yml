@@ -82,3 +82,10 @@ models:
     description: "Consent capture rates by capture point, by source system and by partner (net-new flag-prompt accounts). Counts and rates. Restricted."
   - name: mart_opt_out_after_contact
     description: "Opt-out rate per 1,000 opted-in account-months by channel and by engagement volume that month (a proxy for contact). Association only. Restricted."
+  - name: mart_market_profile
+    description: "One row per synthetic market: participation and fan accounts per 1,000 households, net-new rate, girls' share, consent capture rate, and the quadrant (acquisition white space, retention and engagement play, program growth opportunity, long-term build). Restricted."
+    columns:
+      - name: market_id
+        data_tests: [unique, not_null]
+  - name: mart_household_shape_profile
+    description: "Household shape (adult player, youth one child, youth several) by years active against fan status and value. Counts only. Restricted."

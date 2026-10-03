@@ -1,0 +1,4 @@
+param,value,description
+participation_per_1000_threshold,,Markets at or above this many participant households per 1000 households are FLAG_STRONG. Blank: the MEDIAN over markets where the programme has launched
+fan_accounts_per_1000_threshold,,Markets at or above this many fan accounts per 1000 households are FAN_STRONG. Blank: the MEDIAN over all markets
+min_participant_households_to_classify,10,A market with fewer participant households than this is classified on participation as FLAG_WEAK only if the programme never launched there; otherwise it is left UNCLASSIFIED (too small to read)

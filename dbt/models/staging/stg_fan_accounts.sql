@@ -29,7 +29,7 @@ mapped as (
     from typed t
     left join {{ ref('country_map') }} c on lower(t.country_raw) = lower(c.source_value)
     left join {{ ref('market_geo_map') }} g on g.prefix = upper(t.postal_prefix)
-    left join (select country_code, any_value(market_id) as market_id from {{ ref('market_map') }} where region_code = '' group by 1) cm
+    left join (select country_code, any_value(market_id) as market_id from {{ ref('market_map') }} where (region_code is null or region_code = '') group by 1) cm
         on cm.country_code = c.country_code and t.postal_prefix is null
 
 )
