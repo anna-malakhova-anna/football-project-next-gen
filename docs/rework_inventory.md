@@ -175,3 +175,9 @@ contracts, access, restatements); 25 charts, 42 datasets, every spec compiled an
 (talking points still Anna's); ADR-011 written; ADR-008/009/010 refreshed with the final numbers (phone precision 85.8%, naive +17.5%, matched +22.6%); v2.0 fan-acquisition memo skeleton with DRAFT markers.
 NOT done, on purpose: the methodology version bump to 2.0, publishing a new 2021 to 2025 baseline and v2.0 snapshots, and the restatement capture. Bumping and publishing are Anna's approval (as for v1.1); the CHANGELOG
 records v2.0 as proposed and what the bump would do. The new fan metrics carry `introduced_in: 1.1` until then. The memo's numbers are typed in from the marts (no generator script yet).
+
+## Step 13 status (2026-10-02)
+
+Full local build green: 348 dbt tests, 155 pytest, isolation, lineage, share policy and ID stability all pass. pytest now runs on 4 workers (`pytest-xdist`, `-n 4`; `-n auto` was slower from contention): 5.5 minutes down to about 3.3.
+The full `make all-phases` is still about 6 to 8 minutes, so the CI job timeout moved from 10 to 25 minutes (the test asserts at most 25). Not verified: the workflow has never run, because there is no GitHub remote yet; "CI green" is
+a local claim until it is pushed.

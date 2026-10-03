@@ -172,7 +172,7 @@ all-phases: dbt/profiles.yml
 	$(DBT) seed --profiles-dir .
 	$(DBT) run --profiles-dir .
 	$(DBT) test --profiles-dir .
-	uv run pytest -q
+	uv run pytest -q -n 4
 	$(PY) -m scripts.check_eval_isolation
 	$(PY) -m scripts.check_lineage
 	$(PY) -m scripts.check_share_policy

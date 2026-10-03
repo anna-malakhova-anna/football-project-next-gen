@@ -24,3 +24,8 @@ packages = ["generator", "generator.sources", "loader", "scripts"]
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "pytest-xdist>=3.8.0",
+]
