@@ -36,7 +36,10 @@ COMPILED = ROOT / "dbt" / "target" / "compiled" / "counting_flag_football" / "mo
 SOURCE = ROOT / "dbt" / "models" / "shares"
 NO_DIRECT = {"share_exec", "share_analyst"}
 # Aggregated, small-cell-suppressed share models that may be built from `linkage` models (ADR-009). Everything else may not.
-APPROVED_LINKAGE_AGGREGATES = {"share_exec__fan_engagement_effect", "share_exec__household_link_rate", "share_analyst__fan_event_study"}
+APPROVED_LINKAGE_AGGREGATES = {
+    "share_exec__fan_engagement_effect", "share_exec__household_link_rate", "share_exec__fan_funnel", "share_exec__acquisition_incrementality", "share_exec__fan_value",
+    "share_exec__addressable_audience", "share_exec__market_quadrants", "share_analyst__fan_event_study", "share_analyst__fan_acquisition_event_study", "share_analyst__fan_market_year",
+}
 NO_LINKAGE_AT_ALL = {"share_marketing", "share_media"}
 STAR = re.compile(r"\bselect\s+(distinct\s+)?\*|\b\w+\.\*", re.IGNORECASE)
 

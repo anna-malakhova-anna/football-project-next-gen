@@ -156,3 +156,13 @@ had no market (the lookup compared with an empty string); (2) cross-border mover
 postal code now comes from the market chosen for the move.
 Numbers to refresh in step 12 (the README, ADR-009 and ADR-010 still quote earlier runs): fan engagement uplift is now naive +17.5% (0.99x its truth), matched +22.6% (truth +20.5%); phone links are 85.8% precise;
 acquisition incremental estimate 1,264 (897 to 1,630) against a truth of 1,111.
+
+## Step 11 status (2026-10-02)
+
+Built, all approved linkage aggregates (counts and rates, small cells suppressed, no identifier): EXEC `share_exec__fan_funnel`, `share_exec__acquisition_incrementality` (the estimate with its interval next to the
+naive net-new count), `share_exec__fan_value` (LTV with a range, synthetic currency), `share_exec__addressable_audience` (audience counts and the consent gap by month and group), `share_exec__market_quadrants`
+(markets under k_min participant households are rolled up per quadrant, so no small market is published alone); ANALYST `share_analyst__fan_acquisition_event_study` (cells under 3 treated markets suppressed) and
+`share_analyst__fan_market_year` (the market-year panel the estimate is built from). `check_share_policy` approves exactly these names for the linkage schema; marketing and media stay at none. 38 metric-catalog
+rows added; the suppression singular tests cover the funnel, audience and value shares independently of the macro.
+Deviations from the spec, on purpose: NO marketing audience list (ADR-009, "never to marketing", the user's decision) and NO pseudonymized household-month panel for analysts (a household-level table from the
+restricted linkage schema would break the aggregates-only rule; the market-year panel serves re-estimation instead).

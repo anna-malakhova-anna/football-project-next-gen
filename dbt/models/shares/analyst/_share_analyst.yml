@@ -44,3 +44,37 @@ models:
         meta: {pii: none}
         data_tests:
           - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_analyst__fan_acquisition_event_study
+    description: >
+      Market-level acquisition event study by years since launch, with interval. Aggregate only; cells under 3 treated markets suppressed.
+    columns:
+      - {name: years_since_launch, meta: {pii: none}}
+      - {name: launch_cohorts, meta: {pii: none}}
+      - {name: acquisition_treated_markets, meta: {pii: none}}
+      - {name: acquisition_effect_per_1000, meta: {pii: none}}
+      - {name: acquisition_effect_se, meta: {pii: none}}
+      - {name: acquisition_effect_ci_low, meta: {pii: none}}
+      - {name: acquisition_effect_ci_high, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_analyst__fan_market_year
+    description: >
+      Market-year panel of new fan accounts per 1,000 households for re-estimating incrementality. Synthetic markets; no household identifiers.
+    columns:
+      - {name: market_id, meta: {pii: quasi}}
+      - {name: country_code, meta: {pii: quasi}}
+      - {name: is_team_market, meta: {pii: none}}
+      - {name: launch_year, meta: {pii: none}}
+      - {name: panel_year, meta: {pii: none}}
+      - {name: household_population, meta: {pii: none}}
+      - {name: market_new_accounts, meta: {pii: none}}
+      - {name: market_new_accounts_per_1000, meta: {pii: none}}
+      - {name: market_is_treated, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

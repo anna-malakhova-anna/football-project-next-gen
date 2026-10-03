@@ -11,3 +11,9 @@ union all
 select 'segments', * from {{ suppression_group_violations(ref('share_exec__participation_segments'), ['participation_year', 'country_code', 'age_band'], 'participants') }}
 union all
 select 'by_sex', * from {{ suppression_group_violations(ref('share_exec__participation_by_sex'), ['participation_year', 'sex'], 'participants') }}
+union all
+select 'fan_funnel', * from {{ suppression_group_violations(ref('share_exec__fan_funnel'), ['cohort_year', 'segment', 'fan_status'], 'funnel_households') }}
+union all
+select 'addressable_audience', * from {{ suppression_group_violations(ref('share_exec__addressable_audience'), ['month', 'household_group'], 'audience_registered') }}
+union all
+select 'fan_value', * from {{ suppression_group_violations(ref('share_exec__fan_value'), ['fan_group'], 'value_accounts') }}

@@ -31,6 +31,7 @@ Methodology version: **1.0** at the time of the first metric; *Since* is the met
 | `returning_participants` | Returning participants | Unique participants with a valid registration this year and the prior year (rule C12). Not defined for the first observed year. | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead | 1.0 |
 | `reactivated_participants` | Reactivated participants | Unique participants with a valid registration this year, none last year, and at least one earlier year (rule C13). Only possible from the third observed year (it needs an earlier year plus a gap year). | participation year | `ADDITIVE_BY_ATTRIBUTION` | count | Program Insights Lead | 1.0 |
 | `retention_rate` | Year-over-year retention rate | Returning participants divided by the prior year's unique participants (rule C12). Defined from the second observed year (the first has no prior year in the data). | participation year | `RATIO` | rate | Program Insights Lead | 1.0 |
+| `incremental_fan_accounts` | Incremental fan accounts | Fan accounts that would not exist without the programme, from a stacked cohort comparison of launching markets with not-yet-launched markets (ADR-011). An estimate with an interval. | global | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
 
 ## Reach
 
@@ -44,6 +45,7 @@ Methodology version: **1.0** at the time of the first metric; *Since* is the met
 | `voluntary_program_headcount` | Voluntary program headcount | Reported headcount in INTRAMURAL and AFTER_SCHOOL programs only (children who chose to take part), excluding PE_UNIT exposure. Same aggregate caveats as reported_headcount. | participation year (global) | `NON_ADDITIVE` | count | Program Partnerships, Education Lead | 1.1 |
 | `combined_reach_low` | Combined reach, lower bound | unique_participants (point) plus the part of the reported headcount that cannot be a registered participant: reported headcount minus the maximum possible overlap. A bound, not an estimate. | participation year (global) | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
 | `combined_reach_high` | Combined reach, upper bound | unique_participants (high) plus the full reported headcount (no overlap assumed). A bound, not an estimate. | participation year (global) | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `audience_contactable` | Addressable audience | Linked households with a guardian opted in on at least one channel. The size of the audience the organisation may talk to. A count, never a list. | month x household group | `ADDITIVE` | count | Program Insights Lead | 1.1 |
 
 ## Depth
 
@@ -51,6 +53,8 @@ Methodology version: **1.0** at the time of the first metric; *Since* is the met
 |---|---|---|---|---|---|---|---|
 | `registrations_per_participant` | Registrations per participant | Valid registrations divided by unique participants for the same year and grain. A depth measure: multi-league and spring-plus-fall players raise it. | participation year | `RATIO` | ratio | Program Insights Lead | 1.0 |
 | `multi_org_participants` | Multi-organization participants | Unique participants with valid registrations in two or more organizations (leagues, clubs, federation clubs) in the year (rule C5). Counted once in the global count and in each organization's own count. | participation year | `NON_ADDITIVE` | count | Program Insights Lead | 1.0 |
+| `fan_ltv` | Fan lifetime value | Net spend per active month x expected active months over the horizon. Synthetic currency, illustrative, not revenue. | fan group | `RATIO` | ratio | Program Insights Lead | 1.1 |
+| `consent_gap_households` | Consent gap | Active households with no channel opted in: engaged and not contactable. | month x household group | `ADDITIVE` | count | Program Insights Lead | 1.1 |
 
 ## Data trust (reported beside the headline numbers, never hidden)
 
@@ -101,3 +105,37 @@ Methodology version: **1.0** at the time of the first metric; *Since* is the met
 | `km_survival_ci_low` | Retention, lower 95% bound | Lower end of the Kaplan-Meier 95% interval (Greenwood standard error, S - 1.96 se, clipped at 0). | entry cohorts x segment x years since entry | `RATIO` | rate | Program Insights Lead | 1.1 |
 | `km_survival_ci_high` | Retention, upper 95% bound | Upper end of the Kaplan-Meier 95% interval (S + 1.96 se, clipped at 1). | entry cohorts x segment x years since entry | `RATIO` | rate | Program Insights Lead | 1.1 |
 | `cohort_retention_among_eligible_pct` | Cohort share still registered, among eligible | Share of an entry cohort registered k years after entry, among players who have not aged past the youth range (the fairer share than cohort_retention_pct). | entry cohorts x segment x years since entry | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `funnel_households` | Funnel: registered households | Participant households registered in the cohort year (the top of the fan funnel). NULL segment / status = all. | cohort year x segment x fan status | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `funnel_linked` | Funnel: linked to a fan account | Households with a deterministic one-to-one link to a fan account. UNLINKED households are unknown, not non-fans. | cohort year x segment x fan status | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `funnel_contactable` | Funnel: contactable | Linked households with a guardian account opted in on at least one channel. No consent record is not 'no', and is not counted. | cohort year x segment x fan status | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `funnel_active` | Funnel: active | Linked households whose account had engagement within the active window (fan_params). | cohort year x segment x fan status | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `funnel_monetized` | Funnel: monetized | Linked households with net spend above zero in the trailing window (synthetic currency). | cohort year x segment x fan status | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `funnel_link_rate` | Funnel: link rate | Linked / registered households. | cohort year x segment x fan status | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `funnel_contactable_rate` | Funnel: contactable rate | Contactable / linked households. | cohort year x segment x fan status | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `funnel_active_rate` | Funnel: active rate | Active / linked households. | cohort year x segment x fan status | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `funnel_monetized_rate` | Funnel: monetized rate | Monetized / active households. | cohort year x segment x fan status | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `incremental_fan_accounts_ci_low` | Incremental fan accounts, lower bound | Lower end of the 95% interval of incremental_fan_accounts. | global | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `incremental_fan_accounts_ci_high` | Incremental fan accounts, upper bound | Upper end of the 95% interval of incremental_fan_accounts. | global | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `net_new_linked_households` | Net-new linked households | Linked households with no fan account before their first registration. Not incremental: some would have joined anyway. | global | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `net_new_households_scaled` | Net-new households, scaled by link rate | net_new_linked_households divided by the link rate: the naive size of the acquired base, shown next to the incremental estimate. | global | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `market_years_compared` | Market-years compared | Treated and control market-years behind the incrementality estimate. | global | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `value_accounts` | Accounts in the value estimate | Canonical fan accounts in a fan group behind a lifetime-value estimate. | fan group | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `net_spend_per_active_month` | Net spend per active month | Mean net spend (synthetic currency) in months the account is active. | fan group | `RATIO` | ratio | Program Insights Lead | 1.1 |
+| `expected_active_months` | Expected active months | Expected months active over the horizon from a Kaplan-Meier lapse curve. | fan group | `RATIO` | ratio | Program Insights Lead | 1.1 |
+| `fan_ltv_low` | Fan lifetime value, lower bound | Lower end of the lifetime-value range. | fan group | `RATIO` | ratio | Program Insights Lead | 1.1 |
+| `fan_ltv_high` | Fan lifetime value, upper bound | Upper end of the lifetime-value range. | fan group | `RATIO` | ratio | Program Insights Lead | 1.1 |
+| `audience_registered` | Audience: registered households | Participant households registered by the month end. | month x household group | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `audience_linked` | Audience: linked households | Registered households linked to a fan account. | month x household group | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `audience_contactable_email` | Addressable audience: email | Households opted in on email. Households can be in several channels, so channels do not add up. | month x household group | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `audience_contactable_sms` | Addressable audience: SMS | Households opted in on SMS. | month x household group | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `audience_contactable_push` | Addressable audience: push | Households opted in on push. | month x household group | `NON_ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `audience_active` | Audience: active households | Linked households with an active account at the month end. | month x household group | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `contactable_share_of_linked` | Contactable share of linked | audience_contactable / audience_linked. | month x household group | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `consent_gap_share_of_active` | Consent gap share of active | consent_gap_households / audience_active. | month x household group | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `consent_gap_value` | Consent gap value | Gap households x median monetized spend. Synthetic currency, illustrative opportunity size, not revenue. | month x household group | `NON_ADDITIVE` | ratio | Program Insights Lead | 1.1 |
+| `participant_households` | Participant households (market) | Households with a registered participant in a market, from the market profile. | market | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `fan_accounts` | Fan accounts (market) | Canonical fan accounts in a market. | market | `ADDITIVE` | count | Program Insights Lead | 1.1 |
+| `participation_per_1000` | Participant households per 1,000 | Participant households per 1,000 households in the (synthetic) market population. | market | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `fan_accounts_per_1000` | Fan accounts per 1,000 | Fan accounts per 1,000 households in the (synthetic) market population. | market | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `net_new_rate` | Net-new rate | Net-new households / linked households in a market. | market | `RATIO` | rate | Program Insights Lead | 1.1 |
+| `link_rate` | Link rate (market) | Linked / participant households in a market. | market | `RATIO` | rate | Program Insights Lead | 1.1 |

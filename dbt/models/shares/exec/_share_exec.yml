@@ -154,3 +154,104 @@ models:
         meta: {pii: none}
         data_tests:
           - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__fan_funnel
+    description: >
+      Fan funnel by cohort year, segment and fan status: households, linked, contactable, active, monetized with step rates. Aggregate only, small cells suppressed (restricted linkage schema, ADR-009).
+    columns:
+      - {name: cohort_year, meta: {pii: none}}
+      - {name: segment, meta: {pii: none}}
+      - {name: fan_status, meta: {pii: none}}
+      - {name: funnel_households, meta: {pii: none}}
+      - {name: funnel_linked, meta: {pii: none}}
+      - {name: funnel_contactable, meta: {pii: none}}
+      - {name: funnel_active, meta: {pii: none}}
+      - {name: funnel_monetized, meta: {pii: none}}
+      - {name: funnel_link_rate, meta: {pii: none}}
+      - {name: funnel_contactable_rate, meta: {pii: none}}
+      - {name: funnel_active_rate, meta: {pii: none}}
+      - {name: funnel_monetized_rate, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__acquisition_incrementality
+    description: >
+      Incremental fan accounts attributable to the programme (estimate with interval) next to net-new households. One row; aggregate only.
+    columns:
+      - {name: methodology_version, meta: {pii: none}}
+      - {name: incremental_fan_accounts, meta: {pii: none}}
+      - {name: incremental_fan_accounts_ci_low, meta: {pii: none}}
+      - {name: incremental_fan_accounts_ci_high, meta: {pii: none}}
+      - {name: net_new_linked_households, meta: {pii: none}}
+      - {name: net_new_households_scaled, meta: {pii: none}}
+      - {name: market_years_compared, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+      - {name: caveat, meta: {pii: none}}
+
+  - name: share_exec__fan_value
+    description: >
+      Modelled lifetime value per fan account with a range, by fan group. Synthetic currency, illustrative; aggregate only.
+    columns:
+      - {name: fan_group, meta: {pii: none}}
+      - {name: value_accounts, meta: {pii: none}}
+      - {name: net_spend_per_active_month, meta: {pii: none}}
+      - {name: expected_active_months, meta: {pii: none}}
+      - {name: fan_ltv, meta: {pii: none}}
+      - {name: fan_ltv_low, meta: {pii: none}}
+      - {name: fan_ltv_high, meta: {pii: none}}
+      - {name: horizon_months, meta: {pii: none}}
+      - {name: currency_label, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__addressable_audience
+    description: >
+      Addressable audience and consent gap by month and household group. Counts only, never a list; small cells suppressed.
+    columns:
+      - {name: month, meta: {pii: none}}
+      - {name: household_group, meta: {pii: none}}
+      - {name: audience_registered, meta: {pii: none}}
+      - {name: audience_linked, meta: {pii: none}}
+      - {name: audience_contactable, meta: {pii: none}}
+      - {name: audience_contactable_email, meta: {pii: none}}
+      - {name: audience_contactable_sms, meta: {pii: none}}
+      - {name: audience_contactable_push, meta: {pii: none}}
+      - {name: audience_active, meta: {pii: none}}
+      - {name: consent_gap_households, meta: {pii: none}}
+      - {name: contactable_share_of_linked, meta: {pii: none}}
+      - {name: consent_gap_share_of_active, meta: {pii: none}}
+      - {name: consent_gap_value, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__market_quadrants
+    description: >
+      Synthetic markets with their flag/fan quadrant; markets below k_min are rolled up per quadrant. Aggregate only.
+    columns:
+      - {name: market_id, meta: {pii: quasi}}
+      - {name: market_name, meta: {pii: quasi}}
+      - {name: country_code, meta: {pii: quasi}}
+      - {name: quadrant, meta: {pii: none}}
+      - {name: is_team_market, meta: {pii: none}}
+      - {name: launch_year, meta: {pii: none}}
+      - {name: household_population, meta: {pii: none}}
+      - {name: markets_in_row, meta: {pii: none}}
+      - {name: participant_households, meta: {pii: none}}
+      - {name: fan_accounts, meta: {pii: none}}
+      - {name: participation_per_1000, meta: {pii: none}}
+      - {name: fan_accounts_per_1000, meta: {pii: none}}
+      - {name: net_new_rate, meta: {pii: none}}
+      - {name: link_rate, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

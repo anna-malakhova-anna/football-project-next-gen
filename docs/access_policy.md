@@ -32,6 +32,39 @@ policies (design only; not implemented).
 
 ### exec
 
+**`share_exec__acquisition_incrementality`**
+
+| Column | Treatment |
+|---|---|
+| `methodology_version` | DIMENSION |
+| `incremental_fan_accounts` | AGGREGATE_SUPPRESSED |
+| `incremental_fan_accounts_ci_low` | AGGREGATE_SUPPRESSED |
+| `incremental_fan_accounts_ci_high` | AGGREGATE_SUPPRESSED |
+| `net_new_linked_households` | AGGREGATE_SUPPRESSED |
+| `net_new_households_scaled` | AGGREGATE_SUPPRESSED |
+| `market_years_compared` | AGGREGATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+| `caveat` | CAVEAT_LABEL |
+
+**`share_exec__addressable_audience`**
+
+| Column | Treatment |
+|---|---|
+| `month` | DIMENSION |
+| `household_group` | DIMENSION |
+| `audience_registered` | AGGREGATE_SUPPRESSED |
+| `audience_linked` | AGGREGATE_SUPPRESSED |
+| `audience_contactable` | AGGREGATE_SUPPRESSED |
+| `audience_contactable_email` | AGGREGATE_SUPPRESSED |
+| `audience_contactable_sms` | AGGREGATE_SUPPRESSED |
+| `audience_contactable_push` | AGGREGATE_SUPPRESSED |
+| `audience_active` | AGGREGATE_SUPPRESSED |
+| `consent_gap_households` | AGGREGATE_SUPPRESSED |
+| `contactable_share_of_linked` | DERIVED_RATE_SUPPRESSED |
+| `consent_gap_share_of_active` | DERIVED_RATE_SUPPRESSED |
+| `consent_gap_value` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
 **`share_exec__fan_engagement_effect`**
 
 | Column | Treatment |
@@ -45,6 +78,39 @@ policies (design only; not implemented).
 | `suppressed` | SUPPRESSION_FLAG |
 | `caveat` | CAVEAT_LABEL |
 
+**`share_exec__fan_funnel`**
+
+| Column | Treatment |
+|---|---|
+| `cohort_year` | DIMENSION |
+| `segment` | DIMENSION |
+| `fan_status` | DIMENSION |
+| `funnel_households` | AGGREGATE_SUPPRESSED |
+| `funnel_linked` | AGGREGATE_SUPPRESSED |
+| `funnel_contactable` | AGGREGATE_SUPPRESSED |
+| `funnel_active` | AGGREGATE_SUPPRESSED |
+| `funnel_monetized` | AGGREGATE_SUPPRESSED |
+| `funnel_link_rate` | DERIVED_RATE_SUPPRESSED |
+| `funnel_contactable_rate` | DERIVED_RATE_SUPPRESSED |
+| `funnel_active_rate` | DERIVED_RATE_SUPPRESSED |
+| `funnel_monetized_rate` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_exec__fan_value`**
+
+| Column | Treatment |
+|---|---|
+| `fan_group` | DIMENSION |
+| `value_accounts` | AGGREGATE_SUPPRESSED |
+| `net_spend_per_active_month` | DERIVED_RATE_SUPPRESSED |
+| `expected_active_months` | DERIVED_RATE_SUPPRESSED |
+| `fan_ltv` | DERIVED_RATE_SUPPRESSED |
+| `fan_ltv_low` | DERIVED_RATE_SUPPRESSED |
+| `fan_ltv_high` | DERIVED_RATE_SUPPRESSED |
+| `horizon_months` | DIMENSION |
+| `currency_label` | DIMENSION |
+| `suppressed` | SUPPRESSION_FLAG |
+
 **`share_exec__household_link_rate`**
 
 | Column | Treatment |
@@ -53,6 +119,26 @@ policies (design only; not implemented).
 | `program_households` | AGGREGATE_SUPPRESSED |
 | `linked_households` | AGGREGATE_SUPPRESSED |
 | `household_link_rate` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_exec__market_quadrants`**
+
+| Column | Treatment |
+|---|---|
+| `market_id` | DIMENSION |
+| `market_name` | DIMENSION |
+| `country_code` | DIMENSION |
+| `quadrant` | DIMENSION |
+| `is_team_market` | DIMENSION |
+| `launch_year` | DIMENSION |
+| `household_population` | DIMENSION |
+| `markets_in_row` | DIMENSION |
+| `participant_households` | AGGREGATE_SUPPRESSED |
+| `fan_accounts` | AGGREGATE_SUPPRESSED |
+| `participation_per_1000` | DERIVED_RATE_SUPPRESSED |
+| `fan_accounts_per_1000` | DERIVED_RATE_SUPPRESSED |
+| `net_new_rate` | DERIVED_RATE_SUPPRESSED |
+| `link_rate` | DERIVED_RATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
 **`share_exec__participation_bounds`**
@@ -173,6 +259,19 @@ Explicitly **not** available:
 
 ### analyst
 
+**`share_analyst__fan_acquisition_event_study`**
+
+| Column | Treatment |
+|---|---|
+| `years_since_launch` | DIMENSION |
+| `launch_cohorts` | DIMENSION |
+| `acquisition_treated_markets` | AGGREGATE_SUPPRESSED |
+| `acquisition_effect_per_1000` | DERIVED_RATE_SUPPRESSED |
+| `acquisition_effect_se` | DERIVED_RATE_SUPPRESSED |
+| `acquisition_effect_ci_low` | DERIVED_RATE_SUPPRESSED |
+| `acquisition_effect_ci_high` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
 **`share_analyst__fan_event_study`**
 
 | Column | Treatment |
@@ -183,6 +282,21 @@ Explicitly **not** available:
 | `fan_comparison_mean_events` | DERIVED_RATE_SUPPRESSED |
 | `fan_event_study_effect_pct` | DERIVED_RATE_SUPPRESSED |
 | `fan_event_study_diff_se` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_analyst__fan_market_year`**
+
+| Column | Treatment |
+|---|---|
+| `market_id` | DIMENSION |
+| `country_code` | DIMENSION |
+| `is_team_market` | DIMENSION |
+| `launch_year` | DIMENSION |
+| `panel_year` | DIMENSION |
+| `household_population` | DIMENSION |
+| `market_new_accounts` | AGGREGATE_SUPPRESSED |
+| `market_new_accounts_per_1000` | DERIVED_RATE_SUPPRESSED |
+| `market_is_treated` | DIMENSION |
 | `suppressed` | SUPPRESSION_FLAG |
 
 **`share_analyst__participant_year`**
