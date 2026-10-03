@@ -22,7 +22,7 @@ vars:
   # pairs) a modulus of 3,500 keeps about 200,000 random pairs, drawn from ALL pairs, not from blocks.
   idr_u_sample_modulus: 3500
   # Version of the counting rules (docs/methodology/CHANGELOG.md); stamped on every scorecard row and snapshot.
-  methodology_version: '1.1'
+  methodology_version: '2.0'
   # Source D linkage: after the email rule, also link by phone when neither side has an email link (ADR-009 reports its measured precision).
   linkage_phone_fallback: true
   # The month a household's engagement effect is dated from, by the term of its first registration (the registration period, not a signup date).

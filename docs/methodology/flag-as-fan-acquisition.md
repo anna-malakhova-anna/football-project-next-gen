@@ -2,7 +2,7 @@
 
 > **Synthetic data.** Every number in this memo describes a generated population, not a real program. **DRAFT SKELETON:** every heading, definition and number is in place; each prose paragraph is marked
 > `<!-- DRAFT: Anna to rewrite -->` and is for Anna to write. Companion to [Counting a participant](counting-a-participant.md). Audience: a program executive and a privacy lead.
-> Methodology version **2.0 (proposed: not yet approved or published; the pipeline still stamps 1.1, see the CHANGELOG).**
+> Methodology version **2.0** (approved by Anna on 2026-10-03; see the CHANGELOG).
 
 ## 1. The question
 
@@ -81,4 +81,4 @@ Every fan account holder is an adult (an ERROR in the data contract and a dbt te
 ## 8. Version and changes
 
 <!-- DRAFT: Anna to rewrite -->
-Proposed version 2.0 adds the fan KPIs (net-new, incremental, funnel, audience, consent gap, fan survival, LTV, market quadrants), none of which restates a published participation number. See the CHANGELOG entry for what the bump would publish and what the restatement log would show.
+Version 2.0 adds four fan KPIs to the scorecard (net-new households, incremental fan accounts, addressable audience, consent gap households) and the funnel, survival, LTV, uplift and market metrics to the catalog. None restates a published participation number: the restatement log against the v1.1 baseline lists them as NEW_KPI. See the CHANGELOG.

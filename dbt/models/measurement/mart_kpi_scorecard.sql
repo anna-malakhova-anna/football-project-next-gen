@@ -47,6 +47,30 @@ sources as (
 
 rh as (select * from {{ ref('mart_reported_headcount') }} where country_code = 'ALL'),
 
+fan_nn as (
+
+    select cohort_year as participation_year, households::double as net_new_households
+    from {{ ref('mart_fan_funnel') }} where market_type = 'ALL' and segment = 'ALL' and fan_status = 'NET_NEW'
+
+),
+
+fan_inc as (
+
+    select year as participation_year, sum(incremental_accounts) as inc,
+           sum(incremental_accounts) - 1.96 * sqrt(sum(power(se_incremental_accounts, 2))) as inc_low,
+           sum(incremental_accounts) + 1.96 * sqrt(sum(power(se_incremental_accounts, 2))) as inc_high
+    from {{ ref('mart_acquisition_incrementality') }} where is_post_period group by 1
+
+),
+
+fan_aud as (
+
+    select year(month) as participation_year, contactable_households::double as contactable, consent_gap_households::double as gap
+    from {{ ref('mart_addressable_audience') }}
+    where household_group = 'ALL' and month(month) = 12
+
+),
+
 first_year as (select {{ first_observed_year() }} as y),
 
 kpis as (
@@ -68,6 +92,11 @@ kpis as (
     union all select g.participation_year, 'sources_onboarded', s.sources_onboarded, null, null from g cross join sources s
     union all select g.participation_year, 'sources_known', s.sources_known, null, null from g cross join sources s
     union all select participation_year, 'pct_registrations_failing_dq', pct_registrations_failing_dq, null, null from dq
+    -- fan KPIs (methodology 2.0): the incremental estimate has its interval as low / high; the audience KPIs are as of December
+    union all select participation_year, 'net_new_households', net_new_households, null, null from fan_nn
+    union all select participation_year, 'incremental_fan_accounts', inc, inc_low, inc_high from fan_inc
+    union all select participation_year, 'audience_contactable', contactable, null, null from fan_aud
+    union all select participation_year, 'consent_gap_households', gap, null, null from fan_aud
     -- Source E (methodology 1.1): reported alongside, never added to, the participant counts
     union all select participation_year, 'reported_headcount', reported_headcount::double, null, null from rh
     union all select participation_year, 'voluntary_program_headcount', voluntary_headcount::double, null, null from rh

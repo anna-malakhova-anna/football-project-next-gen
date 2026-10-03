@@ -3,18 +3,20 @@
 > Synthetic data. Every change to how a participant is counted, and every restatement of a published number, is recorded here
 > (ADR-007). A methodology change bumps the version and requires a restatement of published headline KPIs.
 
-## v2.0 (proposed, not approved, not published)
+## v2.0: 2026-10-03
 
-> **Waiting for Anna.** The fan-acquisition rework (rework steps 1 to 12) adds a second memo, [Flag as fan acquisition](flag-as-fan-acquisition.md) (skeleton with DRAFT markers; her prose), and new KPIs.
-> The version in `dbt_project.yml` and the metric catalog is still **1.1**, and no v2.0 snapshot has been published: bumping the version and publishing are hers to approve, as v1.1 was.
+> **Approved by Anna on 2026-10-03.** The fan-acquisition rework adds a second memo, [Flag as fan acquisition](flag-as-fan-acquisition.md) (skeleton with DRAFT markers; her prose), and the fan KPIs.
+> A fresh **v1.1 baseline for 2021 to 2025 was published first** on the reworked data (snapshots `scorecard_<year>_20261003T0219Z` to `T0243Z`), so the restatement log can show what 2.0 changed. The v2.0 snapshots follow.
 
-**What the bump would do.** Add the fan KPIs, each with `introduced_in: 2.0`: net-new households, incremental fan accounts (with interval), funnel stage counts and rates, addressable audience (by channel),
-consent capture rate, consent gap households and its illustrative value, RFM segment shares, fan survival, lifetime value (range), value uplift, and market quadrant counts. (They are in the catalog now as
-`introduced_in: 1.1`; the approval step would change that.) Counting rules C1 to C15 are unchanged, so the participation KPIs would not be restated.
-**Restatement expected:** the bump is a `NEW_KPI` change for the fan KPIs (listed, never a restatement). The rework did change what the generator produces (a 15,000-person population, markets, staggered launches),
-which is a regeneration, not a methodology change: the old v1.1 snapshots in `published/` describe the earlier synthetic world and would show as differences against a fresh 2021 to 2025 baseline, which should be published
-first, as for v1.1.
-**Not done yet:** version bump, new baseline and v2.0 snapshots, restatement log capture.
+**Added, nothing restated.** Four scorecard KPIs, each `introduced_in: 2.0`: `net_new_households` (linked households with no account before their first registration, by cohort year), `incremental_fan_accounts`
+(the market-level estimate with its 95% interval as low / high; 2022 onward, where a launched market has a pre-period), `audience_contactable` (registered households a guardian has opted in on at least one channel, December
+of the year) and `consent_gap_households` (active households with no opt-in, December). The scorecard goes from 21 to 25 KPIs. The metric catalog also gains the funnel, value, survival, uplift, consent-capture and
+market-profile metrics behind the new shares, all `introduced_in: 2.0`. The restatement log against the v1.1 baseline lists the four as `NEW_KPI` (19 KPI-years) and requires no restatement.
+
+- Counting rules C1 to C15 are **unchanged**; no existing KPI changes definition.
+- Fan results describe **households linked to a fan account** under the restricted-zone policy (ADR-009); `UNLINKED` means unknown, not non-fan; every account holder is an adult guardian.
+- Acquisition is measured at **market level** from staggered launches (ADR-011), always beside the naive count. The audience is published as counts only: nothing linked reaches marketing or media.
+- The rework regenerated the synthetic world (15,000 people, markets, staggered launches, a revised fan source). That is a regeneration, not a methodology change: the **earlier v1.0 and v1.1 snapshots in `published/` describe the old world** and are kept as the record.
 
 ## v1.1: 2026-10-02
 
