@@ -7,6 +7,8 @@ program that answers that question, and then shows how sure it is: the fans the 
 is worth, and how much of the engaged audience governance lets the organisation talk to. It started as "how many people play" and still answers that too. Five messy sources (a league CSV, a club API,
 a federation workbook, school headcounts and a fan feed) go in; every claim is graded against an answer key the generator keeps. Python generates and loads; **SQL (dbt on DuckDB) is the showcase**.
 
+**Status:** all 13 steps of the fan-acquisition rework are built; methodology **v2.0** (25 scorecard KPIs) is published for 2021 to 2025 and the restatement log is empty. The two methodology memos and the demo talking points are drafts for the owner to write, and the CI workflow has not yet run (no GitHub remote).
+
 > ## All data in this project is synthetic
 > Every person, email and phone number is fake, generated from a fixed seed (42). The real equivalent is **minors' personal information**: children aged 5 to 17, their
 > guardians' contact details, photo and marketing consent. That is why the project uses invented people: the modelling, privacy and governance patterns can be shown in public
@@ -21,10 +23,10 @@ flowchart LR
   R --> ST[staging<br/>typed, flagged]
   ST --> I[identity<br/>blocking, Fellegi-Sunter,<br/>components]
   I --> F[facts<br/>counting rules C1 to C15]
-  F --> M[marts<br/>KPIs, retention,<br/>bounds]
+  F --> M[marts<br/>KPIs, retention,<br/>bounds, fan status,<br/>funnel, acquisition,<br/>value, audience]
   M --> SH[shares<br/>by audience,<br/>small cells suppressed]
   SH --> W[results site]
-  ST -.restricted.-> L[linkage schema<br/>households to fan accounts]
+  ST -.restricted.-> L[linkage schema<br/>households to fan accounts,<br/>guardians only]
   L -.aggregates only.-> SH
   G[(ground truth<br/>schema eval)] -.evaluation models only.-> M
 ```
@@ -73,17 +75,19 @@ Governance sets the size of the marketable audience: nothing linked reaches mark
 - **Partner contracts as a governance process.** A contract here is a YAML file validated on every build; a real one is signed with the partner, owned by a named role and renegotiated when the data changes (see the [playbook](docs/playbook/onboard-a-source.md)).
 - **A persisted participant-ID registry.** IDs here are derived; production needs a registry so that a merge or split is an event, not a rebuild (ADR-004).
 - **Real access control.** Column policies per audience, with database roles, audit logging and an access review (ADR-006).
+- **Real market launches are not random.** Markets here launch in an order unrelated to their fan potential, which is what makes the incrementality estimate credible; real launches target promising markets, so ADR-011's comparison would need pre-trends per market and a sensitivity analysis.
 - **Attendance data.** A registration is not proof someone played. Counting attendance would change every definition here.
 - **Real data would score lower.** The synthetic population has phone numbers that never change and one nickname list; identity resolution on real data is harder, and the truth column would not exist.
 
 ## Run it
 
-Requires [`uv`](https://docs.astral.sh/uv/) and `make`. Python 3.11 to 3.13 is fetched automatically.
+Requires [`uv`](https://docs.astral.sh/uv/) and `make`. Python 3.12 is fetched automatically. pytest runs on four workers; the CI job allows 25 minutes.
 
 ```bash
 make setup        # install dependencies, create dbt/profiles.yml from the example
 make all-phases   # the supported full build, from an empty checkout: about 8 minutes, most of it the test suite
-make site         # build the results site into site/ (open site/index.html, or serve the folder)
+make site         # build the results site into site/
+python -m http.server 8000 -d site    # then open http://localhost:8000
 ```
 
 `make all-phases` generates the data, loads raw, ground truth and published snapshots, validates the contracts, runs every dbt model and test, runs pytest, and runs the build
@@ -95,7 +99,7 @@ checks: ground-truth isolation, aggregate lineage, share policy and participant-
 | `make contracts` | validate every source contract against the raw tables (an `ERROR` fails the build) |
 | `make fan-status` / `make funnel` / `make acquisition` / `make fan-value` / `make audience` | run one fan analysis and print its comparison with the truth (also `make retention`, `make linkage`, `make fan`) |
 | `make docs` | regenerate the data dictionary, metric catalog and access policy |
-| `make publish YEAR=2025` | write an immutable snapshot (refuses unless every test passes; never part of `all-phases`) |
+| `make publish YEAR=2025` | write an immutable snapshot of that year's scorecard under the current methodology version (refuses unless every test passes, about 5 minutes per year; never part of `all-phases`) |
 | `make site` | build the results site; fails if a chart would compute a number in the browser |
 
 Explore `warehouse/flag.duckdb`:
@@ -117,6 +121,8 @@ select * from share_exec.share_exec__addressable_audience;       -- audience and
 5. **Ground truth is quarantined.** It lives in schema `eval` and is read only by `models/evaluation/`; a build check enforces it.
 6. **Never guess.** Ambiguity becomes NULL or `U` and is flagged. Consent not captured is NULL, never FALSE.
 7. **Say how sure you are.** Identity bounds, censoring, confidence intervals, and a comparison with the naive answer next to every estimate.
+8. **Never tune to the truth.** Estimator designs are fixed before the answer key is read; where an estimate misses, the result says so (ADR-010, ADR-011).
+9. **Guardians only, and never to marketing.** Every fan account holder is an adult; household-linked data leaves the restricted zone only as suppressed aggregates, and nothing linked reaches marketing or media (ADR-009). Unlinked means unknown, not non-fan.
 
 ## Documents
 
