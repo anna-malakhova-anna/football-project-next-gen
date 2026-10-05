@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ title }}: Counting Flag Football</title>
+<meta name="description" content="{{ question }}">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@600;700&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<script>try{var t=localStorage.getItem("cff-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the content</a>
+<div class="notice" id="notice" role="note">
+  <div class="notice-inner">
+    <p>All figures come from synthetic data generated for this project. <a href="index.html">Read how it was built.</a></p>
+    <button type="button" id="notice-dismiss" aria-label="Dismiss this notice">Dismiss</button>
+  </div>
+</div>
+<header class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="wordmark" href="index.html"><svg class="wordmark-mark" data-mark="project" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Counting Flag Football mark"><rect width="32" height="32" fill="#2F6B4F"/><rect x="4" y="14" width="24" height="4" fill="#F2C230"/></svg>Counting Flag Football</a>
+    <button type="button" class="icon-btn menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="nav" id="site-nav" aria-label="Pages">
+      {% for slug, label in nav %}<a href="{{ slug }}.html"{% if slug == current %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+    </nav>
+    <div class="nav-secondary">
+      <a href="trust.html#documents">Methodology</a>
+      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch between light and dark theme" title="Switch theme">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2a6 6 0 0 0 0 12z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<div class="page-head">
+  <h1>{{ title }}</h1>
+  <p class="page-question">{{ question }}</p>
+  {% block season %}{% endblock %}
+</div>
+<main id="main">
+{{ body | safe }}
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p class="footer-disclaimer">Independent portfolio project using synthetic data. Not affiliated with or endorsed by any league or team.</p>
+    <p>Methodology version {{ version }} · built {{ built }} by scripts/build_site.py{% if appendix %} · <a href="appendix.html">Appendix: school and recreation programs (a stretch source)</a>{% endif %}</p>
+    <p>No number on this site is computed in the browser.</p>
+  </div>
+</footer>
+{% for u in libs %}<script src="{{ u }}"></script>
+{% endfor %}<script src="js/site.js"></script>
+</body>
+</html>

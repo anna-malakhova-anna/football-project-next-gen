@@ -1,0 +1,76 @@
+/* Design tokens (ui-spec section 2). Light is the default; dark follows the system unless the visitor picks a theme with the toggle. */
+:root {
+  --night-field: #14263B;
+  --turf: #2F6B4F;
+  --chalk: #F4F6F1;
+  --line-to-gain: #F2C230;
+  --pylon: #D9622B;
+  --slate-600: #4A5866;
+  --slate-400: #8A96A3;
+  --slate-200: #D5DBE1;
+
+  /* semantic */
+  --bg: var(--chalk);
+  --surface: #FFFFFF;
+  --text: #1B2733;
+  --text-muted: var(--slate-600);
+  --border: var(--slate-200);
+  --accent: var(--turf);
+  --topbar-bg: var(--night-field);
+  --topbar-text: #E9EEF2;
+  --notice-bg: var(--slate-600);
+  --notice-text: #F4F6F1;
+  --link: #1F5E8F;
+
+  /* data series (colorblind-checked; meaning is never carried by colour alone) */
+  --series-turf: #2F6B4F;
+  --series-sky: #3D7CC9;
+  --series-pylon: #D9622B;
+  --series-plum: #7D4E8E;
+  --series-sand: #B8A06A;
+
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --r-chip: 2px;
+  --r-card: 6px;
+  --shadow-float: 0 4px 16px rgba(20, 38, 59, .18);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --turf: #4C9A73;
+    --bg: #0F1C2C;
+    --surface: #1B3149;
+    --text: #E9EEF2;
+    --text-muted: #B4C0CC;
+    --border: #2E4560;
+    --accent: #4C9A73;
+    --topbar-bg: #0B1521;
+    --notice-bg: #25405C;
+    --link: #8FC1EE;
+    --series-turf: #4C9A73;
+    --series-sky: #6FA6E6;
+    --series-pylon: #E8844F;
+    --series-plum: #A47DB5;
+    --series-sand: #CDB87E;
+  }
+}
+
+:root[data-theme="dark"] {
+  --turf: #4C9A73;
+  --bg: #0F1C2C;
+  --surface: #1B3149;
+  --text: #E9EEF2;
+  --text-muted: #B4C0CC;
+  --border: #2E4560;
+  --accent: #4C9A73;
+  --topbar-bg: #0B1521;
+  --notice-bg: #25405C;
+  --link: #8FC1EE;
+  --series-turf: #4C9A73;
+  --series-sky: #6FA6E6;
+  --series-pylon: #E8844F;
+  --series-plum: #A47DB5;
+  --series-sand: #CDB87E;
+}

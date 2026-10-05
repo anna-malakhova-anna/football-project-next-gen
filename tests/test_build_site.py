@@ -49,7 +49,8 @@ def test_every_defined_chart_passes_the_checks_and_has_a_shows_and_a_does_not_sh
     names = {d["name"] for d in bs.DATASETS}
     known = {f"data/{n}.json" for n in names}
     for cid, ch in bs.charts().items():
-        assert bs.check_spec(ch["spec"], known, cid) == [], cid
+        assert ch.get("spec") is None or bs.check_spec(ch["spec"], known, cid) == [], cid
+        assert ch.get("spec") or ch.get("render"), cid
         assert set(ch["datasets"]) <= names, cid
         assert ch["shows"].strip().endswith(".") and ch["doesnt"].strip().endswith("."), cid
         assert ch["page"] in {p for p, _ in bs.PAGES + bs.APPENDIX}, cid
@@ -82,7 +83,7 @@ def test_the_site_builds_from_the_warehouse_with_every_page_and_data_file(tmp_pa
         assert d["rows"] > 0 or d["name"] == "restatement_log", d["name"]       # an empty restatement log is the good case: nothing published has changed
     index = (site / "index.html").read_text()
     assert "Synthetic data" in index and "5-minute" in index.lower() or "five-minute" in index.lower()
-    for slug in ("acquisition", "value", "audience", "participation", "governance"):
+    for slug in ("acquisition", "value", "audience", "participation", "trust"):
         text = (site / f"{slug}.html").read_text()
         assert text.count("What this shows") == text.count("What it does not show") >= 1
     # no JavaScript in the pages computes anything: the only script is the embed loop
@@ -104,3 +105,32 @@ def test_fan_acquisition_comes_first_and_the_first_chart_is_the_incremental_esti
     assert "fans" in index.split("<h2>")[0].lower() and "contact" in index.lower()
     audience = (tmp_path / "site" / "audience.html").read_text().lower()
     assert "not a marketing list" in audience or "no household is identified" in audience
+
+
+def test_the_brand_boundary_check_refuses_images_foreign_svg_and_foreign_favicons(tmp_path):
+    site = tmp_path / "site"
+    (site / "css").mkdir(parents=True)
+    (site / "favicon.svg").write_text(bs.FAVICON, encoding="utf-8")
+    (site / "css" / "site.css").write_text("body{margin:0}", encoding="utf-8")
+    ok = '<svg data-mark="project" viewBox="0 0 1 1"></svg><svg aria-hidden="true"></svg>'
+    (site / "index.html").write_text(f"<html><body>{ok}</body></html>", encoding="utf-8")
+    assert bs.check_brand_boundary(site) == []
+    (site / "index.html").write_text(f'<html><body>{ok}<img src="x.png"></body></html>', encoding="utf-8")
+    assert any("image element" in p for p in bs.check_brand_boundary(site))
+    (site / "index.html").write_text('<html><body><svg viewBox="0 0 1 1"><path d="M0 0"/></svg></body></html>', encoding="utf-8")
+    assert any("inline SVG" in p for p in bs.check_brand_boundary(site))
+    (site / "index.html").write_text(f"<html>{ok}</html>", encoding="utf-8")
+    (site / "logo.webp").write_bytes(b"x")
+    assert any("image files" in p for p in bs.check_brand_boundary(site))
+    (site / "logo.webp").unlink()
+    (site / "favicon.svg").write_text("<svg><path d='M0 0'/></svg>", encoding="utf-8")
+    assert any("favicon" in p for p in bs.check_brand_boundary(site))
+    (site / "favicon.svg").write_text(bs.FAVICON, encoding="utf-8")
+    (site / "css" / "site.css").write_text("a{background:url(shield.png)}", encoding="utf-8")
+    assert any("url()" in p for p in bs.check_brand_boundary(site))
+
+
+def test_numbers_show_thousands_separators_but_years_stay_plain_and_rates_are_percentages():
+    assert bs.fmt_cell(4665, "households") == "4,665" and bs.fmt_cell(13043, "households") == "13,043"
+    assert bs.fmt_cell(2021, "participation_year") == "2021"
+    assert bs.fmt_cell(0.25, "consent_gap_share_of_active") == "25.0%"
