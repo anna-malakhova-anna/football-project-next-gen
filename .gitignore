@@ -22,3 +22,6 @@ dbt/.user.yml
 
 # Generated site (built by scripts/build_site.py; deployed from CI)
 site/
+
+# Local-only logo (a third-party mark): never committed, so it never reaches CI or the published site
+local_assets/

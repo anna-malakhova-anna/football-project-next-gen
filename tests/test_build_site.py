@@ -134,3 +134,18 @@ def test_numbers_show_thousands_separators_but_years_stay_plain_and_rates_are_pe
     assert bs.fmt_cell(4665, "households") == "4,665" and bs.fmt_cell(13043, "households") == "13,043"
     assert bs.fmt_cell(2021, "participation_year") == "2021"
     assert bs.fmt_cell(0.25, "consent_gap_share_of_active") == "25.0%"
+
+
+def test_the_local_logo_is_allowed_only_as_the_wordmark_image_and_only_when_asked_for(tmp_path):
+    site = tmp_path / "site"
+    (site / "css").mkdir(parents=True)
+    (site / "img").mkdir()
+    (site / "favicon.svg").write_text(bs.FAVICON, encoding="utf-8")
+    (site / "css" / "site.css").write_text("body{margin:0}", encoding="utf-8")
+    (site / "img" / "logo.webp").write_bytes(b"x")
+    logo = '<img class="wordmark-logo" src="img/logo.webp" alt="" width="36" height="36">'
+    (site / "index.html").write_text(f"<html>{logo}</html>", encoding="utf-8")
+    assert bs.check_brand_boundary(site, local_logo=True) == []
+    assert bs.check_brand_boundary(site)                                    # a CI build (no local logo) refuses it
+    (site / "index.html").write_text(f'<html>{logo}<img src="img/logo.webp"></html>', encoding="utf-8")
+    assert any("image element" in p for p in bs.check_brand_boundary(site, local_logo=True))

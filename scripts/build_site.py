@@ -268,21 +268,26 @@ def check_spec(spec: dict, known: set[str], chart: str) -> list[str]:
     return problems
 
 
-def check_brand_boundary(out: Path) -> list[str]:
+def check_brand_boundary(out: Path, local_logo: bool = False) -> list[str]:
     """The site must not carry anyone else's mark. Text is easy to review; images are not, so refuse them outright:
-    no image files, no <img>/<image>/url(...) references, and every inline SVG must be the project's own mark or a decorative icon."""
+    no image files, no <img>/<image>/url(...) references, and every inline SVG must be the project's own mark or a decorative icon.
+    The one exception is the git-ignored local logo (local_logo=True, a local build only): exactly img/logo.webp, shown only as the wordmark image."""
     import re
     problems = []
     for f in sorted(out.rglob("*")):
+        if local_logo and f == out / "img" / "logo.webp":
+            continue
         if f.suffix.lower() in {".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif", ".ico", ".bmp", ".tif", ".tiff", ".heic"}:
             problems.append(f"{f.relative_to(out)}: image files are not allowed on this site (no third-party logos); the project mark is inline SVG")
-    if (out / "img").exists():
+    if (out / "img").exists() and not local_logo:
         problems.append("site/img exists: the site carries no image directory")
     fav = out / "favicon.svg"
     if not fav.exists() or fav.read_text(encoding="utf-8") != FAVICON:
         problems.append("favicon.svg is missing or is not the project's own mark")
     for f in sorted(out.glob("*.html")):
         text = f.read_text(encoding="utf-8")
+        if local_logo:
+            text = text.replace('<img class="wordmark-logo" src="img/logo.webp" alt="" width="36" height="36">', "", 1)
         if re.search(r"<img\b|<image\b|<picture\b|<object\b|<embed\b", text, re.I):
             problems.append(f"{f.name}: contains an image element")
         for m in re.finditer(r"<svg\b([^>]*)>", text):
@@ -609,6 +614,7 @@ PAGE_HEAD = {
     "appendix": ("Appendix: school and recreation programs", "A stretch source: how many children do schools and recreation departments report?"),
 }
 SRC = ROOT / "site_src"
+LOCAL_LOGO = ROOT / "local_assets" / "logo.webp"       # optional and git-ignored: shown on a local build only, so CI and the published site never carry it
 APPENDIX = [("appendix", "Appendix")]          # a stretch source (school and recreation headcounts): built, linked from the footer, not in the main navigation
 
 # Plain labels for code names. Values are relabelled in the exported rows (so charts and tables agree); headers are relabelled when a table is drawn.
@@ -742,7 +748,7 @@ def render_page(slug: str, body: str, built: str, version: str) -> str:
     env = Environment(loader=FileSystemLoader(str(SRC / "templates")), autoescape=True, undefined=StrictUndefined)
     title, question = PAGE_HEAD[slug]
     return env.get_template("base.html").render(title=title, question=question, body=body, built=built, version=version, libs=LIBS,
-                                                nav=[(sl, lb) for sl, lb in PAGES if sl != "index"], current=slug, appendix=True)
+                                                nav=[(sl, lb) for sl, lb in PAGES if sl != "index"], current=slug, appendix=True, logo=LOCAL_LOGO.exists())
 
 
 FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#2F6B4F"/>'
@@ -756,6 +762,9 @@ def copy_assets(out: Path) -> None:
         shutil.copy(SRC / "styles" / name, out / "css" / name)
     shutil.copy(SRC / "site.js", out / "js" / "site.js")
     (out / "favicon.svg").write_text(FAVICON, encoding="utf-8")
+    if LOCAL_LOGO.exists():
+        (out / "img").mkdir(exist_ok=True)
+        shutil.copy(LOCAL_LOGO, out / "img" / "logo.webp")
 
 
 def kv(data: dict, name: str) -> dict:
@@ -911,7 +920,7 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     copy_assets(out)
     for slug, (_title, body) in build_pages(data, chart_defs, facts).items():
         (out / f"{slug}.html").write_text(render_page(slug, body, stamp, version), encoding="utf-8")
-    problems = check_brand_boundary(out)
+    problems = check_brand_boundary(out, local_logo=LOCAL_LOGO.exists())
     if problems:
         shutil.rmtree(out)
         raise SystemExit("SITE BUILD REFUSED:\n  " + "\n  ".join(problems))
