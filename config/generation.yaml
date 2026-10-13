@@ -210,3 +210,59 @@ sources:
     girls_share: {PE_UNIT: 0.49, INTRAMURAL: 0.42, AFTER_SCHOOL: 0.45}
     round_values: [100, 150, 200, 250, 300]
     grade_bands: {K-2: [5, 7], 3-5: [8, 10], 6-8: [11, 13], 9-12: [14, 17]}   # ages at December 31
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------
+# Phase 5: six US registration feeds with different schemas and defects (data quality under privacy constraints). SYNTHETIC. Isolated scope: the feeds are
+# derived from the existing true US youth registry with their own random stream (seed + seed_offset), so no Phase 1-4 file or number changes.
+# The feed names and shapes follow the public landscape only loosely; everything about internal NFL/RCX or vendor systems is an ASSUMPTION.
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------
+phase5:
+  seed_offset: 500
+  seasons: [2024, 2025]                  # the latest season in the window is 2025 (the Phase 1-4 window is not extended)
+  season_start: {SPRING: "03-01", FALL: "09-01"}
+  feed_weights: {matrix_export: 0.35, vendor_reg_a: 0.22, vendor_reg_b: 0.13, pop_warner_feed: 0.12, pal_chapter_csv: 0.10, school_program: 0.08}
+  second_feed_share: 0.10                # of children: also registered through a second feed in the same season (the cross-source duplicate)
+  leagues_per_state: {matrix_export: 2, vendor_reg_a: 1, vendor_reg_b: 1, pop_warner_feed: 1, pal_chapter_csv: 1, school_program: 1}
+  stale_league_share: 0.08               # of leagues: they stopped submitting after 2024 (timeliness)
+  two_parent_email_household_share: 0.08 # of households: some rows use a second parent's email
+  email_case_whitespace: 0.05           # of rows, every feed: parent email typed with capitals or spaces
+  late_submission: 0.07                  # of rows with a timestamp: registered well after the season started
+  alias_map_coverage: 0.85               # of vendor_reg_a free-text league spellings that the (steward-maintained) alias map covers
+  pop_warner_tackle_share: 0.35          # extra tackle rows per flag row in the Pop Warner feed (out of scope; must be filtered)
+  pop_warner_two_league_association_share: 0.25   # associations that run two flag leagues (association is not league)
+  defects:
+    matrix_export:
+      missing_zip: 0.06
+      zip_plus4: 0.08
+      missing_consent_ts: 0.05
+      missing_consent_version: 0.04
+      no_consent_record: 0.03
+      name_variant: 0.03
+    vendor_reg_a:
+      impossible_dob: 0.01
+      invalid_zip: 0.04
+      missing_zip: 0.05
+      missing_tos_ts: 0.08
+      no_consent_record: 0.04
+      name_variant: 0.05
+    vendor_reg_b:
+      missing_age_group: 0.03
+      invalid_zip: 0.04
+      missing_zip: 0.05
+      no_consent_record: 0.06
+      name_variant: 0.04
+    pop_warner_feed:
+      missing_zip: 0.08
+      blank_flag_league_code: 0.30       # of rows of two-league associations
+      no_consent_record: 0.05
+      name_variant: 0.03
+    pal_chapter_csv:
+      duplicate_row: 0.04
+      typo_name: 0.06
+      typo_email: 0.04
+      missing_zip: 0.10
+      short_year_dob: 0.20
+      no_consent_record: 0.12
+    school_program:
+      missing_grade: 0.05
+      name_variant: 0.06

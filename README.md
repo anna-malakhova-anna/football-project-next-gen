@@ -68,6 +68,27 @@ Governance sets the size of the marketable audience: nothing linked reaches mark
 | [010 Fandom outcomes](docs/decisions/ADR-010-fandom-outcomes-design.md) | Matched difference-in-differences, designed before the truth was read and never tuned to it |
 | [011 Acquisition measurement](docs/decisions/ADR-011-acquisition-measurement-design.md) | Fan acquisition is measured at market level from staggered launches: stacked cohort comparison against not-yet-treated markets, not a pooled two-way regression |
 
+## Phase 5: data quality under privacy constraints (in progress)
+
+Participation data is thin and messy, and the obvious fixes (collect more, buy enrichment, share more) are the ones privacy rules block. Phase 5 asks how to fix it anyway,
+for two audiences: a privacy lead (minimization, purpose limitation, retention) and a club analytics lead (what can I trust in my territory). Status: **step 1 of 7, the source feeds.**
+Phase 5 is an isolated scope: its feeds are derived from the existing true US youth registry with their own random stream (`phase5.seed_offset`), so no Phase 1 to 4 file or published number changes.
+The feed names, shapes and consent wordings are **assumptions** made for the demonstration; none describes a real NFL, RCX, vendor or club system.
+
+`make p5-feeds` writes `data/raw/p5/<feed>/` and lands the files in `raw.p5_<feed>` as strings; ground truth goes to `eval` only. Every rate is in `config/generation.yaml` under `phase5`.
+
+| Feed | Shape (assumed) | Defects injected on purpose |
+|---|---|---|
+| `matrix_export` | cleanest: league id, DOB, parent email, ZIP, consent version and timestamp | missing ZIP, ZIP+4, consent timestamp or version missing, no consent record, stale leagues (no latest season) |
+| `vendor_reg_a` | a third-party platform: different names, free-text league name, DOB as text | league name variants (only 85% in the alias map), four DOB text formats, impossible DOB, invalid or missing ZIP, no consent timestamp |
+| `vendor_reg_b` | age group only (`U10`), no DOB, combined parent name | missing age group, invalid or missing ZIP, no consent record |
+| `pop_warner_feed` | association-centric, tackle and flag mixed | tackle rows to filter out; an association is not a league (a quarter run two flag leagues, and the code that tells them apart is often blank); no consent field beyond a waiver |
+| `pal_chapter_csv` | manual spreadsheet uploads | blank columns, typos in names and emails, duplicated rows, two-digit-year DOBs, consent in five wordings or none |
+| `school_program` | roster only: school, grade, name | no parent contact, no ZIP, no DOB (grade only), missing grade |
+
+Across feeds: the same child in two feeds with name variants, one parent email shared by siblings, some households using two parent emails, case and whitespace noise on emails, late submissions,
+and leagues that never sent their latest season. Seasons are 2024 and 2025; the Phase 1 to 4 window is not extended.
+
 ## If this were real
 
 - **Snowflake and dbt Cloud.** The dbt is written to be portable (DuckDB-only functions are listed in ADR-001); real warehouse roles would replace the policy that a build check enforces.

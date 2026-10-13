@@ -1,4 +1,4 @@
-.PHONY: audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -75,6 +75,11 @@ steward-reset:
 
 id-stability:
 	$(PY) -m scripts.check_id_stability
+
+# Phase 5, step 1: six US registration feeds (own random stream; no Phase 1-4 file changes), their raw landing and quarantined truth
+p5-feeds:
+	$(PY) -m generator.phase5.feeds
+	$(PY) -m loader.load_phase5
 
 # Phase 4: validate every source's raw table against its data contract (writes quality.dq_contract_results)
 contracts:
