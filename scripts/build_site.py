@@ -345,16 +345,12 @@ def charts():
         spec={"data": _src("participation_by_country_latest"), "width": "container", "height": 300,
               "mark": "bar", "encoding": {"x": {"field": "country_code", "type": "nominal", "title": "Country"},
               "xOffset": {"field": "view", "type": "nominal"}, "y": {"field": "participants", "type": "quantitative", "title": "Participants"},
-              "color": {"field": "view", "type": "nominal", "title": None}}},
-        shows="Two views of the same people: attributed counts each person once, in the country of their latest registration, so it adds up; present counts a person in every country they played in.",
-        doesnt="A global total: the present view must never be summed. Small countries are suppressed (blank) rather than shown with a tiny count.")
+              "color": {"field": "view", "type": "nominal", "title": None}}})
     C["girls"] = dict(
         page="participation", title="Girls' share of youth participation", datasets=["girls_share"],
         spec={"data": _src("girls_share"), "width": "container", "height": 260, "mark": {"type": "line", "point": True},
               "encoding": {"x": {"field": "participation_year", "type": "ordinal", "title": "Participation year"},
-              "y": {"field": "girls_share_of_youth", "type": "quantitative", "axis": {"format": "%", "title": "Girls' share of youth"}, "scale": {"zero": False}}}},
-        shows="The share of youth participants (17 or under) whose registration says female; a person with no recorded sex stays in the denominator.",
-        doesnt="Why the share moves, or whether girls play as often as boys. It is registration-reported sex, not gender identity.")
+              "y": {"field": "girls_share_of_youth", "type": "quantitative", "axis": {"format": "%", "title": "Girls' share of youth"}, "scale": {"zero": False}}}})
     C["reach"] = dict(
         page="appendix", title="Combined reach: participants plus school and recreation program headcounts", datasets=["combined_reach"],
         spec={"data": _src("combined_reach"), "width": "container", "height": 300, "layer": [
@@ -376,9 +372,7 @@ def charts():
         page="trust", title="Sibling and twin false merges by threshold", datasets=["sibling_merges_by_threshold"], evaluation=True,
         spec={"data": _src("sibling_merges_by_threshold"), "width": "container", "height": 240, "mark": {"type": "bar"},
               "encoding": {"x": {"field": "threshold", "type": "ordinal", "title": "Match probability threshold"},
-              "y": {"field": "sibling_or_twin_false_merges", "type": "quantitative", "title": "Sibling / twin false merges"}}},
-        shows="How many times two different children of the same household were merged into one person at each threshold.",
-        doesnt="That a merge is harmless: a sibling merge is a privacy incident, which is why the final matcher guards against it and a steward reviews the probable pairs.")
+              "y": {"field": "sibling_or_twin_false_merges", "type": "quantitative", "title": "Sibling / twin false merges"}}})
     C["retention_km"] = dict(
         page="participation", title="Retention by entry age band (Kaplan-Meier, with 95% intervals)", datasets=["retention_km_age"],
         spec={"data": _src("retention_km_age"), "width": "container", "height": 320, "layer": [
@@ -386,9 +380,7 @@ def charts():
              "y": {"field": "km_survival_ci_low", "type": "quantitative", "scale": {"domain": [0, 1]}, "axis": {"format": "%", "title": "Still registered"}},
              "y2": {"field": "km_survival_ci_high"}, "color": {"field": "segment_value", "type": "nominal", "title": "Entry age", "sort": AGE_ORDER, "scale": {"domain": AGE_ORDER}}}},
             {"mark": {"type": "line", "point": True}, "encoding": {"x": {"field": "years_since_entry", "type": "quantitative"},
-             "y": {"field": "km_survival", "type": "quantitative"}, "color": {"field": "segment_value", "type": "nominal", "sort": AGE_ORDER, "scale": {"domain": AGE_ORDER}}}}]},
-        shows="The share of each entry group still registered k years after their first season, treating a player who turns 18 or whose follow-up ends with the data as censored, not gone.",
-        doesnt="Why players leave, or what the curves would be for adults continuing after 17 (this synthetic world has no adult continuation). Steps with fewer than 10 players at risk are not shown.")
+             "y": {"field": "km_survival", "type": "quantitative"}, "color": {"field": "segment_value", "type": "nominal", "sort": AGE_ORDER, "scale": {"domain": AGE_ORDER}}}}]})
     C["retention_sex"] = dict(
         page="participation", title="Retention by sex", datasets=["retention_km_sex"],
         spec={"data": _src("retention_km_sex"), "width": "container", "height": 260, "layer": [
@@ -396,17 +388,13 @@ def charts():
              "y": {"field": "km_survival_ci_low", "type": "quantitative", "scale": {"domain": [0, 1]}, "axis": {"format": "%", "title": "Still registered"}},
              "y2": {"field": "km_survival_ci_high"}, "color": {"field": "segment_value", "type": "nominal", "title": "Sex"}}},
             {"mark": {"type": "line", "point": True}, "encoding": {"x": {"field": "years_since_entry", "type": "quantitative"},
-             "y": {"field": "km_survival", "type": "quantitative"}, "color": {"field": "segment_value", "type": "nominal"}}}]},
-        shows="The same retention curve for girls and boys, with intervals that overlap where the difference is within the noise.",
-        doesnt="A causal difference. Segments overlap (age and division describe largely the same players) and nobody was assigned to them.")
+             "y": {"field": "km_survival", "type": "quantitative"}, "color": {"field": "segment_value", "type": "nominal"}}}]})
     C["cohorts"] = dict(
         page="participation", title="Cohort triangle: share of each entry cohort still registered", datasets=["retention_cohorts"],
         spec={"data": _src("retention_cohorts"), "width": "container", "height": 220, "mark": "rect",
               "encoding": {"x": {"field": "years_since_entry", "type": "ordinal", "title": "Years since entry"},
               "y": {"field": "entry_year", "type": "ordinal", "title": "Entry cohort"},
-              "color": {"field": "cohort_retention_pct", "type": "quantitative", "scale": {"domain": [0, 1], "scheme": "blues"}, "legend": {"format": "%", "title": "Still registered"}}}},
-        shows="The classic triangle: for each entry year, the share of that cohort registered again 0, 1, 2, ... years later (only years that have happened).",
-        doesnt="Retention corrected for ageing out: older youth fall off this view because they turn 18, not because they chose to leave. The table below has the corrected column.")
+              "color": {"field": "cohort_retention_pct", "type": "quantitative", "scale": {"domain": [0, 1], "scheme": "blues"}, "legend": {"format": "%", "title": "Still registered"}}}})
     C["naive_vs_censored"] = dict(
         page="participation", title="Entrants aged 14 to 17: naive vs censored vs the truth", datasets=["retention_vs_truth"], evaluation=True,
         spec={"data": _src("retention_vs_truth"), "width": "container", "height": 300, "mark": {"type": "line", "point": True},
@@ -414,9 +402,7 @@ def charts():
               "y": {"field": "survival", "type": "quantitative", "scale": {"domain": [0, 1]}, "axis": {"format": "%", "title": "Still registered"}},
               "color": {"field": "curve", "type": "nominal", "title": None, "legend": {"orient": "bottom", "columns": 1}},
               "strokeDash": {"field": "curve", "type": "nominal", "legend": None,
-                             "scale": {"domain": ["true (generator parameters)", "Kaplan-Meier (age-outs censored)", "naive (age-out counted as churn)"], "range": [[1, 0], [1, 0], [6, 4]]}}}},
-        shows="Counting a 17-year-old who turns 18 as someone who quit makes retention look 22 to 24 points worse for this group; treating it as censored lands near the generator's true churn.",
-        doesnt="A bias for younger entrants: they do not turn 18 inside the five-year window, so the naive and censored curves coincide for them. This is the reason the censoring rule exists.")
+                             "scale": {"domain": ["true (generator parameters)", "Kaplan-Meier (age-outs censored)", "naive (age-out counted as churn)"], "range": [[1, 0], [1, 0], [6, 4]]}}}})
     C["fan_estimates"] = dict(
         page="value", title="Does registering a child raise a household's fan engagement? Naive vs matched vs truth", datasets=["fan_vs_truth"], evaluation=True,
         spec={"data": _src("fan_vs_truth"), "width": "container", "height": 300, "layer": [
@@ -425,17 +411,13 @@ def charts():
             {"mark": {"type": "rule", "strokeWidth": 2}, "encoding": {"x": {"field": "estimator", "type": "nominal", "sort": EST_ORDER},
              "y": {"field": "ci_low_pct", "type": "quantitative"}, "y2": {"field": "ci_high_pct"}}},
             {"mark": {"type": "tick", "color": "#D9622B", "thickness": 3, "size": 70}, "encoding": {"x": {"field": "estimator", "type": "nominal", "sort": EST_ORDER},
-             "y": {"field": "true_effect_pct", "type": "quantitative"}}}]},
-        shows="The naive participant-vs-non-participant comparison (bar, left) against the matched before/after estimate (bar, right) and the true uplift the generator gave these households (red tick).",
-        doesnt="A result for all participants. It covers households linked to a fan account (mostly North American) and is graded against synthetic truth; the matched estimate still sits above it, and its interval is somewhat too narrow (ADR-010).")
+             "y": {"field": "true_effect_pct", "type": "quantitative"}}}]})
     C["event_study"] = dict(
         page="value", title="Event study: mean fan events per month around the first registration", datasets=["fan_event_study"],
         spec={"data": _src("fan_event_study"), "width": "container", "height": 300, "layer": [
             {"mark": {"type": "line", "point": True}, "encoding": {"x": {"field": "months_since_event", "type": "quantitative", "title": "Months since first registration"},
              "y": {"field": "mean_events", "type": "quantitative", "title": "Events per household-month"}, "color": {"field": "group_name", "type": "nominal", "title": None}}},
-            {"mark": {"type": "rule", "strokeDash": [4, 4]}, "encoding": {"x": {"datum": 0, "type": "quantitative"}}}]},
-        shows="Matched participants and matched comparisons track each other before registration (the flat pre period supports the design) and separate afterwards.",
-        doesnt="A tight estimate: a small gap remains before registration (residual selection), and the pattern repeats with the NFL season. The vertical dashed line is month 0.")
+            {"mark": {"type": "rule", "strokeDash": [4, 4]}, "encoding": {"x": {"datum": 0, "type": "quantitative"}}}]})
     C["event_study_effect"] = dict(
         page="value", title="Event study: participants relative to comparisons, by month", datasets=["fan_event_study_effect"],
         spec={"data": _src("fan_event_study_effect"), "width": "container", "height": 260, "mark": {"type": "bar"},
@@ -452,19 +434,13 @@ def charts():
             {"mark": {"type": "bar", "opacity": 0.8}, "encoding": {"x": {"field": "method", "type": "nominal", "title": None, "sort": ORDER, "axis": {"labelAngle": 0, "labelLimit": 220}},
              "y": {"field": "estimate", "type": "quantitative", "title": "Fan accounts"}}},
             {"mark": {"type": "rule", "strokeWidth": 2}, "encoding": {"x": {"field": "method", "type": "nominal", "sort": ORDER}, "y": {"field": "ci_low", "type": "quantitative"}, "y2": {"field": "ci_high"}}},
-            {"mark": {"type": "tick", "color": "#D9622B", "thickness": 3, "size": 90}, "encoding": {"x": {"field": "method", "type": "nominal", "sort": ORDER}, "y": {"field": "true_incremental_accounts", "type": "quantitative"}}}]},
-        shows="The estimate of accounts that exist because of the programme (left, with its interval) next to two naive counts of households that joined after registering, and the number the generator built in (red tick).",
-        doesnt="A real programme's effect. Naive counts treat every new account of a registered household as caused by the programme (the scaled one assumes unlinked households behave like linked ones); the estimate compares launching markets with markets that had not launched yet, and is only as good as that comparison.")
+            {"mark": {"type": "tick", "color": "#D9622B", "thickness": 3, "size": 90}, "encoding": {"x": {"field": "method", "type": "nominal", "sort": ORDER}, "y": {"field": "true_incremental_accounts", "type": "quantitative"}}}]})
     C["drive"] = dict(
-        page="acquisition", title="The drive chart: from registered household to active fan", datasets=["drive_stages"], spec=None, render=render_drive,
-        shows="Registered households of the latest month moving down the field: how many are linked to a fan account, how many of those a guardian has opted in (contactable), and how many are active. The bar narrows in proportion to the count.",
-        doesnt="A strict funnel or the full journey: contactable and active are both shares of linked households and overlap (some active households have no opt-in), and monetized and retained fans are not in the executive share yet. Unlinked households sit in their own lane because unlinked means unknown, not non-fan.")
+        page="acquisition", title="The drive chart: from registered household to active fan", datasets=["drive_stages"], spec=None, render=render_drive)
     C["funnel_status"] = dict(
         page="acquisition", title="What fan status do registered households have?", datasets=["fan_status_mix"],
         spec={"data": _src("fan_status_mix"), "width": "container", "height": 280, "mark": "bar",
-              "encoding": {"x": {"field": "households", "type": "quantitative", "title": "Registered households, latest cohort"}, "y": {"field": "fan_status", "type": "nominal", "sort": "-x", "title": None}}},
-        shows="Every registered household of the latest cohort by fan status. UNLINKED (no fan account found) is the largest group and means unknown, not non-fan.",
-        doesnt="How many unlinked households really are fans: some have an account the identity link could not find. Without identity resolution, multi-league kids would also inflate this household count.")
+              "encoding": {"x": {"field": "households", "type": "quantitative", "title": "Registered households, latest cohort"}, "y": {"field": "fan_status", "type": "nominal", "sort": "-x", "title": None}}})
     C["funnel_rates"] = dict(
         page="acquisition", title="The funnel: from fan to active to contactable to paying", datasets=["funnel_rates"],
         spec={"data": _src("funnel_rates"), "width": "container", "height": 300, "mark": "bar",
@@ -486,47 +462,35 @@ def charts():
         page="value", title="RFM segments by fan group, latest year", datasets=["fan_rfm_latest"],
         spec={"data": _src("fan_rfm_latest"), "width": "container", "height": 280, "mark": "bar",
               "encoding": {"x": {"field": "fan_group", "type": "nominal", "title": None, "axis": {"labelAngle": 0, "labelLimit": 200}}, "y": {"field": "rfm_share", "type": "quantitative", "axis": {"format": "%", "title": "Share of the group"}},
-              "color": {"field": "segment", "type": "nominal", "title": "RFM segment"}}},
-        shows="How each group's fan accounts split across recency, frequency and monetary segments (quintile-based, relative to that year).",
-        doesnt="Absolute value: quintiles are relative, so every group has some Champions by construction. Read the mix between groups, not the labels alone.")
+              "color": {"field": "segment", "type": "nominal", "title": "RFM segment"}}})
     C["fan_survival"] = dict(
         page="value", title="How long do fan accounts stay active? (Kaplan-Meier, 95% intervals)", datasets=["fan_survival"],
         spec={"data": _src("fan_survival"), "width": "container", "height": 300, "layer": [
             {"mark": {"type": "area", "opacity": 0.12}, "encoding": {"x": {"field": "months_since_origin", "type": "quantitative", "title": "Months since account origin"},
              "y": {"field": "fan_survival_ci_low", "type": "quantitative", "scale": {"domain": [0, 1]}, "axis": {"format": "%", "title": "Not lapsed"}}, "y2": {"field": "fan_survival_ci_high"},
              "color": {"field": "fan_group", "type": "nominal", "title": "Fan group"}}},
-            {"mark": {"type": "line"}, "encoding": {"x": {"field": "months_since_origin", "type": "quantitative"}, "y": {"field": "fan_survival", "type": "quantitative"}, "color": {"field": "fan_group", "type": "nominal"}}}]},
-        shows="The share of fan accounts that have not lapsed (a long gap in engagement) by months since the account began, with accounts still active at the end of the data treated as censored.",
-        doesnt="Why accounts lapse. Groups are not randomly assigned, so differences between them mix who joins with what the programme does.")
+            {"mark": {"type": "line"}, "encoding": {"x": {"field": "months_since_origin", "type": "quantitative"}, "y": {"field": "fan_survival", "type": "quantitative"}, "color": {"field": "fan_group", "type": "nominal"}}}]})
     C["fan_ltv"] = dict(
         page="value", title="Modelled lifetime value per fan account (synthetic currency)", datasets=["fan_ltv"],
         spec={"data": _src("fan_ltv"), "width": "container", "height": 260, "layer": [
             {"mark": {"type": "bar", "opacity": 0.8}, "encoding": {"x": {"field": "fan_group", "type": "nominal", "title": None, "axis": {"labelAngle": 0, "labelLimit": 200}}, "y": {"field": "fan_ltv", "type": "quantitative", "title": "Value over the horizon, synthetic currency"}}},
-            {"mark": {"type": "rule", "strokeWidth": 2}, "encoding": {"x": {"field": "fan_group", "type": "nominal"}, "y": {"field": "fan_ltv_low", "type": "quantitative"}, "y2": {"field": "fan_ltv_high"}}}]},
-        shows="Expected net spend per account over the horizon (net spend per active month times expected active months), with a range.",
-        doesnt="Revenue. It is an illustrative expectation in synthetic currency, from observed spend and lapse behaviour; the range reflects sampling, not the modelling assumptions.")
+            {"mark": {"type": "rule", "strokeWidth": 2}, "encoding": {"x": {"field": "fan_group", "type": "nominal"}, "y": {"field": "fan_ltv_low", "type": "quantitative"}, "y2": {"field": "fan_ltv_high"}}}]})
     C["uplift_events"] = dict(
         page="value", title="Existing fans: events per household-month after registering a child", datasets=["uplift_events"],
         spec={"data": _src("uplift_events"), "width": "container", "height": 240, "layer": [
             {"mark": {"type": "bar", "opacity": 0.8}, "encoding": {"x": {"field": "uplift_status_group", "type": "nominal", "title": "Status before registering", "axis": {"labelAngle": 0}}, "y": {"field": "uplift_per_month", "type": "quantitative", "title": "Extra events per household-month"}}},
-            {"mark": {"type": "rule", "strokeWidth": 2}, "encoding": {"x": {"field": "uplift_status_group", "type": "nominal"}, "y": {"field": "uplift_ci_low_per_month", "type": "quantitative"}, "y2": {"field": "uplift_ci_high_per_month"}}}]},
-        shows="The matched before/after change in fan events for households that already had an account (EXISTING), had lapsed (LAPSED) and all linked households, with intervals.",
-        doesnt="A result for unlinked households, or a percentage for lapsed ones (their baseline is near zero, so the per-month difference is the honest measure).")
+            {"mark": {"type": "rule", "strokeWidth": 2}, "encoding": {"x": {"field": "uplift_status_group", "type": "nominal"}, "y": {"field": "uplift_ci_low_per_month", "type": "quantitative"}, "y2": {"field": "uplift_ci_high_per_month"}}}]})
     C["uplift_spend"] = dict(
         page="value", title="Existing fans: net spend per household-month after registering a child (synthetic currency)", datasets=["uplift_spend"],
         spec={"data": _src("uplift_spend"), "width": "container", "height": 240, "layer": [
             {"mark": {"type": "bar", "opacity": 0.8}, "encoding": {"x": {"field": "uplift_status_group", "type": "nominal", "title": "Status before registering", "axis": {"labelAngle": 0}}, "y": {"field": "uplift_per_month", "type": "quantitative", "title": "Extra net spend per household-month"}}},
-            {"mark": {"type": "rule", "strokeWidth": 2}, "encoding": {"x": {"field": "uplift_status_group", "type": "nominal"}, "y": {"field": "uplift_ci_low_per_month", "type": "quantitative"}, "y2": {"field": "uplift_ci_high_per_month"}}}]},
-        shows="The matched before/after change in net spend, with intervals, by status before registering.",
-        doesnt="Revenue: the currency is synthetic and refunds are netted. It is linked households only.")
+            {"mark": {"type": "rule", "strokeWidth": 2}, "encoding": {"x": {"field": "uplift_status_group", "type": "nominal"}, "y": {"field": "uplift_ci_low_per_month", "type": "quantitative"}, "y2": {"field": "uplift_ci_high_per_month"}}}]})
     # ---- audience and consent ----
     C["audience"] = dict(
         page="audience", title="The addressable audience and the consent gap over time", datasets=["audience_series"],
         spec={"data": _src("audience_series"), "width": "container", "height": 320, "mark": {"type": "line"},
               "encoding": {"x": {"field": "month", "type": "temporal", "title": None}, "y": {"field": "households", "type": "quantitative", "title": "Households"},
-              "color": {"field": "measure", "type": "nominal", "title": None, "legend": {"orient": "bottom", "columns": 2}}}},
-        shows="Registered households, those linked to a fan account, those a guardian has opted in (contactable), those active, and the active households with no opt-in at all (the consent gap).",
-        doesnt="A marketing list: these are counts, no household is identified here or anywhere an audience can see. A household with no consent record is not contactable, and no record is not a no.")
+              "color": {"field": "measure", "type": "nominal", "title": None, "legend": {"orient": "bottom", "columns": 2}}}})
     C["consent_capture"] = dict(
         page="audience", title="Where is consent captured? Opt-in rate by capture point and channel", datasets=["consent_by_capture_point"],
         spec={"data": _src("consent_by_capture_point"), "width": "container", "height": 280, "mark": "bar",
@@ -538,9 +502,98 @@ def charts():
         page="audience", title="Markets: where flag football and the fan base are each strong (synthetic markets)", datasets=["market_scatter"],
         spec={"data": _src("market_scatter"), "width": "container", "height": 340, "mark": {"type": "point", "filled": True, "size": 80},
               "encoding": {"x": {"field": "participation_per_1000", "type": "quantitative", "title": "Participant households per 1,000 households"}, "y": {"field": "fan_accounts_per_1000", "type": "quantitative", "scale": {"zero": False}, "title": "Fan accounts per 1,000 households"},
-              "color": {"field": "quadrant", "type": "nominal", "title": "Quadrant"}, "tooltip": [{"field": "market_name"}, {"field": "quadrant"}]}},
-        shows="Each synthetic market with enough participant households, by participation and fan accounts per 1,000 households, coloured by quadrant (cut-offs are the medians).",
-        doesnt="Real places: the markets are invented. Markets with too few participant households are rolled up and not drawn, and a quadrant says where to look, not what to do.")
+              "color": {"field": "quadrant", "type": "nominal", "title": "Quadrant"}, "tooltip": [{"field": "market_name"}, {"field": "quadrant"}]}})
+    # descriptions from the plain-language walkthrough: plain terms (shows), the design choice (decision) and the limitations (doesnt)
+    DESCRIPTIONS = {
+        "acq_estimates": dict(
+            shows="The careful estimate of how many fan accounts exist because of flag football sits close to the red tick (the built-in truth). Counting every new sign-up instead overshoots badly once it is scaled up for families the data cannot see. In plain terms: the careful method is right for the right reason, while the linked-only count looks close but is close by accident, and with a different link rate it could be far off.",
+            decision="The estimate uses the staggered rollout (markets launching in different years) as a natural experiment, rather than surveying families.",
+            doesnt="A precise number. The estimate is only as good as the comparison between launched and not-yet-launched markets, and the range is wide because few markets stand behind each year. The linked-only count looks close to the truth only because two errors partly cancel: it credits every sign-up to the programme but ignores families it cannot see.",
+        ),
+        "drive": dict(
+            shows="Of all registered households, only about a third can be matched to a fan account; of those, most can be contacted and most are active. In plain terms: among the families we can see, most are engaged, but we can see only about a third of them. The rest have unknown fan status.",
+            decision="Unlinked families sit in their own striped lane, labelled \"unknown\", not \"non-fan\". Treating them as non-fans would make the programme look worse than it is.",
+            doesnt="A strict funnel. Contactable and active are both shares of linked households and they overlap: some active families never opted in. Paying and retained fans are not in the executive view yet.",
+        ),
+        "funnel_status": dict(
+            shows="Registered households of the latest cohort by fan status. In plain terms: most families are invisible to the fan data, and among the visible ones existing fans dominate, so much of what the programme \"reaches\" was already a fan.",
+            doesnt="How many unlinked households really are fans: some have an account the identity matcher could not find. Without identity resolution, a child in several leagues would also inflate this household count. This chart covers the latest cohort, while the drive chart covers the latest month, so do not compare the two totals directly.",
+        ),
+        "fan_estimates": dict(
+            shows="Families who register a child engage more afterwards. In plain terms: the careful (matched) estimate slightly overshoots the truth, and the simple comparison slightly undershoots it.",
+            decision="Each registering household is matched to a similar non-registering household, based on its engagement before registration, and both are compared before and after.",
+            doesnt="A result for all participants: it covers households linked to a fan account (mostly North American). Matching on past behaviour did not fully balance underlying fandom, so the matched figure leans high and its interval is a little too narrow (ADR-010). Read it as an upper-leaning estimate.",
+        ),
+        "event_study": dict(
+            shows="Before registration, participants and their matched comparisons move together; afterwards participants stay higher. In plain terms: the two groups were alike before and diverge after. The bumps repeat each year because engagement follows the NFL season.",
+            doesnt="A tight estimate: a tiny gap remains before registration (residual selection), which the matched estimate subtracts. The vertical dashed line is month 0.",
+        ),
+        "rfm": dict(
+            shows="Existing fans are mostly Champions and Loyal; net-new fans have more Promising and Hibernating accounts. In plain terms: established fans are the core spenders, and new fans are earlier in their journey. The two net-new groups look almost identical: fans who arrived through the flag prompt have about the same mix as fans who arrived some other way (about 19% Champions, 12 to 13% Promising, 17 to 19% Hibernating). That is the business point of this chart: fans acquired through flag football are not lower-quality fans, and they are as engaged as fans acquired any other way.",
+            doesnt="Absolute value: segments are based on quintiles, which are relative, so every group has some Champions by construction. Compare the mix between groups, not the labels.",
+        ),
+        "fan_survival": dict(
+            shows="Existing fans stay active longest; net-new fans from other routes come next; fans prompted by flag football lapse soonest, with wide uncertainty bands.",
+            decision="A survival method (Kaplan-Meier) is used: accounts still active when the data ends count as \"not yet lapsed\", not as lapsed.",
+            doesnt="Why accounts lapse. Groups were not randomly assigned, so differences mix who joins with what the programme does.",
+        ),
+        "fan_ltv": dict(
+            shows="In plain terms: a fan created by flag football is worth almost as much as one acquired another way.",
+            doesnt="Revenue. This is net spend per month times expected active months, an illustration in synthetic currency. The narrow ranges reflect sampling only, not uncertainty in the modelling assumptions, so they understate real uncertainty.",
+        ),
+        "uplift_events": dict(
+            shows="In plain terms: registering a child lifts engagement even among families who were already fans, and lapsed fans come back with a similar lift.",
+            decision="For lapsed fans the change is shown in absolute terms, not as a percentage: their starting point is near zero, so a percentage would look enormous and mislead.",
+            doesnt="A result for unlinked households. The intervals are wide and overlap, so the difference between groups is not reliable.",
+        ),
+        "uplift_spend": dict(
+            shows="In plain terms: registering a child lifts spending even among families who were already fans. Lapsed fans show the largest spending bump, which suggests flag football can win back former fans.",
+            doesnt="Revenue: the currency is synthetic and refunds are netted out of spend. It covers linked households only, and the intervals are wide and overlap, so the difference between groups is not reliable.",
+        ),
+        "audience": dict(
+            shows="Registered households rise in steps, each step a new group of markets launching, while linked, contactable and active households grow much more slowly; the consent gap creeps up. In plain terms: registrations have grown more than tenfold, but the reachable audience has not kept pace, because most new families cannot be linked.",
+            doesnt="A marketing list: these are counts, and no household is identified here or anywhere an audience can see. A household with no consent record is not contactable, and no record is not the same as a \"no\".",
+        ),
+        "market_quadrants": dict(
+            shows="Each synthetic market with enough participant households, by participation and fan accounts per 1,000 households, split at the medians. Retention and engagement play: strong on both, keep fans engaged. Long-term build: weak on both, slow investment. Programme growth opportunity: strong fan base, low participation, grow the programme. Acquisition white space: high participation, weaker fan base, convert players' families into fans.",
+            decision="Markets with too few participant households are rolled up and not drawn, to protect small numbers.",
+            doesnt="Real places: the markets are invented. A quadrant says where to look, not what to do.",
+        ),
+        "country": dict(
+            shows="Participants by country in the latest year, as two views of the same children side by side.",
+            decision="\"Attributed\" counts each child once, in the country of their latest registration, so it adds up to a total. \"Present\" counts a child in every country they played in.",
+            doesnt="A global total: the \"present\" view must never be summed, since children who played in two countries would be counted twice. Small country counts are hidden rather than shown.",
+        ),
+        "girls": dict(
+            shows="In plain terms: flag football is moving steadily towards gender parity.",
+            doesnt="Why the share is moving. It uses sex as recorded at registration, not gender identity. Children with no recorded sex stay in the denominator, so the share is slightly understated. The axis is zoomed in, which makes the rise look steeper than it is.",
+        ),
+        "retention_km": dict(
+            shows="In plain terms: children who start young are far more likely to keep playing.",
+            decision="A player who turns 18, or whose records simply end, is treated as \"no longer observed\" (censored), not as having quit. Steps with fewer than 10 players at risk are not shown.",
+            doesnt="Why players leave, or what the curves would be for adults continuing after 17 (this synthetic world has no adult continuation).",
+        ),
+        "retention_sex": dict(
+            shows="In plain terms: girls stay as long as boys. The tiny gap is within the noise.",
+            doesnt="A causal difference. Segments overlap (age and division describe largely the same players) and nobody was assigned to them.",
+        ),
+        "cohorts": dict(
+            shows="For each entry year, the share of that cohort registered again one, two and three years later (only years that have happened). Retention drops each year, to roughly a third of a cohort by year three.",
+            doesnt="Retention corrected for ageing out: older youth disappear because they turn 18, not because they chose to leave. The corrected version is in the table below.",
+        ),
+        "naive_vs_censored": dict(
+            shows="In plain terms: if you count a 17-year-old who turns 18 as a dropout, teenage retention looks 22 to 24 points worse than it really is. Treating the birthday as censoring lands near the true churn.",
+            decision="This chart is the justification for the censoring rule. For younger entrants, who do not turn 18 within the five-year window, the naive and corrected curves are the same, so the rule only matters for teens.",
+            doesnt="Real churn: the truth here is the generator's own parameters, so this shows the rule works on known data, not what real players do.",
+        ),
+        "siblings": dict(
+            shows="In plain terms: merging siblings is not just a counting error; it mixes two children's personal data, which is a privacy incident. The chart counts how many times two different children of one household were merged at each threshold.",
+            decision="The final matcher has a household guard against sibling merges, and a data steward reviews the borderline \"probable\" pairs.",
+            doesnt="That a merge is harmless, or real-world performance: the sibling and twin merges that remain are the incidents that matter.",
+        ),
+    }
+    for cid, d in DESCRIPTIONS.items():
+        C[cid].update(d)
     # notes that sit under a chart; each gets the exported datasets and returns plain text built from them
     C["participation_trend"]["note"] = note_participation_trend
     C["funnel_rates"]["note"] = lambda d: ("Dormant lapsed households have no bars for Active and Monetized: they are zero by definition (a household that is still dormant is not active, so it cannot be monetized), "
@@ -735,9 +788,10 @@ def chart_block(cid: str, ch: dict, data: dict) -> str:
     tables = "".join(f"<p class='note'><b>{esc(data[n]['title'])}</b> <code>{esc(data[n]['source'])}</code></p>{table_html(data[n])}" for n in ch["datasets"])
     plot = ch["render"](data) if ch.get("render") else f'<div id="{cid}" role="img" aria-label="{esc(ch["title"])}"></div>'
     script = f'<script type="application/json" data-chart="{cid}">{json.dumps(ch["spec"])}</script>' if ch.get("spec") else ""
+    decision = f'<p class="note"><b>Design choice.</b> {esc(ch["decision"])}</p>' if ch.get("decision") else ""
     note = f'<p class="note"><b>Reading note.</b> {esc(ch["note"](data))}</p>' if ch.get("note") else ""
     return (f'<section class="chart" id="sec-{cid}"><h3>{esc(ch["title"])}{tag}</h3>{plot}'
-            f'<p class="note"><b>What this shows.</b> {esc(ch["shows"])}</p><p class="note"><b>What it does not show.</b> {esc(ch["doesnt"])}</p>{note}'
+            f'<p class="note"><b>What this shows.</b> {esc(ch["shows"])}</p>{decision}<p class="note"><b>What it does not show.</b> {esc(ch["doesnt"])}</p>{note}'
             f'<details><summary>The numbers behind this chart</summary>{tables}</details>'
             f'{script}</section>')
 
@@ -826,16 +880,16 @@ linked to fan accounts under a restricted-zone policy, shared by audience with s
 <li><a href="trust.html">Data trust &amp; governance</a>: identity resolution (why the household count is right), contracts, who sees what, what changed after publishing.</li>
 </ol>
 <p class="note">Decisions and their reasons are in the ADRs; the counting rules are in the methodology memos. Both are linked from <a href="trust.html">Data trust &amp; governance</a>.</p>""")
-    built["acquisition"] = ("Fan acquisition", "<p class='note'>How many fans did the programme create? The first chart is the answer; the rest show where it comes from. Funnel and status describe households linked to a fan account; "
+    built["acquisition"] = ("Fan acquisition", f"<p class='note'><b>The programme created about {fmt_cell(facts['incremental'])} fan accounts. Counting every new sign-up and scaling it up for unseen families says {fmt_cell(facts['naive_scaled'])}, about {facts['naive_scaled'] / facts['incremental']:.1f} times too many, because many of those families would have become fans anyway.</b> The first chart is the answer; the rest show where it comes from. Funnel and status describe households linked to a fan account; "
                             "identity resolution is why the denominator is right (a child in several leagues is one household member, not several).</p>" + "".join(blocks["acquisition"]))
-    built["value"] = ("Fan value & activeness", "<p class='note'>Estimates describe households linked to a fan account, under a restricted-zone policy (ADR-009). Nothing household-level is shown; money is synthetic currency.</p>"
+    built["value"] = ("Fan value & activeness", "<p class='note'><b>Registering a child raises a linked family's fan engagement by about a fifth, and the effect follows the NFL season. New fans from flag football are worth nearly as much as other new fans, but stay active for less time.</b> Estimates describe households linked to a fan account, under a restricted-zone policy (ADR-009). Nothing household-level is shown; money is synthetic currency.</p>"
                       + "".join(blocks["value"]) + "<h2>Why the matched engagement estimate is where it is</h2>" + value_explanation(facts) + table_html(data["fan_diagnostics"]))
-    built["audience"] = ("Audience & consent", "<p class='note'>Governance determines the size of the marketable audience: only a guardian's recorded opt-in makes a household contactable. "
+    built["audience"] = ("Audience & consent", f"<p class='note'><b>Only {fmt_cell(facts['contactable'])} of {fmt_cell(facts['registered'])} registered households can be contacted. The bigger constraint is linking families to fan accounts, not consent: once linked, most families say yes.</b> Governance determines the size of the marketable audience: only a guardian's recorded opt-in makes a household contactable. "
                          "Counts only; nobody here is a list, and no linked household reaches marketing or media (ADR-009).</p>"
                          + "".join(blocks["audience"]) + "<h2>Latest month by household group</h2>" + table_html(data["audience_latest"])
                          + "<h2>Markets per quadrant</h2>" + table_html(data["quadrant_counts"])
                          + "<h2>Who can be linked</h2>" + table_html(data["link_rate"]))
-    built["participation"] = ("Participation", "<p class='note'>The original question, condensed: how many people play, with the band that identity resolution leaves, and who stays. Retention is Kaplan-Meier from the first season, computed in SQL: "
+    built["participation"] = ("Participation", f"<p class='note'><b>{fmt_cell(facts['participants'])} unique children played in {latest}, up from {fmt_cell(facts['first_participants'])} in {facts['first_year']}. Younger entrants stay much longer than teenagers, and boys and girls stay at the same rate.</b> The original question, condensed: how many people play, with the band that identity resolution leaves, and who stays. Retention is Kaplan-Meier from the first season, computed in SQL: "
                               "a player who turns 18, or whose follow-up ends with the data, is censored, not counted as gone.</p>" + "".join(blocks["participation"]))
     built["appendix"] = ("Appendix", "<p class='note'>A <b>stretch</b> source: school districts and recreation departments report how many "
                          "children are in their programs. The counts have no people in them, so they are never added to participants.</p>" + "".join(blocks["appendix"])
@@ -898,7 +952,8 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     rows = lambda n: data[n]["rows"]  # noqa: E731
     bounds = next(r for r in rows("participation_bounds") if r["participation_year"] == latest)
     fan = {r["estimator"]: r for r in rows("fan_vs_truth")}
-    facts = {"latest_year": latest, "participants": bounds["identity_participants_point"], "low": bounds["identity_participants_low"], "high": bounds["identity_participants_high"],
+    first = min(rows("participation_bounds"), key=lambda r: r["participation_year"])
+    facts = {"first_year": first["participation_year"], "first_participants": first["identity_participants_point"], "latest_year": latest, "participants": bounds["identity_participants_point"], "low": bounds["identity_participants_low"], "high": bounds["identity_participants_high"],
              "did_pct": fan["DID_ADDITIVE"]["estimate_pct"], "naive_pct": fan["NAIVE"]["estimate_pct"], "truth_pct": fan["DID_ADDITIVE"]["true_effect_pct"],
              "km1": next(r["km_survival"] for r in rows("retention_km_all") if r["years_since_entry"] == 1)}
     acq = {r["method"][0]: r for r in rows("acq_estimates")}
@@ -928,9 +983,17 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     return {"datasets": len(data), "charts": len(chart_defs), "pages": len(PAGES)}
 
 
-def main() -> int:
-    res = build()
-    print(f"built site/: {res['pages']} pages, {res['charts']} charts, {res['datasets']} datasets (share_exec, approved aggregates, whitelisted evaluation summaries, governance metadata)")
+def main(argv: list[str] | None = None) -> int:
+    """`--public [--out DIR]` builds the deployable site: the git-ignored local logo is never included, whatever is on this machine."""
+    argv = sys.argv[1:] if argv is None else argv
+    out = OUT
+    if "--public" in argv:
+        global LOCAL_LOGO
+        LOCAL_LOGO = ROOT / "local_assets" / "__none__"
+    if "--out" in argv:
+        out = Path(argv[argv.index("--out") + 1]).resolve()
+    res = build(out=out)
+    print(f"built {out.name}/: {res['pages']} pages, {res['charts']} charts, {res['datasets']} datasets (share_exec, approved aggregates, whitelisted evaluation summaries, governance metadata)")
     return 0
 
 

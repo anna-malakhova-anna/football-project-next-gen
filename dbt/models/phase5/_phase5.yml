@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: stg_p5_registrations
+    description: >
+      Phase 5 staging. The six feeds in one shape, one row per feed record. Bad values are flagged or NULLed, never guessed or dropped (a two-digit-year DOB is NULL, an
+      ambiguous league stays unresolved). Pop Warner tackle rows are kept here with is_flag = false and removed before matching.
+    columns:
+      - name: feed
+        data_tests:
+          - not_null
+          - accepted_values: {arguments: {values: [matrix_export, vendor_reg_a, vendor_reg_b, pop_warner_feed, pal_chapter_csv, school_program]}}
+      - name: source_record_id
+        data_tests: [not_null]
+
+  - name: p5_idr_input_records
+    description: One row per flag registration that identity resolution works on (exact duplicate rows collapsed). Same columns as idr_input_records so the Phase 2 macros run unchanged.
+    columns:
+      - name: match_record_id
+        data_tests: [unique, not_null]
+
+  - name: p5_clusters
+    description: One row per input record with its resolved child (p5_person_id), from the AUTO_MATCH links only.
+    columns:
+      - name: match_record_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships: {arguments: {to: ref('p5_idr_input_records'), field: match_record_id}}
+
+  - name: p5_record_quality
+    description: One row per flag feed record with every fact the rules need as a plain column. Nothing here judges a record; the p5_dq_rules seed does.
+    columns:
+      - name: source_record_id
+        data_tests: [not_null]
+      - name: market_id
+        data_tests: [not_null]
+
+  - name: dq_rule_results_league
+    description: Every rule evaluated for every league, with the rule's SQL and thresholds alongside the result (auditable).
+  - name: dq_rule_results_market
+    description: Every rule evaluated for every market, same shape.
+
+  - name: dq_score_league
+    description: >
+      The league data quality scorecard: six dimension scores, an overall score and grade, and fitness for participation reporting (lower bar) and club activation
+      (higher bar, needs consent provenance). For the data steward and league operators, not club-facing.
+    columns:
+      - name: league_group
+        data_tests: [unique, not_null]
+      - name: grade
+        data_tests:
+          - accepted_values: {arguments: {values: [A, B, C, D, INSUFFICIENT_DATA]}}
+
+  - name: dq_score_market
+    description: The market data quality scorecard (home ZIP3 to market). UNPLACED = no usable ZIP. For the data steward; the club-facing aggregate view is built in step 5.
+    columns:
+      - name: market_id
+        data_tests: [unique, not_null]
+      - name: grade
+        data_tests:
+          - accepted_values: {arguments: {values: [A, B, C, D, INSUFFICIENT_DATA]}}
+
+  - name: dq_fix_list
+    description: The top three actionable issues per league, worst shortfall first, phrased for the league operator.
+    columns:
+      - name: fix
+        data_tests: [not_null]

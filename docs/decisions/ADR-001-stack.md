@@ -58,6 +58,12 @@ To port: (1) add a Snowflake output in `profiles.yml`; (2) swap the DuckDB-speci
 | `TRY_CAST(x AS TIMESTAMP)` | staging | `TRY_TO_TIMESTAMP(x)` |
 | `information_schema.columns` / `.tables` | `raw_contains_no_ground_truth` test | Same, with upper-case identifiers |
 | Raw loading via the DuckDB Python API and `CREATE OR REPLACE TABLE ... AS SELECT` | `loader/load_raw.py` | `COPY INTO` from a stage; `CREATE OR REPLACE TABLE` works unchanged |
+| `make_date(y, m, d)` | `p5_record_quality` (season start from `p5_params`) | `DATE_FROM_PARTS(y, m, d)` |
+| `date_diff('day', a, b)` | `p5_record_quality` | `DATEDIFF(day, a, b)` |
+| `regexp_matches(s, pattern)` with `\d`, `\s` | `p5_record_quality`, `stg_p5_registrations` | `REGEXP_LIKE(s, pattern)` (anchors the whole string; add `.*` where a partial match is meant) |
+| `try_strptime(s, '%B %d, %Y')`, `%b` | `stg_p5_registrations` (month-name DOBs) | `TRY_TO_DATE(s, 'MMMM DD, YYYY')` |
+| `run_query` over a seed at compile time, to turn the `check_sql` text of `p5_dq_rules` into one query | `p5_rule_results` macro | Same dbt macro; needs the seed loaded first (dbt build orders it). The rule SQL itself must stay in the common dialect |
+| `count(distinct x) filter (where ...) over (partition by ...)` | `p5_record_quality` | `COUNT(DISTINCT x)` has no window form in Snowflake: precompute the distinct count in a CTE and join it |
 
 ## Consequences
 

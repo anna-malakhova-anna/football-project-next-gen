@@ -266,3 +266,12 @@ phase5:
     school_program:
       missing_grade: 0.05
       name_variant: 0.06
+  # Scorecard parameters (dbt reads them through the p5_params seed, exported by generator/phase5/export_seed.py; no model hard-codes them).
+  dq:
+    youth_min_age: 4                     # age at Dec 31 of the season year below which a DOB is implausible for a youth league
+    youth_max_age: 17
+    late_days: 14                        # a record registered more than this many days after the season start is late
+    min_records_for_grade: 25            # a league or market with fewer scored records gets no grade
+    grade_a: 0.95                        # overall score (mean of the dimension scores) at or above which the grade is A, B, C; below grade_c is D
+    grade_b: 0.85
+    grade_c: 0.70

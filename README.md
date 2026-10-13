@@ -71,7 +71,7 @@ Governance sets the size of the marketable audience: nothing linked reaches mark
 ## Phase 5: data quality under privacy constraints (in progress)
 
 Participation data is thin and messy, and the obvious fixes (collect more, buy enrichment, share more) are the ones privacy rules block. Phase 5 asks how to fix it anyway,
-for two audiences: a privacy lead (minimization, purpose limitation, retention) and a club analytics lead (what can I trust in my territory). Status: **step 1 of 7, the source feeds.**
+for two audiences: a privacy lead (minimization, purpose limitation, retention) and a club analytics lead (what can I trust in my territory). Status: **step 2 of 7 built: the source feeds and the data quality scorecard.**
 Phase 5 is an isolated scope: its feeds are derived from the existing true US youth registry with their own random stream (`phase5.seed_offset`), so no Phase 1 to 4 file or published number changes.
 The feed names, shapes and consent wordings are **assumptions** made for the demonstration; none describes a real NFL, RCX, vendor or club system.
 
@@ -85,6 +85,14 @@ The feed names, shapes and consent wordings are **assumptions** made for the dem
 | `pop_warner_feed` | association-centric, tackle and flag mixed | tackle rows to filter out; an association is not a league (a quarter run two flag leagues, and the code that tells them apart is often blank); no consent field beyond a waiver |
 | `pal_chapter_csv` | manual spreadsheet uploads | blank columns, typos in names and emails, duplicated rows, two-digit-year DOBs, consent in five wordings or none |
 | `school_program` | roster only: school, grade, name | no parent contact, no ZIP, no DOB (grade only), missing grade |
+
+**Step 2, the scorecard** (`make p5-score`, tag `phase5`, schema `phase5`). Staging puts the six feeds in one shape (never guessing: a two-digit-year DOB is NULL, an ambiguous league stays unresolved). Cross-feed
+resolution reuses the Phase 2 macros and rules on the Phase 5 records, with one extension (R7, for feeds with no DOB); it is graded against the answer key in `evaluation.eval_p5_resolution`.
+Every check is a row in the **`p5_dq_rules` seed** (id, dimension, description, SQL, a threshold per purpose, fix text) evaluated by one macro, so the rules are auditable. Outputs:
+`dq_score_league`, `dq_score_market` (six DAMA-style dimensions, an overall score and grade, and fitness for **participation reporting** (lower bar) and **club activation** (higher bar, needs consent
+provenance)), `dq_rule_results_*` (every rule for every league and market, with its SQL) and `dq_fix_list` (the top three things each league operator can act on). On the generated data every
+matrix_export league is fit to report but only 3 of 26 are fit for activation, because consent timestamps and versions are missing; school rosters score D. Details and the one residual finding
+(3 sibling false-merge pairs) are in [ADR-012](docs/decisions/ADR-012-phase-5-scope-and-design.md).
 
 Across feeds: the same child in two feeds with name variants, one parent email shared by siblings, some households using two parent emails, case and whitespace noise on emails, late submissions,
 and leagues that never sent their latest season. Seasons are 2024 and 2025; the Phase 1 to 4 window is not extended.

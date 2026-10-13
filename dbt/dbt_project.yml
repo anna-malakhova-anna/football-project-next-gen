@@ -85,6 +85,12 @@ models:
       +materialized: table
       +schema: retention
       +tags: ['phase4']
+    phase5:
+      +materialized: table
+      +schema: phase5
+      +tags: ['phase5']
+      staging:
+        +materialized: view
     shares:
       +materialized: table
       +tags: ['phase3']

@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: raw_p5
+    description: >
+      Phase 5 raw landing (SYNTHETIC): six US registration feeds with different schemas, plus two reference tables. Strings in, strings stored; loaded by
+      loader/load_phase5.py (`make p5-feeds`). The feed shapes are assumptions made for the demonstration, not descriptions of real systems.
+    schema: raw
+    tables:
+      - name: p5_matrix_export
+      - name: p5_vendor_reg_a
+      - name: p5_vendor_reg_b
+      - name: p5_pop_warner_feed
+      - name: p5_pal_chapter_csv
+      - name: p5_school_program
+      - name: p5_league_catalog
+        description: "Canonical leagues (id, name, the key each feed uses for it, state). Reference data, not ground truth."
+      - name: p5_league_alias_map
+        description: Steward-maintained free-text league spelling to league id (vendor_reg_a). Covers only part of the spellings seen.

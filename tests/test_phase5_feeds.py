@@ -95,3 +95,14 @@ def test_existing_sources_are_untouched(tmp_path):
     assert all(after[k] == v for k, v in before.items())                       # nothing from Phase 1-4 changed
     assert {k.parts[0:2] for k in after.keys() - before.keys()} <= {("raw", "p5"), ("truth", "p5_registration_truth.parquet"),
                                                                   ("truth", "p5_defect_manifest.parquet")}
+
+
+def test_p5_params_seed_is_in_sync_with_config():
+    import csv
+    from pathlib import Path
+
+    from generator.phase5 import export_seed
+    path = Path(__file__).resolve().parent.parent / "dbt" / "seeds" / "p5_params.csv"
+    with open(path, newline="", encoding="utf-8") as fh:
+        on_disk = list(csv.DictReader(fh))
+    assert on_disk == export_seed.build_rows(load_config())

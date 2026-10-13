@@ -131,6 +131,7 @@ def generate(cfg: dict | None = None) -> dict:
             alt_email[p["household_id"]] = f"{rng.choice(SECOND_PARENT).lower()}.{fam}{rng.randint(10, 9999)}@example.com"
 
     weights = [c5["feed_weights"][f] for f in FEEDS]
+    school_seen: set = set()
     rows: dict[str, list[dict]] = {f: [] for f in FEEDS}     # internal rows: canonical values + rendering inputs
     for pid in pids:
         p = by_id[pid]
@@ -147,6 +148,10 @@ def generate(cfg: dict | None = None) -> dict:
                 if lg["_stale"] and year == max(c5["seasons"]):
                     continue                                # a stale league never sent its latest season
                 start = dt.date(year, int(c5["season_start"][term][:2]), int(c5["season_start"][term][3:]))
+                if f == "school_program":                   # a school roster is annual: one row per student per school year
+                    if (pid, year) in school_seen:
+                        continue
+                    school_seen.add((pid, year))
                 rows[f].append({"p": p, "league": lg, "year": year, "term": term, "start": start, "second": fi > 0, "tackle": False})
 
     # Pop Warner tackle rows: out of scope, must be filtered by program_type. They reuse other children's names but are not flag registrations.
@@ -198,6 +203,7 @@ def _render(feed: str, rs: list[dict], rng: random.Random, c5: dict, alt_email: 
     truth_ix: dict[str, int] = {}
 
     out: list[dict] = []
+    pal_row: dict[int, int] = {}
     for i, r in enumerate(rs):
         p, lg, y, term = r["p"], r["league"], r["year"], r["term"]
         first, last = p["given_name"], p["family_name"]
@@ -279,20 +285,25 @@ def _render(feed: str, rs: list[dict], rng: random.Random, c5: dict, alt_email: 
                    "school_year": f"{y - 1}-{str(y)[2:]}", "grade": "" if i in chosen["missing_grade"] else _grade(age), "student_first": first,
                    "student_last": last, "sex": p["sex"]}
         rec["_y"] = y
+        if feed == "pal_chapter_csv":                           # PAL has no record id: the staging id is year + data row number of its file
+            pal_row[y] = pal_row.get(y, 0) + 1
+            rec["_rid"] = f"PAL-{y}-{pal_row[y]:06d}"
         out.append(rec)
-        rid = next(iter(rec.values()))
+        rid = rec.get("_rid") or next(iter(rec.values()))
         truth_ix[rid] = len(truth)
         truth.append({"feed": feed, "source_record_id": rid, "true_person_id": p["true_person_id"], "household_id": p["household_id"],
                       "league_id": lg["league_id"], "season_year": y, "season_term": term, "is_flag": not r["tackle"],
                       "is_second_feed": r["second"]})
-    ids = [next(iter(o.values())) for o in out]
+    ids = [o.get("_rid") or next(iter(o.values())) for o in out]
     manifest.extend({"feed": feed, "defect_id": d, "record_id": ids[j]} for d, s_ in chosen.items() for j in sorted(s_))
     if feed == "pal_chapter_csv":                                    # manual uploads: whole rows pasted twice (same Chapter/Season/Name, same row)
         dup = D.pick(rng, list(range(len(out))), rates["duplicate_row"], len(out))
         for j in sorted(dup):
-            out.append(dict(out[j]))
-            truth.append({**truth[truth_ix[ids[j]]], "source_record_id": ids[j] + "#dup"})
-            manifest.append({"feed": feed, "defect_id": "duplicate_row", "record_id": ids[j] + "#dup"})
+            y = out[j]["_y"]
+            pal_row[y] += 1
+            out.append({**out[j], "_rid": f"PAL-{y}-{pal_row[y]:06d}"})
+            truth.append({**truth[truth_ix[ids[j]]], "source_record_id": out[-1]["_rid"]})
+            manifest.append({"feed": feed, "defect_id": "duplicate_row", "record_id": out[-1]["_rid"]})
     return out
 
 

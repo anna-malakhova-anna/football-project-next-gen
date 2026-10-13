@@ -1,0 +1,10 @@
+param,value,description
+season_start_spring,03-01,Month-day the Spring season starts (an assumption for the demonstration).
+season_start_fall,09-01,Month-day the Fall season starts (an assumption for the demonstration).
+youth_min_age,4,phase5.dq.youth_min_age in config/generation.yaml
+youth_max_age,17,phase5.dq.youth_max_age in config/generation.yaml
+late_days,14,phase5.dq.late_days in config/generation.yaml
+min_records_for_grade,25,phase5.dq.min_records_for_grade in config/generation.yaml
+grade_a,0.95,phase5.dq.grade_a in config/generation.yaml
+grade_b,0.85,phase5.dq.grade_b in config/generation.yaml
+grade_c,0.7,phase5.dq.grade_c in config/generation.yaml

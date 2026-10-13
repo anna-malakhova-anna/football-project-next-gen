@@ -1,11 +1,11 @@
-.PHONY: p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
 # Phase 1 builds and tests everything except the Phase 2 and Phase 3 models and their tests (dbt tags).
-P1  := --exclude tag:phase2 tag:phase3 tag:phase4
-P2  := --exclude tag:phase3 tag:phase4
-P3  := --exclude tag:phase4
+P1  := --exclude tag:phase2 tag:phase3 tag:phase4 tag:phase5
+P2  := --exclude tag:phase3 tag:phase4 tag:phase5
+P3  := --exclude tag:phase4 tag:phase5
 
 setup: dbt/profiles.yml
 	uv sync
@@ -79,7 +79,15 @@ id-stability:
 # Phase 5, step 1: six US registration feeds (own random stream; no Phase 1-4 file changes), their raw landing and quarantined truth
 p5-feeds:
 	$(PY) -m generator.phase5.feeds
+	$(PY) -m generator.phase5.export_seed
 	$(PY) -m loader.load_phase5
+
+# Phase 5, step 2: staging, resolution, the rules-as-data scorecard, fix list and their tests (needs `make p5-feeds`, `make load-eval`, and the Phase 1 to 4 build for reference seeds)
+p5-score: dbt/profiles.yml
+	$(DBT) seed --profiles-dir . --select p5_params p5_dq_rules p5_consent_wording_map
+	$(DBT) run --profiles-dir . --select tag:phase5
+	$(DBT) test --profiles-dir . --select tag:phase5
+	$(PY) -m scripts.print_p5_scorecard
 
 # Phase 4: validate every source's raw table against its data contract (writes quality.dq_contract_results)
 contracts:
@@ -173,6 +181,9 @@ all-phases: dbt/profiles.yml
 	$(PY) -m loader.load_raw
 	$(PY) -m loader.load_eval
 	$(PY) -m loader.load_published
+	$(PY) -m generator.phase5.feeds
+	$(PY) -m generator.phase5.export_seed
+	$(PY) -m loader.load_phase5
 	$(PY) -m scripts.validate_contracts
 	$(DBT) seed --profiles-dir .
 	$(DBT) run --profiles-dir .
