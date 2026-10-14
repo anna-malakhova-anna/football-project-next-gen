@@ -105,3 +105,33 @@ models:
     description: AGGREGATE. Households a careless reading of league-communications consent would have admitted to club activation, and that purpose limitation blocks.
   - name: p5_consent_provenance_by_feed
     description: AGGREGATE. Share of consent events that know what, when and on which wording, by feed.
+
+  - name: p5_clusters_probable
+    description: "RESTRICTED. Connected components that also merge PROBABLE links, the label-free low end of the identity range."
+  - name: p5_child
+    description: RESTRICTED (child side). One row per resolved child registered in the latest season, with home market, age band, and whether the child is weakly identified. Never output as rows.
+    columns:
+      - name: p5_person_id
+        data_tests: [unique, not_null]
+  - name: p5_child_market_weight
+    description: RESTRICTED. Each child's weight in each market. Placed children count 1; children with no usable ZIP are allocated across markets by where placed children of the same league (else state) live.
+  - name: p5_market_estimate
+    description: >
+      STEWARD view, all US markets. Participation estimate for the latest season with a band driven by data completeness, the participation rate against the synthetic youth population, and a confidence label.
+      The band is a rule of thumb, not a statistical confidence interval. A market with no children observed is NO_DATA, not zero.
+    columns:
+      - name: market_id
+        data_tests: [unique, not_null]
+      - name: confidence
+        data_tests:
+          - accepted_values: {arguments: {values: [HIGH, MEDIUM, LOW, NO_DATA]}}
+  - name: p5_market_age_cells
+    description: "AGGREGATE input to the club age view: observed placed children per market and age band, plus a market total."
+  - name: p5_club_market_view
+    description: CLUB-FACING, aggregate only. One row per club and market in its territory with the estimate, band, rate, confidence, data quality grade and top data gaps; small cells suppressed.
+    columns:
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: [PUBLISHED, SUPPRESSED, NO_DATA]}}
+  - name: p5_club_market_age_view
+    description: CLUB-FACING, aggregate only. Children per market and age band with primary and secondary small-cell suppression.

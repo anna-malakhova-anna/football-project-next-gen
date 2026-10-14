@@ -132,3 +132,27 @@ def test_consent_purpose_taxonomy_has_one_activation_purpose():
     with open(root / "p5_consent_wording_map.csv", newline="", encoding="utf-8") as fh:
         used = {x for r in csv.DictReader(fh) for x in r["purposes_covered"].split("|") if x}
     assert used <= {p["purpose_id"] for p in purposes} and "NFL_CLUB_MARKETING" not in used       # a wording alone never grants club marketing
+
+
+def test_club_territory_has_shared_markets_and_uncovered_markets():
+    import csv
+    from generator.phase5 import export_seed
+    root = Path(__file__).resolve().parent.parent / "dbt" / "seeds"
+    markets = list(csv.DictReader(open(root / "market_map.csv", newline="", encoding="utf-8")))
+    cfg = load_config()
+    terr, clubs = export_seed.territory_rows(cfg, markets)
+    assert {r["role"] for r in terr} == {"PRIMARY", "SHARED"}
+    owned = {r["market_id"] for r in terr}
+    us = {m["market_id"] for m in markets if m["country_code"] == "US"}
+    assert us - owned, "some markets must have no club"
+    shared = {r["market_id"] for r in terr if r["role"] == "SHARED"}
+    assert all(sum(1 for r in terr if r["market_id"] == m) > 1 for m in shared)
+    on_disk = list(csv.DictReader(open(root / "p5_club_territory.csv", newline="", encoding="utf-8")))
+    assert on_disk == terr
+    assert all("synthetic" in c["club_name"] for c in clubs)
+
+
+def test_census_stub_is_labelled_synthetic():
+    import csv
+    rows = list(csv.DictReader(open(Path(__file__).resolve().parent.parent / "dbt" / "seeds" / "p5_youth_population_zip3.csv", newline="", encoding="utf-8")))
+    assert rows and all("SYNTHETIC" in r["source"] for r in rows)

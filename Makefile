@@ -84,7 +84,7 @@ p5-feeds:
 
 # Phase 5, step 2: staging, resolution, the rules-as-data scorecard, fix list and their tests (needs `make p5-feeds`, `make load-eval`, and the Phase 1 to 4 build for reference seeds)
 p5-score: dbt/profiles.yml
-	$(DBT) seed --profiles-dir . --full-refresh --select p5_params p5_dq_rules p5_consent_wording_map p5_data_standard p5_consent_purposes
+	$(DBT) seed --profiles-dir . --full-refresh --select tag:phase5
 	$(DBT) run --profiles-dir . --select tag:phase5
 	$(DBT) test --profiles-dir . --select tag:phase5
 	$(PY) -m scripts.print_p5_scorecard

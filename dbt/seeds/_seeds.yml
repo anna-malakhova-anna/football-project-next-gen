@@ -389,3 +389,41 @@ seeds:
     columns:
       - name: purpose_id
         data_tests: [unique, not_null]
+
+  - name: p5_club
+    description: Phase 5. SYNTHETIC clubs (invented names, not real clubs). One row per club, with the state it is based in.
+    config:
+      tags: [phase5]
+    columns:
+      - name: club_id
+        data_tests: [unique, not_null]
+
+  - name: p5_club_territory
+    description: >
+      Phase 5. Which synthetic club owns which synthetic market. role = PRIMARY (one club) or SHARED (several clubs share a metro, as New York, Los Angeles and the Bay Area do in reality).
+      A market with no row here has no club. The design (shared states, uncovered markets) is configuration (phase5.club_design) and an ASSUMPTION, not a statement about real clubs.
+    config:
+      tags: [phase5]
+    columns:
+      - name: club_id
+        data_tests: [not_null]
+      - name: role
+        data_tests:
+          - accepted_values: {arguments: {values: [PRIMARY, SHARED]}}
+
+  - name: p5_youth_population_zip3
+    description: >
+      Phase 5. SYNTHETIC STUB for the US Census / ACS youth population (ages 5 to 17) by ZIP3, used because synthetic ZIPs do not correspond to real ZCTAs and a real join would give meaningless
+      rates. The `source` column says so on every row. Replace with ACS 5-year estimates (table B01001, ages 5 to 17, aggregated from ZCTA to ZIP3) in a real deployment.
+    config:
+      tags: [phase5]
+    columns:
+      - name: zip3
+        data_tests: [unique, not_null]
+
+  - name: p5_club_view_policy
+    description: >
+      Phase 5. The columns allowed in the club-facing schema (phase5_club), table by table, with their kind (`count` columns are held to the minimum cell size). The test
+      p5_club_view_is_aggregate_only fails if a table or column exists in the schema that is not listed here: what is absent is tested, as in the share policy.
+    config:
+      tags: [phase5]

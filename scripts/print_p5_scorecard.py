@@ -50,6 +50,14 @@ def main() -> None:
     show(con, "Purpose limitation: households a careless reading would have admitted", "select * from phase5.p5_purpose_limitation")
     show(con, "Consent provenance by feed", "select source_feed, event_kind, events, share_what_known, share_when_known, share_which_known, share_fully_known from phase5.p5_consent_provenance_by_feed order by 1, 2")
     show(con, "Households and activation, graded against the answer key (evaluation only)", "select * from evaluation.eval_p5_households_and_consent")
+    show(con, "Club-facing market view (aggregate only; small cells suppressed)", """
+        select club_name, market_id, club_market_role as role, status, participation_estimate as estimate, estimate_low as low, estimate_high as high,
+               round(100 * participation_rate, 2) as rate_pct, confidence, data_quality_grade as dq
+        from phase5_club.p5_club_market_view order by status, club_name, market_id limit 12""")
+    show(con, "Estimate vs naive count vs truth (evaluation only)", """
+        select count(*) as markets, count(*) filter (where band_contains_truth) as band_contains_truth,
+               round(100 * avg(estimate_error), 1) as mean_estimate_error_pct, round(100 * avg(naive_error), 1) as mean_naive_error_pct
+        from evaluation.eval_p5_market_estimate""")
     show(con, "Fix list sample (top issue for the five largest leagues)", """
         select f.league_name, f.rule_id, f.fix from phase5.dq_fix_list f join phase5.dq_score_league s using (league_group)
         where f.fix_rank = 1 order by s.n_records desc limit 5""")

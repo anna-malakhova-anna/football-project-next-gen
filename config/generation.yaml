@@ -278,3 +278,17 @@ phase5:
     standard_min_conformance: 0.95        # a feed meets the data standard for a field when this share of its rows is present and valid
     activation_requires_timestamp: true   # club activation needs the marketing opt-in to carry a timestamp (when) ...
     activation_requires_wording: true     # ... and the wording version or full text (which wording)
+    # Market estimate (step 5). Heuristic band, NOT a statistical confidence interval: see docs/market-estimate.md.
+    club_min_cell: 10                    # club-facing counts below this are suppressed (primary suppression; secondary suppression by the shared macro)
+    band_base: 0.05                      # relative width every band carries (identity and sampling noise)
+    band_k: 1.0                          # extra upper width per unit of missing coverage (1 - completeness of the counting rules below)
+    band_rules: "CMP01|CMP02|CMP03|TIM02"  # rules whose pass rate measures how complete the counting data is: league known, age signal, ZIP present, league current
+    confidence_high: 0.10                # relative band width at or below which confidence is HIGH ...
+    confidence_medium: 0.25              # ... at or below which it is MEDIUM; wider is LOW
+  census_stub:                           # SYNTHETIC youth population (ages 5 to 17) by ZIP3. Replaces ACS/ZCTA; see docs/market-estimate.md
+    youth_per_household: 0.55
+    noise: 0.15
+  club_design:                           # SYNTHETIC club territories over the synthetic markets (not real clubs, not real metros)
+    clubs_per_state: {TX: 2, CA: 2, FL: 2, NJ: 1, MA: 1, NY: 2, IL: 1, OH: 1, WA: 1, GA: 1, CO: 1, AZ: 1, PA: 1, CT: 1}
+    shared_states: [NY, CA]              # the first market of the state is shared by all of the state's clubs (a shared metro)
+    uncovered_markets: {TX: 1, FL: 1, OH: 1, IL: 1}   # the last N markets of the state have no club

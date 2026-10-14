@@ -11,3 +11,9 @@ grade_c,0.7,phase5.dq.grade_c in config/generation.yaml
 standard_min_conformance,0.95,phase5.dq.standard_min_conformance in config/generation.yaml
 activation_requires_timestamp,True,phase5.dq.activation_requires_timestamp in config/generation.yaml
 activation_requires_wording,True,phase5.dq.activation_requires_wording in config/generation.yaml
+club_min_cell,10,phase5.dq.club_min_cell in config/generation.yaml
+band_base,0.05,phase5.dq.band_base in config/generation.yaml
+band_k,1.0,phase5.dq.band_k in config/generation.yaml
+band_rules,CMP01|CMP02|CMP03|TIM02,phase5.dq.band_rules in config/generation.yaml
+confidence_high,0.1,phase5.dq.confidence_high in config/generation.yaml
+confidence_medium,0.25,phase5.dq.confidence_medium in config/generation.yaml
