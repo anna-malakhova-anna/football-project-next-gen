@@ -156,3 +156,32 @@ def test_census_stub_is_labelled_synthetic():
     import csv
     rows = list(csv.DictReader(open(Path(__file__).resolve().parent.parent / "dbt" / "seeds" / "p5_youth_population_zip3.csv", newline="", encoding="utf-8")))
     assert rows and all("SYNTHETIC" in r["source"] for r in rows)
+
+
+PHASE5_DOCS = ["data-standard.md", "market-estimate.md", "retention.md", "questions-for-stakeholders.md", "phase5-demo.md", "decisions/ADR-012-phase-5-scope-and-design.md"]
+
+
+def test_questions_for_stakeholders_has_the_required_questions_and_sources():
+    doc = (Path(__file__).resolve().parent.parent / "docs" / "questions-for-stakeholders.md").read_text(encoding="utf-8").lower()
+    for needle in ("third party", "consent wording", "retention period", "intake channels"):
+        assert needle in doc
+    for url in ("nflflag.com/policy", "nflflag.com/faq", "youthsportsbusinessreport.com", "playfootball.nfl.com", "colts.com", "finnegan.com"):
+        assert url in doc
+
+
+def test_phase5_docs_make_no_compliance_claims_and_state_they_are_synthetic():
+    import re
+    root = Path(__file__).resolve().parent.parent / "docs"
+    banned = re.compile(r"non-?compliant|in violation|violates|illegal|unlawful|breach(es|ed)? (of )?(coppa|the law)", re.I)
+    for name in PHASE5_DOCS:
+        text = (root / name).read_text(encoding="utf-8")
+        assert not banned.search(text), name
+        assert "synthetic" in text.lower(), name
+
+
+def test_club_third_party_question_is_not_resolved_in_the_docs():
+    root = Path(__file__).resolve().parent.parent / "docs"
+    for name in PHASE5_DOCS:
+        text = (root / name).read_text(encoding="utf-8").lower()
+        import re
+        assert not re.search(r"(?<!if )(?<!whether )(a club is (not )?a third party|clubs are (not )?third parties)", text), name   # only conditional or question phrasing

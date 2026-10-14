@@ -1,4 +1,4 @@
-.PHONY: p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -93,6 +93,10 @@ p5-score: dbt/profiles.yml
 # phase5.retention.as_of, logs counts only, and exits non-zero if anything over the threshold survives. Never touches raw, eval or the published snapshots.
 p5-retention:
 	$(PY) -m retention.job
+
+# Phase 5, step 7: the one-market demo, end to end (feeds, resolution, scorecard, consent funnel, estimate, standard, retention). Needs the Phase 1 to 4 build and `make load-eval` first.
+p5-demo: p5-feeds p5-score p5-retention
+	$(PY) -m scripts.p5_demo
 
 # Phase 5, step 3: the cost of minimization (resolution with the full DOB and ZIP5 vs birth year and ZIP3 only); rebuilds the default at the end
 p5-minimization:
@@ -203,6 +207,7 @@ all-phases: dbt/profiles.yml
 	$(PY) -m scripts.check_share_policy
 	$(PY) -m scripts.check_id_stability
 	$(PY) -m retention.job
+	$(PY) -m scripts.p5_demo > /dev/null
 
 # Phases 3 and 4 are built together (see all-phases)
 phase3: all-phases

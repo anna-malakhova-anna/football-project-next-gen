@@ -68,41 +68,50 @@ Governance sets the size of the marketable audience: nothing linked reaches mark
 | [010 Fandom outcomes](docs/decisions/ADR-010-fandom-outcomes-design.md) | Matched difference-in-differences, designed before the truth was read and never tuned to it |
 | [011 Acquisition measurement](docs/decisions/ADR-011-acquisition-measurement-design.md) | Fan acquisition is measured at market level from staggered launches: stacked cohort comparison against not-yet-treated markets, not a pooled two-way regression |
 
-## Phase 5: data quality under privacy constraints (in progress)
+## Phase 5: data quality under privacy constraints
 
-Participation data is thin and messy, and the obvious fixes (collect more, buy enrichment, share more) are the ones privacy rules block. Phase 5 asks how to fix it anyway,
-for two audiences: a privacy lead (minimization, purpose limitation, retention) and a club analytics lead (what can I trust in my territory). Status: **step 6 of 7 built: the source feeds, the scorecard, the data standard, consent provenance, the market estimate and the retention job.**
-Phase 5 is an isolated scope: its feeds are derived from the existing true US youth registry with their own random stream (`phase5.seed_offset`), so no Phase 1 to 4 file or published number changes.
-The feed names, shapes and consent wordings are **assumptions** made for the demonstration; none describes a real NFL, RCX, vendor or club system.
+**How do you fix thin, messy youth participation data when privacy rules block the obvious fixes (collect more, buy enrichment, share more)?** The real pain point is that participation data is sparse and poor quality; consent is
+not the bottleneck. Phase 5 tells one story through two lenses, built around **one club market end to end** (`make p5-demo`, talk track in [`docs/phase5-demo.md`](docs/phase5-demo.md)):
 
-`make p5-feeds` writes `data/raw/p5/<feed>/` and lands the files in `raw.p5_<feed>` as strings; ground truth goes to `eval` only. Every rate is in `config/generation.yaml` under `phase5`.
-
-| Feed | Shape (assumed) | Defects injected on purpose |
+| Lens | Question | Where the answer is |
 |---|---|---|
-| `matrix_export` | cleanest: league id, DOB, parent email, ZIP, consent version and timestamp | missing ZIP, ZIP+4, consent timestamp or version missing, no consent record, stale leagues (no latest season) |
-| `vendor_reg_a` | a third-party platform: different names, free-text league name, DOB as text | league name variants (only 85% in the alias map), four DOB text formats, impossible DOB, invalid or missing ZIP, no consent timestamp |
-| `vendor_reg_b` | age group only (`U10`), no DOB, combined parent name | missing age group, invalid or missing ZIP, no consent record |
-| `pop_warner_feed` | association-centric, tackle and flag mixed | tackle rows to filter out; an association is not a league (a quarter run two flag leagues, and the code that tells them apart is often blank); no consent field beyond a waiver |
-| `pal_chapter_csv` | manual spreadsheet uploads | blank columns, typos in names and emails, duplicated rows, two-digit-year DOBs, consent in five wordings or none |
-| `school_program` | roster only: school, grade, name | no parent contact, no ZIP, no DOB (grade only), missing grade |
+| **Privacy / compliance lead** | What do we collect and why; what is a consent worth; what never leaves the league; when is it deleted? | [data standard](docs/data-standard.md) (the fields we deliberately do not ask for), [consent provenance funnel](#phase-5-results), [retention job](docs/retention.md) |
+| **Clubs / analytics lead** | What can I see and act on in my territory, and how far can I trust it? | [league and market scorecard with fix list](#phase-5-results), [market estimate with a confidence band](docs/market-estimate.md), the aggregate-only club views |
 
-**Step 2, the scorecard** (`make p5-score`, tag `phase5`, schema `phase5`). Staging puts the six feeds in one shape (never guessing: a two-digit-year DOB is NULL, an ambiguous league stays unresolved). Cross-feed
-resolution reuses the Phase 2 macros and rules on the Phase 5 records, with one extension (R7, for feeds with no DOB); it is graded against the answer key in `evaluation.eval_p5_resolution`.
-Every check is a row in the **`p5_dq_rules` seed** (id, dimension, description, SQL, a threshold per purpose, fix text) evaluated by one macro, so the rules are auditable. Outputs:
-`dq_score_league`, `dq_score_market` (six DAMA-style dimensions, an overall score and grade, and fitness for **participation reporting** (lower bar) and **club activation** (higher bar, needs consent
-provenance)), `dq_rule_results_*` (every rule for every league and market, with its SQL) and `dq_fix_list` (the top three things each league operator can act on). On the generated data every
-matrix_export league is fit to report but only 3 of 26 are fit for activation, because consent timestamps and versions are missing; school rosters score D. Details and the one residual finding
-(3 sibling false-merge pairs) are in [ADR-012](docs/decisions/ADR-012-phase-5-scope-and-design.md).
+All data is **synthetic** and every claim about NFL, RCX, vendor or club systems is an **assumption**, labelled where it is made; legal points are open questions ([`docs/questions-for-stakeholders.md`](docs/questions-for-stakeholders.md)), never findings.
+Phase 5 is an isolated scope: its feeds use their own random stream, so no Phase 1 to 4 file or published number changes ([ADR-012](docs/decisions/ADR-012-phase-5-scope-and-design.md)).
 
-**Step 3, the data standard** ([`docs/data-standard.md`](docs/data-standard.md), committed): 16 fields, each with a definition, format, requirement, purposes and retention rule, plus the fields deliberately *not* asked for.
-It is also a seed (`p5_data_standard`) and a macro (`p5_standard_check`) that validates any feed against it; `p5_standard_summary` applies it to the six feeds (none meets it today). The price of minimization is
-measured, not asserted (`make p5-minimization`): matching on birth year and ZIP3 instead of full DOB and ZIP5 costs about four points of recall (0.866 to 0.827) and no precision.
+### The demo flow
 
-**Step 4, consent provenance** (restricted schema `phase5_restricted`, aggregates in `phase5`). A household is a set of parent emails joined by the children they share. `p5_consent_event` records each consent
-captured on a registration against the **household, never the child**: status, purposes (a taxonomy of five: league operations, league communications, NFL and club marketing, third-party disclosure, profiling),
-wording, timestamp, and a provenance score on three questions: what did the parent agree to, when, on which wording. **A consent email is not a marketing opt-in**: only an explicit `NFL_CLUB_MARKETING` grant
-with a timestamp and a wording makes a household eligible for club activation, and a blank marketing box is *not captured*, never "no". A test checks that nothing downstream of the consent events can be joined
-back to a child. On the generated data:
+1. **The mess.** Six registration feeds with different schemas and defects (`make p5-feeds`; every defect rate is in `config/generation.yaml` under `phase5`).
+2. **Resolution.** The Phase 2 identity engine, reused (its macros and rules, one extension for feeds with no date of birth), takes about 16,000 registrations to 7,657 children.
+3. **Scorecard.** Every league and market graded on six dimensions and fit for two purposes. *Pause for the clubs lead: "here is what you can trust."*
+4. **Consent provenance funnel.** Where households drop out, and why. *Pause for the privacy lead: "here is what never leaves the league, and here is the deletion job."*
+5. **Market estimate.** Participation rate with a confidence band, against a labelled synthetic stub of the Census youth population. No data about children is bought.
+6. **Data standard.** The one-page ask to league operators that improves the next season: less data for privacy, cleaner data for analytics.
+
+### The six feeds (assumed shapes)
+
+| Feed | Shape | Defects injected on purpose |
+|---|---|---|
+| `matrix_export` | cleanest: league id, DOB, parent email, ZIP, consent version and timestamp | missing ZIP, ZIP+4, consent timestamp or version missing, no consent record, stale leagues |
+| `vendor_reg_a` | third-party platform: free-text league name, DOB as text | league name variants (85% in the alias map), four DOB formats, impossible DOB, invalid or missing ZIP |
+| `vendor_reg_b` | age group only (`U10`), combined parent name | no birth year, invalid or missing ZIP, no consent record |
+| `pop_warner_feed` | association-centric, tackle and flag mixed | tackle rows to filter; an association is not a league; waiver only, no consent evidence |
+| `pal_chapter_csv` | manual spreadsheet uploads | blank columns, typos, duplicated rows, two-digit-year DOBs, consent in five wordings or none |
+| `school_program` | roster only: school, grade, name | no parent contact, no ZIP, no DOB |
+
+Across feeds: the same child in two feeds with name variants, parent emails shared by siblings, some families using two, late submissions, and leagues that never sent their latest season (seasons 2024 and 2025; the Phase 1 to 4 window is not extended).
+
+### Phase 5 results
+
+*Synthetic data. Run `make p5-score` to print all of it; `make p5-minimization` and `make p5-retention` for the other two.*
+
+**Scorecard.** Rules are rows in the `p5_dq_rules` seed (id, dimension, description, SQL, a threshold per purpose, fix text), evaluated by one macro, so they are auditable. Every `matrix_export` league is fit for participation
+reporting but only 3 of 26 are fit for club activation, because consent timestamps and wording versions are missing; school rosters score D. `dq_fix_list` gives each league its top three actionable issues.
+
+**Consent provenance funnel.** A household is a set of parent emails joined by the children they share; consent is recorded against the household, never the child, and a test fails the build if anything downstream of it can be
+joined back to a child. A consent email is not a marketing opt-in.
 
 | Stage | Count | Why it drops |
 |---|---|---|
@@ -112,22 +121,22 @@ back to a child. On the generated data:
 | **Households with known consent provenance** | **3,261** | consent missing, or recorded with no timestamp or wording: **the data quality story** |
 | **Households eligible for club activation** | **638** | no marketing opt-in captured (1,827), declined (2,249), opt-in without wording (485) or timestamp (70), consent later revoked (161): **the privacy story** |
 
-Treating league-communications consent as a marketing opt-in would have admitted 2,258 more households (78% of those who agreed to league emails); 1,781 of them never opted in to marketing. Graded against the
-answer key: 0 falsely eligible households; household grouping precision 1.0, recall 0.94. `make p5-score` prints all of it.
+Treating league-communications consent as a marketing opt-in would have admitted 2,258 more households (78% of those who agreed to league emails); 1,781 of them never opted in to marketing. Against the answer key: 0 falsely eligible
+households; household grouping precision 1.0, recall 0.94.
 
-**Step 5, estimate instead of enrich** ([`docs/market-estimate.md`](docs/market-estimate.md)). No third-party data about children is bought. A child is placed by home ZIP3 into a market, and a market into a (synthetic) club
-territory, with **shared markets** and **areas with no club** handled on purpose; children with no usable ZIP are allocated by where placed children of the same league live. The participation estimate carries a
-band driven by data completeness (a rule of thumb, not a confidence interval), a rate against a **labelled synthetic stub** of the Census youth population, a confidence label, the market's data quality grade and its top
-data gaps. The club-facing schema `phase5_club` is aggregate only with a minimum cell size and a test that fails the build otherwise. Honest result: the estimate overshoots (about 8% mean error, naive count 5%) and the
-first band contained the truth in only 9 of 20 markets; the revised band covers 20 of 20 but was designed after seeing the miss (ADR-012).
+**Data standard** ([`docs/data-standard.md`](docs/data-standard.md)). 16 fields, each with purposes and a retention rule, plus the fields deliberately *not* asked for (full date of birth, ZIP5, child contact details, parent name,
+tackle registrations). Asking for birth year and ZIP3 instead of full DOB and ZIP5 costs about four points of recall (0.866 to 0.827) and no precision. No feed meets the standard today; `p5_standard_check` validates any new one.
 
-**Step 6, age-out retention** ([`docs/retention.md`](docs/retention.md)). `make p5-retention` is a real job on a retention-managed copy (`pii_store`), never on `raw`, `eval` or the published snapshots: it removes revoked
-households from every activation-eligible set at once, deletes child-level records when a child ages out (Dec 31 of the year they turn 18, plus a grace period) or a registration passes a maximum age, keeps aggregates,
-purges the parent's contact data when no child is left, keeps only a hash of a revoked email, and logs **counts only** to `retention_log`. It re-checks six invariants in independent SQL and fails the build if anything
-over the threshold survives; a seeded test covers each case. Every period is an assumption (the actual one is an open question).
+**Market estimate** ([`docs/market-estimate.md`](docs/market-estimate.md)). Children are placed by ZIP3 into a market and a market into a synthetic club territory, with shared markets and areas with no club handled on purpose;
+children with no usable ZIP are allocated by where placed children of the same league live. The club-facing schema `phase5_club` is aggregate only with a minimum cell size of 10 and a test that fails the build otherwise.
+**Honest result:** the point estimate overshoots (about 8% mean error, 5% for the naive count) because the matcher misses some duplicates; the first band contained the truth in 9 of 20 markets, and the revised band's 20 of 20 was
+designed after seeing that, so it is not evidence (ADR-012).
 
-Across feeds: the same child in two feeds with name variants, one parent email shared by siblings, some households using two parent emails, case and whitespace noise on emails, late submissions,
-and leagues that never sent their latest season. Seasons are 2024 and 2025; the Phase 1 to 4 window is not extended.
+**Retention** ([`docs/retention.md`](docs/retention.md)). A real job on a retention-managed copy, never on `raw`, `eval` or the published snapshots: revoked households leave every eligible set at once; child-level records go when a child
+ages out (Dec 31 of the year they turn 18, plus a grace period) or a registration passes a maximum age; aggregates are kept; a household with no child left loses its parent contact data; a revoked email leaves only a hash. The log
+holds counts only. Six invariants are re-checked in independent SQL and the build fails if anything over the threshold survives. Every period is an assumption (the actual one is an open question).
+
+**Known finding.** Phase 5 matching still makes 3 sibling false-merge pairs (two same-named children in one household, one with an unreadable date of birth). A sibling merge is a privacy incident by project rules, so it is reported, not hidden.
 
 ## If this were real
 
@@ -189,4 +198,5 @@ select * from share_exec.share_exec__addressable_audience;       -- audience and
 
 [Participation memo](docs/methodology/counting-a-participant.md) · [Fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) · [Changelog](docs/methodology/CHANGELOG.md) · [Metric catalog](docs/metrics.md) · [Access policy](docs/access_policy.md) ·
 [Data dictionary](docs/data_dictionary.md) · [Source inventory](docs/source_inventory.md) · [Onboarding playbook](docs/playbook/onboard-a-source.md) ·
-[Restatement examples](docs/reports/restatement_demo.md) · [Earlier build notes (phases 1 to 3)](docs/build_notes_phases_1_to_3.md)
+[Restatement examples](docs/reports/restatement_demo.md) · [Earlier build notes (phases 1 to 3)](docs/build_notes_phases_1_to_3.md) ·
+[Phase 5: data standard](docs/data-standard.md) · [market estimate](docs/market-estimate.md) · [retention](docs/retention.md) · [demo](docs/phase5-demo.md) · [questions for stakeholders](docs/questions-for-stakeholders.md)

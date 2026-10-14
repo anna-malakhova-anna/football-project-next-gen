@@ -96,7 +96,7 @@ sc as (
 
     select
         'school_program', roster_id, _source_file, _row_number,
-        cast(right(school_year, 2) as integer) + 2000, 'ANNUAL',
+        cast(left(school_year, 4) as integer) + 1, 'ANNUAL',          -- school year 2024-25 is the 2025 season
         school_code, cast(null as varchar), cast(null as varchar),
         student_first, student_last, cast(null as varchar), cast(null as varchar), grade, sex,
         cast(null as varchar), cast(null as varchar), cast(null as varchar),
