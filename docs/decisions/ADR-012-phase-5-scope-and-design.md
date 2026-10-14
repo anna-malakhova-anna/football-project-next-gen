@@ -1,6 +1,7 @@
 # ADR-012: Phase 5, data quality under privacy constraints: scope and design
 
 - **Status:** Accepted for steps 1 and 2; later steps will append. Decided by Anna on 2026-10-13 (defaults confirmed).
+- **Superseded in part by [ADR-013](ADR-013-phase5-reconciliation.md)** (proposed): `phase-5-spec.md` asks for a larger Phase 5; ADR-013 says which of these decisions are kept, merged, renamed or retired.
 - **Synthetic data.** The feeds, leagues, consent wordings and every number are generated. Feed shapes and consent wordings are **assumptions** made for the demonstration; none describes a real NFL, RCX, vendor or club system.
 
 ## Context
