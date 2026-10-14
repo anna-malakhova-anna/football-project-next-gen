@@ -211,6 +211,6 @@ By KPI group, 5 north-star, 20 growth, 30 reach and 15 depth rows were listed as
 retention fall most: a player who is dark for a season looks like a churner. The retention evaluation now states the effect: the Kaplan-Meier curve sits about the coverage share (0.79)
 per year below the churn parameters' curve, and agrees with that curve once it is adjusted for the share of organization-seasons that reported (`eval_retention`). The uncertainty decomposition
 (`mart_uncertainty_decomposition`) then shows the same effect as its own component, next to the identity and DQ components. Nothing was reissued here: this log is evidence for the phase's design,
-and the new baselines are published when the phase is complete.
+and the new baselines were published on 2026-10-14 (`scorecard_<year>_20261014T201038Z` to `T203709Z`); the log against them is empty.
 
 **What the log cannot say.** It says `NEW_SOURCE_DATA` because raw row counts differ; it cannot tell a dark organization from a late file, which is the point of the organization registry.
