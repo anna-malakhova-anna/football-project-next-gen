@@ -8,10 +8,6 @@ p5_club_market_view,status,other
 p5_club_market_view,participation_estimate,count
 p5_club_market_view,estimate_low,count
 p5_club_market_view,estimate_high,count
-p5_club_market_view,youth_population,other
-p5_club_market_view,participation_rate,other
-p5_club_market_view,participation_rate_low,other
-p5_club_market_view,participation_rate_high,other
 p5_club_market_view,confidence,other
 p5_club_market_view,data_quality_grade,other
 p5_club_market_view,fit_for_participation_reporting,other

@@ -136,3 +136,38 @@ group by ba.season_year
 select cast(null as varchar) as rule_id, cast(null as integer) as season_year, 0 as merges_touched where false
 {%- endif -%}
 {%- endmacro %}
+
+{#-
+  dq_market_rule_results()
+  The record-level rules evaluated per CLUB MARKET: each record counts in a market with the allocation weight of its participant-year (int_participant_year_market), so a shared ZIP3 splits a record
+  between its markets and the totals add back up. Counts are therefore allocated (fractional) counts, never rounded. Rules judged at organization-season grain (the organization-reported rule)
+  are weighted by the organization's ZIP3 through club_market_map instead.
+-#}
+{% macro dq_market_rule_results() -%}
+{%- if execute -%}
+{%- set rules = run_query("select rule_id, check_sql, grain from " ~ ref('dq_rule_registry') ~ " where grain in ('RECORD', 'ORG_SEASON') and origin <> 'STANDARD' and nullif(trim(check_sql), '') is not null and severity in ('ERROR', 'WARN') order by rule_id") -%}
+{%- for r in rules.rows %}
+{%- if r[2] == 'RECORD' %}
+select '{{ r[0] }}' as rule_id, m.club_market_id, b.season_year,
+       sum(m.weight) filter (where ({{ r[1] }}) is not null) as n_evaluated,
+       coalesce(sum(m.weight) filter (where ({{ r[1] }})), 0) as n_pass
+from {{ ref('dq_record_base') }} b
+join {{ ref('int_participant_year_market') }} m on m.participant_id = b.person_id and m.participation_year = b.season_year
+where b.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED')
+group by m.club_market_id, b.season_year
+{%- else %}
+select '{{ r[0] }}' as rule_id, w.club_market_id, b.season_year,
+       sum(w.weight) filter (where ({{ r[1] }}) is not null) as n_evaluated,
+       coalesce(sum(w.weight) filter (where ({{ r[1] }})), 0) as n_pass
+from {{ ref('dq_org_season_base') }} b
+join (select zip3, club_market_id, allocation_weight as weight from {{ ref('club_market_map') }}
+      union all select cast(null as varchar), 'OUTSIDE_US', 1.0) w on (w.zip3 = b.zip3 and b.source_system = 'US_LEAGUE') or (w.club_market_id = 'OUTSIDE_US' and b.source_system in ('CA_CLUB', 'INTL_FED'))
+where b.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED')
+group by w.club_market_id, b.season_year
+{%- endif %}
+{% if not loop.last %}union all{% endif %}
+{%- endfor %}
+{%- else -%}
+select cast(null as varchar) as rule_id, cast(null as varchar) as club_market_id, cast(null as integer) as season_year, 0.0 as n_evaluated, 0.0 as n_pass where false
+{%- endif -%}
+{%- endmacro %}

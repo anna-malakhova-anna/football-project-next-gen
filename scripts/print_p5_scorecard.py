@@ -52,7 +52,7 @@ def main() -> None:
     show(con, "Households and activation, graded against the answer key (evaluation only)", "select * from evaluation.eval_p5_households_and_consent")
     show(con, "Club-facing market view (aggregate only; small cells suppressed)", """
         select club_name, market_id, club_market_role as role, status, participation_estimate as estimate, estimate_low as low, estimate_high as high,
-               round(100 * participation_rate, 2) as rate_pct, confidence, data_quality_grade as dq
+               confidence, data_quality_grade as dq
         from phase5_club.p5_club_market_view order by status, club_name, market_id limit 12""")
     show(con, "Estimate vs naive count vs truth (evaluation only)", """
         select count(*) as markets, count(*) filter (where band_contains_truth) as band_contains_truth,

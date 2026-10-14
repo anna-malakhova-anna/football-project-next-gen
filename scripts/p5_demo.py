@@ -158,11 +158,10 @@ def main() -> None:
     pause("privacy lead", "here is what never leaves the league: the child's name and birth year, and the parent's email. And here is the deletion job; its log holds counts only.")
 
     heading(5, "Market estimate: participation rate with a band, against the (synthetic) youth population")
-    e = one(con, """select participation_estimate, estimate_low, estimate_high, youth_population, round(100 * participation_rate, 2) as rate_pct,
-                           round(100 * participation_rate_low, 2) as rate_low_pct, round(100 * participation_rate_high, 2) as rate_high_pct, confidence, data_quality_grade, top_data_gaps
+    e = one(con, """select participation_estimate, estimate_low, estimate_high, confidence, data_quality_grade, top_data_gaps
                     from phase5_club.p5_club_market_view where market_id = ? limit 1""", [m])
-    print(f"  Estimate {e['participation_estimate']} children (band {e['estimate_low']} to {e['estimate_high']}) of a youth population of {e['youth_population']} (SYNTHETIC STUB, not Census): "
-          f"{e['rate_pct']}% ({e['rate_low_pct']}% to {e['rate_high_pct']}%). Confidence {e['confidence']}, data quality grade {e['data_quality_grade']}.")
+    print(f"  Estimate {e['participation_estimate']} children (band {e['estimate_low']} to {e['estimate_high']}). Participation rate: denominator not loaded (no population denominators are invented). "
+          f"Confidence {e['confidence']}, data quality grade {e['data_quality_grade']}.")
     print(f"  Top data gaps: {mask(e['top_data_gaps'] or 'none', k)}")
     t = one(con, "select naive_count, estimate, true_children, band_contains_truth from evaluation.eval_p5_market_estimate where market_id = ?", [m])
     key(f"  (answer key) true children {t['true_children']}; naive count {t['naive_count']}; estimate {round(t['estimate'])}; band contains the truth: {t['band_contains_truth']}. "

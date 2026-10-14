@@ -308,6 +308,12 @@ phase5:
     revocation_from: "2025-09-01"
     revocation_to: "2026-09-30"
 
+  club_markets:                          # spec section 9.1. A PROJECT APPROXIMATION, not any club's territory: contiguous groups of ZIP3 inside a state, 32 markets in all
+    per_state: {AZ: 1, CA: 4, CO: 1, CT: 1, FL: 3, GA: 2, IL: 2, MA: 2, NJ: 2, NY: 4, OH: 3, PA: 2, TX: 4, WA: 1}
+    shared_within_state: {states: [CA, NY], zip3_share: 0.25}     # the last 25% of ZIP3 of a state's market 1 are shared equally with its market 2 (a shared metro, as Los Angeles or the Bay Area)
+    shared_cross_state: {from_state: NJ, with_state: NY, zip3_share: 0.30}   # the first 30% of ZIP3 of NJ's market 1 are shared equally with NY's market 1 (an NY/NJ metro)
+    uncovered_zip3_share: 0.06           # the last ZIP3 of some markets belong to no club: NO_CLUB_MARKET
+
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 # Phase 5 spec, section 3: structured quality problems. SYNTHETIC. Every org (US league, CA club, INTL federation) gets a latent profile; defects are placed at the SAME exact
 # overall counts as before but weighted toward the worse profiles and the missingness mechanisms below, so configured overall rates stay true. Truth goes to data/ground_truth only.

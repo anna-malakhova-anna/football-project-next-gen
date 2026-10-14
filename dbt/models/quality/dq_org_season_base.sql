@@ -5,14 +5,14 @@ with seasons as (select distinct season_year from {{ ref('p5_record_quality') }}
 
 registry as (
 
-    select org_id, source_system, org_name, region_code, channel, season_year::integer as season_year, reports_data = 'Y' as reported
+    select org_id, source_system, org_name, region_code, zip3, channel, season_year::integer as season_year, reports_data = 'Y' as reported
     from {{ source('raw', 'org_registry') }}
 
 ),
 
 channel_orgs as (
 
-    select l.league_id as org_id, l.source_feed as source_system, l.league_name as org_name, l.state as region_code, 'CHANNEL_FEED' as channel, s.season_year,
+    select l.league_id as org_id, l.source_feed as source_system, l.league_name as org_name, l.state as region_code, cast(null as varchar) as zip3, 'CHANNEL_FEED' as channel, s.season_year,
            exists (select 1 from {{ ref('p5_record_quality') }} q where q.league_id = l.league_id and q.season_year = s.season_year) as reported
     from {{ source('raw_p5', 'p5_league_catalog') }} l cross join seasons s
 

@@ -1,6 +1,7 @@
 {{ config(schema='phase5') }}
 -- depends_on: {{ ref('p5_params') }}
 -- STEWARD view, all markets (including those with no club). The participation estimate per market for the latest season, with a band driven by data completeness.
+-- NO RATE: a rate needs a population denominator and Phase 3 forbids inventing one (the synthetic stub was retired); see population_denominators and mart_market_coverage.
 --   point      placed children + the allocated share of children with no usable ZIP
 --   low        point minus the weakly identified children (no parent email and no birth year: school rosters, which no rule could match to another registration and which may all
 --              duplicate a child already counted), scaled by the label-free LOW identity range (also merging PROBABLE links), times (1 - band_base).
@@ -46,8 +47,6 @@ coverage as (
 
 ),
 
-pop as (select market_id, sum(youth_population_5_17) as youth_population from {{ ref('p5_youth_population_zip3') }} group by 1),
-
 club as (
 
     select market_id, count(*) as n_clubs, bool_or(role = 'SHARED') as is_shared from {{ ref('p5_club_territory') }} group by 1
@@ -60,7 +59,6 @@ est as (
         m.market_id, m.market_name, m.region_code,
         coalesce(c.n_clubs, 0) as n_clubs, coalesce(c.is_shared, false) as is_shared,
         w.placed_children, w.allocated_children, w.point, w.weak_children,
-        p.youth_population,
         cv.counting_completeness,
         greatest(1 - cv.counting_completeness, 0) as missing,
         i.low_ratio,
@@ -70,7 +68,6 @@ est as (
     left join w on w.market_id = m.market_id
     left join identity i on i.market_id = m.market_id
     left join coverage cv on cv.market_id = m.market_id
-    left join pop p on p.market_id = m.market_id
     left join club c on c.market_id = m.market_id
     where m.country_code = 'US'
 
@@ -80,7 +77,6 @@ select
     market_id, market_name, region_code,
     case when n_clubs = 0 then 'NO_CLUB' when is_shared then 'SHARED' else 'PRIMARY' end as club_coverage,
     n_clubs,
-    youth_population,
     placed_children::integer                                                as placed_children,
     round(allocated_children, 1)                                            as allocated_children,
     round(weak_children, 1)                                                 as weakly_identified_children,
@@ -88,9 +84,6 @@ select
     round((point - weak_children) * coalesce(low_ratio, 1) * (1 - band_base), 1)              as estimate_low,
     round(point * (1 + band_base + band_k * missing), 1)                    as estimate_high,
     round(counting_completeness, 4)                                         as counting_completeness,
-    case when point is null then null else round(point / youth_population, 5) end as participation_rate,
-    case when point is null then null else round((point - weak_children) * coalesce(low_ratio, 1) * (1 - band_base) / youth_population, 5) end as participation_rate_low,
-    case when point is null then null else round(point * (1 + band_base + band_k * missing) / youth_population, 5) end as participation_rate_high,
     case when point is null then 'NO_DATA'
          when (point * (1 + band_base + band_k * missing) - (point - weak_children) * coalesce(low_ratio, 1) * (1 - band_base)) / point <= conf_high then 'HIGH'
          when (point * (1 + band_base + band_k * missing) - (point - weak_children) * coalesce(low_ratio, 1) * (1 - band_base)) / point <= conf_medium then 'MEDIUM'

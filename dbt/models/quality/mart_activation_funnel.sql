@@ -8,46 +8,57 @@
 --   PRIVACY   the family said no or withdrew: declined, revoked. This is the loss a data fix cannot, and must not, recover.
 --   UNIT      a change of counting unit (children to households), not a loss.
 -- The distinction is the bridge between the two audiences: DQ losses are the data steward's to fix; PRIVACY losses are the privacy lead's to protect. mart_activation_funnel_loss splits each step by reason.
--- market_id is the participants' attributed market (a household with participants in two markets counts in each); the national row is market_id = 'ALL'.
+-- market_id is a CLUB market (club_market_map: a project approximation). Counts are ALLOCATED, so fractional where a ZIP3 is shared: a participant counts across the markets of their ZIP3 by weight, and a household's weight in a market
+-- is the average of its active members'. OUTSIDE_US holds Canadian and international households. The national row is market_id = 'ALL' and is a plain distinct count.
 with pm as (
 
-    select f.participation_year, coalesce(f.market_id, 'UNATTRIBUTED') as market_id, f.participant_id, h.household_id
-    from {{ ref('fct_participant_year') }} f join {{ ref('int_household') }} h on h.participant_id = f.participant_id
+    -- a participant-year in a CLUB market with its allocation weight (int_participant_year_market); a household's weight in a market is the average of its active members' weights
+    select w.participation_year, w.club_market_id as market_id, w.participant_id, w.weight, h.household_id
+    from {{ ref('int_participant_year_market') }} w join {{ ref('int_household') }} h on h.participant_id = w.participant_id
+
+),
+
+members as (select household_id, participation_year, count(distinct participant_id) as n from pm group by 1, 2),
+
+hhw as (
+
+    select pm.participation_year, pm.market_id, pm.household_id, sum(pm.weight) / any_value(m.n) as w
+    from pm join members m on m.household_id = pm.household_id and m.participation_year = pm.participation_year group by all
 
 ),
 
 regs as (
 
-    select participation_year, coalesce(market_id, 'UNATTRIBUTED') as market_id, count(*) as registrations
-    from {{ ref('fct_registration') }} where is_valid_registration group by 1, 2
+    select f.participation_year, w.club_market_id as market_id, sum(w.weight) as registrations
+    from {{ ref('fct_registration') }} f join {{ ref('int_participant_year_market') }} w on w.participant_id = f.participant_id and w.participation_year = f.participation_year
+    where f.is_valid_registration group by 1, 2
 
 ),
 
 hh as (
 
-    select pm.participation_year, pm.market_id, pm.household_id, s.has_contact, s.has_known_full, s.marketing_status
-    from (select distinct participation_year, market_id, household_id from pm) pm
-    join {{ ref('int_household_year_consent') }} s on s.household_id = pm.household_id and s.participation_year = pm.participation_year
+    select x.participation_year, x.market_id, x.household_id, x.w, s.has_contact, s.has_known_full, s.marketing_status
+    from hhw x join {{ ref('int_household_year_consent') }} s on s.household_id = x.household_id and s.participation_year = x.participation_year
 
 ),
 
 per_market as (
 
     select participation_year, market_id,
-           count(*)                                                                                 as households,
-           count(*) filter (where has_contact)                                                      as households_with_contact,
-           count(*) filter (where has_contact and has_known_full)                                   as households_known_provenance,
-           count(*) filter (where has_contact and has_known_full and marketing_status = 'GRANTED_FULL') as households_consenting
+           sum(w)                                                                                                      as households,
+           coalesce(sum(w) filter (where has_contact), 0)                                                              as households_with_contact,
+           coalesce(sum(w) filter (where has_contact and has_known_full), 0)                                           as households_known_provenance,
+           coalesce(sum(w) filter (where has_contact and has_known_full and marketing_status = 'GRANTED_FULL'), 0)     as households_consenting
     from hh group by all
 
 ),
 
-part as (select participation_year, market_id, count(distinct participant_id) as participants from pm group by all),
+part as (select participation_year, market_id, sum(weight) as participants from pm group by all),
 
 national as (
 
     select participation_year, 'ALL' as market_id,
-           (select sum(registrations) from regs r where r.participation_year = h.participation_year) as registrations,
+           (select count(*) from {{ ref('fct_registration') }} f where f.is_valid_registration and f.participation_year = h.participation_year) as registrations,
            (select count(distinct participant_id) from pm where pm.participation_year = h.participation_year) as participants,
            count(distinct household_id)                                                             as households,
            count(distinct household_id) filter (where has_contact)                                  as households_with_contact,

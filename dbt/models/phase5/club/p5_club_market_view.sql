@@ -1,5 +1,5 @@
 -- depends_on: {{ ref('p5_params') }}
--- CLUB-FACING. One row per club and market in its territory: the participation estimate with its band, the participation rate against the (synthetic) youth population, the
+-- CLUB-FACING. One row per club and market in its territory: the participation estimate with its band, the
 -- confidence, the market's data quality grade, and its top data gaps. Aggregate only: one row is a market, never a child. A rounded estimate between 1 and club_min_cell - 1 is suppressed
 -- (every number NULL, status SUPPRESSED); a market with no children observed is NO_DATA, not zero. A SHARED market shows the same market-level figures to each club that shares it.
 with gaps as (
@@ -20,7 +20,7 @@ base as (
     select
         t.club_id, c.club_name, t.market_id, e.market_name, t.role as club_market_role,
         round(e.estimate)::integer as est, round(e.estimate_low)::integer as lo, round(e.estimate_high)::integer as hi,
-        e.youth_population, e.participation_rate, e.participation_rate_low, e.participation_rate_high, e.confidence,
+        e.confidence,
         m.grade as data_quality_grade, m.fit_for_participation_reporting, g.top_data_gaps
     from {{ ref('p5_club_territory') }} t
     join {{ ref('p5_club') }} c using (club_id)
@@ -36,10 +36,6 @@ select
     case when est >= {{ p5_param('club_min_cell') }} then est end                                         as participation_estimate,
     case when est >= {{ p5_param('club_min_cell') }} then lo end                                          as estimate_low,
     case when est >= {{ p5_param('club_min_cell') }} then hi end                                          as estimate_high,
-    youth_population,
-    case when est >= {{ p5_param('club_min_cell') }} then participation_rate end                          as participation_rate,
-    case when est >= {{ p5_param('club_min_cell') }} then participation_rate_low end                      as participation_rate_low,
-    case when est >= {{ p5_param('club_min_cell') }} then participation_rate_high end                     as participation_rate_high,
     confidence,
     data_quality_grade,
     fit_for_participation_reporting,

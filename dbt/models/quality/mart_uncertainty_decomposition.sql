@@ -28,71 +28,12 @@ strict as (
 
 ),
 
--- ---- coverage ----
-org_year as (
-
-    select b.source_system, b.org_id, b.season_year, count(distinct b.person_id) as participants, o.region_code
-    from {{ ref('dq_record_base') }} b join {{ ref('dq_org_season_base') }} o on o.source_system = b.source_system and o.org_id = b.org_id and o.season_year = b.season_year
-    where b.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') and b.person_id is not null group by all
-
-),
-
-org_size as (
-
-    select source_system, org_id, avg(n_records) filter (where reported) as mean_records from {{ ref('dq_org_season_base') }}
-    where source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') group by 1, 2
-
-),
-
-banded as (
-
-    select *, case when mean_records is null then 'UNKNOWN' else 'B' || ntile(3) over (partition by source_system order by mean_records) end as size_band from org_size
-
-),
-
-peers as (
-
-    select y.source_system, y.season_year, y.org_id, y.participants, y.region_code, b.size_band from org_year y join banded b using (source_system, org_id)
-
-),
-
-dark as (
-
-    select o.source_system, o.org_id, o.season_year, o.region_code, b.size_band
-    from {{ ref('dq_org_season_base') }} o join banded b using (source_system, org_id)
-    where not o.reported and o.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED')
-
-),
-
-estimates as (
-
-    select
-        d.source_system, d.org_id, d.season_year,
-        (select count(*) from peers p where p.source_system = d.source_system and p.season_year = d.season_year and p.size_band = d.size_band and p.region_code = d.region_code) as n_same_band_region,
-        (select count(*) from peers p where p.source_system = d.source_system and p.season_year = d.season_year and p.size_band = d.size_band) as n_same_band,
-        (select quantile_cont(p.participants, [0.25, 0.5, 0.75]) from peers p where p.source_system = d.source_system and p.season_year = d.season_year
-            and p.size_band = d.size_band and p.region_code = d.region_code) as q_band_region,
-        (select quantile_cont(p.participants, [0.25, 0.5, 0.75]) from peers p where p.source_system = d.source_system and p.season_year = d.season_year and p.size_band = d.size_band) as q_band,
-        (select quantile_cont(p.participants, [0.25, 0.5, 0.75]) from peers p where p.source_system = d.source_system and p.season_year = d.season_year) as q_any
-    from dark d
-
-),
-
-picked as (
-
-    select source_system, org_id, season_year,
-           case when n_same_band_region >= 3 then q_band_region when n_same_band >= 3 then q_band else q_any end as q,
-           case when n_same_band_region >= 3 then 'SAME_BAND_AND_REGION' when n_same_band >= 3 then 'SAME_BAND' else 'ANY_PEER' end as peer_level
-    from estimates
-
-),
-
+-- ---- coverage: per-organization estimates live in int_dark_org_coverage (also used by the club-market coverage) ----
 coverage as (
 
-    select season_year as participation_year, count(*) as dark_orgs,
-           sum(q[1]) as low, sum(q[2]) as point, sum(q[3]) as high,
+    select season_year as participation_year, count(*) as dark_orgs, sum(q25) as low, sum(q50) as point, sum(q75) as high,
            count(*) filter (where peer_level <> 'SAME_BAND_AND_REGION') as orgs_with_wider_peer_group
-    from picked group by 1
+    from {{ ref('int_dark_org_coverage') }} group by 1
 
 )
 

@@ -152,11 +152,6 @@ def test_club_territory_has_shared_markets_and_uncovered_markets():
     assert all("synthetic" in c["club_name"] for c in clubs)
 
 
-def test_census_stub_is_labelled_synthetic():
-    import csv
-    rows = list(csv.DictReader(open(Path(__file__).resolve().parent.parent / "dbt" / "seeds" / "p5_youth_population_zip3.csv", newline="", encoding="utf-8")))
-    assert rows and all("SYNTHETIC" in r["source"] for r in rows)
-
 
 PHASE5_DOCS = ["data-standard.md", "market-estimate.md", "retention.md", "questions-for-stakeholders.md", "phase5-demo.md", "decisions/ADR-012-phase-5-scope-and-design.md"]
 
@@ -216,3 +211,26 @@ def test_no_model_or_test_restates_a_contract_threshold():
     root = Path(__file__).resolve().parent.parent / "dbt"
     offenders = [str(p.relative_to(root)) for pat in ("models/**/*.sql", "tests/*.sql") for p in root.glob(pat) if "max_null_rate" in p.read_text(encoding="utf-8")]
     assert not offenders, offenders
+
+
+def test_club_market_map_weights_sum_to_one_and_cover_the_spec_shape():
+    import collections
+    root = Path(__file__).resolve().parent.parent / "dbt" / "seeds"
+    with open(root / "club_market_map.csv", newline="", encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    weights = collections.defaultdict(float)
+    for r in rows:
+        weights[r["zip3"]] += float(r["allocation_weight"])
+    assert all(abs(w - 1.0) < 1e-9 for w in weights.values())                      # allocated participants add back up to the total
+    markets = {r["club_market_id"] for r in rows} - {"NO_CLUB_MARKET"}
+    assert len(markets) == 32 and "NO_CLUB_MARKET" in {r["club_market_id"] for r in rows}
+    assert {"SHARED_EQUAL_SPLIT", "CONTIGUOUS_ZIP3_GROUP", "NO_CLUB_MARKET"} == {r["mapping_method"] for r in rows}
+    assert all("PROJECT APPROXIMATION" in r["approximation_note"] for r in rows)    # labelled on every row
+
+
+def test_population_denominators_are_empty_unless_loaded_from_a_cited_source():
+    root = Path(__file__).resolve().parent.parent / "dbt" / "seeds"
+    with open(root / "population_denominators.csv", newline="", encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    for r in rows:                                                                  # Phase 3 rule: never invent a figure; any row must say where it came from
+        assert r["source_name"] and r["source_table_id"] and r["source_url"] and r["retrieved_date"]

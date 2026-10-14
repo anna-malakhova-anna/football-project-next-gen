@@ -133,4 +133,26 @@ models:
     description: Why households leave the activation funnel, by step, reason and type of loss (DQ or PRIVACY). A household appears once, at the first step it fails. Counts only.
     config:
       tags: [phase5]
+  - name: int_participant_year_market
+    description: RESTRICTED. Each participant-year placed in club markets with allocation weights that sum to 1 (ZIP3, OUTSIDE_US, UNPLACED_ALLOCATED_ORG or _STATE, UNALLOCATED). The basis column is carried everywhere so placed and allocated parts are never mixed silently.
+    config:
+      tags: [phase5]
+  - name: int_dark_org_coverage
+    description: For each known organization that sent no file in a season, the estimated unique participants (25th, 50th, 75th percentile of reporting peers of the same source, season, size band and region).
+    config:
+      tags: [phase5]
+  - name: dq_market_rule_results
+    description: The registry's record-level rules evaluated per club market with allocated (fractional) counts; contract and standard rules are not here.
+    config:
+      tags: [phase5]
+  - name: dq_scorecard_market
+    description: Club market x season x purpose x dimension scores and grades by the same method as the organization and source scorecards, on allocated counts. For the data steward; the club-facing aggregate is share_club.
+    config:
+      tags: [phase5]
+  - name: mart_market_coverage
+    description: >
+      Per club market and year: allocated participants split by how they were placed, known versus reporting organizations, the coverage estimate for dark organizations, GEO fitness, purpose grades, and a
+      participation rate only if population denominators are loaded ("denominator not loaded" otherwise). The club market is a project approximation, not any club's territory.
+    config:
+      tags: [phase5]
 
