@@ -90,3 +90,23 @@ def pick_unreporting(rng: random.Random, existing: dict[int, list[str]], cfg: di
         orgs = sorted(existing[y])
         out[y] = set(rng.sample(orgs, round(rng.uniform(lo, hi) * len(orgs)))) if orgs else set()
     return out
+
+
+def fix_list_adopters(cfg: dict, profiles: dict[str, str]) -> set[str]:
+    """Spec 3.5, OFF by default. The STRUGGLING organizations that "received" a fix list and act on it: an exact share of them, chosen with a stream of their own (so switching the scenario
+    on or off never shifts any other draw). Empty when the scenario is disabled. Used only by the simulated feedback-loop demo."""
+    a = cfg["org_quality"].get("fix_list_adoption") or {}
+    if not a.get("enabled"):
+        return set()
+    struggling = sorted(o for o, p in profiles.items() if p == "STRUGGLING")
+    k = round(float(a["share_of_struggling_orgs"]) * len(struggling))
+    rng = random.Random(cfg["seed"] + 53)
+    return set(rng.sample(struggling, k)) if k else set()
+
+
+def profile_in_season(cfg: dict, org: str, year: int, profile: str, adopters: set[str]) -> str:
+    """The profile an organization's file shows in a season: an adopter improves in the final season only."""
+    a = cfg["org_quality"].get("fix_list_adoption") or {}
+    if org in adopters and year == max(cfg["seasons"]["years"]):
+        return a["final_season_improves_to"]
+    return profile

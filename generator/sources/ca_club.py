@@ -176,8 +176,9 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     unreported = [{"source_system": SOURCE, "org_id": r["club"]["club_code"], "season_year": r["season_year"], "season_term": "ANNUAL", "true_person_id": r["_pid"]}
                   for r in recs if r["club"]["club_code"] in dark[r["season_year"]]]
     recs = [r for r in recs if r["club"]["club_code"] not in dark[r["season_year"]]]
+    adopters = P.fix_list_adopters(cfg, profile)
     for r in recs:
-        r["_profile"] = profile[r["club"]["club_code"]]
+        r["_profile"] = P.profile_in_season(cfg, r["club"]["club_code"], r["season_year"], profile[r["club"]["club_code"]], adopters)
         r["_mech"] = {}
         if version_of[r["club"]["club_code"]] and "consents" in r:
             r["consents"]["text_version"] = version_of[r["club"]["club_code"]]
@@ -261,7 +262,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     club_name = {c["club_code"]: c["club_name"] for cl in catalog.values() for c in cl}
     out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": club_name[o], "region_code": province_of[o], "zip3": max(postal3[o], key=postal3[o].get),
                           "channel": channel[o], "profile": profile[o], "first_year": first_year[o], "zip_optional_form": False, "age_group_only": False,
-                          "consent_text_version": version_of[o], "n_records_all_seasons": counts[o]} for o in club_ids]
+                          "consent_text_version": version_of[o], "n_records_all_seasons": counts[o], "adopted_fix_list": o in adopters} for o in club_ids]
     out.extra["dark"] = {y: sorted(v) for y, v in dark.items()}
     out.extra["unreported"] = unreported
     return out

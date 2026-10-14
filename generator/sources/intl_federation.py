@@ -210,7 +210,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
             out.n_records += n_rows
         out.files[fname] = [{"sheets": sheets}]
     out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": name_of[o], "region_code": country_of[o], "zip3": "", "channel": channel[o], "profile": profile[o], "first_year": org_first_year[o],
-                          "zip_optional_form": False, "age_group_only": False, "consent_text_version": None, "n_records_all_seasons": counts[o]} for o in club_ids]
+                          "zip_optional_form": False, "age_group_only": False, "consent_text_version": None, "n_records_all_seasons": counts[o], "adopted_fix_list": False} for o in club_ids]
     out.extra["dark"] = {y: sorted(v) for y, v in dark.items()}
     out.extra["unreported"] = unreported
     return out

@@ -139,6 +139,10 @@ retention-vs-deletion: dbt/profiles.yml
 	$(DBT) run --profiles-dir . --select mart_retention_vs_deletion
 	$(DBT) test --profiles-dir . --select mart_retention_vs_deletion
 
+# Phase 5 spec 6.4: the SIMULATED feedback-loop demo (fix_list_adoption on, in a copy of the warehouse) -> docs/reports/fix_list_demo.md
+fix-list-demo: dbt/profiles.yml
+	$(PY) -m scripts.fix_list_demo
+
 minimize: dbt/profiles.yml
 	$(DBT) seed --profiles-dir . --select minimization_variants
 	$(PY) -m scripts.p5_minimization_runs $(if $(MIN_VARIANTS),--variants $(MIN_VARIANTS))

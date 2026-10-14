@@ -145,3 +145,19 @@ def test_a_rerun_leaves_no_files_from_an_earlier_run(tmp_path):
     stale.write_text('{"page": 9999, "next_page": null, "records": [{"stale": true}]}', encoding="utf-8")
     main.run(cfg, raw_dir=str(raw), truth_dir=str(tmp_path / "truth"))
     assert not stale.exists()
+
+
+def test_fix_list_adoption_is_off_by_default_exact_and_improves_only_the_final_season():
+    from generator import profiles as P
+    cfg = load_config()
+    profs = {f"O{i}": ("STRUGGLING" if i < 10 else "TYPICAL") for i in range(40)}
+    assert P.fix_list_adopters(cfg, profs) == set()                                  # off by default
+    on = {**cfg, "org_quality": {**cfg["org_quality"], "fix_list_adoption": {"enabled": True, "share_of_struggling_orgs": 0.5, "final_season_improves_to": "TYPICAL"}}}
+    adopters = P.fix_list_adopters(on, profs)
+    assert len(adopters) == 5 and all(profs[o] == "STRUGGLING" for o in adopters)
+    assert adopters == P.fix_list_adopters(on, profs)                                # deterministic
+    o = sorted(adopters)[0]
+    last, first = max(cfg["seasons"]["years"]), min(cfg["seasons"]["years"])
+    assert P.profile_in_season(on, o, last, "STRUGGLING", adopters) == "TYPICAL"
+    assert P.profile_in_season(on, o, first, "STRUGGLING", adopters) == "STRUGGLING"
+    assert P.profile_in_season(on, "O20", last, "TYPICAL", adopters) == "TYPICAL"

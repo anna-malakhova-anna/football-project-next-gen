@@ -12,5 +12,5 @@ select
     case when total >= {{ k }} then missingness_verdict end                 as missingness_verdict,
     case when total >= {{ k }} then 'NONE' else 'PRIMARY' end               as suppressed
 from {{ ref('mart_missingness_bias') }}
-where kpi = 'girls_share_of_youth' and segment_value is null and club_market_id <> 'ALL'
+where kpi = 'girls_share_of_youth' and segment_value = 'ALL' and club_market_id <> 'ALL'
 order by participation_year, club_market_id

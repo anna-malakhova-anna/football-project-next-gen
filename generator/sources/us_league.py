@@ -192,9 +192,10 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         if gap < best_gap:
             best, best_gap = pick, gap
     age_group_only = set(best)
+    adopters = P.fix_list_adopters(cfg, profile)
     for r in rows:
         r["org"] = r["league"]["league_id"]
-        r["profile"] = profile[r["org"]]
+        r["profile"] = P.profile_in_season(cfg, r["org"], r["year"], profile[r["org"]], adopters)
         r["mech"] = {}
     late_idx = P.pick_weighted(prng, list(range(len(rows))), [1.0] * len(rows), oq["late_registration_share"], len(rows))
     for i in late_idx:                                           # walk-up and paper registrations: the last days of the registration window
@@ -353,7 +354,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         out.n_records += len(rendered)
     out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": next(lg["league_name"] for lgs in catalog.values() for lg in lgs if lg["league_id"] == o),
                           "region_code": state_of[o], "zip3": max(zips3[o], key=zips3[o].get), "channel": channel[o], "profile": profile[o],
-                          "first_year": first_year[o], "zip_optional_form": zip_optional[o], "age_group_only": o in age_group_only, "consent_text_version": version_of[o], "n_records_all_seasons": counts[o]}
+                          "first_year": first_year[o], "zip_optional_form": zip_optional[o], "age_group_only": o in age_group_only, "consent_text_version": version_of[o], "n_records_all_seasons": counts[o], "adopted_fix_list": o in adopters}
                          for o in league_ids]
     out.extra["dark"] = {y: sorted(v) for y, v in dark.items()}
     out.extra["unreported"] = unreported
