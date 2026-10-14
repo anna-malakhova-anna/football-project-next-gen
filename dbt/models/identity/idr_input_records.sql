@@ -1,9 +1,11 @@
+-- depends_on: {{ ref('minimization_variants') }}
 -- One row per registration that identity resolution works on.
 --   * exact duplicates (same source_record_id repeated) are collapsed to one surviving record; the keys of
 --     every collapsed copy are carried in `member_registration_keys`, so the bridge table still maps them all
 --   * records with an impossible DOB are kept, with DOB and birth year nulled for matching: they can still
 --     match on name, email and phone
 --   * near-duplicates (a different record id) are NOT collapsed: they are matching candidates
+--   * var minimization_variant (default V0_FULL, seed minimization_variants): dob, postal code, phone and email are coarsened here, once, before any matching (macros/minimization.sql)
 with ranked as (
 
     select
@@ -34,14 +36,14 @@ select
     last_name,
     first_name_key,
     last_name_key,
-    case when is_impossible_dob then null else dob end                      as dob,
+    case when is_impossible_dob then null else {{ min_dob('dob', 'dob_precision') }} end as dob,
     case when is_impossible_dob then null else birth_year end               as birth_year,
-    case when is_impossible_dob then null else dob_precision end            as dob_precision,
+    case when is_impossible_dob then null else {{ min_dob_precision('dob_precision', 'birth_year') }} end as dob_precision,
     is_impossible_dob                                                       as dob_nulled,
     sex,
-    contact_email,
-    contact_phone,
-    postal_code,
+    {{ min_email('contact_email') }}                                       as contact_email,
+    {{ min_phone('contact_phone') }}                                       as contact_phone,
+    {{ min_postal('postal_code') }}                                        as postal_code,
     canonical_division,
     is_minor,
     consent_photo,

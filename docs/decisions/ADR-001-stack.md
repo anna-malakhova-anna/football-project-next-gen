@@ -64,6 +64,7 @@ To port: (1) add a Snowflake output in `profiles.yml`; (2) swap the DuckDB-speci
 | `try_strptime(s, '%B %d, %Y')`, `%b` | `stg_p5_registrations` (month-name DOBs) | `TRY_TO_DATE(s, 'MMMM DD, YYYY')` |
 | `run_query` over a seed at compile time, to turn the `check_sql` text of `p5_dq_rules` into one query | `p5_rule_results` macro | Same dbt macro; needs the seed loaded first (dbt build orders it). The rule SQL itself must stay in the common dialect |
 | `count(distinct x) filter (where ...) over (partition by ...)` | `p5_record_quality` | `COUNT(DISTINCT x)` has no window form in Snowflake: precompute the distinct count in a CTE and join it |
+| `date_trunc('month', d)` on a date; `md5(s)`; `list_filter(list, x -> ...)` and `list_contains` on the registry's failing-rule lists; `count(distinct (a, b, ...))` over a row value | `idr_input_records` (via `macros/minimization.sql`), `mart_minimization_fitness`, `mart_reidentification_risk` | `DATE_TRUNC('MONTH', d)`, `MD5(s)`, `FILTER(array, x -> ...)` and `ARRAY_CONTAINS`, and `COUNT(DISTINCT OBJECT_CONSTRUCT(...))` or a concatenated key |
 
 ## Consequences
 

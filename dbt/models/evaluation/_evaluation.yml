@@ -145,3 +145,23 @@ models:
       - name: passed
         data_tests:
           - accepted_values: {arguments: {values: [true]}}
+
+  - name: eval_minimization_tradeoff
+    description: >
+      GROUND TRUTH (evaluation only, synthetic). The minimization frontier, one row per variant and matcher: identity precision, recall, sibling and twin false merges and participant-count error
+      (graded against the answer key from eval.minimization_runs), beside the label-free re-identification risk (mart_reidentification_risk) and data fitness per purpose (mart_minimization_fitness).
+      Headline matcher: Fellegi-Sunter before review, automatic links only. Empty until `make minimize` has run.
+    config:
+      tags: [phase5]
+    columns:
+      - name: variant_id
+        data_tests: [not_null]
+
+  - name: eval_minimization_checks
+    description: "GROUND TRUTH (evaluation only). Claims about the frontier: the full variant reproduces the default build, risk never rises as fields are coarsened, a hashed contact cannot activate."
+    config:
+      tags: [phase5]
+    columns:
+      - name: passed
+        data_tests:
+          - accepted_values: {arguments: {values: [true]}}

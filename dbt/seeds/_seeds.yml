@@ -520,3 +520,20 @@ seeds:
       tags: [phase5]
       column_types: {country_code: varchar, region_code: varchar, zip3: varchar, age_band: varchar, year: integer, population: double, source_name: varchar, source_table_id: varchar, source_url: varchar, retrieved_date: varchar}
 
+  - name: minimization_variants
+    description: >
+      The five minimization variants of the Phase 5 trade-off (spec 7): how DOB, postal code, phone and email are coarsened before identity resolution (dbt var minimization_variant),
+      and which registry rules can no longer be evaluated on the coarsened data. Configuration, not ground truth.
+    config:
+      column_types: {variant_id: varchar, sort_order: integer, label: varchar, dob_treatment: varchar, postal_treatment: varchar, phone_treatment: varchar, email_treatment: varchar, unevaluable_rules: varchar, rationale: varchar}
+    columns:
+      - name: variant_id
+        data_tests: [unique, not_null]
+      - name: dob_treatment
+        data_tests: [{accepted_values: {arguments: {values: [FULL, YEAR_MONTH, YEAR]}}}]
+      - name: postal_treatment
+        data_tests: [{accepted_values: {arguments: {values: [FULL, ZIP3]}}}]
+      - name: phone_treatment
+        data_tests: [{accepted_values: {arguments: {values: [KEEP, DROP]}}}]
+      - name: email_treatment
+        data_tests: [{accepted_values: {arguments: {values: [CLEAR, HASH]}}}]

@@ -38,3 +38,7 @@ sources:
         description: "Phase 5. Each organization's latent data-quality profile (DISCIPLINED, TYPICAL, STRUGGLING, MANUAL) and form properties (ZIP optional, DOB division-only, consent wording). The answer key for the scorecards."
       - name: unreported_participation_truth
         description: "Phase 5. Participants whose organization sent no file in a season: they exist here and in no source (the answer key for coverage)."
+      - name: minimization_runs
+        description: >
+          One row per minimization variant and matcher: the identity-resolution accuracy measured against the answer key with that variant applied to the matcher's input. Written by
+          scripts/p5_minimization_runs.py (make minimize), not by the generator; may be missing until that has run, which eval_minimization_tradeoff tolerates.

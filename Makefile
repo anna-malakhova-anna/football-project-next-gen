@@ -131,6 +131,15 @@ p5-demo: p5-feeds p5-score p5-retention
 p5-minimization:
 	$(PY) -m scripts.p5_minimization
 
+# Phase 5 spec 7: the minimization frontier. Runs the identity chain once per variant (about 30 seconds each), then the label-free risk and fitness and the evaluation.
+# MIN_VARIANTS="V0_FULL V2_BIRTH_YEAR V4_HASHED_CONTACT" runs the reduced set (CI); the default is every variant of the seed.
+minimize: dbt/profiles.yml
+	$(DBT) seed --profiles-dir . --select minimization_variants
+	$(PY) -m scripts.p5_minimization_runs $(if $(MIN_VARIANTS),--variants $(MIN_VARIANTS))
+	$(DBT) run --profiles-dir . --select mart_reidentification_risk mart_minimization_fitness eval_minimization_tradeoff eval_minimization_checks
+	$(DBT) test --profiles-dir . --select minimization_variants mart_reidentification_risk mart_minimization_fitness eval_minimization_tradeoff eval_minimization_checks
+	$(PY) -m scripts.print_minimize
+
 # Phase 4: validate every source's raw table against its data contract (writes quality.dq_contract_results)
 contracts:
 	$(PY) -m scripts.validate_contracts

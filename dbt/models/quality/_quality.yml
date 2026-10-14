@@ -156,3 +156,24 @@ models:
     config:
       tags: [phase5]
 
+  - name: mart_reidentification_risk
+    description: >
+      Label-free. How identifying a participant-year dataset is when held at each minimization variant's granularity: equivalence classes over (year, DOB at the variant's precision, postal at the variant's
+      precision, sex, country), the smallest class, the average class size, the share of rows that are unique and the share in a class below k_min. Direct identifiers are counted apart (contact_fields_held).
+    config:
+      tags: [phase5]
+    columns:
+      - name: variant_id
+        data_tests: [unique, not_null]
+      - name: pct_rows_below_k_min
+        data_tests: [not_null]
+
+  - name: mart_minimization_fitness
+    description: >
+      Label-free. Share of registrations fit for each purpose under each minimization variant. Lost detection (a rule that can no longer be evaluated on coarsened data) can only raise fitness, which
+      is why rules_no_longer_evaluable is carried beside it; a hashed email makes ACTIVATE fitness zero.
+    config:
+      tags: [phase5]
+    columns:
+      - name: variant_id
+        data_tests: [unique, not_null]
