@@ -21,6 +21,7 @@ person_identifier:
   note: no person id; no date of birth, no ZIP and no parent contact
 minors_present: true
 consent_fields: []
+consent_exempt_reason: "a roster export carries no consent field and no parent contact: the feed cannot evidence any consent, and no activation is possible from it (ASSUMPTION about the roster system)"
 schema:
 - column: roster_id
   raw: roster_id
