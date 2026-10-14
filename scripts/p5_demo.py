@@ -1,13 +1,17 @@
 """Phase 5 demo: one club market end to end, in the order of the talk. SYNTHETIC data; the club and the market are invented.
 
-  uv run python -m scripts.p5_demo [--market MKT-06]
+  uv run python -m scripts.p5_demo [--market MKT-06] [--interactive] [--no-answer-key]
 
 Prerequisites: `make p5-feeds p5-score p5-retention` (the Makefile target `p5-demo` runs them). Everything printed is a count or a rate; no child, parent or record is shown.
-Counts under the club minimum cell size are printed as "<10". Lines marked (answer key) use the synthetic ground truth and exist only to show how well the method does.
+Counts under the club minimum cell size are printed as "<10" (in tables and in the fix text).
+--interactive waits for Enter at each pause; --no-answer-key drops the lines that use the synthetic ground truth (use it for an audience that should not see them).
+A market with no club or no published view exits with the list of markets that work. Lines marked (answer key) use the synthetic ground truth and exist only to show how well the method does.
 """
 from __future__ import annotations
 
 import argparse
+import re
+import sys
 from pathlib import Path
 
 import duckdb
@@ -49,8 +53,28 @@ def heading(n: int, title: str) -> None:
     print(f"\n{'=' * 100}\n{n}. {title}\n{'=' * 100}")
 
 
+INTERACTIVE = False
+ANSWER_KEY = True
+
+
 def pause(who: str, line: str) -> None:
     print(f"\n  >>> PAUSE for the {who}: \"{line}\"")
+    if INTERACTIVE:
+        try:
+            input("      (press Enter to continue) ")
+        except EOFError:                                    # not a terminal: carry on
+            pass
+
+
+def key(text: str) -> None:
+    """A line that uses the synthetic answer key: shown only with the answer key on."""
+    if ANSWER_KEY:
+        print(text)
+
+
+def mask(text: str, k: int) -> str:
+    """Hide small counts inside free text ("on 3 registrations") the same way tables hide small cells."""
+    return re.sub(r"\b([1-9]\d?)\b(?= (registrations|records|rows))", lambda m: f"<{k}" if int(m.group(1)) < k else m.group(1), text)
 
 
 def pick_market(con) -> str:
@@ -61,21 +85,31 @@ def pick_market(con) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--market")
+    ap.add_argument("--interactive", action="store_true", help="wait for Enter at each pause, for presenting")
+    ap.add_argument("--no-answer-key", action="store_true", help="omit the lines that use the synthetic answer key")
     args = ap.parse_args()
+    global INTERACTIVE, ANSWER_KEY
+    INTERACTIVE, ANSWER_KEY = args.interactive, not args.no_answer_key
     con = duckdb.connect(str(DB), read_only=True)
     m = args.market or pick_market(con)
     k = int(one(con, "select value from reference.p5_params where param = 'club_min_cell'")["value"])
+    status = q(con, "select status from phase5_club.p5_club_market_view where market_id = ? limit 1", [m])
+    if not status or status[0]["status"] != "PUBLISHED":
+        good = [r["market_id"] for r in q(con, "select distinct market_id from phase5_club.p5_club_market_view where status = 'PUBLISHED' order by 1")]
+        why = "is not in any club's territory" if not status else f"has status {status[0]['status']} (no children observed, or too few to publish)"
+        sys.exit(f"Market {m} {why}, so there is no club view to demo. Markets that work: {', '.join(good)}")
     club = one(con, "select club_name, market_name, club_market_role from phase5_club.p5_club_market_view where market_id = ? limit 1", [m])
     print(f"PHASE 5 DEMO: {club['club_name']}, {club['market_name']} ({m}, {club['club_market_role'].lower()} market). All data synthetic.")
 
     heading(1, "The mess: the feeds that reach one market")
-    print("  Five of the six feeds place children here; school rosters carry no ZIP, so their children cannot be placed in any market (they are allocated in the estimate, step 5).")
+    n_feeds = one(con, "select count(distinct feed) as n from phase5.p5_record_quality where market_id = ?", [m])["n"]
+    print(f"  {n_feeds} of the six feeds place children here. School rosters carry no ZIP, so their children cannot be placed in any market (they are allocated in the estimate, step 5).")
     table(q(con, """select feed, count(*) as registrations, count(*) filter (where is_exact_duplicate_row) as exact_duplicate_rows,
                            count(distinct league_group) as leagues from phase5.p5_record_quality where market_id = ? group by 1 order by 2 desc""", [m]), k=k, k_cols=("registrations", "exact_duplicate_rows"))
     print("\n  Record-level defects in this market (pass rate; 1 = clean):")
     table(q(con, """select rule_id, description, round(pass_rate, 3) as pass_rate, n_fail from phase5.dq_rule_results_market
                     where market_id = ? and pass_rate < 0.97 and dimension <> 'CONSENT_PROVENANCE' order by pass_rate limit 6""", [m]),
-          ["rule_id", "pass_rate", "n_fail", "description"])
+          ["rule_id", "pass_rate", "n_fail", "description"], k=k, k_cols=("n_fail",))
 
     heading(2, "Resolution: the Phase 2 engine, reused, across the six feeds")
     r = one(con, """select (select count(*) from phase5.p5_record_quality where market_id = ?) as registrations,
@@ -85,15 +119,18 @@ def main() -> None:
                       from phase5.p5_record_quality where market_id = ?""", [m])
     print(f"  {r['registrations']} registrations -> {r['children_resolved']} resolved children (latest season). Duplicates caught before resolution: {dup['pct_exact_duplicates']}%; after: {dup['pct_duplicates_after_resolution']}%.")
     ev = one(con, "select precision, recall, sibling_or_twin_false_merge_pairs as sibling_merges from evaluation.eval_p5_resolution")
-    print(f"  (answer key, all markets) precision {ev['precision']}, recall {ev['recall']}, sibling false-merge pairs {ev['sibling_merges']}: a finding, not hidden.")
+    key(f"  (answer key, all markets) precision {ev['precision']}, recall {ev['recall']}, sibling false-merge pairs {ev['sibling_merges']}: a finding, not hidden.")
 
     heading(3, "Scorecard: this market's leagues, graded")
     table(q(con, """select s.league_name, s.feed, s.grade, s.overall_score, s.fit_for_participation_reporting as fit_reporting, s.fit_for_club_activation as fit_activation, count(distinct c.p5_person_id) as children_here
                     from phase5_restricted.p5_child c join phase5.dq_score_league s on s.league_group = c.league_group
                     where c.market_id = ? group by all order by children_here desc limit 8""", [m]), k=k, k_cols=("children_here",))
     print("\n  Top fix for each of those leagues (what an operator can act on):")
-    table(q(con, """select f.league_name, f.rule_id, f.fix from phase5.dq_fix_list f where f.fix_rank = 1 and f.league_group in
-                    (select league_group from phase5_restricted.p5_child where market_id = ? group by 1 order by count(*) desc limit 4)""", [m]))
+    fixes = q(con, """select f.league_name, f.rule_id, f.fix from phase5.dq_fix_list f where f.fix_rank = 1 and f.league_group in
+                      (select league_group from phase5_restricted.p5_child where market_id = ? group by 1 order by count(*) desc limit 4)""", [m])
+    for row in fixes:
+        row["fix"] = mask(row["fix"], k)
+    table(fixes)
     mk = one(con, "select market_name, grade, overall_score, fit_for_participation_reporting as fit_reporting, fit_for_club_activation as fit_activation from phase5.dq_score_market where market_id = ?", [m])
     print(f"\n  This market overall: grade {mk['grade']} (score {mk['overall_score']}); fit for participation reporting: {mk['fit_reporting']}; fit for club activation: {mk['fit_activation']}.")
     pause("clubs lead", "here is what you can trust: counts by market and age band, yes; contacting households, not yet.")
@@ -125,10 +162,10 @@ def main() -> None:
                     from phase5_club.p5_club_market_view where market_id = ? limit 1""", [m])
     print(f"  Estimate {e['participation_estimate']} children (band {e['estimate_low']} to {e['estimate_high']}) of a youth population of {e['youth_population']} (SYNTHETIC STUB, not Census): "
           f"{e['rate_pct']}% ({e['rate_low_pct']}% to {e['rate_high_pct']}%). Confidence {e['confidence']}, data quality grade {e['data_quality_grade']}.")
-    print(f"  Top data gaps: {e['top_data_gaps']}")
+    print(f"  Top data gaps: {mask(e['top_data_gaps'] or 'none', k)}")
     t = one(con, "select naive_count, estimate, true_children, band_contains_truth from evaluation.eval_p5_market_estimate where market_id = ?", [m])
-    print(f"  (answer key) true children {t['true_children']}; naive count {t['naive_count']}; estimate {round(t['estimate'])}; band contains the truth: {t['band_contains_truth']}. "
-          "The estimate tends to run high (see docs/market-estimate.md); the band widens the upper side, not the point.")
+    key(f"  (answer key) true children {t['true_children']}; naive count {t['naive_count']}; estimate {round(t['estimate'])}; band contains the truth: {t['band_contains_truth']}. "
+        "The estimate tends to run high across markets (docs/market-estimate.md), so read the band, not the point.")
     print("\n  Age bands (observed, placed children; small cells suppressed):")
     table(q(con, "select coalesce(age_band, 'TOTAL') as age_band, children, suppressed from phase5_club.p5_club_market_age_view where market_id = ? order by age_band nulls last limit 9", [m]), k=None)
 

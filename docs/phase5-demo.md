@@ -1,6 +1,8 @@
 # Phase 5 demo: one club market, two lenses
 
 **Run it:** `make p5-demo` (builds the feeds, the scorecard and the retention run, then prints the story), or `uv run python -m scripts.p5_demo --market MKT-06` once everything is built. About 15 minutes with the pauses.
+
+**Options:** `--market MKT-15` picks another market (a bad or empty one exits with the list that works); `--interactive` waits for Enter at each pause; `--no-answer-key` drops the lines that use the synthetic ground truth. `MKT-06` is the default because it is the largest single-club market, so no cell is suppressed there; in a small market such as `MKT-15` or `MKT-28` you will see `<10` in tables and fix text, which is the suppression working, and it makes a good moment to show it.
 All data is synthetic; the club and market are invented. Everything printed is a count or a rate; no child, parent or record is shown.
 
 **The spine:** *How do you fix thin, messy youth participation data when privacy rules block the obvious fixes (collect more, buy enrichment, share more)?* Two audiences: a **privacy lead** (minimization, purpose limitation, children's data, retention) and a **clubs / analytics lead** (what can I see and trust in my territory). Every step answers a question one of them would ask; steps 4 and 6 answer both.
@@ -15,6 +17,12 @@ All data is synthetic; the club and market are invented. Everything printed is a
 | | *Pause, privacy lead* | "Here is what never leaves the league: the child's name and birth year, the parent's email. The child and parent sides are separate; no marketing join touches the child. And here is the deletion job." | Retention counts for this market; `retention_log` has counts only |
 | 5 | **Market estimate** | "We do not buy data about children. We count what we can place, allocate what we cannot, and say how unsure that leaves us." Participation rate against a *synthetic stub* of the Census youth population, with a band and a confidence label. | Estimate, band, rate, confidence, data gaps; (answer key) true count |
 | 6 | **The data standard** | "The one-page ask for next season. Less data (birth year, ZIP3, flag only) and cleaner data (canonical league id, consent with when, which wording, which purposes). Asking for less costs about four points of recall and no precision." | Standard fields each feed misses; `docs/data-standard.md` |
+
+## Rehearsal notes
+- Steps 1 to 3 are tables: say one sentence per table and let the numbers sit. Steps 4 and 6 are the two that need the room's attention; slow down at the funnel.
+- The default market shows the whole story: a funnel from 603 children to 75 eligible households, 17 revocations, and a market-level estimate with a band that contains the truth. A small market is better for showing suppression than for the story.
+- Keep `--no-answer-key` for an audience that has not been told the data is synthetic and graded: the answer-key lines are for the team, to show how well the method does.
+- The two most likely hard questions are the estimate running high and the 3 sibling false merges; both have a prepared answer below.
 
 ## If asked
 - *"Is the estimate right?"* It runs high (about 8% mean error on the synthetic answer key, against 5% for the naive count) because the matcher misses some duplicates. The first band missed the truth in 11 of 20 markets; the revised band was designed after seeing that, so its 20 of 20 is not evidence. Say so.
