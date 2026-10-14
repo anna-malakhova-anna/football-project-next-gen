@@ -110,13 +110,12 @@ DATASETS = [
     _D("market_funnel", """
         with latest as (select max(participation_year) as y from share_club.share_club__activation_funnel),
         f as (
-            select step_no, step, unit, sum(funnel_count) as remaining, sum(funnel_lost_dq) as lost_dq, sum(funnel_lost_privacy) as lost_privacy,
-                   count(*) filter (where suppressed = 'NONE') as markets_shown, count(*) as markets
-            from share_club.share_club__activation_funnel, latest where participation_year = latest.y group by 1, 2, 3)
-        select step_no, step, unit, 'Lost to data quality' as loss, 0 as x0, lost_dq as x1, remaining, markets_shown, markets from f where step_no > 1
+            select step_no, step, unit, funnel_count as remaining, funnel_lost_dq as lost_dq, funnel_lost_privacy as lost_privacy
+            from share_club.share_club__activation_funnel, latest where participation_year = latest.y and club_market_id = 'ALL')
+        select step_no, step, unit, 'Lost to data quality' as loss, 0 as x0, lost_dq as x1, remaining from f where step_no > 1
         union all
-        select step_no, step, unit, 'Lost to privacy (consent)', lost_dq, lost_dq + lost_privacy, remaining, markets_shown, markets from f where step_no > 1
-        order by step_no, loss""", ["share_club.share_club__activation_funnel"], "share_club", "Where families are lost between registration and a reachable guardian, by cause"),
+        select step_no, step, unit, 'Lost to privacy (consent)', lost_dq, lost_dq + lost_privacy, remaining from f where step_no > 1
+        order by step_no, loss""", ["share_club.share_club__activation_funnel"], "share_club", "Where families are lost between registration and a reachable guardian, by cause (all markets)"),
     _D("market_orgs", """
         select club_market_id, 'Reporting organizations' as kind, 0 as x0, orgs_reporting as x1
         from share_club.share_club__market_year where regexp_matches(club_market_id, '^CM-') and suppressed = 'NONE'
@@ -334,6 +333,7 @@ def charts():
                       "tooltip": [{"field": "club_market_id"}, {"field": "grade"}, {"field": "participants_label"}, {"field": "coverage_pct"}]}},
                   {"mark": {"type": "text", "fontSize": 9}, "encoding": {"x": {"field": "x", "type": "ordinal"}, "y": {"field": "y", "type": "ordinal"}, "text": {"field": "participants_label", "type": "nominal"},
                       "color": {"value": "#000000"}}}]}},
+        note=lambda d: "Markets with no participants in the data are not drawn.",
         shows="Each tile is one club market, laid out roughly like a map of the states that have one (no boundaries are drawn). Colour and letter are the market's grade for the purpose in the panel; the label is the participants allocated to it.",
         doesnt="A club's territory: the markets are a project approximation made of ZIP3 groups (ADR-016). The labels are allocated, so a market that shares a ZIP3 holds a fraction of it. Cells below the small-cell size show as <k.",
         lens=dict(club="Find your tile in each panel: counted, but perhaps not reachable.", privacy="The same tile is not graded for sharing: grades say fitness for a purpose, not permission to use data for it."))
@@ -356,10 +356,10 @@ def charts():
               "encoding": {"y": {"field": "step", "type": "nominal", "sort": {"field": "step_no"}, "title": None},
                            "x": {"field": "x0", "type": "quantitative", "title": "Households lost at the step"}, "x2": {"field": "x1"},
                            "color": {"field": "loss", "type": "nominal", "scale": {"domain": ["Lost to data quality", "Lost to privacy (consent)"], "range": ["#D9622B", "#7D4E8E"]}, "title": "Cause"},
-                           "tooltip": [{"field": "step"}, {"field": "loss"}, {"field": "remaining"}, {"field": "markets_shown"}, {"field": "markets"}]},
+                           "tooltip": [{"field": "step"}, {"field": "loss"}, {"field": "remaining"}]},
               },
-        shows="At each step from registration to a contactable guardian, the households lost because a record is missing or unusable (orange) and because consent was declined, revoked or never covered the purpose (purple). Together the markets shown.",
-        doesnt="A choice about which to fix: the privacy losses are the family's decision and are not a defect. Steps hidden for a market below the small-cell size are left out of the sum, so the totals understate slightly (the tooltip says how many markets are in).",
+        shows="At each step from registration to a contactable guardian, the households lost because a record is missing or unusable (orange) and because consent was declined, revoked or never covered the purpose (purple). Nationally, all markets together.",
+        doesnt="A choice about which to fix: the privacy losses are the family's decision and are not a defect. The national figures are shown; a single market's funnel is in the market lens below.",
         lens=dict(club="The orange bars are yours to fix with the league; the purple bars are the families' answer.", privacy="The purple bars are the privacy design working: a family that said no, or whose form never asked, is not contacted."))
     C["m4_orgs"] = dict(
         page="markets", title="How much of my market is dark? (known and reporting organizations)", datasets=["market_orgs"],

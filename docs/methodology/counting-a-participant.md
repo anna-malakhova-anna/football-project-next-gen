@@ -2,7 +2,7 @@
 
 > **Synthetic data.** Every number in this memo describes a generated population, not a real program. **DRAFT SKELETON:** every
 > heading, rule and number is in place; each prose paragraph is marked `<!-- DRAFT: Anna to rewrite -->` and is for Anna to write.
-> Audience: a program executive and a privacy lead. Methodology version **1.1**.
+> Audience: a program executive and a privacy lead. Memo version **1.2** (scorecard methodology version 2.0).
 
 ## 1. What we count, and what we don't
 
@@ -182,5 +182,46 @@ Published numbers are versioned. Each year's scorecard is saved as an immutable 
 ## 9. Version and change control
 
 <!-- DRAFT: Anna to rewrite -->
-This is methodology **version 1.1**. Every scorecard row and every published snapshot carries the version. Changes to a rule bump the version and are recorded in the [CHANGELOG](CHANGELOG.md); see [ADR-005](../decisions/ADR-005-counting-rules.md), [ADR-006](../decisions/ADR-006-privacy-controls.md) and [ADR-007](../decisions/ADR-007-publish-and-restatement.md) for the decisions behind it. Version 1.1 added the reported-headcount and combined-reach KPIs (new, so nothing published was restated). The data window now runs 2021 to 2025, and 2021 is the first data year, so new, returning and retention figures are not defined for it.
+This memo is **version 1.2**; the scorecard methodology version is **2.0**. Every scorecard row and every published snapshot carries the version. Changes to a rule bump the version and are recorded in the [CHANGELOG](CHANGELOG.md); see [ADR-005](../decisions/ADR-005-counting-rules.md), [ADR-006](../decisions/ADR-006-privacy-controls.md) and [ADR-007](../decisions/ADR-007-publish-and-restatement.md) for the decisions behind it. Version 1.1 added the reported-headcount and combined-reach KPIs (new, so nothing published was restated). The data window now runs 2021 to 2025, and 2021 is the first data year, so new, returning and retention figures are not defined for it.
 
+
+Version 1.2 of the memo adds sections 10 to 14 (data fitness by purpose, the uncertainty decomposition, missingness bias, coverage, the club-market lens). **No counting rule and no KPI definition changed**, so nothing published is restated and the scorecard methodology version stays 2.0; see the [CHANGELOG](CHANGELOG.md).
+
+## 10. Data fitness by purpose (added in v1.2)
+
+<!-- DRAFT: Anna to rewrite -->
+A record is not simply good or bad: it is fit or unfit for a **purpose**. Five purposes are scored: count, segment, geography, retain and activate. Every check is one row in a registry with its dimension (completeness, validity, uniqueness, consistency, conformity, timeliness, consent provenance), the purposes it matters to, a threshold and a severity. A purpose's score is the **minimum** of its dimension scores, not the mean (ADR-014). An organization with fewer than 50 scored records carries a Wilson interval and is graded on its lower bound. Counting rules C1 to C15 are unchanged: this section describes how fit the records are for the rules, not a change to them.
+
+| US league, 2025 purpose | Grade | Score |
+|---|---|---|
+| ACTIVATE | D | 66.2 |
+| COUNT | C | 82.1 |
+| GEO | C | 82.1 |
+| RETAIN | C | 82.1 |
+| SEGMENT | C | 82.1 |
+
+## 11. The uncertainty decomposition (added in v1.2)
+
+<!-- DRAFT: Anna to rewrite -->
+The participant count has three uncertainties that are shown **side by side and never added**: identity (what resolution of uncertain links could move it by), data-quality exclusions (the count if only records fit for the COUNT purpose are used) and coverage (organizations known to exist that sent no file). They are not independent, and coverage is an estimate, not a bound (ADR-015).
+
+| Component (2025) | Counted | Interval low | Interval high | Width |
+|---|---|---|---|---|
+| IDENTITY | 7,430 | 7,405 | 7,437 | 32 |
+| DQ_EXCLUSIONS | 7,430 | 7,405 | 7,430 | 25 |
+| COVERAGE | 7,430 | 8,769 | 8,987 | 218 |
+
+## 12. Missingness bias (added in v1.2)
+
+<!-- DRAFT: Anna to rewrite -->
+A field left blank is a finding, not a nuisance. Girls' share of youth participants is computed on the children whose sex is known (the Phase 3 behaviour, since unknown is never imputed), and beside it the **bounds** it would take if every unknown child were a girl or a boy. In 2025, 36 of 6,592 youth participants have no recorded sex; the known-only share is 46.8% and the bounds are 46.5% to 47.1%. The blanks are not random: they concentrate in the youngest divisions and in spreadsheet-style files, and the descriptive tests say so (chi-square, approximate p-values).
+
+## 13. Coverage (added in v1.2)
+
+<!-- DRAFT: Anna to rewrite -->
+Every registration count is the count of **organizations that sent a file**. Organizations known to exist that sent none in a season ("dark") are estimated from reporting peers of the same source, season, size band and region, with an interval. In 2025, 26 of 134 known organizations were dark. The estimate is gross (it does not net out players who also played elsewhere) and its interval was too narrow in some years of the synthetic evaluation: that is reported, not tuned away (ADR-015).
+
+## 14. The club-market lens (added in v1.2)
+
+<!-- DRAFT: Anna to rewrite -->
+Club-facing numbers are allocated to club markets: **32** groups of contiguous ZIP3s inside a state in the mapping (24 of them have participants in the data), plus buckets for participants outside any market or without a usable ZIP. The markets are a **project approximation, not any club's territory**; a ZIP3 shared by two markets is split by weight, so allocated counts are fractional. No participation rate is shown until population denominators are loaded (they are not, and are never invented). Cells below the small-cell size are suppressed, with secondary suppression where a total is published (ADR-016).

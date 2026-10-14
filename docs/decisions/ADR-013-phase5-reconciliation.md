@@ -101,3 +101,16 @@ Spec steps 2 to 16 proceed after review. The reconciliation changes three of the
 5. **Population denominators:** confirm retiring v1's synthetic stub, so no rate is shown until you load `population_denominators.csv` (or run the ACS fetch script yourself).
 6. **Publishing:** go-ahead to publish the current scorecard for all five years (about 25 minutes, immutable files committed) before the generator amendments, so the restatement log shows the change?
 7. **Scoring change:** v1's grades will move when the mean becomes the minimum and Wilson intervals apply; fine, or keep the v1 grades visible beside the new ones for one release?
+
+## Progress addendum, 2026-10-14
+
+Built and verified (commits on `main`): the generator amendments with a rebuild (spec step 2; the restatement is `NEW_SOURCE_DATA`, 90 KPI rows, 56 requiring restatement, `docs/reports/restatement_demo.md` Example 5), the rule registry and scorecards (3 to 4), the data standard and validation macro (5), impact ranking and fix list (6), the uncertainty decomposition and missingness bias (7), consent provenance and the activation funnel (8, ADR-019), the club-market lens (9, ADR-016), the minimization frontier (10, ADR-018), retention versus deletion (11, ADR-017), `share_club` and `share_privacy` (12), the fix-list demo (13), the site pages (14) and the documentation (15).
+
+Done from the reconciliation tables: the v1 market estimate, the club territory seeds and views, the v1 league/market scores and rule-result models, and `docs/market-estimate.md` are **retired**; `p5_demo.py` and `print_p5_scorecard.py` now read the v2 outputs; the demo talk track moved to `docs/demo_script.md` as a skeleton for Anna's talking points.
+
+Still open, stated plainly:
+- **`p5_dq_rules` and `p5_record_quality` are not retired.** They still evaluate the six channel feeds, and `dq_record_base` reads their record flags; moving those rules into `dq_rule_registry` is follow-up work. Until then there are two places a rule can live for those feeds.
+- **The data standard's point on the minimization frontier is not chosen** (Anna decides; ADR-018).
+- **No new scorecard snapshot is published** (ADR-007 keeps publishing a deliberate step); the restatement log shows the difference live.
+- **The ACS fetch script is untested against the live API** (`scripts/fetch_acs_youth_population.py`); `population_denominators` stays empty until Anna loads it.
+- **The CI `all-phases` target runs the reduced minimization set** (see step 16 below).

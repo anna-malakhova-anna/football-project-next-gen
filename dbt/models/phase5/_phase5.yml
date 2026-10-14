@@ -36,32 +36,6 @@ models:
       - name: market_id
         data_tests: [not_null]
 
-  - name: dq_rule_results_league
-    description: Every rule evaluated for every league, with the rule's SQL and thresholds alongside the result (auditable).
-  - name: dq_rule_results_market
-    description: Every rule evaluated for every market, same shape.
-
-  - name: dq_score_league
-    description: >
-      The league data quality scorecard: six dimension scores, an overall score and grade, and fitness for participation reporting (lower bar) and club activation
-      (higher bar, needs consent provenance). For the data steward and league operators, not club-facing.
-    columns:
-      - name: league_group
-        data_tests: [unique, not_null]
-      - name: grade
-        data_tests:
-          - accepted_values: {arguments: {values: [A, B, C, D, INSUFFICIENT_DATA]}}
-
-  - name: dq_score_market
-    description: The market data quality scorecard (home ZIP3 to market). UNPLACED = no usable ZIP. For the data steward; the club-facing aggregate view is built in step 5.
-    columns:
-      - name: market_id
-        data_tests: [unique, not_null]
-      - name: grade
-        data_tests:
-          - accepted_values: {arguments: {values: [A, B, C, D, INSUFFICIENT_DATA]}}
-
-
   - name: p5_record_person
     description: RESTRICTED. Feed record to resolved child and usable parent email. The only place a record, a child and a parent contact meet.
   - name: p5_household
@@ -108,25 +82,3 @@ models:
     columns:
       - name: p5_person_id
         data_tests: [unique, not_null]
-  - name: p5_child_market_weight
-    description: RESTRICTED. Each child's weight in each market. Placed children count 1; children with no usable ZIP are allocated across markets by where placed children of the same league (else state) live.
-  - name: p5_market_estimate
-    description: >
-      STEWARD view, all US markets. Participation estimate for the latest season with a band driven by data completeness, the participation rate against the synthetic youth population, and a confidence label.
-      The band is a rule of thumb, not a statistical confidence interval. A market with no children observed is NO_DATA, not zero.
-    columns:
-      - name: market_id
-        data_tests: [unique, not_null]
-      - name: confidence
-        data_tests:
-          - accepted_values: {arguments: {values: [HIGH, MEDIUM, LOW, NO_DATA]}}
-  - name: p5_market_age_cells
-    description: "AGGREGATE input to the club age view: observed placed children per market and age band, plus a market total."
-  - name: p5_club_market_view
-    description: CLUB-FACING, aggregate only. One row per club and market in its territory with the estimate, band, rate, confidence, data quality grade and top data gaps; small cells suppressed.
-    columns:
-      - name: status
-        data_tests:
-          - accepted_values: {arguments: {values: [PUBLISHED, SUPPRESSED, NO_DATA]}}
-  - name: p5_club_market_age_view
-    description: CLUB-FACING, aggregate only. Children per market and age band with primary and secondary small-cell suppression.

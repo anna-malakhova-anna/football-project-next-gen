@@ -291,13 +291,6 @@ phase5:
     band_rules: "CMP01|CMP02|CMP03|TIM02"  # rules whose pass rate measures how complete the counting data is: league known, age signal, ZIP present, league current
     confidence_high: 0.10                # relative band width at or below which confidence is HIGH ...
     confidence_medium: 0.25              # ... at or below which it is MEDIUM; wider is LOW
-  census_stub:                           # SYNTHETIC youth population (ages 5 to 17) by ZIP3. Replaces ACS/ZCTA; see docs/market-estimate.md
-    youth_per_household: 0.55
-    noise: 0.15
-  club_design:                           # SYNTHETIC club territories over the synthetic markets (not real clubs, not real metros)
-    clubs_per_state: {TX: 2, CA: 2, FL: 2, NJ: 1, MA: 1, NY: 2, IL: 1, OH: 1, WA: 1, GA: 1, CO: 1, AZ: 1, PA: 1, CT: 1}
-    shared_states: [NY, CA]              # the first market of the state is shared by all of the state's clubs (a shared metro)
-    uncovered_markets: {TX: 1, FL: 1, OH: 1, IL: 1}   # the last N markets of the state have no club
   retention:                             # step 6. Every value is an ASSUMPTION for the demonstration: the actual retention period is an open question for the privacy lead.
     as_of: "2027-12-31"                  # the date the demo job runs as of (fixed, so the demo is deterministic)
     age_out_age: 18                      # a child ages out on Dec 31 of the year they turn this age (birth year only is collected, so the latest possible birthday is used)

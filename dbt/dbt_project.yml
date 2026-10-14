@@ -91,9 +91,6 @@ models:
       +tags: ['phase5']
       staging:
         +materialized: view
-      club:
-        # club-facing: aggregate only, minimum cell size applied. Nothing child-level lives in this schema (a test enforces it).
-        +schema: phase5_club
       consent:
         # household and consent models: restricted zone. Nothing in them reaches a club except through the aggregate funnel (phase5 schema).
         +schema: phase5_restricted

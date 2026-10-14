@@ -3,6 +3,15 @@
 > Synthetic data. Every change to how a participant is counted, and every restatement of a published number, is recorded here
 > (ADR-007). A methodology change bumps the version and requires a restatement of published headline KPIs.
 
+## Memo v1.2 / Phase 5: 2026-10-14 (no methodology version change)
+
+> **No counting rule and no KPI definition changed.** The scorecard methodology version stays **2.0**; nothing published is restated. The methodology memo (*Counting a participant*) goes from 1.1 to **1.2** and gains sections 10 to 14: data fitness by purpose, the uncertainty decomposition, missingness bias, coverage and the club-market lens. Each new section is a draft for Anna to rewrite.
+
+- **Regenerated data.** The synthetic generator now gives organizations latent quality profiles, missing-not-at-random fields, organizations that send no file in a season, and consent wordings (Phase 5 spec section 3). That changes the registration counts, so the restatement log against the v2.0 snapshots lists `NEW_SOURCE_DATA` (90 KPI rows; 56 would require a restatement). **No new snapshot has been published**: publishing is a separate, deliberate step (ADR-007), so the v2.0 snapshots still describe the previous generation, and the log shows the difference live. See `docs/reports/restatement_demo.md`, Example 5.
+- **A methodology change would be logged here as `METHODOLOGY_CHANGE`** if a definition changed. None did, so the log shows none.
+- **New measures, all label-free unless marked.** Purpose scorecards and trend limits, impact-ranked fix lists, the uncertainty decomposition, missingness bounds, the activation funnel with data-quality and privacy losses split, the club-market coverage view, the minimization frontier (accuracy graded against the synthetic answer key, so evaluation only). The metric catalog gains the new metric columns.
+- **Corrected a defect found on the way:** stale Canadian API pages from an earlier generation run were being loaded alongside the current ones. The generator now clears each source folder before writing; evaluation notes and the restatement example were refreshed with the clean numbers.
+
 ## v2.0: 2026-10-03
 
 > **Approved by Anna on 2026-10-03.** The fan-acquisition rework adds a second memo, [Flag as fan acquisition](flag-as-fan-acquisition.md) (skeleton with DRAFT markers; her prose), and the fan KPIs.

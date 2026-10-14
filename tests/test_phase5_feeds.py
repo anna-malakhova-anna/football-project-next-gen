@@ -134,26 +134,7 @@ def test_consent_purpose_taxonomy_has_one_activation_purpose():
     assert used <= {p["purpose_id"] for p in purposes} and "NFL_CLUB_MARKETING" not in used       # a wording alone never grants club marketing
 
 
-def test_club_territory_has_shared_markets_and_uncovered_markets():
-    import csv
-    from generator.phase5 import export_seed
-    root = Path(__file__).resolve().parent.parent / "dbt" / "seeds"
-    markets = list(csv.DictReader(open(root / "market_map.csv", newline="", encoding="utf-8")))
-    cfg = load_config()
-    terr, clubs = export_seed.territory_rows(cfg, markets)
-    assert {r["role"] for r in terr} == {"PRIMARY", "SHARED"}
-    owned = {r["market_id"] for r in terr}
-    us = {m["market_id"] for m in markets if m["country_code"] == "US"}
-    assert us - owned, "some markets must have no club"
-    shared = {r["market_id"] for r in terr if r["role"] == "SHARED"}
-    assert all(sum(1 for r in terr if r["market_id"] == m) > 1 for m in shared)
-    on_disk = list(csv.DictReader(open(root / "p5_club_territory.csv", newline="", encoding="utf-8")))
-    assert on_disk == terr
-    assert all("synthetic" in c["club_name"] for c in clubs)
-
-
-
-PHASE5_DOCS = ["data-standard.md", "market-estimate.md", "retention.md", "questions-for-stakeholders.md", "phase5-demo.md", "decisions/ADR-012-phase-5-scope-and-design.md"]
+PHASE5_DOCS = ["data-standard.md", "retention.md", "questions-for-stakeholders.md", "decisions/ADR-012-phase-5-scope-and-design.md"]
 
 
 def test_questions_for_stakeholders_has_the_required_questions_and_sources():

@@ -394,35 +394,6 @@ seeds:
       - name: purpose_id
         data_tests: [unique, not_null]
 
-  - name: p5_club
-    description: Phase 5. SYNTHETIC clubs (invented names, not real clubs). One row per club, with the state it is based in.
-    config:
-      tags: [phase5]
-    columns:
-      - name: club_id
-        data_tests: [unique, not_null]
-
-  - name: p5_club_territory
-    description: >
-      Phase 5. Which synthetic club owns which synthetic market. role = PRIMARY (one club) or SHARED (several clubs share a metro, as New York, Los Angeles and the Bay Area do in reality).
-      A market with no row here has no club. The design (shared states, uncovered markets) is configuration (phase5.club_design) and an ASSUMPTION, not a statement about real clubs.
-    config:
-      tags: [phase5]
-    columns:
-      - name: club_id
-        data_tests: [not_null]
-      - name: role
-        data_tests:
-          - accepted_values: {arguments: {values: [PRIMARY, SHARED]}}
-
-  - name: p5_club_view_policy
-    description: >
-      Phase 5. The columns allowed in the club-facing schema (phase5_club), table by table, with their kind (`count` columns are held to the minimum cell size). The test
-      p5_club_view_is_aggregate_only fails if a table or column exists in the schema that is not listed here: what is absent is tested, as in the share policy.
-    config:
-      tags: [phase5]
-
-
   - name: dq_rule_registry
     description: >
       Phase 5. The ONE registry of data quality rules (ADR-014). One row per rule: id, dimension, what it applies to, grain (RECORD, ORG_SEASON or SOURCE_SEASON), the SQL predicate (check_sql:

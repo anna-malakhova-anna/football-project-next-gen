@@ -62,6 +62,12 @@ Each issue links to a `defect_id` in `quality.dq_summary`; `quality.dq_defect_lo
 - **Category labels do not line up with canonical divisions:** `U15` maps to `U14`, `Masters` to `ADULT_MIXED`. Noted in `division_map`.
 - **Not detectable in Phase 1:** none of the rate-based defects; the two structural ones above (name order, reissued IDs) are rules, not data signals.
 
+## Phase 5 additions (structured quality, synthetic)
+
+Phase 5 changed how the three registration sources are generated, not what they are. Every organization now has a **latent quality profile** (disciplined 35%, typical 45%, struggling 15%, manual 5%) that weights where defects fall at the same overall rates; some fields are **missing not at random** (gender in younger co-ed divisions and manual organizations, ZIP where a form does not require it, consent on late registrations); **15 to 25% of the known organizations send no file** in a season (known from their first season, listed in `org_registry.csv`); and a share of manual organizations send a division but no date of birth. Consent wording comes in four versions (`consent_text_versions`). The profile and the mechanism are ground truth (`org_quality_truth`, the manifest's `mechanism` column), never available to the pipeline.
+
+**Six channel feeds** (assumed shapes, `raw.p5_*`): `matrix_export`, `vendor_reg_a`, `vendor_reg_b`, `pop_warner_feed`, `pal_chapter_csv`, `school_program`, plus parent revocation requests. They are scored by the rule registry as sources but are **not counted** (they describe the same children as `US_LEAGUE`, so joining them would double count; ADR-013). Their onboarding status is tracked in `dbt/seeds/source_registry.csv`.
+
 ## Known but not onboarded
 
 Two further sources are tracked in `dbt/seeds/source_registry.csv`, which feeds the data-trust KPIs "sources onboarded" and "sources known":

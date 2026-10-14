@@ -65,3 +65,38 @@ Likely follow-ups, with where the answer lives:
 | Are consent changes resolved safely? | `eval_consent_checks`: 3 of 58 unsafe mismatches are invisible from the data; contact use must fail closed on flagged accounts |
 | What would break first on real data? | README "If this were real"; ADR-003 limitations; ADR-011 (real market launches are not random) |
 | How long does a full rebuild take? | About 8 minutes, `make all-phases` (most of it the test suite) |
+
+---
+
+## The two-audience 15-minute path (Phase 5): one club market
+
+> **Skeleton.** Structure, order, questions and the numbers each step stands on are drafted. **Anna writes the talking points** (the markers are empty on purpose). All data is synthetic: say so first. Run `make p5-demo` (or `uv run python -m scripts.p5_demo --market CM-GA-02 --interactive`) to print the numbers in order; the site pages *Data quality*, *How sure*, *Club markets* and *Privacy by design* have the charts, with the Club lens / Privacy lens toggle on each. The market is a project approximation of ZIP3 groups, not any club's territory.
+
+**The spine:** *How do you fix thin, messy youth participation data when privacy rules block the obvious fixes (collect more, buy enrichment, share more)?* Two audiences: a **clubs / analytics lead** (what can I see and trust in my market) and a **privacy lead** (minimization, purpose limitation, children's data, retention). Steps 2 and 5 are the two pauses.
+
+| # | Step | The one question | Show | Time |
+|---|---|---|---|---|
+| 1 | **The mess** | What does the registration data actually look like? | Data quality page: the rules that fail most in the market (`make p5-demo` step 1) | 2:00 |
+| 2 | **The scorecard** | Which data can I trust, for what? | Data quality page: purpose heatmap (same data, different grades) and the Pareto | 2:30 |
+| | *Pause for clubs* | | | 1:00 |
+| 3 | **The uncertainty decomposition** | Why can't you give me one number? | How sure page: three separate bars; the evaluation overlay says where the method misses | 2:00 |
+| 4 | **The missingness bias** | Is the girls' trend real or an artefact? | How sure page: dumbbell by division; blanks are concentrated, not random | 1:30 |
+| 5 | **The activation funnel** | Why can't I reach more families? | Club markets page: loss by cause, data quality vs privacy; the two lenses on one market | 2:00 |
+| | *Pause for privacy* | | | 1:00 |
+| 6 | **The minimization frontier** | What does each field buy us, and what does it cost? | Privacy page: the frontier; the standard's point is **pending** (ADR-018) | 1:30 |
+| 7 | **The fix-list payoff** | What is the payoff of fixing upstream? | How sure page: simulated before/after; the coverage gap does not close | 1:00 |
+
+<!-- DRAFT: Anna to write the talking points -->
+
+Likely follow-ups, with where the answer lives:
+
+| Follow-up | Where the answer is |
+|---|---|
+| Is a club a "third party" under COPPA? | Open question for the privacy lead; `docs/context/real-world-context.md`; `docs/questions-for-stakeholders.md`. The build does not decide it |
+| Why is the grade the minimum, not the average? | `docs/data-quality.md`; ADR-014 |
+| Why are the three uncertainties not added? | ADR-015 |
+| Did the coverage estimate work? | The evaluation overlay: its interval misses the truth in some years; reported, not tuned (ADR-015) |
+| Which retention period is right? | Open question; every period is a configurable assumption (ADR-017, `docs/retention.md`) |
+| Why is there no participation rate? | Denominators are not loaded and never invented (`population_denominators`) |
+| Are the markets real club territories? | No: a project approximation (ADR-016) |
+| What would you change in production? | The README "If this were real"; raw-zone deletion is question 18 |

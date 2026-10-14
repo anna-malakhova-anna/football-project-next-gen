@@ -29,56 +29,9 @@ def main(cfg: dict | None = None, out: str = "dbt/seeds/p5_params.csv") -> int:
 
 
 
-CLUB_PLACES = ["North Ridge", "Harbor Point", "Cedar Valley", "Stone Creek", "Lakeshore", "Red Mesa", "Pine Hollow", "Blue Bay", "Iron Hill", "Sunfield", "Maple Crossing",
-               "Westgate", "Riverbend", "Copper Run", "Eagle Pass", "Fox Meadow", "Granite Falls", "Highland", "Juniper", "Kestrel Ridge"]
-
-
 def _read(path: str) -> list[dict]:
     with open(path, newline="", encoding="utf-8") as fh:
         return list(csv.DictReader(fh))
-
-
-def territory_rows(cfg: dict, markets: list[dict]) -> tuple[list[dict], list[dict]]:
-    """Synthetic club territories over the US markets: -> (club_territory rows, club rows). Shared metros and uncovered markets come from phase5.club_design."""
-    d = cfg["phase5"]["club_design"]
-    by_state: dict[str, list[dict]] = {}
-    for m in markets:
-        if m["country_code"] == "US":
-            by_state.setdefault(m["region_code"], []).append(m)
-    names = iter(CLUB_PLACES)
-    clubs, rows = [], []
-    for st in sorted(by_state):
-        ms = sorted(by_state[st], key=lambda m: m["market_id"])
-        n_clubs = d["clubs_per_state"].get(st, 1)
-        st_clubs = [{"club_id": f"CLUB-{st}-{i + 1}", "club_name": f"{next(names)} Flag Club (synthetic)", "state": st} for i in range(n_clubs)]
-        clubs += st_clubs
-        n_unc = d["uncovered_markets"].get(st, 0)
-        covered = ms[:len(ms) - n_unc] if n_unc else ms
-        for i, m in enumerate(covered):
-            if st in d["shared_states"] and i == 0 and len(st_clubs) > 1:
-                for c in st_clubs:
-                    rows.append({"club_id": c["club_id"], "market_id": m["market_id"], "role": "SHARED"})
-            else:
-                rows.append({"club_id": st_clubs[i % len(st_clubs)]["club_id"], "market_id": m["market_id"], "role": "PRIMARY"})
-    return rows, clubs
-
-
-def _retired_census_rows(cfg: dict, markets: list[dict], geo: list[dict]) -> list[dict]:   # retired (ADR-013 decision 5): a synthetic stub invents denominators, which Phase 3 forbids. Kept only until removed.
-    """SYNTHETIC youth population (5 to 17) per ZIP3: the market's invented household population spread over its prefixes, times a youth-per-household ratio, with noise."""
-    import random
-    c = cfg["phase5"]["census_stub"]
-    rng = random.Random(cfg["seed"] + cfg["phase5"]["seed_offset"] + 2)
-    hh = {m["market_id"]: int(m["household_population"]) for m in markets if m["household_population"]}
-    prefixes: dict[str, list[str]] = {}
-    for g in geo:
-        if g["country_code"] == "US":
-            prefixes.setdefault(g["market_id"], []).append(g["prefix"])
-    out = []
-    for mid in sorted(prefixes):
-        for pre in sorted(prefixes[mid]):
-            pop = hh[mid] / len(prefixes[mid]) * c["youth_per_household"] * (1 + rng.uniform(-c["noise"], c["noise"]))
-            out.append({"zip3": pre, "market_id": mid, "youth_population_5_17": round(pop), "source": "SYNTHETIC STUB: not US Census / ACS data"})
-    return out
 
 
 NOTE = "PROJECT APPROXIMATION: contiguous ZIP3 groups; not any club's actual territory definition. Shared markets split equally (default, labelled)."
@@ -139,10 +92,7 @@ def _write(path: str, fields: list[str], rows: list[dict]) -> None:
 
 def main_market_seeds(cfg: dict | None = None, seeds: str = "dbt/seeds") -> None:
     cfg = cfg or load_config()
-    markets, geo = _read(f"{seeds}/market_map.csv"), _read(f"{seeds}/market_geo_map.csv")
-    terr, clubs = territory_rows(cfg, markets)
-    _write(f"{seeds}/p5_club_territory.csv", ["club_id", "market_id", "role"], terr)
-    _write(f"{seeds}/p5_club.csv", ["club_id", "club_name", "state"], clubs)
+    geo = _read(f"{seeds}/market_geo_map.csv")
     _write(f"{seeds}/club_market_map.csv", ["zip3", "club_market_id", "market_name", "state", "allocation_weight", "mapping_method", "approximation_note"], club_market_rows(cfg, geo))
     # population denominators are NEVER invented (Phase 3 rule): a header-only seed that Anna fills from the Census ACS (scripts/fetch_acs_youth_population.py), or leaves empty
     pd = Path(f"{seeds}/population_denominators.csv")
