@@ -91,6 +91,9 @@ models:
       +tags: ['phase5']
       staging:
         +materialized: view
+      consent:
+        # household and consent models: restricted zone. Nothing in them reaches a club except through the aggregate funnel (phase5 schema).
+        +schema: phase5_restricted
     shares:
       +materialized: table
       +tags: ['phase3']

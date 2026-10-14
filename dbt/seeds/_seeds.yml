@@ -336,8 +336,10 @@ seeds:
     description: >
       Phase 5. Maps each feed's consent wording to what it grants and which purposes it covers. The purposes are ASSUMPTIONS inferred from the wording; which wording is
       live on each platform is an open question for the stakeholders (docs/questions-for-stakeholders.md). A value not in this map is an unrecognized wording.
+      wording_is_full_text says whether the captured string reproduces the wording shown to the parent (true) or is only a code or a yes (false).
     config:
       tags: [phase5]
+      column_types: {wording_is_full_text: boolean}
 
   - name: p5_params
     description: Phase 5 scorecard parameters (season starts, plausible ages, lateness, grade bands), exported from config/generation.yaml phase5. Nothing in the scorecard models is hard-coded.
@@ -376,3 +378,14 @@ seeds:
       - name: requirement
         data_tests:
           - accepted_values: {arguments: {values: [REQUIRED, CONDITIONAL]}}
+
+  - name: p5_consent_purposes
+    description: >
+      Phase 5. The purpose taxonomy for consent: league operations, league communications, NFL and club marketing, third-party disclosure, profiling. separate_consent_required marks
+      purposes that need their own opt-in; counts_for_club_activation marks the only purpose that can make a household eligible for club activation (NFL_CLUB_MARKETING).
+    config:
+      tags: [phase5]
+      column_types: {purpose_id: varchar, label: varchar, description: varchar, separate_consent_required: boolean, counts_for_club_activation: boolean, note: varchar}
+    columns:
+      - name: purpose_id
+        data_tests: [unique, not_null]

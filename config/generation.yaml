@@ -276,3 +276,5 @@ phase5:
     grade_b: 0.85
     grade_c: 0.70
     standard_min_conformance: 0.95        # a feed meets the data standard for a field when this share of its rows is present and valid
+    activation_requires_timestamp: true   # club activation needs the marketing opt-in to carry a timestamp (when) ...
+    activation_requires_wording: true     # ... and the wording version or full text (which wording)

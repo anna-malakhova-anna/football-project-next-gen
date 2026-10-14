@@ -19,7 +19,7 @@ def main(cfg: dict | None = None, out: str = "dbt/seeds/p5_params.csv") -> int:
     rows = build_rows(cfg or load_config())
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, fieldnames=["param", "value", "description"])
+        w = csv.DictWriter(fh, fieldnames=["param", "value", "description"], lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
     return len(rows)

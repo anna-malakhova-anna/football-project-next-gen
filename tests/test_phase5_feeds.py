@@ -120,3 +120,15 @@ def test_data_standard_names_every_field_and_the_exclusions():
         fields = [r["field_name"] for r in csv.DictReader(fh)]
     assert all(f"`{f}`" in doc for f in fields)
     assert "deliberately do not ask for" in doc
+
+
+def test_consent_purpose_taxonomy_has_one_activation_purpose():
+    import csv
+    root = Path(__file__).resolve().parent.parent / "dbt" / "seeds"
+    with open(root / "p5_consent_purposes.csv", newline="", encoding="utf-8") as fh:
+        purposes = list(csv.DictReader(fh))
+    assert {p["purpose_id"] for p in purposes} == {"LEAGUE_OPERATIONS", "LEAGUE_COMMUNICATIONS", "NFL_CLUB_MARKETING", "THIRD_PARTY_DISCLOSURE", "PROFILING"}
+    assert [p["purpose_id"] for p in purposes if p["counts_for_club_activation"] == "true"] == ["NFL_CLUB_MARKETING"]
+    with open(root / "p5_consent_wording_map.csv", newline="", encoding="utf-8") as fh:
+        used = {x for r in csv.DictReader(fh) for x in r["purposes_covered"].split("|") if x}
+    assert used <= {p["purpose_id"] for p in purposes} and "NFL_CLUB_MARKETING" not in used       # a wording alone never grants club marketing

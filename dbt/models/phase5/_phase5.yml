@@ -66,3 +66,42 @@ models:
     columns:
       - name: fix
         data_tests: [not_null]
+
+  - name: p5_record_person
+    description: RESTRICTED. Feed record to resolved child and usable parent email. The only place a record, a child and a parent contact meet.
+  - name: p5_household
+    description: RESTRICTED. Parent emails joined into households through the children they share. One row per email, with its household_id.
+    columns:
+      - name: contact_email
+        data_tests: [unique, not_null]
+  - name: p5_household_child
+    description: RESTRICTED BRIDGE. household_id to p5_person_id. Counted by the funnel; read by nothing that decides activation.
+  - name: p5_consent_event
+    description: >
+      RESTRICTED. One row per consent event on a registration, keyed by household (never by child): status, purposes, wording, timestamp, method, and provenance scored on WHAT, WHEN and WHICH WORDING.
+      A blank marketing box produces no event: not captured is never FALSE.
+    columns:
+      - name: consent_event_id
+        data_tests: [unique, not_null]
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: [GRANTED, DENIED, UNKNOWN]}}
+      - name: provenance_score
+        data_tests:
+          - accepted_values: {arguments: {values: [0, 1, 2, 3], quote: false}}
+  - name: p5_household_purpose_status
+    description: RESTRICTED. The latest GRANTED or DENIED status per household and purpose, with the provenance of the deciding event.
+  - name: p5_household_activation
+    description: RESTRICTED. Is each household eligible for club activation, and if not, why. Only an explicit NFL_CLUB_MARKETING grant with the required provenance counts.
+    columns:
+      - name: household_id
+        data_tests: [unique, not_null]
+      - name: activation_status
+        data_tests:
+          - accepted_values: {arguments: {values: [ELIGIBLE, MARKETING_DECLINED, NO_MARKETING_OPT_IN_CAPTURED, GRANTED_BUT_NO_TIMESTAMP, GRANTED_BUT_WORDING_UNKNOWN]}}
+  - name: p5_consent_funnel
+    description: AGGREGATE. Participants to resolved households to households with known consent provenance to households eligible for club activation, with the reason for each drop. Counts only.
+  - name: p5_purpose_limitation
+    description: AGGREGATE. Households a careless reading of league-communications consent would have admitted to club activation, and that purpose limitation blocks.
+  - name: p5_consent_provenance_by_feed
+    description: AGGREGATE. Share of consent events that know what, when and on which wording, by feed.

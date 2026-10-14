@@ -43,6 +43,13 @@ def main() -> None:
         select rule_id, dimension, round(sum(n_pass) / sum(n_evaluated), 3) as pass_rate, sum(n_evaluated) as evaluated
         from phase5.dq_rule_results_league group by 1, 2 order by pass_rate limit 6""")
     show(con, "Markets: grades", "select grade, count(*) as markets, sum(n_records) as records from phase5.dq_score_market group by 1 order by 1")
+    show(con, "Consent provenance funnel (counts only)", """
+        select stage, stage_name, unit, n, share_of_previous from phase5.p5_consent_funnel order by stage""")
+    show(con, "Why households drop out of club activation", """
+        select activation_status, count(*) as households from phase5_restricted.p5_household_activation group by 1 order by 2 desc""")
+    show(con, "Purpose limitation: households a careless reading would have admitted", "select * from phase5.p5_purpose_limitation")
+    show(con, "Consent provenance by feed", "select source_feed, event_kind, events, share_what_known, share_when_known, share_which_known, share_fully_known from phase5.p5_consent_provenance_by_feed order by 1, 2")
+    show(con, "Households and activation, graded against the answer key (evaluation only)", "select * from evaluation.eval_p5_households_and_consent")
     show(con, "Fix list sample (top issue for the five largest leagues)", """
         select f.league_name, f.rule_id, f.fix from phase5.dq_fix_list f join phase5.dq_score_league s using (league_group)
         where f.fix_rank = 1 order by s.n_records desc limit 5""")

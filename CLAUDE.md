@@ -22,5 +22,11 @@ Governed participation data platform built on **synthetic** flag football data (
   never present POST_REVIEW numbers as matcher performance.
 - Phase 2 models and their tests carry the dbt tag `phase2`; `make all` excludes them, `make phase2` runs everything.
 
+## Phase 5 conventions (data quality under privacy constraints)
+- Isolated scope: the six `p5_*` feeds use their own random stream and never change a Phase 1 to 4 file or number. Models carry the dbt tag `phase5`; `make p5-feeds`, then `make p5-score`.
+- Quality checks are rows in the `p5_dq_rules` seed, not scattered SQL; thresholds and parameters come from `config/generation.yaml` (`phase5`) through the `p5_params` seed.
+- Parent side and child side are separate: consent and activation models are keyed by household and never carry a child key (a test enforces it). A consent email is not a marketing opt-in.
+- Label every assumption about NFL, RCX, vendor or club systems as an assumption; legal points are questions or design constraints, never findings.
+
 ## Commands
-`make setup | generate | load | build | test | all | clean`; Phase 2: `make load-eval | idr | eval | phase2`
+`make setup | generate | load | build | test | all | clean`; Phase 2: `make load-eval | idr | eval | phase2`; Phase 5: `make p5-feeds | p5-score | p5-minimization`

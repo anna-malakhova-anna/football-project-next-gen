@@ -71,7 +71,7 @@ Governance sets the size of the marketable audience: nothing linked reaches mark
 ## Phase 5: data quality under privacy constraints (in progress)
 
 Participation data is thin and messy, and the obvious fixes (collect more, buy enrichment, share more) are the ones privacy rules block. Phase 5 asks how to fix it anyway,
-for two audiences: a privacy lead (minimization, purpose limitation, retention) and a club analytics lead (what can I trust in my territory). Status: **step 3 of 7 built: the source feeds, the data quality scorecard and the data standard.**
+for two audiences: a privacy lead (minimization, purpose limitation, retention) and a club analytics lead (what can I trust in my territory). Status: **step 4 of 7 built: the source feeds, the scorecard, the data standard and consent provenance.**
 Phase 5 is an isolated scope: its feeds are derived from the existing true US youth registry with their own random stream (`phase5.seed_offset`), so no Phase 1 to 4 file or published number changes.
 The feed names, shapes and consent wordings are **assumptions** made for the demonstration; none describes a real NFL, RCX, vendor or club system.
 
@@ -97,6 +97,23 @@ matrix_export league is fit to report but only 3 of 26 are fit for activation, b
 **Step 3, the data standard** ([`docs/data-standard.md`](docs/data-standard.md), committed): 16 fields, each with a definition, format, requirement, purposes and retention rule, plus the fields deliberately *not* asked for.
 It is also a seed (`p5_data_standard`) and a macro (`p5_standard_check`) that validates any feed against it; `p5_standard_summary` applies it to the six feeds (none meets it today). The price of minimization is
 measured, not asserted (`make p5-minimization`): matching on birth year and ZIP3 instead of full DOB and ZIP5 costs about four points of recall (0.866 to 0.827) and no precision.
+
+**Step 4, consent provenance** (restricted schema `phase5_restricted`, aggregates in `phase5`). A household is a set of parent emails joined by the children they share. `p5_consent_event` records each consent
+captured on a registration against the **household, never the child**: status, purposes (a taxonomy of five: league operations, league communications, NFL and club marketing, third-party disclosure, profiling),
+wording, timestamp, and a provenance score on three questions: what did the parent agree to, when, on which wording. **A consent email is not a marketing opt-in**: only an explicit `NFL_CLUB_MARKETING` grant
+with a timestamp and a wording makes a household eligible for club activation, and a blank marketing box is *not captured*, never "no". A test checks that nothing downstream of the consent events can be joined
+back to a child. On the generated data:
+
+| Stage | Count | Why it drops |
+|---|---|---|
+| Participants (resolved children) | 7,657 | (true children: 6,624; the gap is the recall limit of matching) |
+| Children in a contactable household | 6,771 | no usable parent email (school rosters, blank or malformed) |
+| Resolved households | 5,430 | siblings share a parent email |
+| **Households with known consent provenance** | **3,261** | consent missing, or recorded with no timestamp or wording: **the data quality story** |
+| **Households eligible for club activation** | **659** | no marketing opt-in captured (1,889), declined (2,311), opt-in without wording (498) or timestamp (73): **the privacy story** |
+
+Treating league-communications consent as a marketing opt-in would have admitted 2,324 more households (78% of those who agreed to league emails); 1,833 of them never opted in to marketing. Graded against the
+answer key: 0 falsely eligible households; household grouping precision 1.0, recall 0.94. `make p5-score` prints all of it.
 
 Across feeds: the same child in two feeds with name variants, one parent email shared by siblings, some households using two parent emails, case and whitespace noise on emails, late submissions,
 and leagues that never sent their latest season. Seasons are 2024 and 2025; the Phase 1 to 4 window is not extended.
