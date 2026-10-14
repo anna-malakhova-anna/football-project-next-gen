@@ -117,7 +117,7 @@ def main() -> None:
     heading(6, "The minimization frontier: what each field buys and what it costs")
     table(q(con, """select variant_id, pct_unique, pct_rows_below_k_min as pct_below_k_min, round(precision, 4) as precision, round(recall, 4) as recall, sibling_or_twin_false_merges as sibling_merges, fit_for_activate
                     from evaluation.eval_minimization_tradeoff where is_headline_matcher and precision is not null order by variant_id"""))
-    print("  Chosen point for the data standard: pending (ADR-018).")
+    print("  The data standard cites V2_BIRTH_YEAR (chosen by the program owner, ADR-018).")
 
     heading(7, "The fix-list payoff (SIMULATED)")
     table(q(con, "select org_group, purpose, orgs_scored, round(score_before, 1) as before, round(score_after, 1) as after from demo_fix_list.scores order by org_group, purpose"))

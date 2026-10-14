@@ -1,6 +1,6 @@
-variant_id,sort_order,label,dob_treatment,postal_treatment,phone_treatment,email_treatment,unevaluable_rules,rationale
-V0_FULL,0,Full DOB and postal; email and phone,FULL,FULL,KEEP,CLEAR,,As collected today. The baseline every other variant is compared with.
-V1_BIRTH_MONTH,1,Birth year and month; full postal; email and phone,YEAR_MONTH,FULL,KEEP,CLEAR,,Drops the day of birth. The matcher sees the first of the month as the date.
-V2_BIRTH_YEAR,2,Birth year; ZIP3 or FSA; email and phone,YEAR,ZIP3,KEEP,CLEAR,DQ-CONS-DOB-AGREES,The shape the Phase 5 data standard proposes. A day-level DOB can no longer be compared across a person's records.
-V3_NO_PHONE,3,Birth year; ZIP3 or FSA; email only,YEAR,ZIP3,DROP,CLEAR,DQ-CONS-DOB-AGREES,Also drops the guardian phone number (a second contact route and a second direct identifier).
-V4_HASHED_CONTACT,4,Birth year; ZIP3 or FSA; hashed email (match only),YEAR,ZIP3,DROP,HASH,DQ-CONS-DOB-AGREES|DQ-VAL-EMAIL-WELLFORMED,"The email is kept only as a hash, so records can be matched but a guardian cannot be reached. ACTIVATE fitness is zero by construction. ASSUMPTION: a real design would use a keyed hash held outside the analytics platform."
+variant_id,sort_order,label,dob_treatment,postal_treatment,phone_treatment,email_treatment,unevaluable_rules,in_standard,rationale
+V0_FULL,0,Full DOB and postal; email and phone,FULL,FULL,KEEP,CLEAR,,false,As collected today. The baseline every other variant is compared with.
+V1_BIRTH_MONTH,1,Birth year and month; full postal; email and phone,YEAR_MONTH,FULL,KEEP,CLEAR,,false,Drops the day of birth. The matcher sees the first of the month as the date.
+V2_BIRTH_YEAR,2,Birth year; ZIP3 or FSA; email and phone,YEAR,ZIP3,KEEP,CLEAR,DQ-CONS-DOB-AGREES,true,The shape the Phase 5 data standard proposes. A day-level DOB can no longer be compared across a person's records.
+V3_NO_PHONE,3,Birth year; ZIP3 or FSA; email only,YEAR,ZIP3,DROP,CLEAR,DQ-CONS-DOB-AGREES,false,Also drops the guardian phone number (a second contact route and a second direct identifier).
+V4_HASHED_CONTACT,4,Birth year; ZIP3 or FSA; hashed email (match only),YEAR,ZIP3,DROP,HASH,DQ-CONS-DOB-AGREES|DQ-VAL-EMAIL-WELLFORMED,false,"The email is kept only as a hash, so records can be matched but a guardian cannot be reached. ACTIVATE fitness is zero by construction. ASSUMPTION: a real design would use a keyed hash held outside the analytics platform."

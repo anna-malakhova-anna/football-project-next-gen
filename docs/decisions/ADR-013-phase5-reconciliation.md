@@ -112,7 +112,7 @@ Done from the reconciliation tables: the v1 market estimate, the club territory 
 
 Still open, stated plainly:
 - **`p5_dq_rules` is retired** (its seed, macro and test removed; no model read it any more). `p5_record_quality` stays: it is not a rule engine but the per-record facts of the six channel feeds, which `dq_record_base` reads, so the registry is now the only place a rule lives.
-- **The data standard's point on the minimization frontier is not chosen** (Anna decides; ADR-018).
+- **The data standard's point is chosen: V2** (Anna, 2026-10-14; ADR-018).
 - **No new scorecard snapshot is published** (ADR-007 keeps publishing a deliberate step); the restatement log shows the difference live.
 - **The ACS fetch script is untested against the live API** (`scripts/fetch_acs_youth_population.py`); `population_denominators` stays empty until Anna loads it.
 - **CI timing is at the edge of the 10-minute target.** `make all-phases` now includes the Phase 5 experiments with the reduced minimization set (V0, V2, V4; `make phase5` runs all five variants). Measured on one laptop: 9 to 10.7 minutes (about 4.5 minutes of it is the three experiments, 3.5 to 3.7 minutes pytest). A hosted runner is slower and the job allows 25 minutes. If the target must be met strictly, the first thing to move out of CI is `make fix-list-demo` (the site's simulated chart would then need its table committed or the chart dropped).

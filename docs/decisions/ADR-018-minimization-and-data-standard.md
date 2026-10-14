@@ -1,6 +1,6 @@
 # ADR-018: Minimization trade-off and the chosen data standard point
 
-Status: **measured; the standard's point is NOT yet chosen** (Anna decides; see "Open decision"). Synthetic data throughout.
+Status: **accepted. The data standard cites V2_BIRTH_YEAR**, chosen by Anna on 2026-10-14 from the measured frontier. Synthetic data throughout.
 
 ## Question
 What does each field's granularity buy in identity accuracy and data fitness, and what does it cost in re-identification risk? (Phase 5 spec section 7.)
@@ -35,8 +35,15 @@ What does each field's granularity buy in identity accuracy and data fitness, an
 - Risk is measured on participant-year quasi-identifiers. Direct identifiers (email, phone) are counted apart (`contact_fields_held`), not folded into k.
 - One synthetic dataset, one seed.
 
-## Open decision (Anna)
-Which point does the data standard cite? The measurements make V2 the natural candidate (most of the privacy gain, no accuracy loss on the headline matcher), V3 a trade of precision for one fewer direct identifier, and V4 a trade of the whole activation purpose for the same. The choice also depends on questions the data cannot answer (whether clubs need the phone; the activation purpose). Until it is chosen, `docs/data-standard.md` keeps its present field list and cites this ADR as pending.
+## Decision (Anna, 2026-10-14): the standard cites V2
+The data standard asks for **birth year (not date of birth), ZIP3 or FSA (not the full postal code), the child's name, one parent email, and an optional parent phone used only to match a returning child** (V2: birth year, ZIP3, email and phone kept). It does not ask for the day or month of birth, the full postal code, or a second contact route for activation.
+
+Why the measurements support it (and what they do not): against the full-detail baseline the matcher keeps its precision and recall (0.9992 and 0.9969 against 0.9982 and 0.9969), sibling and twin false merges fall from 7 to 1, and the share of participant-years that are unique falls from 99% to 57%. The nearby alternatives each cost something visible: dropping the phone (V3) lowers precision to 0.9936 and the rules matcher's recall from 0.926 to 0.849; hashing the email (V4) removes the activation purpose entirely. **V2 is a choice on this frontier, not an optimum:** it still leaves 97.7% of participant-years in a class below `k_min`, so the standard does not make the data anonymous, and one synthetic dataset cannot say how the frontier looks on real registrations.
+
+Consequences of the choice, in the repository:
+- `data_standard_fields` gains `parent_phone` as an **OPTIONAL** field (matching only; never a contact route for activation); the evidence column of birth year, ZIP3, phone and email points at this frontier. The variant is marked by `minimization_variants.in_standard` (exactly one row, tested), and the frontier chart rings it.
+- The phone is the one place the standard asks for slightly more than the channel feeds send today (they carry no phone), so the conformance reports show it as missing; it is optional and never counted against a source's "meets the core standard".
+- This is a design recommendation on synthetic data. Whether operators can supply a phone, and whether a phone is worth a second direct identifier, are questions for the privacy lead (the question list is updated).
 
 ## Consequences
 - The frontier is a deliverable, not one answer. `make minimize` reproduces it; CI runs the reduced set V0/V2/V4 (`MIN_VARIANTS`).

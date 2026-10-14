@@ -141,7 +141,7 @@ DATASETS = [
        ["share_club.share_club__activation_funnel", "share_club.share_club__market_year"], "share_club", "The same market in the privacy lens: the activation funnel and what each loss is"),
     # ---- privacy ----
     _D("frontier", """
-        select variant_id, label as variant_label, pct_unique, pct_rows_below_k_min, precision, recall, f1, sibling_or_twin_false_merges, participant_count_error_pct, fit_for_activate, contact_fields_held
+        select variant_id, label as variant_label, in_standard, pct_unique, pct_rows_below_k_min, precision, recall, f1, sibling_or_twin_false_merges, participant_count_error_pct, fit_for_activate, contact_fields_held
         from evaluation.eval_minimization_tradeoff where is_headline_matcher and precision is not null order by variant_id""",
        ["evaluation.eval_minimization_tradeoff"], "evaluation", "Minimization frontier: re-identification risk against identity accuracy, one point per variant"),
     _D("consent_prov", """
@@ -380,10 +380,12 @@ def charts():
             {"mark": {"type": "point", "filled": True, "size": 120}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative"}, "y": {"field": "f1", "type": "quantitative"},
                 "color": {"field": "variant_id", "type": "nominal", "title": "Variant"}, "tooltip": [{"field": "variant_label"}, {"field": "precision"}, {"field": "recall"}, {"field": "sibling_or_twin_false_merges"},
                                                                                                    {"field": "pct_rows_below_k_min"}, {"field": "fit_for_activate"}]}},
+            {"mark": {"type": "point", "filled": False, "size": 520, "strokeWidth": 3}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative"}, "y": {"field": "f1", "type": "quantitative"},
+                "stroke": {"field": "in_standard", "type": "nominal", "scale": {"domain": [True, False], "range": ["#000000", "rgba(0,0,0,0)"]}, "legend": None}}},
             {"mark": {"type": "text", "dy": -14, "fontSize": 11}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative"}, "y": {"field": "f1", "type": "quantitative"}, "text": {"field": "variant_id", "type": "nominal"}}}]},
         shows="One point per field-granularity variant, from the full date of birth and postal code (V0) to a birth year, ZIP3 and a hashed email (V4). Left is safer (fewer participant-years are unique); higher is a more accurate identity match. Dropping the day of birth and ZIP5 costs the matcher almost nothing here.",
-        doesnt="A chosen standard: the standard's point on this frontier is not chosen yet (ADR-018). Share below k_min is above 97% for every variant, so it cannot separate them and the horizontal axis uses the share of unique participant-years instead. One synthetic dataset, so read the pattern, not the decimals.",
-        note=lambda d: "Chosen point for the data standard: pending. A hashed email (V4) matches as well as a clear one and gives up the activation purpose entirely.",
+        doesnt="The whole story: the ringed point (V2) is the variant the data standard cites, chosen by the program owner on 2026-10-14 from this frontier (ADR-018), not an optimum. Share below k_min is above 97% for every variant, so it cannot separate them and the horizontal axis uses the share of unique participant-years instead. One synthetic dataset, so read the pattern, not the decimals.",
+        note=lambda d: "The ringed point is the data standard's choice (V2: birth year, ZIP3, email and an optional phone for matching). A hashed email (V4) matches as well as a clear one and gives up the activation purpose entirely.",
         lens=dict(club="The cost to a club is in the last column of the table: a hashed contact cannot reach a family.", privacy="Only the x-axis is a privacy measure; the y-axis is what identity resolution keeps."))
     C["p2_provenance"] = dict(
         page="privacy", title="Do we know what families agreed to? (consent provenance)", datasets=["consent_prov"],

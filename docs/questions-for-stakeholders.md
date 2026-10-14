@@ -45,3 +45,9 @@ All data in this project is synthetic and every answer below changes a *configur
 |---|---|---|---|---|---|
 | 18 | **Does a retention or deletion obligation reach the raw landing zone, and the leagues' own systems?** | Privacy / compliance lead | Raw is immutable by project convention and the dbt build recreates every zone from it; deleting only downstream is undone by the next rebuild. | The zone deletion is demonstrated on a COPY of the warehouse; raw, staging views and the leagues' copies are out of scope (stated in ADR-017). | A raw-zone rule (delete or tokenize at landing) becomes a requirement of the loader, and "raw is immutable" needs an explicit exception for retention. |
 | 19 | **Is a returning adult player's youth history needed?** | Program owner, Anna | It is the analytic the policy most directly breaks (re-linking an adult to a childhood record). | Not needed: ages-out children are anonymized after the grace period. This synthetic data has no child who plays on as an adult inside the window, so the loss is not measurable here. | If needed, keep a coarsened, pseudonymous cohort key (birth year, first season) that supports the analytic without a name or contact; the cost is a longer-lived pseudonymous identifier. |
+
+## Added at the data-standard decision
+| # | Question | Owner (role) | Why it matters | What the build assumes today | What changes if the answer differs |
+|---|---|---|---|---|---|
+| 20 | **Is an optional parent phone worth a second direct identifier, and can operators send it?** | Privacy lead; league operators | The chosen standard point (V2) keeps the phone for matching a returning child; dropping it (V3) lowers precision and cuts the rules matcher's recall from 0.926 to 0.849. | The standard asks for it as OPTIONAL, matching only, never activation. | If not, the standard becomes V3 (a measured accuracy cost) and the field is removed from the seed; nothing else changes. |
+

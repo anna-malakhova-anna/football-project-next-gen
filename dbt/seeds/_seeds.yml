@@ -363,7 +363,7 @@ seeds:
         data_tests: [unique, not_null]
       - name: requirement
         data_tests:
-          - accepted_values: {arguments: {values: [REQUIRED, CONDITIONAL]}}
+          - accepted_values: {arguments: {values: [REQUIRED, CONDITIONAL, OPTIONAL]}}
       - name: pii_class
         data_tests:
           - accepted_values: {arguments: {values: [none, quasi, direct]}}
@@ -481,7 +481,7 @@ seeds:
       The five minimization variants of the Phase 5 trade-off (spec 7): how DOB, postal code, phone and email are coarsened before identity resolution (dbt var minimization_variant),
       and which registry rules can no longer be evaluated on the coarsened data. Configuration, not ground truth.
     config:
-      column_types: {variant_id: varchar, sort_order: integer, label: varchar, dob_treatment: varchar, postal_treatment: varchar, phone_treatment: varchar, email_treatment: varchar, unevaluable_rules: varchar, rationale: varchar}
+      column_types: {variant_id: varchar, sort_order: integer, label: varchar, dob_treatment: varchar, postal_treatment: varchar, phone_treatment: varchar, email_treatment: varchar, unevaluable_rules: varchar, in_standard: boolean, rationale: varchar}
     columns:
       - name: variant_id
         data_tests: [unique, not_null]
@@ -493,3 +493,6 @@ seeds:
         data_tests: [{accepted_values: {arguments: {values: [KEEP, DROP]}}}]
       - name: email_treatment
         data_tests: [{accepted_values: {arguments: {values: [CLEAR, HASH]}}}]
+      - name: in_standard
+        description: "The variant the data standard cites (chosen by Anna, 2026-10-14: V2_BIRTH_YEAR). Exactly one row is true."
+        data_tests: [not_null]

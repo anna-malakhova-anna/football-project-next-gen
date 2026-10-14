@@ -83,7 +83,7 @@ Likely follow-ups, with where the answer lives:
 | 4 | **The missingness bias** | Is the girls' trend real or an artefact? | How sure page: dumbbell by division; blanks are concentrated, not random | 1:30 |
 | 5 | **The activation funnel** | Why can't I reach more families? | Club markets page: loss by cause, data quality vs privacy; the two lenses on one market | 2:00 |
 | | *Pause for privacy* | | | 1:00 |
-| 6 | **The minimization frontier** | What does each field buy us, and what does it cost? | Privacy page: the frontier; the standard's point is **pending** (ADR-018) | 1:30 |
+| 6 | **The minimization frontier** | What does each field buy us, and what does it cost? | Privacy page: the frontier; the standard cites V2 (ADR-018) | 1:30 |
 | 7 | **The fix-list payoff** | What is the payoff of fixing upstream? | How sure page: simulated before/after; the coverage gap does not close | 1:00 |
 
 <!-- DRAFT: Anna to write the talking points -->

@@ -23,7 +23,7 @@ with runs as (
 )
 
 select
-    v.variant_id, v.sort_order, v.label, r.matcher, r.matcher = 'fs' as is_headline_matcher,
+    v.variant_id, v.sort_order, v.label, v.in_standard, r.matcher, r.matcher = 'fs' as is_headline_matcher,
     r.records, r.precision, r.recall, r.f1,
     r.sibling_or_twin_false_merges, r.twin_false_merges,
     r.true_participants, r.predicted_participants, r.participant_count_error, r.participant_count_error_pct, r.split_rate_pct, r.merge_rate_pct,

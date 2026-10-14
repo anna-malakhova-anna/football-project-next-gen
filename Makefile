@@ -144,7 +144,7 @@ fix-list-demo: dbt/profiles.yml
 	$(PY) -m scripts.fix_list_demo
 
 minimize: dbt/profiles.yml
-	$(DBT) seed --profiles-dir . --select minimization_variants
+	$(DBT) seed --profiles-dir . --full-refresh --select minimization_variants
 	$(PY) -m scripts.p5_minimization_runs $(if $(MIN_VARIANTS),--variants $(MIN_VARIANTS))
 	$(DBT) run --profiles-dir . --select mart_reidentification_risk mart_minimization_fitness eval_minimization_tradeoff eval_minimization_checks
 	$(DBT) test --profiles-dir . --select minimization_variants mart_reidentification_risk mart_minimization_fitness eval_minimization_tradeoff eval_minimization_checks
