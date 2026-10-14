@@ -16,10 +16,10 @@ def main() -> None:
     try:
         rows = con.execute("""select variant_id, label, matcher, precision, recall, f1, sibling_or_twin_false_merges, participant_count_error_pct, pct_unique, pct_rows_below_k_min, smallest_class,
                                      fit_for_count, fit_for_segment, fit_for_geo, fit_for_retain, fit_for_activate, rules_no_longer_evaluable, contact_fields_held
-                              from evaluation.eval_minimization_tradeoff order by sort_order, matcher""").fetchall()
+                              from evaluation.eval_minimization_tradeoff where matcher is not null order by sort_order, matcher""").fetchall()
     finally:
         con.close()
-    if not rows or rows[0][2] is None:
+    if not rows:
         raise SystemExit("no runs yet: run `make minimize`")
     print("MINIMIZATION FRONTIER (synthetic data; accuracy is graded against the answer key, risk and fitness are label-free)\n")
     print("headline matcher: Fellegi-Sunter, before review, automatic links only. The rules matcher is shown beneath it.\n")

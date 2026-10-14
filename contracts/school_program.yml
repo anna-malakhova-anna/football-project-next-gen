@@ -1,0 +1,72 @@
+# Data contract: school_program. SYNTHETIC data; the shape of this feed is an ASSUMPTION made for the demonstration, not a description of any real system.
+# Onboarded to Contracted (Phase 5, ADR-013). The feed is NOT counted: it describes the same children as US_LEAGUE.
+source_system: school_program
+version: 1.0.0
+effective_date: '2026-10-14'
+owner_role: Program Partnerships, Education
+partner_type: school roster export (ASSUMED shape; roster only)
+delivery:
+  format: CSV
+  mechanism: one file per school year (data/raw/p5/school_program/school_program_<year>.csv)
+  cadence: per school year (assumed)
+grain: one row per student on a roster
+raw:
+  table: raw.p5_school_program
+  row_filter: null
+primary_key:
+- roster_id
+person_identifier:
+  quality: none
+  field: null
+  note: no person id; no date of birth, no ZIP and no parent contact
+minors_present: true
+consent_fields: []
+schema:
+- column: roster_id
+  raw: roster_id
+  type: string
+  required: true
+  pii: quasi
+- column: school_code
+  raw: school_code
+  type: string
+  required: true
+  pii: quasi
+- column: school_name
+  raw: school_name
+  type: string
+  required: true
+  pii: quasi
+- column: school_year
+  raw: school_year
+  type: string
+  required: true
+  pii: none
+- column: grade
+  raw: grade
+  type: string
+  required: false
+  pii: quasi
+- column: student_first
+  raw: student_first
+  type: string
+  required: true
+  pii: direct
+- column: student_last
+  raw: student_last
+  type: string
+  required: true
+  pii: direct
+- column: sex
+  raw: sex
+  type: string
+  required: false
+  pii: quasi
+quality:
+- rule: max_duplicate_rate
+  key:
+  - roster_id
+  threshold: 0.02
+- rule: max_null_rate
+  column: grade
+  threshold: 0.1

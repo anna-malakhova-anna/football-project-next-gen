@@ -1,0 +1,117 @@
+# Data contract: vendor_reg_a. SYNTHETIC data; the shape of this feed is an ASSUMPTION made for the demonstration, not a description of any real system.
+# Onboarded to Contracted (Phase 5, ADR-013). The feed is NOT counted: it describes the same children as US_LEAGUE.
+source_system: vendor_reg_a
+version: 1.0.0
+effective_date: '2026-10-14'
+owner_role: Program Partnerships (third-party platform)
+partner_type: third-party registration platform (ASSUMED shape)
+delivery:
+  format: CSV
+  mechanism: one file per season (data/raw/p5/vendor_reg_a/vendor_reg_a_<year>.csv)
+  cadence: per season (assumed)
+grain: one row per registration
+raw:
+  table: raw.p5_vendor_reg_a
+  row_filter: null
+primary_key:
+- reg_ref
+person_identifier:
+  quality: none
+  field: null
+  note: no person id; the league is a free-text name, not an id
+minors_present: true
+consent_fields:
+- column: tos_accepted_text
+  permits: the sentence the parent accepted (terms of service)
+  allowed_values:
+  - ''
+  - Accepted by parent/guardian
+  - I accept the terms and the privacy notice
+  - I agree to receive league emails and updates
+- column: marketing_checkbox
+  permits: marketing contact
+  allowed_values:
+  - checked
+  - unchecked
+  - ''
+schema:
+- column: reg_ref
+  raw: reg_ref
+  type: string
+  required: true
+  pii: quasi
+- column: org_name
+  raw: org_name
+  type: string
+  required: true
+  pii: quasi
+- column: season
+  raw: season
+  type: string
+  required: true
+  pii: none
+- column: child_fname
+  raw: child_fname
+  type: string
+  required: true
+  pii: direct
+- column: child_lname
+  raw: child_lname
+  type: string
+  required: true
+  pii: direct
+- column: birthdate
+  raw: birthdate
+  type: date
+  required: false
+  pii: quasi
+- column: child_sex
+  raw: child_sex
+  type: string
+  required: false
+  pii: quasi
+- column: guardian_email
+  raw: guardian_email
+  type: string
+  required: true
+  pii: direct
+- column: postal_code
+  raw: postal_code
+  type: string
+  required: false
+  pii: quasi
+- column: registered_at
+  raw: registered_at
+  type: timestamp
+  required: true
+  pii: quasi
+- column: tos_accepted_text
+  raw: tos_accepted_text
+  type: string
+  required: false
+  pii: none
+- column: tos_accepted_at
+  raw: tos_accepted_at
+  type: timestamp
+  required: false
+  pii: none
+- column: marketing_checkbox
+  raw: marketing_checkbox
+  type: boolean
+  required: false
+  pii: none
+quality:
+- rule: max_null_rate
+  column: birthdate
+  threshold: 0.05
+- rule: max_null_rate
+  column: guardian_email
+  threshold: 0.05
+- rule: max_nonmatching_rate
+  column: postal_code
+  pattern: ^\d{5}$
+  threshold: 0.1
+- rule: max_duplicate_rate
+  key:
+  - reg_ref
+  threshold: 0.02

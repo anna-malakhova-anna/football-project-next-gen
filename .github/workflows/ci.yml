@@ -1,6 +1,6 @@
 # Build, test and publish the results site. Everything runs from an empty checkout: nothing is cached except the uv environment.
 # `make all-phases` is the supported full build: generate, load, validate contracts, every dbt model and test, pytest, and the build checks
-# (ground-truth isolation, aggregate lineage, share policy, participant-ID stability). It takes about 6 minutes locally (pytest runs in parallel); a hosted runner is slower, so the job allows 25.
+# (ground-truth isolation, aggregate lineage, share policy, participant-ID stability). It also runs the Phase 5 experiments with the reduced minimization set (V0, V2, V4). Measured locally (see ADR-013 addendum); a hosted runner is slower, so the job allows 25.
 name: ci
 
 on:

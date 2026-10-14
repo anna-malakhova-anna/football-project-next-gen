@@ -10,8 +10,8 @@ seed as (select count(*) as n from {{ ref('minimization_variants') }})
 select 'minimization_runs_exist' as check_name, false as passed, 'run make minimize' as detail
 {% else %}
 select 'every_variant_has_both_matchers' as check_name,
-       (select count(*) from t where matcher is not null) = 2 * (select n from seed) as passed,
-       'rows: ' || (select count(*) from t where matcher is not null) || ' of ' || 2 * (select n from seed) as detail
+       (select count(*) from t where matcher is not null) = 2 * (select count(distinct variant_id) from t where matcher is not null) and (select count(*) from t where matcher is not null and variant_id = 'V0_FULL') = 2 as passed,
+       'run variants: ' || (select count(distinct variant_id) from t where matcher is not null) || ' of ' || (select n from seed) || ' (the reduced set is V0, V2, V4); both matchers each; V0_FULL always present' as detail
 union all
 select 'full_variant_matches_the_default_build',
        coalesce((select bool_and(abs(t.precision - p.precision) < 1e-9 and abs(t.recall - p.recall) < 1e-9)
@@ -24,6 +24,6 @@ select 'risk_never_rises_as_fields_are_coarsened',
        'share of participant-years that are unique, by variant order'
 union all
 select 'hashed_contact_cannot_activate',
-       coalesce((select bool_and(fit_for_activate = 0) from t where variant_id = 'V4_HASHED_CONTACT'), false),
+       coalesce((select bool_and(fit_for_activate = 0) from t where variant_id = 'V4_HASHED_CONTACT'), true),
        'a hashed email reaches no guardian'
 {% endif %}

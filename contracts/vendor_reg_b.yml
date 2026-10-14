@@ -1,0 +1,100 @@
+# Data contract: vendor_reg_b. SYNTHETIC data; the shape of this feed is an ASSUMPTION made for the demonstration, not a description of any real system.
+# Onboarded to Contracted (Phase 5, ADR-013). The feed is NOT counted: it describes the same children as US_LEAGUE.
+source_system: vendor_reg_b
+version: 1.0.0
+effective_date: '2026-10-14'
+owner_role: Program Partnerships (third-party platform)
+partner_type: third-party registration platform (ASSUMED shape)
+delivery:
+  format: CSV
+  mechanism: one file per season (data/raw/p5/vendor_reg_b/vendor_reg_b_<year>.csv)
+  cadence: per season (assumed)
+grain: one row per registration
+raw:
+  table: raw.p5_vendor_reg_b
+  row_filter: null
+primary_key:
+- confirmation_no
+person_identifier:
+  quality: none
+  field: null
+  note: no person id; an age group replaces the date of birth
+minors_present: true
+consent_fields:
+- column: consent_given
+  permits: a single yes/no that the parent consented (no wording, time or purpose)
+  allowed_values:
+  - Y
+  - N
+  - ''
+schema:
+- column: confirmation_no
+  raw: confirmation_no
+  type: string
+  required: true
+  pii: quasi
+- column: org_code
+  raw: org_code
+  type: string
+  required: true
+  pii: quasi
+- column: term
+  raw: term
+  type: string
+  required: true
+  pii: none
+- column: age_group
+  raw: age_group
+  type: string
+  required: false
+  pii: quasi
+- column: child_first
+  raw: child_first
+  type: string
+  required: true
+  pii: direct
+- column: child_last
+  raw: child_last
+  type: string
+  required: true
+  pii: direct
+- column: parent_name
+  raw: parent_name
+  type: string
+  required: false
+  pii: direct
+- column: parent_email
+  raw: parent_email
+  type: string
+  required: true
+  pii: direct
+- column: zip
+  raw: zip
+  type: string
+  required: false
+  pii: quasi
+- column: confirmation_date
+  raw: confirmation_date
+  type: date
+  required: true
+  pii: quasi
+- column: consent_given
+  raw: consent_given
+  type: boolean
+  required: false
+  pii: none
+quality:
+- rule: max_null_rate
+  column: parent_email
+  threshold: 0.05
+- rule: max_nonmatching_rate
+  column: zip
+  pattern: ^\d{5}$
+  threshold: 0.1
+- rule: max_duplicate_rate
+  key:
+  - confirmation_no
+  threshold: 0.02
+- rule: max_null_rate
+  column: age_group
+  threshold: 0.05

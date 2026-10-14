@@ -1,0 +1,114 @@
+# Data contract: pop_warner_feed. SYNTHETIC data; the shape of this feed is an ASSUMPTION made for the demonstration, not a description of any real system.
+# Onboarded to Contracted (Phase 5, ADR-013). The feed is NOT counted: it describes the same children as US_LEAGUE.
+source_system: pop_warner_feed
+version: 1.0.0
+effective_date: '2026-10-14'
+owner_role: Program Partnerships (association partner)
+partner_type: youth football association (ASSUMED shape; tackle and flag programs mixed)
+delivery:
+  format: CSV
+  mechanism: one file per season (data/raw/p5/pop_warner_feed/pop_warner_feed_<year>.csv)
+  cadence: per season (assumed)
+grain: one row per registration (flag and tackle programs)
+raw:
+  table: raw.p5_pop_warner_feed
+  row_filter: null
+primary_key:
+- record_id
+person_identifier:
+  quality: none
+  field: null
+  note: no person id; an association is not a league; tackle rows must be filtered
+minors_present: true
+consent_fields:
+- column: waiver_signed
+  permits: a signed waiver (not a consent to any data use)
+  allowed_values:
+  - Y
+  - N
+  - ''
+schema:
+- column: record_id
+  raw: record_id
+  type: string
+  required: true
+  pii: quasi
+- column: association_id
+  raw: association_id
+  type: string
+  required: true
+  pii: quasi
+- column: association_name
+  raw: association_name
+  type: string
+  required: true
+  pii: quasi
+- column: flag_league_code
+  raw: flag_league_code
+  type: string
+  required: false
+  pii: quasi
+- column: program_type
+  raw: program_type
+  type: string
+  required: true
+  pii: none
+- column: season_year
+  raw: season_year
+  type: string
+  required: true
+  pii: none
+- column: player_first
+  raw: player_first
+  type: string
+  required: true
+  pii: direct
+- column: player_last
+  raw: player_last
+  type: string
+  required: true
+  pii: direct
+- column: birth_date
+  raw: birth_date
+  type: date
+  required: false
+  pii: quasi
+- column: gender
+  raw: gender
+  type: string
+  required: false
+  pii: quasi
+- column: guardian_email
+  raw: guardian_email
+  type: string
+  required: true
+  pii: direct
+- column: guardian_zip
+  raw: guardian_zip
+  type: string
+  required: false
+  pii: quasi
+- column: created_at
+  raw: created_at
+  type: timestamp
+  required: true
+  pii: quasi
+- column: waiver_signed
+  raw: waiver_signed
+  type: boolean
+  required: false
+  pii: none
+quality:
+- rule: max_null_rate
+  column: birth_date
+  threshold: 0.05
+- rule: max_null_rate
+  column: guardian_email
+  threshold: 0.05
+- rule: max_duplicate_rate
+  key:
+  - record_id
+  threshold: 0.02
+- rule: max_null_rate
+  column: flag_league_code
+  threshold: 0.3

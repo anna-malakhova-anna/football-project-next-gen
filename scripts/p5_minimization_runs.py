@@ -58,14 +58,20 @@ def main() -> None:
     unknown = set(variants) - set(all_variants)
     if unknown:
         raise SystemExit(f"unknown variants: {sorted(unknown)}")
+    # V0_FULL last: the default build is V0_FULL, so the run that ends on it leaves the warehouse restored and the extra rebuild is skipped (about 35 seconds saved)
+    variants = [v for v in variants if v != "V0_FULL"] + [v for v in variants if v == "V0_FULL"]
     rows: list[tuple] = []
+    default_in_place = False
     try:
         for v in variants:
+            default_in_place = False
             dbt("run", "--select", *SELECT, variant=v)
             rows += measure(v)
+            default_in_place = v == "V0_FULL"
             print(f"  {v}: done", flush=True)
     finally:
-        dbt("run", "--select", *SELECT)                    # restore the default build, always
+        if not default_in_place:                           # restore the default build, always (skipped only when the run that just finished was the default itself)
+            dbt("run", "--select", *SELECT)
     con = duckdb.connect(str(DB))
     try:
         con.execute("create schema if not exists eval")

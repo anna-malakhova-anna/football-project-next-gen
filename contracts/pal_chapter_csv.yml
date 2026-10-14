@@ -1,0 +1,122 @@
+# Data contract: pal_chapter_csv. SYNTHETIC data; the shape of this feed is an ASSUMPTION made for the demonstration, not a description of any real system.
+# Onboarded to Contracted (Phase 5, ADR-013). The feed is NOT counted: it describes the same children as US_LEAGUE.
+source_system: pal_chapter_csv
+version: 1.0.0
+effective_date: '2026-10-14'
+owner_role: Program Partnerships (chapter volunteers)
+partner_type: chapter volunteers uploading spreadsheets (ASSUMED shape)
+delivery:
+  format: CSV
+  mechanism: manual spreadsheet uploads (data/raw/p5/pal_chapter_csv/pal_chapter_csv_<year>.csv)
+  cadence: irregular (assumed)
+grain: one row per registration (manual entry)
+raw:
+  table: raw.p5_pal_chapter_csv
+  row_filter: null
+primary_key:
+- Chapter
+- Season
+- Player First
+- Player Last
+person_identifier:
+  quality: none
+  field: null
+  note: no person id and no registration id; rows can be pasted twice
+minors_present: true
+consent_fields:
+- column: Permission Slip
+  permits: a permission slip, in five wordings or none
+  allowed_values:
+  - ''
+  - N
+  - Y
+  - 'no'
+  - on file
+  - parent signed form
+  - refused
+  - signed
+  - 'yes'
+schema:
+- column: Chapter
+  raw: Chapter
+  type: string
+  required: true
+  pii: quasi
+- column: Season
+  raw: Season
+  type: string
+  required: true
+  pii: none
+- column: Player First
+  raw: Player First
+  type: string
+  required: true
+  pii: direct
+- column: Player Last
+  raw: Player Last
+  type: string
+  required: true
+  pii: direct
+- column: DOB
+  raw: DOB
+  type: string
+  required: false
+  pii: quasi
+- column: Sex
+  raw: Sex
+  type: string
+  required: false
+  pii: quasi
+- column: Parent/Guardian
+  raw: Parent/Guardian
+  type: string
+  required: false
+  pii: direct
+- column: Parent Email
+  raw: Parent Email
+  type: string
+  required: false
+  pii: direct
+- column: ZIP
+  raw: ZIP
+  type: string
+  required: false
+  pii: quasi
+- column: Permission Slip
+  raw: Permission Slip
+  type: string
+  required: false
+  pii: none
+- column: Notes
+  raw: Notes
+  type: string
+  required: false
+  pii: none
+- column: Extra 1
+  raw: Extra 1
+  type: string
+  required: false
+  pii: none
+- column: Extra 2
+  raw: Extra 2
+  type: string
+  required: false
+  pii: none
+quality:
+- rule: max_null_rate
+  column: DOB
+  threshold: 0.1
+- rule: max_null_rate
+  column: Parent Email
+  threshold: 0.1
+- rule: max_nonmatching_rate
+  column: ZIP
+  pattern: ^\d{5}$
+  threshold: 0.15
+- rule: max_duplicate_rate
+  key:
+  - Chapter
+  - Season
+  - Player First
+  - Player Last
+  threshold: 0.05

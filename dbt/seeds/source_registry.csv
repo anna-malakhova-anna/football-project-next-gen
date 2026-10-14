@@ -4,3 +4,10 @@ CA_CLUB,Modelled,Canadian club registrations (JSON API)
 INTL_FED,Modelled,International federation returns (XLSX)
 FAN_ENGAGEMENT,Modelled,Fan app and ticketing accounts and events (CSV + JSON Lines); linked to households only in the restricted linkage schema (ADR-009)
 SCHOOL_AGGREGATES,Modelled,School and recreation program aggregate headcounts (CSV); aggregate-only
+matrix_export,Contracted,Channel feed (ASSUMED shape): preferred-platform league export; contracted and scored as a source but NOT counted (same children as US_LEAGUE)
+vendor_reg_a,Contracted,Channel feed (ASSUMED shape): third-party platform A; contracted and scored but NOT counted
+vendor_reg_b,Contracted,Channel feed (ASSUMED shape): third-party platform B (age group only); contracted and scored but NOT counted
+pop_warner_feed,Contracted,Channel feed (ASSUMED shape): association feed with tackle and flag programs mixed; contracted and scored but NOT counted
+pal_chapter_csv,Contracted,Channel feed (ASSUMED shape): chapter spreadsheet uploads; contracted and scored but NOT counted
+school_program,Contracted,Channel feed (ASSUMED shape): school roster export; contracted and scored but NOT counted
+parent_revocations,Contracted,Consent-side input (ASSUMED shape): parent revocation requests; never names a child

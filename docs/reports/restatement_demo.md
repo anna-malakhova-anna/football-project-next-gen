@@ -190,10 +190,12 @@ before the change (the five v2.0 snapshots of 2021 to 2025) was compared with th
 
 | Cause | Rows | Distinct KPIs | Restatement required |
 |---|---|---|---|
-| `NEW_SOURCE_DATA` | 90 (19 KPIs x 5 years minus 5) | 19 | **56** |
+| `NEW_SOURCE_DATA` | 95 (19 KPIs x 5 years minus 5, plus `sources_known` x 5) | 20 | **56** |
 | any other cause | 0 | 0 | 0 |
 
-By KPI group, 5 north-star, 20 growth, 30 reach and 15 depth rows were listed as headline movements; the 20 data-trust rows move but never require a restatement. Headline examples:
+The five extra rows are the data-trust KPI `sources_known` (5 to 12), which moved when the six channel feeds and the revocations file were onboarded to `Contracted` on 2026-10-14. That is a source-registry change, not a data change, but the log can only say `NEW_SOURCE_DATA` (it compares raw row counts); no restatement is required for it.
+
+By KPI group, 5 north-star, 20 growth, 30 reach and 15 depth rows were listed as headline movements; the 25 data-trust rows move but never require a restatement. Headline examples:
 
 | Year | KPI | Published | Rebuilt | Change |
 |---|---|---|---|---|

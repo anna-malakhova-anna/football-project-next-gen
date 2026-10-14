@@ -1,0 +1,61 @@
+# Data contract: parent_revocations. SYNTHETIC data; the shape of this feed is an ASSUMPTION made for the demonstration, not a description of any real system.
+# Onboarded to Contracted (Phase 5, ADR-013). The feed is NOT counted: it describes the same children as US_LEAGUE.
+source_system: parent_revocations
+version: 1.0.0
+effective_date: '2026-10-14'
+owner_role: Privacy / Compliance Lead
+partner_type: parent requests received by the program (ASSUMED shape)
+delivery:
+  format: CSV
+  mechanism: one file (data/raw/p5/revocations.csv)
+  cadence: as received (assumed)
+grain: one row per revocation request by a parent
+raw:
+  table: raw.p5_revocations
+  row_filter: null
+primary_key:
+- parent_email
+- revoked_at
+person_identifier:
+  quality: none
+  field: null
+  note: a parent email, not a person id; it never names a child
+minors_present: false
+consent_fields:
+- column: scope
+  permits: which consent the parent withdrew
+  allowed_values:
+  - ALL
+- column: channel
+  permits: how the request arrived
+  allowed_values:
+  - EMAIL
+  - WEB_FORM
+schema:
+- column: parent_email
+  raw: parent_email
+  type: string
+  required: true
+  pii: direct
+- column: revoked_at
+  raw: revoked_at
+  type: timestamp
+  required: true
+  pii: quasi
+- column: scope
+  raw: scope
+  type: string
+  required: false
+  pii: none
+- column: channel
+  raw: channel
+  type: string
+  required: false
+  pii: none
+quality:
+- rule: max_null_rate
+  column: parent_email
+  threshold: 0.0
+- rule: max_null_rate
+  column: revoked_at
+  threshold: 0.0

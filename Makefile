@@ -1,4 +1,4 @@
-.PHONY: markets consent nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: phase5 phase5-experiments minimize retention-vs-deletion fix-list-demo markets consent nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -136,8 +136,8 @@ p5-minimization:
 # Phase 5 spec 10: delete child-level identifiers in the identity and linkage zones of a COPY of the warehouse, rebuild the Phase 4 retention marts, and report what survives
 retention-vs-deletion: dbt/profiles.yml
 	$(PY) -m retention.zones
-	$(DBT) run --profiles-dir . --select mart_retention_vs_deletion
-	$(DBT) test --profiles-dir . --select mart_retention_vs_deletion
+	$(DBT) run --profiles-dir . --select mart_retention_vs_deletion share_privacy__retention_vs_deletion
+	$(DBT) test --profiles-dir . --select mart_retention_vs_deletion share_privacy__retention_vs_deletion
 
 # Phase 5 spec 6.4: the SIMULATED feedback-loop demo (fix_list_adoption on, in a copy of the warehouse) -> docs/reports/fix_list_demo.md
 fix-list-demo: dbt/profiles.yml
@@ -236,6 +236,20 @@ phase2: all load-eval idr eval test-phase2 id-stability
 # pytest, and the build checks (eval isolation, aggregate lineage, share policy, ID stability). From Phase 4 the layers depend on each other in both
 # directions (a Phase 3 scorecard reads a Phase 4 model), so Phases 3 and 4 are no longer built separately: this is the supported full build.
 # `make site` then builds the results site; `make publish YEAR=...` is never part of it.
+# Phase 5 (spec 15, step 16). The experiments need a built warehouse and write the tables that the evaluation, the privacy share and the site read:
+# minimization runs, retention versus deletion (in a copy), and the simulated fix-list payoff (in a copy). `all-phases` runs them with the REDUCED variant set (V0, V2, V4: about 90 seconds
+# instead of 3 minutes); `make phase5` runs the full set. The experiments run before `dbt test` because eval_minimization_checks fails, on purpose, until the runs exist.
+CI_MIN_VARIANTS := V0_FULL V2_BIRTH_YEAR V4_HASHED_CONTACT
+phase5-experiments: dbt/profiles.yml
+	$(MAKE) minimize MIN_VARIANTS="$(MIN_VARIANTS)"
+	$(MAKE) retention-vs-deletion
+	$(MAKE) fix-list-demo
+
+# Everything Phase 5 on top of a built Phase 1 to 4 base, with the FULL variant set: scorecards, nuance, consent, markets, the experiments, and the demo printout.
+phase5: dq nuance consent markets
+	$(MAKE) phase5-experiments MIN_VARIANTS=
+	$(PY) -m scripts.p5_demo
+
 all-phases: dbt/profiles.yml
 	$(PY) -m generator.main
 	$(PY) -m generator.export_config_seed
@@ -248,11 +262,13 @@ all-phases: dbt/profiles.yml
 	$(PY) -m scripts.validate_contracts
 	$(DBT) seed --profiles-dir .
 	$(DBT) run --profiles-dir .
+	$(MAKE) phase5-experiments MIN_VARIANTS="$(or $(MIN_VARIANTS),$(CI_MIN_VARIANTS))"
 	$(DBT) test --profiles-dir .
 	uv run pytest -q -n 4
 	$(PY) -m scripts.check_eval_isolation
 	$(PY) -m scripts.check_lineage
 	$(PY) -m scripts.check_share_policy
+	$(DBT) run --profiles-dir . --select share_privacy__policy_checks
 	$(PY) -m scripts.check_id_stability
 	$(PY) -m retention.job
 	$(PY) -m scripts.p5_demo > /dev/null

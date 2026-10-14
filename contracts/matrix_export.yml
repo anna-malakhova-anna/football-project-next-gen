@@ -1,0 +1,129 @@
+# Data contract: matrix_export. SYNTHETIC data; the shape of this feed is an ASSUMPTION made for the demonstration, not a description of any real system.
+# Onboarded to Contracted (Phase 5, ADR-013). The feed is NOT counted: it describes the same children as US_LEAGUE.
+source_system: matrix_export
+version: 1.0.0
+effective_date: '2026-10-14'
+owner_role: League Ops (preferred platform)
+partner_type: league operator on the preferred registration platform (ASSUMED shape)
+delivery:
+  format: CSV
+  mechanism: one file per season (data/raw/p5/matrix_export/matrix_export_<year>.csv)
+  cadence: per season (assumed)
+grain: one row per registration
+raw:
+  table: raw.p5_matrix_export
+  row_filter: null
+primary_key:
+- registration_id
+person_identifier:
+  quality: none
+  field: null
+  note: no person id; identity is inferred from name, DOB and parent email
+minors_present: true
+consent_fields:
+- column: consent_version
+  permits: the wording version the parent accepted
+  allowed_values:
+  - ''
+  - 2023-09
+  - 2024-04
+- column: consent_scope
+  permits: which purposes the wording covered
+  allowed_values:
+  - ''
+  - OPS+COMMS
+- column: marketing_opt_in
+  permits: club or NFL marketing contact of the parent
+  allowed_values:
+  - Y
+  - N
+  - ''
+schema:
+- column: registration_id
+  raw: registration_id
+  type: string
+  required: true
+  pii: quasi
+- column: league_id
+  raw: league_id
+  type: string
+  required: true
+  pii: quasi
+- column: season_label
+  raw: season_label
+  type: string
+  required: true
+  pii: none
+- column: participant_first_name
+  raw: participant_first_name
+  type: string
+  required: true
+  pii: direct
+- column: participant_last_name
+  raw: participant_last_name
+  type: string
+  required: true
+  pii: direct
+- column: date_of_birth
+  raw: date_of_birth
+  type: date
+  required: true
+  pii: quasi
+- column: gender
+  raw: gender
+  type: string
+  required: false
+  pii: quasi
+- column: parent_email
+  raw: parent_email
+  type: string
+  required: true
+  pii: direct
+- column: parent_zip
+  raw: parent_zip
+  type: string
+  required: false
+  pii: quasi
+- column: registered_at
+  raw: registered_at
+  type: timestamp
+  required: true
+  pii: quasi
+- column: consent_version
+  raw: consent_version
+  type: string
+  required: false
+  pii: none
+- column: consent_ts
+  raw: consent_ts
+  type: timestamp
+  required: false
+  pii: none
+- column: consent_scope
+  raw: consent_scope
+  type: string
+  required: false
+  pii: none
+- column: marketing_opt_in
+  raw: marketing_opt_in
+  type: boolean
+  required: false
+  pii: none
+quality:
+- rule: max_null_rate
+  column: date_of_birth
+  threshold: 0.05
+- rule: max_null_rate
+  column: parent_email
+  threshold: 0.05
+- rule: max_nonmatching_rate
+  column: parent_zip
+  pattern: ^\d{5}$
+  threshold: 0.1
+- rule: max_duplicate_rate
+  key:
+  - registration_id
+  threshold: 0.02
+- rule: max_null_rate
+  column: consent_ts
+  threshold: 0.15
