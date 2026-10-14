@@ -65,6 +65,24 @@ def nuance(db: Path, year: int) -> dict:
         con.close()
 
 
+def persist(year: int, bs: dict, as_: dict, bn: dict, an: dict) -> None:
+    """The numbers of the report, for the site (SIMULATED scenario): demo_fix_list.scores (purpose scores) and demo_fix_list.nuance (the nuance-layer measures). Counts and scores only."""
+    con = duckdb.connect(str(DB))
+    try:
+        con.execute("create schema if not exists demo_fix_list")
+        con.execute("create or replace table demo_fix_list.scores (season_year integer, org_group varchar, purpose varchar, orgs_scored integer, score_before double, score_after double)")
+        names = {"adopters": "Organizations that acted on the fix list", "struggling_non_adopters": "Comparison: struggling organizations that did not"}
+        con.executemany("insert into demo_fix_list.scores values (?, ?, ?, ?, ?, ?)",
+                        [(year, names[g], p, bs[g][p][1], bs[g][p][0], as_[g][p][0]) for g in bs for p in PURPOSES])
+        con.execute("create or replace table demo_fix_list.nuance (season_year integer, measure varchar, value_before double, value_after double)")
+        con.executemany("insert into demo_fix_list.nuance values (?, ?, ?, ?)", [
+            (year, "Participants lost under strict COUNT handling (DQ-exclusions component)", bn["dq"][3], an["dq"][3]),
+            (year, "Youth participants with unknown gender", bn["mb"][4], an["mb"][4]),
+            (year, "Width of the girls' share bounds (share points)", bn["mb"][3], an["mb"][3])])
+    finally:
+        con.close()
+
+
 def main() -> None:
     cfg = load_config()
     year = max(cfg["seasons"]["years"])
@@ -119,6 +137,7 @@ def main() -> None:
         ]
         OUT.parent.mkdir(parents=True, exist_ok=True)
         OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        persist(year, before_scores, after_scores, before_n, after_n)
         print("\n".join(lines))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

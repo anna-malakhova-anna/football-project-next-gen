@@ -88,3 +88,15 @@ ol.tour li { margin: 8px 0; }
   h2 { font-size: 1.75rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* Phase 5: lens toggle (show/hide precomputed panels only), demo-path box, fix-list card */
+.lens-toggle { display: flex; gap: 8px; align-items: center; margin: 16px 0; }
+.lens-toggle button { font: inherit; padding: 4px 14px; border: 1px solid var(--border); border-radius: var(--r-chip); background: var(--surface); color: var(--text); cursor: pointer; }
+.lens-toggle button[aria-pressed="true"] { background: var(--series-turf); color: #fff; border-color: var(--series-turf); }
+.lens-scope[data-lens-active="club"] .lens-privacy, .lens-scope[data-lens-active="privacy"] .lens-club { display: none; }
+.lens-notes .lens { border-left: 3px solid var(--series-sand); padding-left: 8px; }
+.demo-path { border: 1px dashed var(--border); border-radius: var(--r-card); padding: 8px 12px; margin: 12px 0; font-size: .875rem; color: var(--text-muted); max-width: 72ch; }
+.demo-path b { color: var(--text); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: 12px 16px; }
+.card ol { padding-left: 20px; }
+.note.question { font-style: italic; }

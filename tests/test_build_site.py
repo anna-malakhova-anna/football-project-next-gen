@@ -22,6 +22,20 @@ def test_a_dataset_may_only_read_share_exec_approved_aggregates_evaluation_summa
     assert bs.check_dataset(_ds("select * from evaluation.eval_record_truth", ["evaluation.eval_record_truth"]))  # not a whitelisted summary
 
 
+def test_phase5_datasets_may_read_the_club_and_privacy_shares_and_nothing_row_level():
+    for ok in ("share_club.share_club__market_year", "share_privacy.share_privacy__consent_provenance", "quality.mart_dq_impact", "evaluation.eval_minimization_tradeoff"):
+        assert bs.check_dataset(_ds(f"select * from {ok}", [ok])) == [], ok
+    for bad in ("linkage.int_consent_event", "quality.dq_record_fitness", "quality.mart_market_coverage", "evaluation.eval_minimization_checks", "marts.dim_participant"):
+        assert bs.check_dataset(_ds(f"select * from {bad}", [bad])), bad
+
+
+def test_every_phase5_chart_names_the_question_it_answers_and_both_lens_notes():
+    from scripts import site_phase5 as p5
+    for cid, ch in p5.charts().items():
+        assert ch["question"].strip().endswith(")") or ch["question"].strip().endswith("?"), cid
+        assert ch["lens"]["club"].strip() and ch["lens"]["privacy"].strip(), cid
+
+
 def test_sql_that_reads_an_undeclared_relation_is_refused():
     problems = bs.check_dataset(_ds("select * from share_exec.a join marts.dim_participant using (x)", ["share_exec.a"]))
     assert any("marts.dim_participant" in p for p in problems)
@@ -77,13 +91,13 @@ def test_the_site_builds_from_the_warehouse_with_every_page_and_data_file(tmp_pa
     assert "combined reach" not in (site / "participation.html").read_text().lower()
     manifest = json.loads((site / "data" / "manifest.json").read_text())
     assert len(manifest["datasets"]) == res["datasets"]
-    assert {d["kind"] for d in manifest["datasets"]} <= {"share_exec", "approved_aggregate", "evaluation", "governance"}
+    assert {d["kind"] for d in manifest["datasets"]} <= {"share_exec", "share_club", "share_privacy", "approved_aggregate", "evaluation", "governance"}
     for d in manifest["datasets"]:
         assert (site / "data" / f"{d['name']}.json").exists(), d["name"]
         assert d["rows"] > 0 or d["name"] == "restatement_log", d["name"]       # an empty restatement log is the good case: nothing published has changed
     index = (site / "index.html").read_text()
     assert "Synthetic data" in index and "5-minute" in index.lower() or "five-minute" in index.lower()
-    for slug in ("acquisition", "value", "audience", "participation", "trust"):
+    for slug in ("acquisition", "value", "audience", "participation", "trust", "quality", "sure", "markets", "privacy"):
         text = (site / f"{slug}.html").read_text()
         assert text.count("What this shows") == text.count("What it does not show") >= 1
     # no JavaScript in the pages computes anything: the only script is the embed loop

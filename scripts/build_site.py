@@ -24,6 +24,8 @@ from pathlib import Path
 
 import duckdb
 
+from scripts import site_phase5 as P5
+
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "warehouse" / "flag.duckdb"
 OUT = ROOT / "site"
@@ -39,6 +41,10 @@ EVAL_WHITELIST = {
 GOVERNANCE_WHITELIST = {
     "quality.dq_contract_results", "reference.audience_column_policy", "reference.source_registry", "measurement.mart_restatement_log",
 }
+# Phase 5 (spec 12): share_club and share_privacy, aggregate quality marts, label-free uncertainty marts, whitelisted evaluation summaries (see scripts/site_phase5.py)
+APPROVED_AGGREGATES |= P5.APPROVED
+EVAL_WHITELIST |= P5.EVAL
+GOVERNANCE_WHITELIST |= P5.GOVERNANCE
 FORBIDDEN_TRANSFORMS = {"calculate", "aggregate", "joinaggregate", "window", "bin", "fold", "pivot", "regression", "loess", "density", "timeUnit", "stack"}
 LIBS = ["https://cdn.jsdelivr.net/npm/vega@5", "https://cdn.jsdelivr.net/npm/vega-lite@5", "https://cdn.jsdelivr.net/npm/vega-embed@6"]
 
@@ -219,12 +225,14 @@ DATASETS = [
        "from measurement.mart_restatement_log group by 1 order by 1", ["measurement.mart_restatement_log"], "governance", "Restatement log against the latest published snapshots"),
 ]
 
+DATASETS += P5.DATASETS
+
 
 # ------------------------------------------------------------------ checks
 def check_dataset(ds: dict) -> list[str]:
     problems = []
     for rel in ds["relations"]:
-        ok = (rel.startswith(SHARE_EXEC_PREFIX) or rel in APPROVED_AGGREGATES or rel in EVAL_WHITELIST or rel in GOVERNANCE_WHITELIST)
+        ok = (rel.startswith(P5.SHARE_PREFIXES) or rel in APPROVED_AGGREGATES or rel in EVAL_WHITELIST or rel in GOVERNANCE_WHITELIST)
         if not ok:
             problems.append(f"dataset {ds['name']} reads {rel}: not share_exec, an approved aggregate, a whitelisted evaluation summary or governance metadata")
     sql = ds["sql"].lower()
@@ -601,6 +609,7 @@ def charts():
     C["acq_event_study"]["note"] = lambda d: ("Only one pre-launch year (two years before launch) is observed, because every market in this synthetic world launches in year 1 or later and year -1 is the reference year. "
                                               "A flat pre-period therefore rests on a single point.")
     C["market_quadrants"]["note"] = note_market_quadrants
+    C.update(P5.charts())
     return C
 
 
@@ -655,7 +664,7 @@ def render_drive(d: dict) -> str:
 
 
 # ------------------------------------------------------------------ pages
-PAGES = [("index", "Overview"), ("acquisition", "Acquisition"), ("value", "Value"), ("audience", "Audience"), ("participation", "Participation"), ("trust", "Trust")]
+PAGES = [("index", "Overview"), ("acquisition", "Acquisition"), ("value", "Value"), ("audience", "Audience"), ("participation", "Participation"), *P5.PAGES, ("trust", "Trust")]
 # page title (display type) and the one-sentence question under it (ui-spec section 5)
 PAGE_HEAD = {
     "index": ("Counting flag football's fans", "What this project is and how to read it."),
@@ -664,6 +673,7 @@ PAGE_HEAD = {
     "audience": ("Audience and consent", "How many can we reach, and what are we missing?"),
     "participation": ("Participation", "How many play, and how sure are we?"),
     "trust": ("Data trust and governance", "Why can these numbers be trusted?"),
+    **P5.PAGE_HEAD,
     "appendix": ("Appendix: school and recreation programs", "A stretch source: how many children do schools and recreation departments report?"),
 }
 SRC = ROOT / "site_src"
@@ -741,8 +751,10 @@ COLUMN_LABELS = {
     "columns_denied": "Columns denied", "kpi_rows": "KPI rows", "kpis": "KPIs", "restatement_required": "Restatements required", "step": "Step", "conversion": "Conversion", "conversion_base": "Share of",
     "true_survival": "True",
 }
+COLUMN_LABELS.update(P5.COLUMN_LABELS)
+VALUE_LABELS.update(P5.VALUE_LABELS)
 ID_COLUMNS = {"participation_year", "entry_year", "years_since_entry", "years_since_launch", "months_since_event", "months_since_origin", "horizon_months", "step"}
-RATE_COLUMNS = {"girls_share_of_youth", "km_survival", "km_survival_ci_low", "km_survival_ci_high", "cohort_retention_pct", "cohort_retention_among_eligible_pct", "household_link_rate",
+RATE_COLUMNS = P5.RATE_COLUMNS | {"girls_share_of_youth", "km_survival", "km_survival_ci_low", "km_survival_ci_high", "cohort_retention_pct", "cohort_retention_among_eligible_pct", "household_link_rate",
                 "survival", "rate", "rfm_share", "fan_survival", "fan_survival_ci_low", "fan_survival_ci_high", "consent_gap_share_of_active", "consent_opt_in_rate", "conversion"}
 
 
@@ -784,14 +796,19 @@ def table_html(ds: dict, limit: int = 60) -> str:
 
 
 def chart_block(cid: str, ch: dict, data: dict) -> str:
-    tag = '<span class="tag">synthetic truth, evaluation only</span>' if ch.get("evaluation") else ""
+    tag = '<span class="tag">Synthetic evaluation \u2014 not observable in production</span>' if ch.get("evaluation") else ""
     tables = "".join(f"<p class='note'><b>{esc(data[n]['title'])}</b> <code>{esc(data[n]['source'])}</code></p>{table_html(data[n])}" for n in ch["datasets"])
     plot = ch["render"](data) if ch.get("render") else f'<div id="{cid}" role="img" aria-label="{esc(ch["title"])}"></div>'
     script = f'<script type="application/json" data-chart="{cid}">{json.dumps(ch["spec"])}</script>' if ch.get("spec") else ""
     decision = f'<p class="note"><b>Design choice.</b> {esc(ch["decision"])}</p>' if ch.get("decision") else ""
     note = f'<p class="note"><b>Reading note.</b> {esc(ch["note"](data))}</p>' if ch.get("note") else ""
-    return (f'<section class="chart" id="sec-{cid}"><h3>{esc(ch["title"])}{tag}</h3>{plot}'
-            f'<p class="note"><b>What this shows.</b> {esc(ch["shows"])}</p>{decision}<p class="note"><b>What it does not show.</b> {esc(ch["doesnt"])}</p>{note}'
+    question = f'<p class="note question"><b>Question it answers.</b> {esc(ch["question"])}</p>' if ch.get("question") else ""
+    lens = ""
+    if ch.get("lens"):
+        lens = ('<div class="lens-notes">' + f'<p class="note lens lens-club"><b>Club lens.</b> {esc(ch["lens"]["club"])}</p>'
+                + f'<p class="note lens lens-privacy"><b>Privacy lens.</b> {esc(ch["lens"]["privacy"])}</p></div>')
+    return (f'<section class="chart" id="sec-{cid}"><h3>{esc(ch["title"])}{tag}</h3>{question}{plot}'
+            f'<p class="note"><b>What this shows.</b> {esc(ch["shows"])}</p>{decision}<p class="note"><b>What it does not show.</b> {esc(ch["doesnt"])}</p>{lens}{note}'
             f'<details><summary>The numbers behind this chart</summary>{tables}</details>'
             f'{script}</section>')
 
@@ -915,7 +932,44 @@ linked to fan accounts under a restricted-zone policy, shared by audience with s
 <li><code>docs/decisions/</code>: ADR-001 to ADR-011, including the linkage governance decision (ADR-009), the fandom design (ADR-010) and the acquisition measurement design (ADR-011)</li>
 <li><code>docs/playbook/onboard-a-source.md</code>: how a source is onboarded, with the logs for the two Phase 4 sources</li>
 <li><code>docs/access_policy.md</code>, <code>docs/metrics.md</code>, <code>docs/data_dictionary.md</code></li></ul>""")
+    built.update(phase5_pages(blocks, data))
     return built
+
+
+def lens_scope(inner: str, default: str, demo: str) -> str:
+    """Page-level Club lens / Privacy lens toggle. It only shows and hides precomputed annotations and panels (CSS attribute selectors); it never filters or computes."""
+    toggle = ('<div class="lens-toggle" role="group" aria-label="Choose a lens"><span class="note">Lens</span>'
+              f'<button type="button" data-set-lens="club" aria-pressed="{"true" if default == "club" else "false"}">Club lens</button>'
+              f'<button type="button" data-set-lens="privacy" aria-pressed="{"true" if default == "privacy" else "false"}">Privacy lens</button></div>')
+    path = f'<aside class="demo-path"><b>Demo path (5 minutes).</b> {esc(demo)}</aside>'
+    return f'{path}{toggle}<div class="lens-scope" data-lens-active="{default}">{inner}</div>'
+
+
+def phase5_pages(blocks: dict, data: dict) -> dict:
+    out = {}
+    intro = {
+        "quality": "<p class='note'><b>The same data earns different grades for different purposes, and a few rules account for most of the cost.</b> Grades are per purpose (counting, segmenting, geography, retention, activation); a purpose's score is its weakest dimension. Small sources carry an interval and are graded on its lower bound. All synthetic.</p>",
+        "sure": "<p class='note'><b>The participant count has three separate uncertainties that are never added: identity resolution, records that fail the counting rules, and organizations that sent no file.</b> The coverage one is an estimate, not a bound, and the evaluation below says honestly where it misses. Missing gender is biased, not just sparse.</p>",
+        "markets": "<p class='note'><b>The same market looks different to a club and to a privacy lead.</b> The markets are a project approximation made of ZIP3 groups, not any club's territory (ADR-016); participants are allocated to them by weight, so counts are fractional and a ZIP3 shared by two markets is split. Cells below the small-cell size show as <k.</p>",
+        "privacy": "<p class='note'><b>Collecting less is a measured choice, not an assertion.</b> The frontier shows what each field buys and what it costs; the other charts show what is on record about consent, which purposes each form names, and what survives deletion. No legal conclusion is drawn about any organization: where the law matters it is a question for counsel.</p>",
+    }
+    for slug in ("quality", "sure", "markets", "privacy"):
+        inner = "".join(blocks[slug])
+        if slug == "markets":
+            inner += ("<h2>The same market, two lenses</h2><p class='note'>The largest published market, seen through each lens. Both panels come from share_club; the toggle only chooses which to show.</p>"
+                      "<section class='chart lens-panel lens-club'><h3>Club lens: participants, coverage and grades</h3>" + table_html(data["lens_club"])
+                      + "<p class='note'>Counted for the market, with the interval that allows for organizations that did not report, and its grade for each purpose.</p></section>"
+                      "<section class='chart lens-panel lens-privacy'><h3>Privacy lens: why families are not reached</h3>" + table_html(data["lens_privacy"])
+                      + "<p class='note'>The same market's activation funnel: each loss is either data quality (a record is missing) or privacy (consent was declined, revoked or never covered the purpose). A privacy loss is the design working, not a defect.</p></section>")
+        if slug == "privacy":
+            inner += ("<h2>How identifying is the analyst share?</h2>" + table_html(data["analyst_k"])
+                      + "<p class='note'><b>What this shows.</b> For each year, how many participant-years are unique or in a small class of the analyst share's quasi-identifiers (birth year, ZIP3, sex, country). <b>What it does not show.</b> That the share is anonymous: it is pseudonymized and its use needs a stated purpose (ADR-006).</p>"
+                      + "<h2>Share-policy check</h2>" + table_html(data["policy_results"])
+                      + "<p class='note'>Violations found on the last run of the check that guards every share (no direct or quasi identifier in the club or privacy shares, only approved aggregate marts upstream, every metric in the catalog). Zero is the expected result.</p>")
+        default = "privacy" if slug == "privacy" else "club"
+        title = PAGE_HEAD[slug][0]
+        out[slug] = (title, intro[slug] + lens_scope(inner, default, P5.DEMO_PATH[slug]))
+    return out
 
 
 # ------------------------------------------------------------------ build

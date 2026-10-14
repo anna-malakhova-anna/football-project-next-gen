@@ -29,6 +29,17 @@
     });
   }
 
+  // Lens toggle (Phase 5 pages): shows one of two precomputed annotations/panels. It only sets an attribute; nothing is filtered or computed.
+  var scope = document.querySelector(".lens-scope");
+  var lensButtons = document.querySelectorAll("[data-set-lens]");
+  function setLens(name) {
+    if (!scope) { return; }
+    scope.setAttribute("data-lens-active", name);
+    lensButtons.forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-set-lens") === name ? "true" : "false"); });
+    store("cff-lens", name);
+  }
+  lensButtons.forEach(function (b) { b.addEventListener("click", function () { setLens(b.getAttribute("data-set-lens")); }); });
+
   var specs = document.querySelectorAll('script[type="application/json"][data-chart]');
   function css(name, fallback) { var v = getComputedStyle(root).getPropertyValue(name).trim(); return v || fallback; }
   // Vega theme from the site tokens (series palette, text and grid colours follow the light/dark theme). Styling only.
