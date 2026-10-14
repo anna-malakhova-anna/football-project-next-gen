@@ -136,19 +136,21 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
             rows[-1]["defects"].append("player_id_reissued")
     # ---- 2b. structure (phase 5 spec section 3): org profiles, dark clubs ----
     prng = random.Random(cfg["seed"] + 53)
-    club_ids = sorted({r["club"] for r in rows})
-    country_of = {r["club"]: r["country"] for r in rows}
+    org = lambda r: f"{r['country']}|{r['club']}"           # noqa: E731  the organization id staging derives (country | club name)
+    club_ids = sorted({org(r) for r in rows})
+    country_of = {org(r): r["country"] for r in rows}
+    name_of = {org(r): r["club"] for r in rows}
     counts: dict[str, int] = {}
     for r in rows:
-        counts[r["club"]] = counts.get(r["club"], 0) + 1
+        counts[org(r)] = counts.get(org(r), 0) + 1
     profile = P.assign_profiles(prng, [{"org_id": o, "region": country_of[o], "n_records": counts[o]} for o in club_ids], cfg)
     channel = {o: P.channel_for(prng, profile[o]) for o in club_ids}
     dark = P.pick_unreporting(prng, club_ids, cfg["seasons"]["years"], cfg)
-    unreported = [{"source_system": SOURCE, "org_id": r["club"], "season_year": r["year"], "season_term": "ANNUAL", "true_person_id": r["pid"]}
-                  for r in rows if r["club"] in dark[r["year"]]]
-    rows = [r for r in rows if r["club"] not in dark[r["year"]]]
+    unreported = [{"source_system": SOURCE, "org_id": org(r), "season_year": r["year"], "season_term": "ANNUAL", "true_person_id": r["pid"]}
+                  for r in rows if org(r) in dark[r["year"]]]
+    rows = [r for r in rows if org(r) not in dark[r["year"]]]
     for r in rows:
-        r["profile"] = profile[r["club"]]
+        r["profile"] = profile[org(r)]
     N = len(rows)
     all_idx = list(range(N))
 
@@ -204,7 +206,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
                                      "source_record_id": f"{SHEET_NAME[c]}|row{row_no}", "defect_id": d})
             out.n_records += n_rows
         out.files[fname] = [{"sheets": sheets}]
-    out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": o, "region_code": country_of[o], "zip3": "", "channel": channel[o], "profile": profile[o],
+    out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": name_of[o], "region_code": country_of[o], "zip3": "", "channel": channel[o], "profile": profile[o],
                           "zip_optional_form": False, "age_group_only": False, "consent_text_version": None, "n_records_all_seasons": counts[o]} for o in club_ids]
     out.extra["dark"] = {y: sorted(v) for y, v in dark.items()}
     out.extra["unreported"] = unreported

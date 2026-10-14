@@ -1,0 +1,5 @@
+consent_text_version,purposes,covers_club_marketing
+v1_ops_only,LEAGUE_OPS,False
+v2_ops_photo,LEAGUE_OPS|PHOTO_MEDIA,False
+v3_ops_comms,LEAGUE_OPS|LEAGUE_COMMS|PHOTO_MEDIA,False
+v4_full,LEAGUE_OPS|LEAGUE_COMMS|CLUB_MARKETING|PHOTO_MEDIA,True

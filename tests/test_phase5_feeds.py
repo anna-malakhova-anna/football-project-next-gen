@@ -185,3 +185,34 @@ def test_club_third_party_question_is_not_resolved_in_the_docs():
         text = (root / name).read_text(encoding="utf-8").lower()
         import re
         assert not re.search(r"(?<!if )(?<!whether )(a club is (not )?a third party|clubs are (not )?third parties)", text), name   # only conditional or question phrasing
+
+
+def test_rule_registry_seed_is_in_sync_and_covers_every_contract_rule():
+    import subprocess
+    import sys
+
+    import yaml
+    root = Path(__file__).resolve().parent.parent
+    assert subprocess.run([sys.executable, "-m", "scripts.build_rule_registry", "--check"], cwd=root).returncode == 0
+    with open(root / "dbt" / "seeds" / "dq_rule_registry.csv", newline="", encoding="utf-8") as fh:
+        reg = list(csv.DictReader(fh))
+    refs = {r["contract_ref"] for r in reg if r["origin"] == "CONTRACT"}
+    quality_rules = 0
+    for path in sorted((root / "contracts").glob("*.yml")):
+        if path.name.startswith("_"):
+            continue
+        c = yaml.safe_load(path.read_text(encoding="utf-8"))
+        for q in c.get("quality") or []:
+            if q["rule"].startswith("max_"):
+                quality_rules += 1
+                col = q.get("column") or q.get("name") or ",".join(q.get("key") or [])
+                comp = path.stem.split("__")[1] if "__" in path.stem else ""
+                assert f"{c['source_system']}|{comp}@{c['version']}#{q['rule']}:{col}" in refs, (path.name, q)
+    assert quality_rules == len(refs)                                  # no contract quality rule is missing, and the registry invents none
+    assert all(not r["check_sql"] for r in reg if r["origin"] == "CONTRACT")      # the contract owns the measurement and the threshold: the registry restates neither's SQL
+
+
+def test_no_model_or_test_restates_a_contract_threshold():
+    root = Path(__file__).resolve().parent.parent / "dbt"
+    offenders = [str(p.relative_to(root)) for pat in ("models/**/*.sql", "tests/*.sql") for p in root.glob(pat) if "max_null_rate" in p.read_text(encoding="utf-8")]
+    assert not offenders, offenders

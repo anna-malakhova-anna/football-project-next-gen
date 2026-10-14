@@ -46,3 +46,24 @@ models:
       Profile of the raw aggregate headcount source (Source E): per column rows, blanks, distinct values and top values, then the issue
       counters (total != girls + boys, round totals, missing grade band, double-reported program-years). Produced at the Profiling stage
       of the onboarding playbook.
+
+  - name: dq_record_base
+    description: >
+      The one record-level stream the rule registry is evaluated against: every record of every source with the same small set of facts (NULL = not applicable). No rule logic lives here.
+    config:
+      tags: [phase5]
+  - name: dq_org_season_base
+    description: One row per known organization and season, reporting or not (from the organization registry); ORG_SEASON rules read this, since a dark organization has no records.
+    config:
+      tags: [phase5]
+  - name: dq_rule_results
+    description: >
+      Long-form fact, one row per rule x grain key x purpose: observed pass rate, the registry threshold for that purpose and whether it passed. Contract rules are read from the contract
+      validation, not re-measured.
+    config:
+      tags: [phase5]
+  - name: dq_record_fitness
+    description: One row per registration, fit_for_<purpose> and the registry rules it fails per purpose.
+    config:
+      tags: [phase5]
+

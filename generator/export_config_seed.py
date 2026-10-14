@@ -211,6 +211,12 @@ def market_rows(cfg: dict) -> tuple[list[dict], list[dict]]:
     return mm, built["geo"]
 
 
+def consent_version_rows(cfg: dict) -> list[dict]:
+    """The consent wording versions an organization's form can use, and the purposes each names. Exported so dbt reads the same list the generator drew from."""
+    return [{"consent_text_version": v, "purposes": "|".join(d["purposes"]), "covers_club_marketing": "CLUB_MARKETING" in d["purposes"]}
+            for v, d in cfg["org_quality"]["consent_text_versions"].items()]
+
+
 def main(cfg: dict | None = None, out: str = "dbt/seeds/dq_defect_config.csv") -> int:
     cfg = cfg or load_config()
     seeds = Path(out).parent
@@ -219,6 +225,7 @@ def main(cfg: dict | None = None, out: str = "dbt/seeds/dq_defect_config.csv") -
     _write(str(seeds / "market_geo_map.csv"), ["country_code", "prefix", "market_id"], geo)
     _write(str(seeds / "observation_window.csv"), ["first_observed_year", "last_observed_year"], window_rows(cfg))
     _write(str(seeds / "reporting_periods.csv"), ["period_id", "period_type", "participation_year", "term", "start_date", "end_date", "cutoff_date"], period_rows(cfg))
+    _write(str(seeds / "consent_text_versions.csv"), ["consent_text_version", "purposes", "covers_club_marketing"], consent_version_rows(cfg))
     rows = build_rows(cfg)
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w", newline="", encoding="utf-8") as f:

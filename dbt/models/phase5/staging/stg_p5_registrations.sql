@@ -205,5 +205,15 @@ select
     case when nullif(trim(dob_raw), '') is null then 'BLANK'
          when dob is not null then 'PARSED'
          when regexp_matches(trim(dob_raw), '^\d{1,2}/\d{1,2}/\d{2}$') then 'TWO_DIGIT_YEAR'
-         else 'UNPARSEABLE' end                                             as dob_status
+         else 'UNPARSEABLE' end                                             as dob_status,
+    -- the Phase 1 flag vocabulary (dq_flag_severity), so the one rule registry measures these feeds too
+    list_filter([
+        case when row_number() over (partition by content_hash order by source_file, source_row) > 1 then 'exact_duplicate' end,
+        case when nullif(trim(dob_raw), '') is not null and dob is null then 'dob_unparseable' end,
+        case when nullif(trim(dob_raw), '') is null then 'dob_age_group_only' end,
+        case when dob is not null and {{ age_at_cutoff('dob', 'season_year') }} not between 0 and 80 then 'impossible_dob' end,
+        case when sex = 'U' then 'missing_gender' end,
+        case when postal_code is null and nullif(trim(zip_raw), '') is null then 'missing_zip' end,
+        case when feed in ('matrix_export', 'vendor_reg_a') and consent_marketing is null then 'missing_marketing_opt_in' end
+    ], _f -> _f is not null)                                                as dq_flags
 from dated

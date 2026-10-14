@@ -1,0 +1,6 @@
+purpose,question,bar,description
+COUNT,How many people play?,Low,"An identity-resolvable person with a valid registration (Phase 3 counts). Duplicates and unattributable records are what threaten it."
+SEGMENT,"What are the girls' share, the age bands and the divisions?",Medium,"Needs sex, a date of birth or birth year, and a division. Missing values here bias a KPI, not only thin it."
+GEO,Which club market and region does a participant belong to?,Medium,"Needs a valid postal code or ZIP3 (the market map is built on ZIP3). INTL records are outside this lens by design."
+RETAIN,Who comes back?,Medium-high,"Needs a stable identity across seasons, a usable age and organizations that report every season."
+ACTIVATE,Can a club reach a household?,High,"Needs a valid contact, known consent provenance, and the purpose consented to. The highest bar: contacting a family is not counting a child."
