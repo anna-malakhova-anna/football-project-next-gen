@@ -170,7 +170,10 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     zip_optional = {o: prng.random() < oq["zip_optional_share_by_profile"][profile[o]] for o in league_ids}
     version_of = P.assign_consent_versions(prng, league_ids, profile, cfg)
     channel = {o: P.channel_for(prng, profile[o]) for o in league_ids}
-    dark = P.pick_unreporting(prng, league_ids, cfg["seasons"]["years"], cfg)
+    first_year = {}
+    for r in rows:
+        first_year[r["league"]["league_id"]] = min(first_year.get(r["league"]["league_id"], r["year"]), r["year"])
+    dark = P.pick_unreporting(prng, {y: [o for o in league_ids if first_year[o] <= y] for y in cfg["seasons"]["years"]}, cfg)
     zips3: dict[str, dict[str, int]] = {}
     for r in rows:
         z3 = r["zip"][:3]
@@ -350,7 +353,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         out.n_records += len(rendered)
     out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": next(lg["league_name"] for lgs in catalog.values() for lg in lgs if lg["league_id"] == o),
                           "region_code": state_of[o], "zip3": max(zips3[o], key=zips3[o].get), "channel": channel[o], "profile": profile[o],
-                          "zip_optional_form": zip_optional[o], "age_group_only": o in age_group_only, "consent_text_version": version_of[o], "n_records_all_seasons": counts[o]}
+                          "first_year": first_year[o], "zip_optional_form": zip_optional[o], "age_group_only": o in age_group_only, "consent_text_version": version_of[o], "n_records_all_seasons": counts[o]}
                          for o in league_ids]
     out.extra["dark"] = {y: sorted(v) for y, v in dark.items()}
     out.extra["unreported"] = unreported

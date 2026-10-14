@@ -107,4 +107,20 @@ models:
     columns:
       - name: fix_guidance
         data_tests: [not_null]
+  - name: mart_uncertainty_decomposition
+    description: >
+      Three separately labelled components of the uncertainty in the participant count per year: IDENTITY (Phase 3 bounds), DQ_EXCLUSIONS (strict vs lenient handling of records failing COUNT rules)
+      and COVERAGE (participants of known organizations that sent no file, estimated from reporting peers). Shown side by side, never summed (ADR-015).
+    config:
+      tags: [phase5]
+  - name: mart_missingness_tests
+    description: Chi-square tests of whether a missing value (blank gender, no birth year) is associated with the organization channel, division, registration timing or country, per year; approximate p-values; flagged with a Bonferroni and a minimum-difference rule.
+    config:
+      tags: [phase5]
+  - name: mart_missingness_bias
+    description: >
+      Per participant-level KPI with a missing input: the Phase 3 value, the known-only value, Manski-style bounds with no imputation, the missing share, where the missingness concentrates and whether it is
+      associated with channel, division, timing or country (NOT_MISSING_AT_RANDOM). Girls' share of youth by year and division; age band mix by year.
+    config:
+      tags: [phase5]
 

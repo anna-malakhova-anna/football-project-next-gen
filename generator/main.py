@@ -60,6 +60,8 @@ def run(cfg: dict | None = None, raw_dir: str | None = None, truth_dir: str | No
             dark = o.extra["dark"]
             for g in o.extra["orgs"]:
                 for y in cfg["seasons"]["years"]:
+                    if y < g["first_year"]:
+                        continue                                  # an organization is known only from its first season on
                     w.writerow([g["org_id"], g["source_system"], g["org_name"], g["region_code"], g["zip3"], g["channel"], y, "N" if g["org_id"] in dark[y] else "Y"])
     (raw / "README_SYNTHETIC.txt").write_text(SYNTHETIC_NOTE + "\n")
     return {"people": len(people), "outputs": outputs}

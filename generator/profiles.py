@@ -81,12 +81,12 @@ def channel_for(rng: random.Random, profile: str) -> str:
     return rng.choices(["PREFERRED_PLATFORM", "OTHER_PLATFORM", "SPREADSHEET"], weights=probs)[0]
 
 
-def pick_unreporting(rng: random.Random, org_ids: list[str], seasons: list[int], cfg: dict) -> dict[int, set[str]]:
-    """For each season, the known organizations that send no file. The share per season is drawn from the configured range (15 to 25 percent), the orgs without replacement-free memory
-    between seasons (an org can be dark one season and report the next)."""
+def pick_unreporting(rng: random.Random, existing: dict[int, list[str]], cfg: dict) -> dict[int, set[str]]:
+    """For each season, the known organizations that send no file. `existing[year]` lists the organizations that exist that season (an organization is known only from its first season on);
+    the share that goes dark is drawn from the configured range (15 to 25 percent) of THEM. An org can be dark one season and report the next."""
     lo, hi = cfg["org_quality"]["unreporting"]["share_range"]
     out = {}
-    for y in seasons:
-        k = round(rng.uniform(lo, hi) * len(org_ids))
-        out[y] = set(rng.sample(sorted(org_ids), k))
+    for y in sorted(existing):
+        orgs = sorted(existing[y])
+        out[y] = set(rng.sample(orgs, round(rng.uniform(lo, hi) * len(orgs)))) if orgs else set()
     return out

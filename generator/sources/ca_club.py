@@ -165,7 +165,10 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     profile = P.assign_profiles(prng, [{"org_id": o, "region": province_of[o], "n_records": counts[o]} for o in club_ids], cfg)
     version_of = P.assign_consent_versions(prng, club_ids, profile, cfg)
     channel = {o: P.channel_for(prng, profile[o]) for o in club_ids}
-    dark = P.pick_unreporting(prng, club_ids, cfg["seasons"]["years"], cfg)
+    first_year = {}
+    for r in recs:
+        first_year[r["club"]["club_code"]] = min(first_year.get(r["club"]["club_code"], r["season_year"]), r["season_year"])
+    dark = P.pick_unreporting(prng, {y: [o for o in club_ids if first_year[o] <= y] for y in cfg["seasons"]["years"]}, cfg)
     postal3: dict[str, dict[str, int]] = {}
     for r in recs:
         z = r["postal_code"][:3]
@@ -257,7 +260,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         out.n_records += len(body)
     club_name = {c["club_code"]: c["club_name"] for cl in catalog.values() for c in cl}
     out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": club_name[o], "region_code": province_of[o], "zip3": max(postal3[o], key=postal3[o].get),
-                          "channel": channel[o], "profile": profile[o], "zip_optional_form": False, "age_group_only": False,
+                          "channel": channel[o], "profile": profile[o], "first_year": first_year[o], "zip_optional_form": False, "age_group_only": False,
                           "consent_text_version": version_of[o], "n_records_all_seasons": counts[o]} for o in club_ids]
     out.extra["dark"] = {y: sorted(v) for y, v in dark.items()}
     out.extra["unreported"] = unreported

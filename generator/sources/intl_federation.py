@@ -145,7 +145,10 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         counts[org(r)] = counts.get(org(r), 0) + 1
     profile = P.assign_profiles(prng, [{"org_id": o, "region": country_of[o], "n_records": counts[o]} for o in club_ids], cfg)
     channel = {o: P.channel_for(prng, profile[o]) for o in club_ids}
-    dark = P.pick_unreporting(prng, club_ids, cfg["seasons"]["years"], cfg)
+    org_first_year = {}
+    for r in rows:
+        org_first_year[org(r)] = min(org_first_year.get(org(r), r["year"]), r["year"])
+    dark = P.pick_unreporting(prng, {y: [o for o in club_ids if org_first_year[o] <= y] for y in cfg["seasons"]["years"]}, cfg)
     unreported = [{"source_system": SOURCE, "org_id": org(r), "season_year": r["year"], "season_term": "ANNUAL", "true_person_id": r["pid"]}
                   for r in rows if org(r) in dark[r["year"]]]
     rows = [r for r in rows if org(r) not in dark[r["year"]]]
@@ -206,7 +209,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
                                      "source_record_id": f"{SHEET_NAME[c]}|row{row_no}", "defect_id": d})
             out.n_records += n_rows
         out.files[fname] = [{"sheets": sheets}]
-    out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": name_of[o], "region_code": country_of[o], "zip3": "", "channel": channel[o], "profile": profile[o],
+    out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": name_of[o], "region_code": country_of[o], "zip3": "", "channel": channel[o], "profile": profile[o], "first_year": org_first_year[o],
                           "zip_optional_form": False, "age_group_only": False, "consent_text_version": None, "n_records_all_seasons": counts[o]} for o in club_ids]
     out.extra["dark"] = {y: sorted(v) for y, v in dark.items()}
     out.extra["unreported"] = unreported
