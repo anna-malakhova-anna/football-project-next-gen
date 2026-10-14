@@ -79,3 +79,38 @@ select
     f.rules_failing_activation = 0                                          as fit_for_club_activation
 from scores s join fitness f using (group_id)
 {%- endmacro %}
+
+{#-
+  p5_standard_check(relation, feed_expr)
+  Validates ANY relation that carries the standard's columns against the p5_data_standard seed. For every standard field, per feed (feed_expr, e.g. a column or a literal):
+    n_rows, n_missing (NULL or blank), n_invalid (present but failing the field's regex pattern or allowed values), and the conformance share (present and valid).
+  Use it on a new feed before onboarding: map the feed's columns to the standard names in a model, then select {{ p5_standard_check(ref('my_feed'), "'my_feed'") }}.
+  A field that the relation lacks entirely is reported as 100% missing. Reads the standard with run_query at compile time (the seed must be loaded first).
+-#}
+{% macro p5_standard_check(relation, feed_expr) -%}
+{%- if execute -%}
+{%- set fields = run_query("select field_name, requirement, pattern, allowed_values from " ~ ref('p5_data_standard') ~ " order by ordinal") -%}
+{%- set cols = adapter.get_columns_in_relation(relation) | map(attribute='name') | map('lower') | list -%}
+{%- for f in fields.rows %}
+{% set name = f[0] %}
+{% set present = name in cols %}
+select {{ feed_expr }} as feed, '{{ name }}' as field_name, '{{ f[1] }}' as requirement,
+       count(*) as n_rows,
+       {% if present -%}
+       count(*) filter (where nullif(trim(cast({{ name }} as varchar)), '') is null) as n_missing,
+       count(*) filter (where nullif(trim(cast({{ name }} as varchar)), '') is not null and not (
+           {%- if f[3] %} cast({{ name }} as varchar) in ({% for v in f[3].split('|') %}'{{ v }}'{% if not loop.last %}, {% endif %}{% endfor %})
+           {%- elif f[2] %} regexp_matches(cast({{ name }} as varchar), '{{ f[2] | replace("'", "''") }}')
+           {%- else %} true {%- endif %})) as n_invalid
+       {%- else -%}
+       count(*) as n_missing, 0 as n_invalid
+       {%- endif %}
+from {{ relation }}
+group by 1
+{% if not loop.last %}union all
+{% endif %}
+{%- endfor %}
+{%- else -%}
+select cast(null as varchar) as feed, cast(null as varchar) as field_name, cast(null as varchar) as requirement, 0 as n_rows, 0 as n_missing, 0 as n_invalid where false
+{%- endif -%}
+{%- endmacro %}

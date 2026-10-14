@@ -1,0 +1,3 @@
+shape,records,predicted_people,true_people,precision,recall,sibling_or_twin_false_merge_pairs,automatic_links
+full DOB and ZIP5 (as received),16000,7657,6624,0.9998,0.8655,3,14279
+birth year and ZIP3 only (the standard),16000,7906,6624,0.9998,0.8266,3,13695

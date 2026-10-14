@@ -1,4 +1,4 @@
-.PHONY: p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -84,10 +84,14 @@ p5-feeds:
 
 # Phase 5, step 2: staging, resolution, the rules-as-data scorecard, fix list and their tests (needs `make p5-feeds`, `make load-eval`, and the Phase 1 to 4 build for reference seeds)
 p5-score: dbt/profiles.yml
-	$(DBT) seed --profiles-dir . --select p5_params p5_dq_rules p5_consent_wording_map
+	$(DBT) seed --profiles-dir . --select p5_params p5_dq_rules p5_consent_wording_map p5_data_standard
 	$(DBT) run --profiles-dir . --select tag:phase5
 	$(DBT) test --profiles-dir . --select tag:phase5
 	$(PY) -m scripts.print_p5_scorecard
+
+# Phase 5, step 3: the cost of minimization (resolution with the full DOB and ZIP5 vs birth year and ZIP3 only); rebuilds the default at the end
+p5-minimization:
+	$(PY) -m scripts.p5_minimization
 
 # Phase 4: validate every source's raw table against its data contract (writes quality.dq_contract_results)
 contracts:

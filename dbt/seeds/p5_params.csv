@@ -8,3 +8,4 @@ min_records_for_grade,25,phase5.dq.min_records_for_grade in config/generation.ya
 grade_a,0.95,phase5.dq.grade_a in config/generation.yaml
 grade_b,0.85,phase5.dq.grade_b in config/generation.yaml
 grade_c,0.7,phase5.dq.grade_c in config/generation.yaml
+standard_min_conformance,0.95,phase5.dq.standard_min_conformance in config/generation.yaml

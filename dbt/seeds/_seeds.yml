@@ -362,3 +362,17 @@ seeds:
       - name: dimension
         data_tests:
           - accepted_values: {arguments: {values: [COMPLETENESS, VALIDITY, UNIQUENESS, TIMELINESS, CONSISTENCY, CONSENT_PROVENANCE]}}
+
+  - name: p5_data_standard
+    description: >
+      Phase 5. The minimum viable data standard, machine-readable: one row per field a league or channel must submit, with definition, format (a regex pattern or allowed values),
+      REQUIRED or CONDITIONAL, the purposes it serves, the retention rule and the rationale. docs/data-standard.md is the human version; the p5_standard_check macro validates any feed against this table.
+    config:
+      tags: [phase5]
+      column_types: {ordinal: integer, field_name: varchar, definition: varchar, format: varchar, pattern: varchar, allowed_values: varchar, requirement: varchar, purposes: varchar, retention_rule: varchar, rationale: varchar}
+    columns:
+      - name: field_name
+        data_tests: [unique, not_null]
+      - name: requirement
+        data_tests:
+          - accepted_values: {arguments: {values: [REQUIRED, CONDITIONAL]}}

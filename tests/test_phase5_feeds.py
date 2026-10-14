@@ -1,4 +1,5 @@
 import csv
+from pathlib import Path
 import re
 
 import pyarrow.parquet as pq
@@ -98,11 +99,24 @@ def test_existing_sources_are_untouched(tmp_path):
 
 
 def test_p5_params_seed_is_in_sync_with_config():
-    import csv
-    from pathlib import Path
-
     from generator.phase5 import export_seed
     path = Path(__file__).resolve().parent.parent / "dbt" / "seeds" / "p5_params.csv"
     with open(path, newline="", encoding="utf-8") as fh:
         on_disk = list(csv.DictReader(fh))
     assert on_disk == export_seed.build_rows(load_config())
+
+
+def test_data_standard_doc_is_in_sync_with_the_seed():
+    import subprocess
+    import sys
+    assert subprocess.run([sys.executable, "-m", "scripts.build_data_standard", "--check"], cwd=Path(__file__).resolve().parent.parent).returncode == 0
+
+
+def test_data_standard_names_every_field_and_the_exclusions():
+    import csv
+    root = Path(__file__).resolve().parent.parent
+    doc = (root / "docs" / "data-standard.md").read_text(encoding="utf-8")
+    with open(root / "dbt" / "seeds" / "p5_data_standard.csv", newline="", encoding="utf-8") as fh:
+        fields = [r["field_name"] for r in csv.DictReader(fh)]
+    assert all(f"`{f}`" in doc for f in fields)
+    assert "deliberately do not ask for" in doc

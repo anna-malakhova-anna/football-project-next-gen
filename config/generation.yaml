@@ -275,3 +275,4 @@ phase5:
     grade_a: 0.95                        # overall score (mean of the dimension scores) at or above which the grade is A, B, C; below grade_c is D
     grade_b: 0.85
     grade_c: 0.70
+    standard_min_conformance: 0.95        # a feed meets the data standard for a field when this share of its rows is present and valid

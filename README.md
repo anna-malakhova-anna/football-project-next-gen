@@ -71,7 +71,7 @@ Governance sets the size of the marketable audience: nothing linked reaches mark
 ## Phase 5: data quality under privacy constraints (in progress)
 
 Participation data is thin and messy, and the obvious fixes (collect more, buy enrichment, share more) are the ones privacy rules block. Phase 5 asks how to fix it anyway,
-for two audiences: a privacy lead (minimization, purpose limitation, retention) and a club analytics lead (what can I trust in my territory). Status: **step 2 of 7 built: the source feeds and the data quality scorecard.**
+for two audiences: a privacy lead (minimization, purpose limitation, retention) and a club analytics lead (what can I trust in my territory). Status: **step 3 of 7 built: the source feeds, the data quality scorecard and the data standard.**
 Phase 5 is an isolated scope: its feeds are derived from the existing true US youth registry with their own random stream (`phase5.seed_offset`), so no Phase 1 to 4 file or published number changes.
 The feed names, shapes and consent wordings are **assumptions** made for the demonstration; none describes a real NFL, RCX, vendor or club system.
 
@@ -93,6 +93,10 @@ Every check is a row in the **`p5_dq_rules` seed** (id, dimension, description, 
 provenance)), `dq_rule_results_*` (every rule for every league and market, with its SQL) and `dq_fix_list` (the top three things each league operator can act on). On the generated data every
 matrix_export league is fit to report but only 3 of 26 are fit for activation, because consent timestamps and versions are missing; school rosters score D. Details and the one residual finding
 (3 sibling false-merge pairs) are in [ADR-012](docs/decisions/ADR-012-phase-5-scope-and-design.md).
+
+**Step 3, the data standard** ([`docs/data-standard.md`](docs/data-standard.md), committed): 16 fields, each with a definition, format, requirement, purposes and retention rule, plus the fields deliberately *not* asked for.
+It is also a seed (`p5_data_standard`) and a macro (`p5_standard_check`) that validates any feed against it; `p5_standard_summary` applies it to the six feeds (none meets it today). The price of minimization is
+measured, not asserted (`make p5-minimization`): matching on birth year and ZIP3 instead of full DOB and ZIP5 costs about four points of recall (0.866 to 0.827) and no precision.
 
 Across feeds: the same child in two feeds with name variants, one parent email shared by siblings, some households using two parent emails, case and whitespace noise on emails, late submissions,
 and leagues that never sent their latest season. Seasons are 2024 and 2025; the Phase 1 to 4 window is not extended.
