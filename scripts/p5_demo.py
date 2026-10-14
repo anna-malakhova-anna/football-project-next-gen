@@ -125,8 +125,9 @@ def main() -> None:
     table(q(con, """select s.league_name, s.feed, s.grade, s.overall_score, s.fit_for_participation_reporting as fit_reporting, s.fit_for_club_activation as fit_activation, count(distinct c.p5_person_id) as children_here
                     from phase5_restricted.p5_child c join phase5.dq_score_league s on s.league_group = c.league_group
                     where c.market_id = ? group by all order by children_here desc limit 8""", [m]), k=k, k_cols=("children_here",))
-    print("\n  Top fix for each of those leagues (what an operator can act on):")
-    fixes = q(con, """select f.league_name, f.rule_id, f.fix from phase5.dq_fix_list f where f.fix_rank = 1 and f.league_group in
+    print("\n  Top fix for each of those leagues (what an operator can act on; the organization's own issue, ranked by impact):")
+    fixes = q(con, """select f.org_name as league_name, f.rule_id, f.fix_guidance || ' (' || f.records_affected || ' records)' as fix from quality.dq_fix_list f
+                      where f.season_year = (select max(season_year) from quality.dq_fix_list) and not f.is_systemic and f.rank_in_scope = 1 and f.org_id in
                       (select league_group from phase5_restricted.p5_child where market_id = ? group by 1 order by count(*) desc limit 4)""", [m])
     for row in fixes:
         row["fix"] = mask(row["fix"], k)

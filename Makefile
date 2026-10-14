@@ -98,8 +98,8 @@ p5-retention:
 dq: dbt/profiles.yml
 	$(PY) -m scripts.build_rule_registry
 	$(DBT) seed --profiles-dir . --full-refresh --select tag:phase5
-	$(DBT) run --profiles-dir . --select dq_record_base dq_org_season_base dq_standardized_records dq_standard_conformance dq_standard_summary dq_rule_results dq_record_fitness dq_scorecard_org dq_scorecard_source dq_trend eval_scorecard_vs_profile
-	$(DBT) test --profiles-dir . --select dq_rule_registry dq_purposes dq_grade_bands dq_severity_weights consent_text_versions dq_registry_rules_are_defined_as_data dq_every_phase1_flag_has_exactly_one_registry_rule dq_rule_results_match_the_registry dq_record_fitness_follows_the_registry dq_scorecards_obey_the_scoring_rules dq_trend_limits_are_consistent dq_standard_and_standardized_records_agree dq_standard_conformance_is_complete_and_consistent data_standard_fields
+	$(DBT) run --profiles-dir . --select dq_record_base dq_org_season_base dq_standardized_records dq_standard_conformance dq_standard_summary dq_rule_results dq_record_fitness dq_scorecard_org dq_scorecard_source dq_trend mart_dq_impact dq_fix_list eval_scorecard_vs_profile
+	$(DBT) test --profiles-dir . --select dq_rule_registry dq_purposes dq_grade_bands dq_severity_weights consent_text_versions dq_registry_rules_are_defined_as_data dq_every_phase1_flag_has_exactly_one_registry_rule dq_rule_results_match_the_registry dq_record_fitness_follows_the_registry dq_scorecards_obey_the_scoring_rules dq_trend_limits_are_consistent dq_impact_and_fix_list_are_consistent dq_standard_and_standardized_records_agree dq_standard_conformance_is_complete_and_consistent data_standard_fields
 	$(PY) -m scripts.print_dq
 
 # Phase 5, step 7: the one-market demo, end to end (feeds, resolution, scorecard, consent funnel, estimate, standard, retention). Needs the Phase 1 to 4 build and `make load-eval` first.

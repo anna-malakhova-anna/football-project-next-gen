@@ -92,4 +92,19 @@ models:
     description: Per source and season, whether the source meets the data standard on the core (REQUIRED) and consent (CONDITIONAL) fields at the configured conformance, and which fields fail.
     config:
       tags: [phase5]
+  - name: mart_dq_impact
+    description: >
+      What each rule costs, in the units a KPI is counted in: participants (and, for ACTIVATE on the modelled sources, households) that a rule's failures remove from a count, a segment, a place,
+      a cohort or the contactable set, plus the uncertain identity merges it is entangled in. Rule x population x season x purpose, with the Pareto rank and cumulative share.
+    config:
+      tags: [phase5]
+  - name: dq_fix_list
+    description: >
+      The top five issues for each organization and season, ranked by impact (mart_dq_impact) and phrased as an action (the registry's fix_guidance), with the records affected as a count only.
+      A dark organization's top issue is that it sent no file, with the records it should have sent estimated from its other seasons.
+    config:
+      tags: [phase5]
+    columns:
+      - name: fix_guidance
+        data_tests: [not_null]
 

@@ -61,11 +61,6 @@ models:
         data_tests:
           - accepted_values: {arguments: {values: [A, B, C, D, INSUFFICIENT_DATA]}}
 
-  - name: dq_fix_list
-    description: The top three actionable issues per league, worst shortfall first, phrased for the league operator.
-    columns:
-      - name: fix
-        data_tests: [not_null]
 
   - name: p5_record_person
     description: RESTRICTED. Feed record to resolved child and usable parent email. The only place a record, a child and a parent contact meet.

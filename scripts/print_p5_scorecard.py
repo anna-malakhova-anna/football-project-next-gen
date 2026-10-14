@@ -64,9 +64,12 @@ def main() -> None:
             from pii_store.retention_log where run_id = (select max(run_id) from pii_store.retention_log) order by rule, table_name""")
     except duckdb.CatalogException:
         print("\nRetention job: not run yet (make p5-retention)")
-    show(con, "Fix list sample (top issue for the five largest leagues)", """
-        select f.league_name, f.rule_id, f.fix from phase5.dq_fix_list f join phase5.dq_score_league s using (league_group)
-        where f.fix_rank = 1 order by s.n_records desc limit 5""")
+    show(con, "Fix list sample (the top organization-specific issue, ranked by impact, for the five largest channel-feed organizations)", """
+        select f.org_name, f.rule_id, f.records_affected as records, f.impact_estimate as impact, f.fix_guidance as fix
+        from quality.dq_fix_list f join quality.dq_org_season_base o using (source_system, org_id, season_year)
+        where f.season_year = (select max(season_year) from quality.dq_fix_list) and not f.is_systemic and f.rank_in_scope = 1
+          and f.source_system in ('matrix_export', 'vendor_reg_a', 'vendor_reg_b', 'pop_warner_feed', 'pal_chapter_csv', 'school_program')
+        order by o.n_records desc limit 5""")
 
 
 if __name__ == "__main__":

@@ -91,3 +91,48 @@ group by {{ keys | join(', ') }}
 select {% for k in keys %}cast(null as varchar) as {{ k }}, {% endfor %}cast(null as varchar) as field_name, cast(null as varchar) as requirement, 0 as n_rows, 0 as n_missing, 0 as n_invalid where false
 {%- endif -%}
 {%- endmacro %}
+
+{#-
+  dq_impact_person_rows()
+  For every record-level rule that can judge a record (severity ERROR or WARN), one SELECT over dq_record_base: per person and season, how many of the person's records fail the rule and
+  whether ALL of the records the rule could evaluate fail it (all_fail). A person whose every evaluable record fails a rule is the one a rule can cost a count, a segment or a place.
+  Only persons with at least one failing record are returned.
+
+  dq_impact_merge_rows()
+  For every such rule, the PROBABLE identity links that join two different participants (the gap between the point and the low participant count) where either record fails the rule: the
+  uncertain merges the rule is entangled in. An upper-bound attribution (a merge can be touched by several rules).
+-#}
+{% macro dq_impact_person_rows() -%}
+{%- if execute -%}
+{%- set rules = run_query("select rule_id, check_sql from " ~ ref('dq_rule_registry') ~ " where grain = 'RECORD' and nullif(trim(check_sql), '') is not null and severity in ('ERROR', 'WARN') order by rule_id") -%}
+{%- for r in rules.rows %}
+select '{{ r[0] }}' as rule_id, person_id, season_year, any_value(source_system) as source_system,
+       count(*) filter (where not coalesce(({{ r[1] }}), true)) as records_failing,
+       bool_and(not ({{ r[1] }})) filter (where ({{ r[1] }}) is not null) as all_fail
+from {{ ref('dq_record_base') }}
+where person_id is not null and season_year between {{ first_observed_year() }} and (select last_observed_year from {{ ref('observation_window') }})
+group by person_id, season_year
+having count(*) filter (where not coalesce(({{ r[1] }}), true)) > 0
+{% if not loop.last %}union all{% endif %}
+{%- endfor %}
+{%- else -%}
+select cast(null as varchar) as rule_id, cast(null as varchar) as person_id, cast(null as integer) as season_year, cast(null as varchar) as source_system, 0 as records_failing, cast(null as boolean) as all_fail where false
+{%- endif -%}
+{%- endmacro %}
+
+{% macro dq_impact_merge_rows() -%}
+{%- if execute -%}
+{%- set rules = run_query("select rule_id, check_sql from " ~ ref('dq_rule_registry') ~ " where grain = 'RECORD' and nullif(trim(check_sql), '') is not null and severity in ('ERROR', 'WARN') order by rule_id") -%}
+{%- for r in rules.rows %}
+select '{{ r[0] }}' as rule_id, ba.season_year, count(*) as merges_touched
+from merges m
+join {{ ref('dq_record_base') }} ba on ba.record_key = m.record_a
+where m.record_a in (select record_key from {{ ref('dq_record_base') }} where not coalesce(({{ r[1] }}), true))
+   or m.record_b in (select record_key from {{ ref('dq_record_base') }} where not coalesce(({{ r[1] }}), true))
+group by ba.season_year
+{% if not loop.last %}union all{% endif %}
+{%- endfor %}
+{%- else -%}
+select cast(null as varchar) as rule_id, cast(null as integer) as season_year, 0 as merges_touched where false
+{%- endif -%}
+{%- endmacro %}
