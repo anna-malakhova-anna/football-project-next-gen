@@ -43,3 +43,17 @@ select cast(null as varchar) as rule_id, cast(null as varchar) as source_system,
     cast([] as varchar[]) as failing_rules_count
 {%- endif -%}
 {%- endmacro %}
+
+{#- dq_grade(score_expr) -> the grade for a 0-100 score: the band with the highest min_score at or below it (seed dq_grade_bands). -#}
+{% macro dq_grade(score_expr) -%}
+(select b.grade from {{ ref('dq_grade_bands') }} b where b.min_score <= ({{ score_expr }}) order by b.min_score desc limit 1)
+{%- endmacro %}
+
+{#- dq_wilson(p, n, z, side) -> the lower or upper bound of the Wilson score interval for a proportion p (0-1) observed on n trials. NULL when n is 0. -#}
+{% macro dq_wilson(p, n, side='low', z=1.96) -%}
+case when ({{ n }}) > 0 then
+    (({{ p }}) + {{ z }} * {{ z }} / (2.0 * ({{ n }}))
+        {{ '-' if side == 'low' else '+' }} {{ z }} * sqrt((({{ p }}) * (1 - ({{ p }})) + {{ z }} * {{ z }} / (4.0 * ({{ n }}))) / ({{ n }})))
+    / (1 + {{ z }} * {{ z }} / ({{ n }}))
+end
+{%- endmacro %}

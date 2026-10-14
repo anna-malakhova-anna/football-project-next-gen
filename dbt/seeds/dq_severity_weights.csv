@@ -1,0 +1,4 @@
+severity,weight,description
+ERROR,3,"A failure makes a record unfit for the purposes the rule lists: counts three times in a dimension score."
+WARN,1,"A failure counts once in a dimension score."
+INFO,0,"Measured and reported, never scored (a repaired or cosmetic issue)."

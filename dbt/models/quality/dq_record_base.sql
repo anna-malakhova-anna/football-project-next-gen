@@ -51,8 +51,9 @@ p5 as (
     select
         q.feed as source_system, q.source_record_id, q.feed || '|' || q.source_record_id as record_key, q.league_group as org_id,
         q.season_year, q.season_term, q.p5_person_id as person_id, s.dq_flags, q.registered_at,
-        q.has_league as org_resolved, q.has_age_signal, q.email_present, q.email_wellformed,
-        q.zip_known as postal_known,
+        q.has_league as org_resolved, q.has_age_signal, q.email_present,
+        case when q.email_present then q.email_wellformed end as email_wellformed,       -- a missing email is DQ-COMP-EMAIL's finding, not a malformed one
+        case when q.zip_present then q.zip_known end as postal_known,
         case when q.days_after_season_start is null then null else q.days_after_season_start > q.late_days end as registered_late,
         q.has_consent_record as consent_recorded, q.has_consent_ts as consent_ts_known, q.has_consent_version as consent_version_known,
         cast(null as boolean) as marketing_form_covers_purpose,

@@ -66,4 +66,18 @@ models:
     description: One row per registration, fit_for_<purpose> and the registry rules it fails per purpose.
     config:
       tags: [phase5]
+  - name: dq_scorecard_org
+    description: >
+      Organization x season x purpose x dimension scores (0 to 100) and grades. The PURPOSE_SCORE row is the minimum of the purpose's dimension scores (ADR-014); an organization-season
+      below dq_n_min records carries a Wilson interval and is graded on its lower bound. A dark organization (no file) scores 0 on timeliness and therefore on every purpose.
+    config:
+      tags: [phase5]
+  - name: dq_scorecard_source
+    description: Source x season x purpose x dimension scores and grades, by the same method, pooled over the source's organizations; contract quality rules count in every season (includes_contract_rules says so).
+    config:
+      tags: [phase5]
+  - name: dq_trend
+    description: PURPOSE_SCORE over time for each source and organization with P-chart control limits (and mean +/- 3 sd from three prior seasons); out_of_control flags a shift against the entity's own history.
+    config:
+      tags: [phase5]
 

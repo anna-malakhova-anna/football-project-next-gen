@@ -34,3 +34,7 @@ sources:
         description: Phase 5. Every feed record (six US registration feeds) mapped to its true person, household, canonical league and season; tackle rows are marked is_flag = false.
       - name: p5_defect_manifest
         description: Phase 5. Every injected defect by feed record.
+      - name: org_quality_truth
+        description: "Phase 5. Each organization's latent data-quality profile (DISCIPLINED, TYPICAL, STRUGGLING, MANUAL) and form properties (ZIP optional, DOB division-only, consent wording). The answer key for the scorecards."
+      - name: unreported_participation_truth
+        description: "Phase 5. Participants whose organization sent no file in a season: they exist here and in no source (the answer key for coverage)."

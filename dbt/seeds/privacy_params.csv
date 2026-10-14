@@ -5,3 +5,4 @@ youth_max_age,17,Youth = age at December 31 of the participation year of 17 or u
 minor_age,18,Under this age at the cutoff a participant is a minor: a minor's own contact details are never shared.
 postal_prefix_len,3,"Postal code prefix length kept in the analyst share (US ZIP3, Canadian forward sortation area)."
 analyst_k_warn,5,"Smallest equivalence class (birth year, postal prefix, sex, country) the analyst share should reach; a smaller one is reported in ADR-006."
+dq_n_min,50,"Data quality scorecards: an organization-season or source-season with fewer scored records than this carries a Wilson interval and is graded on its lower bound, so a 5-record league with one error is not graded like a 500-record league."

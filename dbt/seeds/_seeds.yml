@@ -479,3 +479,12 @@ seeds:
     columns:
       - name: consent_text_version
         data_tests: [unique, not_null]
+
+  - name: dq_severity_weights
+    description: How much a rule of each severity counts in a dimension score (ERROR 3, WARN 1, INFO 0). A dimension score is the weighted mean pass rate of the rules in it that apply to the purpose.
+    config:
+      tags: [phase5]
+      column_types: {severity: varchar, weight: double, description: varchar}
+    columns:
+      - name: severity
+        data_tests: [unique, not_null]
