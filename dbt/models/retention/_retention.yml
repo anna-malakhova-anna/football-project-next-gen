@@ -27,6 +27,14 @@ models:
       Cohort x years-since-entry triangle with active counts and shares, by entry country and sex. `retention_pct` is the simple share still registered
       (not corrected for age-outs); `retention_among_eligible` removes players who aged out.
 
+  - name: mart_retention_vs_deletion
+    description: >
+      Label-free. What analytics survive the age-out deletion in the identity and linkage zones: each figure at baseline, after rebuilding the Phase 4 retention marts from anonymized, pseudonymous facts, and
+      after re-running identity resolution on the anonymized inputs. Empty until `make retention-vs-deletion` has run. Synthetic data; every retention period is an assumption.
+    columns:
+      - name: metric
+        data_tests: [not_null]
+
 unit_tests:
   # Hand-built participants, window 2021-2025 (2021 is the censored first year). Each row is one participant-year the player was registered.
   - name: retention_spells_censor_age_outs_and_the_end_of_the_data

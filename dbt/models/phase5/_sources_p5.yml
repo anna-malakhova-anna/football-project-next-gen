@@ -19,3 +19,12 @@ sources:
         description: Steward-maintained free-text league spelling to league id (vendor_reg_a). Covers only part of the spellings seen.
       - name: p5_revocations
         description: "Parent requests to withdraw consent (parent email, time, scope, channel). A parent-side input of the retention job and of the consent chain."
+
+  - name: retention_audit
+    description: >
+      Written by retention/zones.py (`make retention-vs-deletion`), not by the generator or the loader: the outcome of deleting child-level identifiers in a COPY of the warehouse (counts and retention figures only).
+      May be missing until that has run; mart_retention_vs_deletion tolerates it.
+    schema: retention_audit
+    tables:
+      - name: deletion_runs
+      - name: zone_deletion_log

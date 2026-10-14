@@ -303,6 +303,7 @@ phase5:
     age_out_age: 18                      # a child ages out on Dec 31 of the year they turn this age (birth year only is collected, so the latest possible birthday is used)
     grace_months: 12                     # child-level records are deleted this long after the age-out date
     max_record_months: 36                # no registration record is kept longer than this after it was submitted, whatever the child's age (indefinite retention is not allowed)
+    survival_tolerance: 0.005            # a retention figure is said to SURVIVE the zone deletion when it moves by no more than this share (0.5%); mart_retention_vs_deletion
     revocation_delay_days: 0             # child data of a household that revoked consent is deleted this many days after the revocation (0 = at the next job run)
     revocation_share: 0.03               # of households (synthetic): revoke consent between revocation_from and revocation_to
     revocation_from: "2025-09-01"

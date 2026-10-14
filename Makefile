@@ -133,6 +133,12 @@ p5-minimization:
 
 # Phase 5 spec 7: the minimization frontier. Runs the identity chain once per variant (about 30 seconds each), then the label-free risk and fitness and the evaluation.
 # MIN_VARIANTS="V0_FULL V2_BIRTH_YEAR V4_HASHED_CONTACT" runs the reduced set (CI); the default is every variant of the seed.
+# Phase 5 spec 10: delete child-level identifiers in the identity and linkage zones of a COPY of the warehouse, rebuild the Phase 4 retention marts, and report what survives
+retention-vs-deletion: dbt/profiles.yml
+	$(PY) -m retention.zones
+	$(DBT) run --profiles-dir . --select mart_retention_vs_deletion
+	$(DBT) test --profiles-dir . --select mart_retention_vs_deletion
+
 minimize: dbt/profiles.yml
 	$(DBT) seed --profiles-dir . --select minimization_variants
 	$(PY) -m scripts.p5_minimization_runs $(if $(MIN_VARIANTS),--variants $(MIN_VARIANTS))

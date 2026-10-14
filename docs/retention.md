@@ -29,3 +29,6 @@ Design points:
 
 ## Not covered
 Backups, logs of upstream systems, and copies the leagues hold themselves are outside this job. Deleting from the leagues' own systems needs a deletion request to each league, which is an operational process, not SQL.
+
+## Identity and linkage zones (spec section 10)
+`make retention-vs-deletion` applies the same age-out rule to the identity and linkage zones of a **copy** of the warehouse, rebuilds the Phase 4 retention marts, and writes what survives to `mart_retention_vs_deletion`. Result and design constraints: [ADR-017](decisions/ADR-017-retention-vs-deletion.md). In one line: the retention marts rebuild unchanged from the pseudonymous facts, and do not survive a rebuild that re-runs identity resolution on the anonymized inputs.

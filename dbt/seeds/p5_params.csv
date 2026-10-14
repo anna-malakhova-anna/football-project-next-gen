@@ -19,3 +19,4 @@ band_k,1.0,phase5.dq.band_k in config/generation.yaml
 band_rules,CMP01|CMP02|CMP03|TIM02,phase5.dq.band_rules in config/generation.yaml
 confidence_high,0.1,phase5.dq.confidence_high in config/generation.yaml
 confidence_medium,0.25,phase5.dq.confidence_medium in config/generation.yaml
+retention_survival_tolerance,0.005,phase5.retention.survival_tolerance: a retention figure survives the zone deletion when it moves by no more than this share
