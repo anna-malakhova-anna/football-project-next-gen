@@ -1,0 +1,67 @@
+version: 2
+
+# CLUB share: aggregates only. meta.pii: direct | quasi | none (checked by scripts/check_share_policy.py). Nothing here carries a person, household, child or record key.
+
+models:
+  - name: share_club__activation_funnel
+    description: >
+      Per club market and year, the activation funnel in households with each step's loss split into data quality and privacy. A step is hidden when it or the step before it is below k_min.
+    columns:
+      - {name: participation_year, meta: {pii: none}}
+      - {name: club_market_id, meta: {pii: none}}
+      - {name: step_no, meta: {pii: none}}
+      - {name: step, meta: {pii: none}}
+      - {name: unit, meta: {pii: none}}
+      - {name: funnel_count, meta: {pii: none}}
+      - {name: funnel_lost_dq, meta: {pii: none}}
+      - {name: funnel_lost_privacy, meta: {pii: none}}
+      - {name: loss_type, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_club__market_missingness
+    description: >
+      Girls' share of youth per club market and year with its bounds when unknown genders are assigned either way. A cell below k_min youth participants is suppressed.
+    columns:
+      - {name: club_market_id, meta: {pii: none}}
+      - {name: participation_year, meta: {pii: none}}
+      - {name: youth_participants_in_cell, meta: {pii: none}}
+      - {name: unknown_gender_participants, meta: {pii: none}}
+      - {name: girls_share_known_only, meta: {pii: none}}
+      - {name: girls_share_bound_low, meta: {pii: none}}
+      - {name: girls_share_bound_high, meta: {pii: none}}
+      - {name: missingness_verdict, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_club__market_year
+    description: >
+      Per club market and year plus a year total: allocated participants, the dark-organization estimate and interval, and purpose grades. Primary and secondary suppression; derived columns hide with the count.
+    columns:
+      - {name: club_market_id, meta: {pii: none}}
+      - {name: market_name, meta: {pii: none}}
+      - {name: participation_year, meta: {pii: none}}
+      - {name: participants_allocated, meta: {pii: none}}
+      - {name: youth_participants_allocated, meta: {pii: none}}
+      - {name: orgs_known, meta: {pii: none}}
+      - {name: orgs_reporting, meta: {pii: none}}
+      - {name: orgs_dark, meta: {pii: none}}
+      - {name: participants_not_reported_estimate, meta: {pii: none}}
+      - {name: participants_allocated_interval_low, meta: {pii: none}}
+      - {name: participants_allocated_interval_high, meta: {pii: none}}
+      - {name: pct_records_geo_fit, meta: {pii: none}}
+      - {name: grade_count, meta: {pii: none}}
+      - {name: grade_segment, meta: {pii: none}}
+      - {name: grade_geo, meta: {pii: none}}
+      - {name: grade_retain, meta: {pii: none}}
+      - {name: grade_activate, meta: {pii: none}}
+      - {name: denominator_status, meta: {pii: none}}
+      - {name: participation_rate, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

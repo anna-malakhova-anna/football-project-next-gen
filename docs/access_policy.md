@@ -26,6 +26,8 @@ policies (design only; not implemented).
 | **analyst** | `share_analyst` | Analysis and modelling | Participant-year | Pseudonymous key only; no names or contact info; birth year, not DOB; postal prefix only | All |
 | **ops** | `share_ops` | Running leagues, resolving data issues | Registration, participant, review queue | Full identifiers | All, plus the review queue |
 | **marketing** | `share_marketing` | Outreach | Contact list (one row per email) | Contact email; first name only for a sole adult player | Only addresses where EVERY participant sharing it has marketing consent TRUE (NULL is not consent); never a minor's own details; clusters with an open integrity issue excluded |
+| **club** | `share_club` | Club market view (Phase 5) | Club market x year aggregates | None: no participant, household, child or record key, no organization id | Aggregates only; primary and secondary small-cell suppression; derived columns hide with the count they come from; reads only approved aggregate marts |
+| **privacy** | `share_privacy` | Privacy and compliance review (Phase 5) | Aggregates and configuration | None | Aggregates only: consent provenance, purpose coverage, minimization risk, retention versus deletion, share-policy results, analyst-share k-anonymity |
 | **media** | `share_media` | Photo and video clearance | Roster | Name, organization, season | Only participants whose most recent captured photo consent is TRUE; the list means cleared, anyone absent is NOT cleared, including NULL; clusters with an open integrity issue excluded |
 
 ## What each share contains
@@ -500,6 +502,142 @@ Explicitly **not** available:
 | `postal_code` | NEVER: a minor's own details are never shared; for a minor the contact is the guardian |
 | `consent_photo` | NEVER: a minor's own details are never shared; for a minor the contact is the guardian |
 
+### club
+
+**`share_club__activation_funnel`**
+
+| Column | Treatment |
+|---|---|
+| `participation_year` | DIMENSION |
+| `club_market_id` | DIMENSION |
+| `step_no` | DIMENSION |
+| `step` | DIMENSION |
+| `unit` | DIMENSION |
+| `funnel_count` | AGGREGATE_SUPPRESSED |
+| `funnel_lost_dq` | AGGREGATE_SUPPRESSED |
+| `funnel_lost_privacy` | AGGREGATE_SUPPRESSED |
+| `loss_type` | DIMENSION |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_club__market_missingness`**
+
+| Column | Treatment |
+|---|---|
+| `club_market_id` | DIMENSION |
+| `participation_year` | DIMENSION |
+| `youth_participants_in_cell` | AGGREGATE_SUPPRESSED |
+| `unknown_gender_participants` | AGGREGATE_SUPPRESSED |
+| `girls_share_known_only` | DERIVED_RATE_SUPPRESSED |
+| `girls_share_bound_low` | DERIVED_RATE_SUPPRESSED |
+| `girls_share_bound_high` | DERIVED_RATE_SUPPRESSED |
+| `missingness_verdict` | DIMENSION |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_club__market_year`**
+
+| Column | Treatment |
+|---|---|
+| `club_market_id` | DIMENSION |
+| `market_name` | DIMENSION |
+| `participation_year` | DIMENSION |
+| `participants_allocated` | AGGREGATE_SUPPRESSED |
+| `youth_participants_allocated` | AGGREGATE_SUPPRESSED |
+| `orgs_known` | AGGREGATE_SUPPRESSED |
+| `orgs_reporting` | AGGREGATE_SUPPRESSED |
+| `orgs_dark` | AGGREGATE_SUPPRESSED |
+| `participants_not_reported_estimate` | AGGREGATE_SUPPRESSED |
+| `participants_allocated_interval_low` | AGGREGATE_SUPPRESSED |
+| `participants_allocated_interval_high` | AGGREGATE_SUPPRESSED |
+| `pct_records_geo_fit` | DERIVED_RATE_SUPPRESSED |
+| `grade_count` | DIMENSION |
+| `grade_segment` | DIMENSION |
+| `grade_geo` | DIMENSION |
+| `grade_retain` | DIMENSION |
+| `grade_activate` | DIMENSION |
+| `denominator_status` | DIMENSION |
+| `participation_rate` | DERIVED_RATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
+### privacy
+
+**`share_privacy__analyst_k_anonymity`**
+
+| Column | Treatment |
+|---|---|
+| `participation_year` | DIMENSION |
+| `participant_years` | AGGREGATE_SUPPRESSED |
+| `equivalence_classes` | AGGREGATE_SUPPRESSED |
+| `smallest_class` | AGGREGATE_SUPPRESSED |
+| `average_class_size` | DERIVED_RATE_SUPPRESSED |
+| `pct_unique` | DERIVED_RATE_SUPPRESSED |
+| `pct_rows_below_k_warn` | DERIVED_RATE_SUPPRESSED |
+| `pct_rows_below_k_min` | DERIVED_RATE_SUPPRESSED |
+
+**`share_privacy__consent_provenance`**
+
+| Column | Treatment |
+|---|---|
+| `participation_year` | DIMENSION |
+| `source_system` | DIMENSION |
+| `consent_text_version` | DIMENSION |
+| `provenance_grade` | DIMENSION |
+| `consent_events` | AGGREGATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_privacy__minimization_frontier`**
+
+| Column | Treatment |
+|---|---|
+| `variant_id` | DIMENSION |
+| `variant_label` | DIMENSION |
+| `participant_years` | AGGREGATE_SUPPRESSED |
+| `pct_unique` | DERIVED_RATE_SUPPRESSED |
+| `pct_rows_below_k_min` | DERIVED_RATE_SUPPRESSED |
+| `smallest_class` | AGGREGATE_SUPPRESSED |
+| `average_class_size` | DERIVED_RATE_SUPPRESSED |
+| `contact_fields_held` | AGGREGATE_SUPPRESSED |
+| `fit_for_count` | DERIVED_RATE_SUPPRESSED |
+| `fit_for_segment` | DERIVED_RATE_SUPPRESSED |
+| `fit_for_geo` | DERIVED_RATE_SUPPRESSED |
+| `fit_for_retain` | DERIVED_RATE_SUPPRESSED |
+| `fit_for_activate` | DERIVED_RATE_SUPPRESSED |
+| `rules_no_longer_evaluable` | AGGREGATE_SUPPRESSED |
+
+**`share_privacy__policy_checks`**
+
+| Column | Treatment |
+|---|---|
+| `check_name` | DIMENSION |
+| `violations` | VALUE |
+| `columns_checked` | VALUE |
+| `share_tables_checked` | VALUE |
+
+**`share_privacy__purpose_coverage`**
+
+| Column | Treatment |
+|---|---|
+| `consent_text_version` | DIMENSION |
+| `purpose` | DIMENSION |
+| `purpose_label` | DIMENSION |
+| `form_names_purpose` | DIMENSION |
+| `separate_consent_required` | DIMENSION |
+| `counts_for_club_activation` | DIMENSION |
+
+**`share_privacy__retention_vs_deletion`**
+
+| Column | Treatment |
+|---|---|
+| `metric` | DIMENSION |
+| `metric_label` | DIMENSION |
+| `baseline` | VALUE |
+| `facts_only` | VALUE |
+| `identity_rebuilt` | VALUE |
+| `facts_only_change` | VALUE |
+| `identity_rebuilt_change` | VALUE |
+| `survives_facts_only` | DIMENSION |
+| `survives_identity_rebuilt` | DIMENSION |
+| `tolerance` | VALUE |
+
 ### media
 
 **`share_media__roster`**
@@ -537,4 +675,5 @@ Explicitly **not** available:
 | Aggregates obey small-cell rules | `share_exec_obeys_suppression_rules` (independent of the suppression macro), `share_exec_derived_rates_follow_their_counts` |
 | Only consented contacts are shared | `share_marketing_only_consented_contacts` re-derives eligibility from `dim_participant` |
 | Only cleared participants are on the roster | `share_media_only_cleared_participants` re-derives the roster from `dim_participant` and the facts |
+| No direct or quasi-identifying column in the club and privacy shares; the club share reads only approved aggregate marts; every metric column is in the catalog | `scripts/check_share_policy.py` (QUASI_IN_CLUB_PRIVACY, CLUB_LINEAGE, METRIC_NOT_IN_CATALOG); `share_club_obeys_suppression_rules` re-derives the suppression independently |
 | The analyst share has no direct identifiers, names or DOB | `share_analyst_has_no_direct_identifiers`; `share_analyst_k_anonymity_warning` warns about re-identification risk |

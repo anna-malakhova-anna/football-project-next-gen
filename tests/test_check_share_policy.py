@@ -85,3 +85,36 @@ def test_nothing_linked_reaches_marketing_or_media_even_as_an_approved_name():
     m = _manifest({"share_marketing__contact_list": ("share_marketing", ["link"]), "share_media__roster": ("share_media", ["plain"])})
     out = sps.check_linkage(m)
     assert [p[0] for p in out] == ["LINKAGE_IN_MARKETING"] and "contact_list" in out[0][1]
+
+
+def test_club_and_privacy_columns_must_be_dimensions_flags_or_catalogued_metrics():
+    pol = [
+        {"audience": "club", "model": "m", "column": "participants_allocated", "allowed": "Y", "treatment": "AGGREGATE_SUPPRESSED"},
+        {"audience": "club", "model": "m", "column": "made_up_metric", "allowed": "Y", "treatment": "AGGREGATE_SUPPRESSED"},
+        {"audience": "club", "model": "m", "column": "free_value", "allowed": "Y", "treatment": "VALUE"},
+        {"audience": "privacy", "model": "p", "column": "free_value", "allowed": "Y", "treatment": "VALUE"},
+        {"audience": "club", "model": "m", "column": "club_market_id", "allowed": "Y", "treatment": "DIMENSION"},
+    ]
+    found = sps.check_club_and_metrics(pol, {"participants_allocated"}, None)
+    assert ("METRIC_NOT_IN_CATALOG", "share_club.m.made_up_metric") in found
+    assert ("CLUB_COLUMN_UNTREATED", "share_club.m.free_value") in found
+    assert not any("share_privacy" in d for _, d in found)               # VALUE is allowed in the privacy share only
+    assert len(found) == 2
+
+
+def test_a_club_share_may_read_only_approved_aggregate_marts():
+    manifest = {"nodes": {
+        "model.p.share_club__x": {"resource_type": "model", "schema": "share_club", "name": "share_club__x", "depends_on": {"nodes": ["model.p.mart_market_coverage", "model.p.fct_participant_year", "seed.p.privacy_params"]}},
+        "model.p.mart_market_coverage": {"resource_type": "model", "schema": "quality", "name": "mart_market_coverage", "depends_on": {"nodes": []}},
+        "model.p.fct_participant_year": {"resource_type": "model", "schema": "facts", "name": "fct_participant_year", "depends_on": {"nodes": []}},
+        "seed.p.privacy_params": {"resource_type": "seed", "schema": "reference", "name": "privacy_params", "depends_on": {"nodes": []}},
+    }, "sources": {}}
+    assert sps.check_club_and_metrics([], set(), manifest) == [("CLUB_LINEAGE", "share_club__x <- fct_participant_year")]
+
+
+def test_an_identifying_tag_is_refused_in_club_and_privacy_shares():
+    cols = [("share_club", "t", "c")]
+    pol = [{"audience": "club", "model": "t", "column": "c", "allowed": "Y", "treatment": "DIMENSION"}]
+    for tag in ("direct", "quasi"):
+        assert ("QUASI_IN_CLUB_PRIVACY", "share_club.t.c") in check(pol, cols, {}, {("share_club", "t", "c"): tag})
+    assert not check(pol, cols, {}, {("share_club", "t", "c"): "none"})

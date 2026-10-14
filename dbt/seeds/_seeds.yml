@@ -172,7 +172,7 @@ seeds:
                 values: [north_star, growth, reach, depth, data_trust, supporting]
       - name: unit
         data_tests:
-          - accepted_values: {arguments: {values: [count, rate, ratio]}}
+          - accepted_values: {arguments: {values: [count, rate, ratio, percent]}}
 
   - name: reporting_periods
     description: >
@@ -215,7 +215,7 @@ seeds:
     columns:
       - name: audience
         data_tests:
-          - accepted_values: {arguments: {values: [exec, analyst, ops, marketing, media]}}
+          - accepted_values: {arguments: {values: [exec, analyst, ops, marketing, media, club, privacy]}}
       - name: allowed
         data_tests:
           - accepted_values: {arguments: {values: ['Y', 'N']}}

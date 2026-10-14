@@ -108,6 +108,10 @@ models:
         +schema: share_ops
       marketing:
         +schema: share_marketing
+      club:
+        +schema: share_club
+      privacy:
+        +schema: share_privacy
       media:
         +schema: share_media
 

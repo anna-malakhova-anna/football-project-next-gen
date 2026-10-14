@@ -28,3 +28,11 @@ sources:
     tables:
       - name: deletion_runs
       - name: zone_deletion_log
+
+  - name: audit_share_policy
+    description: >
+      Written by scripts/check_share_policy.py (counts of violations per check kind), not by the generator. Deliberately NOT in a schema starting with `share_`, so the policy check does not treat it as a share.
+      May be missing until the check has run; share_privacy__policy_checks tolerates it.
+    schema: audit_share_policy
+    tables:
+      - name: policy_check_results

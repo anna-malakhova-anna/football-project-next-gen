@@ -11,6 +11,10 @@ Checks (any failure exits non-zero):
   DIRECT_IN_EXEC_ANALYST a column tagged pii: direct is in share_exec or share_analyst
   LINKAGE_LEAK           a share model has a model of the restricted `linkage` schema anywhere upstream and is not an approved aggregate
                          (ADR-009): only aggregated, suppressed models in share_exec / share_analyst may reach an audience
+  QUASI_IN_CLUB_PRIVACY  a column tagged pii: direct or quasi is in share_club or share_privacy (aggregates only: no identifying column of either kind)
+  CLUB_LINEAGE           a share_club model reads, directly, anything but an approved aggregate mart (APPROVED_CLUB_MARTS)
+  CLUB_COLUMN_UNTREATED  a share_club / share_privacy column is neither a dimension, a suppression flag, nor a catalogued metric (treatment VALUE is allowed only in share_privacy)
+  METRIC_NOT_IN_CATALOG  a share_club / share_privacy column treated as a metric is not in dbt/seeds/metric_catalog.csv
   LINKAGE_IN_MARKETING   share_marketing or share_media depends on `linkage` at all. Nothing linked reaches them: the both-sides consent path
                          (consent_marketing TRUE on the registration AND the fan account) is not implemented
 This compares what is ACTUALLY in the database (information_schema) with the policy, so it tests what is absent, not
@@ -35,10 +39,15 @@ MANIFEST = ROOT / "dbt" / "target" / "manifest.json"
 COMPILED = ROOT / "dbt" / "target" / "compiled" / "counting_flag_football" / "models" / "shares"
 SOURCE = ROOT / "dbt" / "models" / "shares"
 NO_DIRECT = {"share_exec", "share_analyst"}
+NO_IDENTIFYING = {"share_club", "share_privacy"}                  # neither direct nor quasi identifiers
+CATALOG = ROOT / "dbt" / "seeds" / "metric_catalog.csv"
+# The only models a share_club model may read directly: aggregate marts built for it (spec section 11). Row-level or linkage models are never on this list.
+APPROVED_CLUB_MARTS = {"mart_market_coverage", "mart_activation_funnel", "mart_missingness_bias", "dq_scorecard_market", "mart_activation_funnel_loss"}
 # Aggregated, small-cell-suppressed share models that may be built from `linkage` models (ADR-009). Everything else may not.
 APPROVED_LINKAGE_AGGREGATES = {
     "share_exec__fan_engagement_effect", "share_exec__household_link_rate", "share_exec__fan_funnel", "share_exec__acquisition_incrementality", "share_exec__fan_value",
     "share_exec__addressable_audience", "share_exec__market_quadrants",
+    "share_club__market_year", "share_club__market_missingness", "share_club__activation_funnel", "share_privacy__consent_provenance", "share_privacy__minimization_frontier",
     "share_exec__fan_rfm", "share_exec__fan_survival", "share_exec__fan_value_uplift", "share_exec__consent_capture", "share_analyst__fan_event_study", "share_analyst__fan_acquisition_event_study", "share_analyst__fan_market_year",
 }
 NO_LINKAGE_AT_ALL = {"share_marketing", "share_media"}
@@ -78,6 +87,8 @@ def check(policy: list[dict], columns: list[tuple], sql_files: dict[str, str], p
             problems.append(("PII_TAG_MISSING", f"{schema}.{table}.{column}"))
         if tag == "direct" and schema in NO_DIRECT:
             problems.append(("DIRECT_IN_EXEC_ANALYST", f"{schema}.{table}.{column}"))
+        if tag in {"direct", "quasi"} and schema in NO_IDENTIFYING:
+            problems.append(("QUASI_IN_CLUB_PRIVACY", f"{schema}.{table}.{column}"))
     for key, cols in allowed.items():
         if key not in actual:
             problems.append(("POLICY_MODEL_MISSING", f"{key[0]}.{key[1]}"))
@@ -91,6 +102,35 @@ def check(policy: list[dict], columns: list[tuple], sql_files: dict[str, str], p
         if STAR.search(strip_comments(sql)):
             problems.append(("SELECT_STAR", name))
     return sorted(set(problems))
+
+
+def check_club_and_metrics(policy: list[dict], catalog: set[str], manifest: dict | None) -> list[tuple[str, str]]:
+    """share_club / share_privacy: every column is a dimension, a suppression flag or a catalogued metric; share_club reads only approved aggregate marts."""
+    problems: list[tuple[str, str]] = []
+    for r in policy:
+        if r["audience"] not in {"club", "privacy"} or r["allowed"] != "Y":
+            continue
+        where = f"share_{r['audience']}.{r['model']}.{r['column']}"
+        if r["treatment"].startswith(("AGGREGATE", "DERIVED")):
+            if r["column"] not in catalog:
+                problems.append(("METRIC_NOT_IN_CATALOG", where))
+        elif r["treatment"] == "VALUE":
+            if r["audience"] == "club":
+                problems.append(("CLUB_COLUMN_UNTREATED", where))
+        elif r["treatment"] not in {"DIMENSION", "SUPPRESSION_FLAG"}:
+            problems.append(("CLUB_COLUMN_UNTREATED", where))
+    if manifest:
+        nodes = manifest["nodes"]
+        for node in nodes.values():
+            if node["resource_type"] == "model" and node["schema"] == "share_club":
+                for parent in node["depends_on"]["nodes"]:
+                    pn = nodes.get(parent) or manifest.get("sources", {}).get(parent)
+                    name = pn["name"] if pn else parent
+                    if pn and pn.get("resource_type") == "seed":
+                        continue                                   # configuration (privacy_params), not data
+                    if name not in APPROVED_CLUB_MARTS:
+                        problems.append(("CLUB_LINEAGE", f"{node['name']} <- {name}"))
+    return problems
 
 
 def check_linkage(manifest: dict) -> list[tuple[str, str]]:
@@ -144,15 +184,41 @@ def load() -> tuple[list[dict], list[tuple], dict[str, str], dict]:
     return policy, columns, sql_files, pii_tags
 
 
+KINDS = ["COLUMN_NOT_ALLOWED", "COLUMN_DENIED", "POLICY_COLUMN_MISSING", "MODEL_NOT_IN_POLICY", "POLICY_MODEL_MISSING", "SELECT_STAR", "PII_TAG_MISSING", "DIRECT_IN_EXEC_ANALYST",
+         "QUASI_IN_CLUB_PRIVACY", "CLUB_LINEAGE", "CLUB_COLUMN_UNTREATED", "METRIC_NOT_IN_CATALOG", "LINKAGE_LEAK", "LINKAGE_IN_MARKETING"]
+
+
+def record_results(problems: list[tuple[str, str]], n_columns: int, n_tables: int) -> None:
+    """Write the number of violations per check kind (counts only) for share_privacy__policy_checks. Best effort: a read-only or locked warehouse must not fail the check itself."""
+    try:
+        con = duckdb.connect(str(DB))
+    except duckdb.Error:
+        return
+    try:
+        con.execute("create schema if not exists audit_share_policy")
+        con.execute("create or replace table audit_share_policy.policy_check_results (check_name varchar, violations integer, columns_checked integer, share_tables_checked integer)")
+        counts = {k: 0 for k in KINDS}
+        for kind, _ in problems:
+            counts[kind] = counts.get(kind, 0) + 1
+        con.executemany("insert into audit_share_policy.policy_check_results values (?, ?, ?, ?)", [(k, v, n_columns, n_tables) for k, v in sorted(counts.items())])
+    finally:
+        con.close()
+
+
 def main() -> int:
     policy, columns, sql_files, pii_tags = load()
     if not columns:
         print("no share_* schemas found: run `make shares` first", file=sys.stderr)
         return 2
     problems = check(policy, columns, sql_files, pii_tags)
-    if MANIFEST.exists():
-        problems = sorted(set(problems + check_linkage(json.loads(MANIFEST.read_text()))))
+    manifest = json.loads(MANIFEST.read_text()) if MANIFEST.exists() else None
+    if manifest:
+        problems = sorted(set(problems + check_linkage(manifest)))
+    with open(CATALOG, newline="", encoding="utf-8") as f:
+        catalog = {r["metric_id"] for r in csv.DictReader(f)}
+    problems = sorted(set(problems + check_club_and_metrics(policy, catalog, manifest)))
     tables = {(s, t) for s, t, _ in columns}
+    record_results(problems, len(columns), len(tables))
     if problems:
         print(f"SHARE POLICY VIOLATIONS ({len(problems)}):", file=sys.stderr)
         for kind, detail in problems:

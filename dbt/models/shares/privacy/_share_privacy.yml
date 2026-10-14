@@ -1,0 +1,85 @@
+version: 2
+
+# PRIVACY share: aggregates only. meta.pii: direct | quasi | none (checked by scripts/check_share_policy.py). Nothing here carries a person, household, child or record key.
+
+models:
+  - name: share_privacy__analyst_k_anonymity
+    description: >
+      Equivalence-class statistics of the analyst share's quasi-identifiers, per year.
+    columns:
+      - {name: participation_year, meta: {pii: none}}
+      - {name: participant_years, meta: {pii: none}}
+      - {name: equivalence_classes, meta: {pii: none}}
+      - {name: smallest_class, meta: {pii: none}}
+      - {name: average_class_size, meta: {pii: none}}
+      - {name: pct_unique, meta: {pii: none}}
+      - {name: pct_rows_below_k_warn, meta: {pii: none}}
+      - {name: pct_rows_below_k_min, meta: {pii: none}}
+
+  - name: share_privacy__consent_provenance
+    description: >
+      Consent events by source, consent text version and provenance grade, per season; small cells suppressed.
+    columns:
+      - {name: participation_year, meta: {pii: none}}
+      - {name: source_system, meta: {pii: none}}
+      - {name: consent_text_version, meta: {pii: none}}
+      - {name: provenance_grade, meta: {pii: none}}
+      - {name: consent_events, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_privacy__minimization_frontier
+    description: >
+      The label-free half of the minimization frontier: re-identification risk and purpose fitness per variant.
+    columns:
+      - {name: variant_id, meta: {pii: none}}
+      - {name: variant_label, meta: {pii: none}}
+      - {name: participant_years, meta: {pii: none}}
+      - {name: pct_unique, meta: {pii: none}}
+      - {name: pct_rows_below_k_min, meta: {pii: none}}
+      - {name: smallest_class, meta: {pii: none}}
+      - {name: average_class_size, meta: {pii: none}}
+      - {name: contact_fields_held, meta: {pii: none}}
+      - {name: fit_for_count, meta: {pii: none}}
+      - {name: fit_for_segment, meta: {pii: none}}
+      - {name: fit_for_geo, meta: {pii: none}}
+      - {name: fit_for_retain, meta: {pii: none}}
+      - {name: fit_for_activate, meta: {pii: none}}
+      - {name: rules_no_longer_evaluable, meta: {pii: none}}
+
+  - name: share_privacy__policy_checks
+    description: >
+      Violations found by the share-policy check, per check kind, on its last run. Empty until the check has run.
+    columns:
+      - {name: check_name, meta: {pii: none}}
+      - {name: violations, meta: {pii: none}}
+      - {name: columns_checked, meta: {pii: none}}
+      - {name: share_tables_checked, meta: {pii: none}}
+
+  - name: share_privacy__purpose_coverage
+    description: >
+      Which purposes each consent text version names, and which purposes need their own explicit consent. Configuration only.
+    columns:
+      - {name: consent_text_version, meta: {pii: none}}
+      - {name: purpose, meta: {pii: none}}
+      - {name: purpose_label, meta: {pii: none}}
+      - {name: form_names_purpose, meta: {pii: none}}
+      - {name: separate_consent_required, meta: {pii: none}}
+      - {name: counts_for_club_activation, meta: {pii: none}}
+
+  - name: share_privacy__retention_vs_deletion
+    description: >
+      What analytics survive the age-out deletion in the identity and linkage zones (ADR-017).
+    columns:
+      - {name: metric, meta: {pii: none}}
+      - {name: metric_label, meta: {pii: none}}
+      - {name: baseline, meta: {pii: none}}
+      - {name: facts_only, meta: {pii: none}}
+      - {name: identity_rebuilt, meta: {pii: none}}
+      - {name: facts_only_change, meta: {pii: none}}
+      - {name: identity_rebuilt_change, meta: {pii: none}}
+      - {name: survives_facts_only, meta: {pii: none}}
+      - {name: survives_identity_rebuilt, meta: {pii: none}}
+      - {name: tolerance, meta: {pii: none}}
