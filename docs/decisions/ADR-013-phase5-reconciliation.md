@@ -1,6 +1,6 @@
 # ADR-013: Phase 5 reconciliation (v1 built from the handover, v2 specified in phase-5-spec.md)
 
-- **Status:** **Proposed, awaiting Anna's review.** Nothing new has been built under `phase-5-spec.md`. Written 2026-10-13.
+- **Status:** **Accepted 2026-10-13.** Anna answered the seven questions at the end with "use your defaults"; the defaults are recorded under *Decisions taken* below. Written 2026-10-13.
 - **Synthetic data.** Every artifact named here is synthetic; assumptions about NFL, RCX, vendor or club systems are labelled as such in the files that make them.
 - **Numbering (a deviation from the spec).** The spec calls this ADR-011, and its later ADRs ADR-012 to ADR-016. Those numbers are taken: ADR-011 is "Measuring fan acquisition at market level" and ADR-012 is "Phase 5 scope and design" (v1). I propose the spec's six ADRs become **ADR-013 to ADR-018** in the same order (013 reconciliation, 014 rules registry and scoring, 015 uncertainty decomposition, 016 club market mapping, 017 retention versus deletion, 018 minimization and the chosen standard), and that ADR-012 stays as the v1 record with a "superseded in part by ADR-013" note. Every reference in the spec to ADR-011..016 reads as ADR-013..018.
 
@@ -84,7 +84,16 @@ Decisions: `KEEP`, `MERGE INTO <model>`, `RENAME`, `RETIRE`. "Replace" means the
 ## What this means for the spec's build order
 Spec steps 2 to 16 proceed after review. The reconciliation changes three of them: step 3 (registry) absorbs `p5_dq_rules`; step 8 (consent/funnel) absorbs v1's consent, household and funnel models and adds registration-source consent; step 9 (markets) **replaces** v1's territory and estimate and **removes** the synthetic denominator. Steps 10 and 11 extend v1's minimization experiment and retention job.
 
-## Questions for Anna (this is the pause)
+## Decisions taken (Anna: "use your defaults for all of them")
+1. ADR numbering: **ADR-013 to ADR-018** for the spec's six ADRs.
+2. The six v1 feeds: **onboarded to `Contracted`, kept out of the counting facts** (no double counting of the same children).
+3. Club markets: **build the spec's 32 club markets plus `NO_CLUB_MARKET` over ZIP3**, an approximation labelled as such (ADR-016).
+4. Unplaced children: **keep an explicit, labelled `UNPLACED` handling** in `mart_market_coverage` (allocation by league, then state, reported separately and never mixed silently into a market's figure).
+5. Denominators: **the synthetic stub is retired**; rates show "denominator not loaded" until `population_denominators.csv` is populated.
+6. Publishing: **publish the current scorecard for all five years before the generator amendments** (pre-flight step 3).
+7. Scoring: **switch outright** to minimum-of-dimensions with Wilson intervals; the v1 grades are recorded in this ADR's history (commit `360b40c`), not carried in the new tables.
+
+## The questions as asked
 1. **ADR numbering:** accept ADR-013 to ADR-018 for the spec's six ADRs?
 2. **The six v1 feeds:** onboard them to `Contracted` and keep them out of the counts (my recommendation: they are the same children as US_LEAGUE, so joining them would double count), or fold them into US_LEAGUE-style sources and counts (a larger change to Phase 2 and the published numbers), or retire them in favour of applying the new organization quality profiles to US_LEAGUE only?
 3. **Club markets:** build the spec's 32 markets plus `NO_CLUB_MARKET` over ZIP3 as a new approximation, or keep the 28 existing synthetic US markets?
