@@ -292,3 +292,12 @@ phase5:
     clubs_per_state: {TX: 2, CA: 2, FL: 2, NJ: 1, MA: 1, NY: 2, IL: 1, OH: 1, WA: 1, GA: 1, CO: 1, AZ: 1, PA: 1, CT: 1}
     shared_states: [NY, CA]              # the first market of the state is shared by all of the state's clubs (a shared metro)
     uncovered_markets: {TX: 1, FL: 1, OH: 1, IL: 1}   # the last N markets of the state have no club
+  retention:                             # step 6. Every value is an ASSUMPTION for the demonstration: the actual retention period is an open question for the privacy lead.
+    as_of: "2027-12-31"                  # the date the demo job runs as of (fixed, so the demo is deterministic)
+    age_out_age: 18                      # a child ages out on Dec 31 of the year they turn this age (birth year only is collected, so the latest possible birthday is used)
+    grace_months: 12                     # child-level records are deleted this long after the age-out date
+    max_record_months: 36                # no registration record is kept longer than this after it was submitted, whatever the child's age (indefinite retention is not allowed)
+    revocation_delay_days: 0             # child data of a household that revoked consent is deleted this many days after the revocation (0 = at the next job run)
+    revocation_share: 0.03               # of households (synthetic): revoke consent between revocation_from and revocation_to
+    revocation_from: "2025-09-01"
+    revocation_to: "2026-09-30"

@@ -169,7 +169,16 @@ def generate(cfg: dict | None = None) -> dict:
         rng.shuffle(rs)
         rs.sort(key=lambda r: (r["year"], r["term"]))
         out_rows[f] = _render(f, rs, rng, c5, alt_email, manifest, truth)
-    return {"catalog": catalog, "rows": out_rows, "truth": truth, "manifest": manifest, "n_children": len(pids)}
+    # consent revocations: a share of households (by the parent email on the registry) asked for their consent to be withdrawn. Own random stream; the households are chosen after everything else.
+    rr = c5["retention"]
+    rrng = random.Random(cfg["seed"] + c5["seed_offset"] + 3)
+    emails = sorted({by_id[i]["guardian_email"] for i in pids})
+    d0, d1 = dt.date.fromisoformat(rr["revocation_from"]), dt.date.fromisoformat(rr["revocation_to"])
+    revocations = [{"parent_email": e, "revoked_at": (d0 + dt.timedelta(days=rrng.randint(0, (d1 - d0).days))).isoformat() + f" {rrng.randint(6, 22):02d}:{rrng.randint(0, 59):02d}:00",
+                    "scope": "ALL", "channel": rrng.choice(["EMAIL", "WEB_FORM"])}
+                   for e in rrng.sample(emails, round(rr["revocation_share"] * len(emails)))]
+    revocations.sort(key=lambda r: r["revoked_at"])
+    return {"catalog": catalog, "revocations": revocations, "rows": out_rows, "truth": truth, "manifest": manifest, "n_children": len(pids)}
 
 
 def _ts(rng: random.Random, start: dt.date, late: bool) -> dt.datetime:
@@ -338,6 +347,11 @@ def write(res: dict, raw_dir: str | Path, truth_dir: str | Path, cfg: dict) -> d
             for a in lg["_aliases"]:
                 if arng.random() < cfg["phase5"]["alias_map_coverage"]:
                     w.writerow([a, lg["league_id"]])
+    (raw / "revocations").mkdir(parents=True, exist_ok=True)
+    with open(raw / "revocations" / "revocations.csv", "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=["parent_email", "revoked_at", "scope", "channel"])
+        w.writeheader()
+        w.writerows(res["revocations"])
     pq.write_table(pa.Table.from_pylist(res["truth"]), tdir / "p5_registration_truth.parquet")
     pq.write_table(pa.Table.from_pylist(res["manifest"]), tdir / "p5_defect_manifest.parquet")
     return counts

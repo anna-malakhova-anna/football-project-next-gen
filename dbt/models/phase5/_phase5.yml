@@ -98,7 +98,7 @@ models:
         data_tests: [unique, not_null]
       - name: activation_status
         data_tests:
-          - accepted_values: {arguments: {values: [ELIGIBLE, MARKETING_DECLINED, NO_MARKETING_OPT_IN_CAPTURED, GRANTED_BUT_NO_TIMESTAMP, GRANTED_BUT_WORDING_UNKNOWN]}}
+          - accepted_values: {arguments: {values: [ELIGIBLE, MARKETING_DECLINED, NO_MARKETING_OPT_IN_CAPTURED, GRANTED_BUT_NO_TIMESTAMP, GRANTED_BUT_WORDING_UNKNOWN, CONSENT_REVOKED]}}
   - name: p5_consent_funnel
     description: AGGREGATE. Participants to resolved households to households with known consent provenance to households eligible for club activation, with the reason for each drop. Counts only.
   - name: p5_purpose_limitation

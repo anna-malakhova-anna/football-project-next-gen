@@ -22,7 +22,8 @@ select
     mk.status = 'GRANTED'                                                   as marketing_granted,
     coalesce(mk.provenance_known, false)                                    as marketing_provenance_known,
     mk.status = 'GRANTED' and (not p.need_when or mk.when_known) and (not p.need_which or mk.which_known) as eligible_for_club_activation,
-    case when mk.status is null then 'NO_MARKETING_OPT_IN_CAPTURED'
+    case when mk.event_kind = 'REVOCATION' then 'CONSENT_REVOKED'
+         when mk.status is null then 'NO_MARKETING_OPT_IN_CAPTURED'
          when mk.status = 'DENIED' then 'MARKETING_DECLINED'
          when p.need_when and not mk.when_known then 'GRANTED_BUT_NO_TIMESTAMP'
          when p.need_which and not mk.which_known then 'GRANTED_BUT_WORDING_UNKNOWN'

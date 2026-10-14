@@ -3,6 +3,7 @@
   raw.p5_<feed>               one table per feed (matrix_export, vendor_reg_a, vendor_reg_b, pop_warner_feed, pal_chapter_csv, school_program); every column
                               keeps its header as found and its values as strings; `_source_file`, `_row_number`, `_loaded_at` are added
   raw.p5_league_catalog       canonical leagues (reference data: league id, name, the key each feed uses, state)
+  raw.p5_revocations          parent requests to withdraw consent (parent email, time, scope, channel); a parent-side input of the retention job
   raw.p5_league_alias_map     steward-maintained free-text spelling -> league id (covers only part of vendor_reg_a's spellings)
   eval.p5_registration_truth  every feed record -> true person, household, canonical league (evaluation models only)
   eval.p5_defect_manifest     every injected defect by feed record
@@ -44,6 +45,7 @@ def load(raw_dir: str | None = None, truth_dir: str | None = None, db_path: str 
     loaded_at = dt.datetime.now().replace(microsecond=0)
     sources = {f"p5_{f}": list((raw / "p5" / f).glob("*.csv")) for f in FEEDS}
     sources["p5_league_catalog"] = [raw / "p5" / "reference" / "league_catalog.csv"]
+    sources["p5_revocations"] = [raw / "p5" / "revocations" / "revocations.csv"]
     sources["p5_league_alias_map"] = [raw / "p5" / "reference" / "league_alias_map.csv"]
     con = duckdb.connect(str(db))
     counts: dict[str, int] = {}

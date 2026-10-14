@@ -19,7 +19,7 @@ dependencies = [
 testpaths = ["tests"]
 
 [tool.setuptools]
-packages = ["generator", "generator.sources", "loader", "scripts"]
+packages = ["generator", "generator.sources", "generator.phase5", "loader", "retention", "scripts"]
 
 [build-system]
 requires = ["setuptools>=68"]

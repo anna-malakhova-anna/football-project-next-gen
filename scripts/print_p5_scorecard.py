@@ -58,6 +58,12 @@ def main() -> None:
         select count(*) as markets, count(*) filter (where band_contains_truth) as band_contains_truth,
                round(100 * avg(estimate_error), 1) as mean_estimate_error_pct, round(100 * avg(naive_error), 1) as mean_naive_error_pct
         from evaluation.eval_p5_market_estimate""")
+    try:
+        show(con, "Retention job, latest run (counts only; run `make p5-retention`)", """
+            select rule, table_name, rows_deleted_or_changed as rows, children_affected as children, households_affected as households, as_of
+            from pii_store.retention_log where run_id = (select max(run_id) from pii_store.retention_log) order by rule, table_name""")
+    except duckdb.CatalogException:
+        print("\nRetention job: not run yet (make p5-retention)")
     show(con, "Fix list sample (top issue for the five largest leagues)", """
         select f.league_name, f.rule_id, f.fix from phase5.dq_fix_list f join phase5.dq_score_league s using (league_group)
         where f.fix_rank = 1 order by s.n_records desc limit 5""")

@@ -71,7 +71,7 @@ Governance sets the size of the marketable audience: nothing linked reaches mark
 ## Phase 5: data quality under privacy constraints (in progress)
 
 Participation data is thin and messy, and the obvious fixes (collect more, buy enrichment, share more) are the ones privacy rules block. Phase 5 asks how to fix it anyway,
-for two audiences: a privacy lead (minimization, purpose limitation, retention) and a club analytics lead (what can I trust in my territory). Status: **step 5 of 7 built: the source feeds, the scorecard, the data standard, consent provenance and the market estimate.**
+for two audiences: a privacy lead (minimization, purpose limitation, retention) and a club analytics lead (what can I trust in my territory). Status: **step 6 of 7 built: the source feeds, the scorecard, the data standard, consent provenance, the market estimate and the retention job.**
 Phase 5 is an isolated scope: its feeds are derived from the existing true US youth registry with their own random stream (`phase5.seed_offset`), so no Phase 1 to 4 file or published number changes.
 The feed names, shapes and consent wordings are **assumptions** made for the demonstration; none describes a real NFL, RCX, vendor or club system.
 
@@ -110,9 +110,9 @@ back to a child. On the generated data:
 | Children in a contactable household | 6,771 | no usable parent email (school rosters, blank or malformed) |
 | Resolved households | 5,430 | siblings share a parent email |
 | **Households with known consent provenance** | **3,261** | consent missing, or recorded with no timestamp or wording: **the data quality story** |
-| **Households eligible for club activation** | **659** | no marketing opt-in captured (1,889), declined (2,311), opt-in without wording (498) or timestamp (73): **the privacy story** |
+| **Households eligible for club activation** | **638** | no marketing opt-in captured (1,827), declined (2,249), opt-in without wording (485) or timestamp (70), consent later revoked (161): **the privacy story** |
 
-Treating league-communications consent as a marketing opt-in would have admitted 2,324 more households (78% of those who agreed to league emails); 1,833 of them never opted in to marketing. Graded against the
+Treating league-communications consent as a marketing opt-in would have admitted 2,258 more households (78% of those who agreed to league emails); 1,781 of them never opted in to marketing. Graded against the
 answer key: 0 falsely eligible households; household grouping precision 1.0, recall 0.94. `make p5-score` prints all of it.
 
 **Step 5, estimate instead of enrich** ([`docs/market-estimate.md`](docs/market-estimate.md)). No third-party data about children is bought. A child is placed by home ZIP3 into a market, and a market into a (synthetic) club
@@ -120,6 +120,11 @@ territory, with **shared markets** and **areas with no club** handled on purpose
 band driven by data completeness (a rule of thumb, not a confidence interval), a rate against a **labelled synthetic stub** of the Census youth population, a confidence label, the market's data quality grade and its top
 data gaps. The club-facing schema `phase5_club` is aggregate only with a minimum cell size and a test that fails the build otherwise. Honest result: the estimate overshoots (about 8% mean error, naive count 5%) and the
 first band contained the truth in only 9 of 20 markets; the revised band covers 20 of 20 but was designed after seeing the miss (ADR-012).
+
+**Step 6, age-out retention** ([`docs/retention.md`](docs/retention.md)). `make p5-retention` is a real job on a retention-managed copy (`pii_store`), never on `raw`, `eval` or the published snapshots: it removes revoked
+households from every activation-eligible set at once, deletes child-level records when a child ages out (Dec 31 of the year they turn 18, plus a grace period) or a registration passes a maximum age, keeps aggregates,
+purges the parent's contact data when no child is left, keeps only a hash of a revoked email, and logs **counts only** to `retention_log`. It re-checks six invariants in independent SQL and fails the build if anything
+over the threshold survives; a seeded test covers each case. Every period is an assumption (the actual one is an open question).
 
 Across feeds: the same child in two feeds with name variants, one parent email shared by siblings, some households using two parent emails, case and whitespace noise on emails, late submissions,
 and leagues that never sent their latest season. Seasons are 2024 and 2025; the Phase 1 to 4 window is not extended.

@@ -5,6 +5,7 @@
 --   what_known    the purposes are known: the wording is in the map, or the event is an explicit marketing box
 --   when_known    the event has a timestamp
 --   which_known   the event names a wording version, or the captured string is the wording itself (p5_consent_wording_map.wording_is_full_text)
+--   REVOCATION          the parent withdrew consent (raw.p5_revocations): DENIED for every purpose
 -- household_id is NULL for an event on a record with no usable email: the consent exists but belongs to nobody we can contact.
 with recs as (
 
@@ -49,10 +50,24 @@ marketing as (
 
 ),
 
-unioned as (select * from ops union all select * from marketing)
+revocations as (
+
+    -- a parent withdrew consent: a DENIED event for every purpose at the time of the request. Provenance is deliberately NOT "fully known" (a revocation names no wording), so
+    -- it never counts toward the funnel's known-provenance stage; because the latest event decides, it overrides any earlier grant.
+    select
+        'revocation' as feed, cast(null as varchar) as source_record_id, 'REVOCATION' as event_kind, {{ normalize_email('parent_email') }} as contact_email,
+        try_cast(revoked_at as timestamp) as registered_at, cast(null as integer) as season_year,
+        'DENIED' as status, (select list(purpose_id order by purpose_id) from {{ ref('p5_consent_purposes') }}) as purposes,
+        cast(null as varchar) as wording_text, cast(null as varchar) as wording_version, try_cast(revoked_at as timestamp) as event_ts,
+        true as what_known, false as wording_is_full_text
+    from {{ source('raw_p5', 'p5_revocations') }}
+
+),
+
+unioned as (select * from ops union all select * from marketing union all select * from revocations)
 
 select
-    md5(u.feed || '|' || u.source_record_id || '|' || u.event_kind)                                         as consent_event_id,
+    md5(u.feed || '|' || coalesce(u.source_record_id, u.contact_email || '|' || u.registered_at::varchar) || '|' || u.event_kind)                                         as consent_event_id,
     h.household_id,
     u.feed                                                                                                  as source_feed,
     u.source_record_id,

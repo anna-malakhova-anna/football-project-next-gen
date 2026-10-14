@@ -17,3 +17,5 @@ sources:
         description: "Canonical leagues (id, name, the key each feed uses for it, state). Reference data, not ground truth."
       - name: p5_league_alias_map
         description: Steward-maintained free-text league spelling to league id (vendor_reg_a). Covers only part of the spellings seen.
+      - name: p5_revocations
+        description: "Parent requests to withdraw consent (parent email, time, scope, channel). A parent-side input of the retention job and of the consent chain."
