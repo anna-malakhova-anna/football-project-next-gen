@@ -171,8 +171,8 @@ def main() -> None:
 
     heading(6, "The ask: the data standard for next season")
     print("  For the feeds in this market, the standard fields they do not yet meet (95% present and valid):")
-    table(q(con, """select feed, core_fields_met || '/' || core_fields as core_met, consent_fields_met || '/' || consent_fields as consent_met, array_to_string(failing_fields, ', ') as to_fix
-                    from phase5.p5_standard_summary where feed in (select distinct feed from phase5.p5_record_quality where market_id = ?) order by feed""", [m]))
+    table(q(con, """select source_system as feed, core_fields_met || '/' || core_fields as core_met, consent_fields_met || '/' || consent_fields as consent_met, array_to_string(failing_fields, ', ') as to_fix
+                    from quality.dq_standard_summary where season_year = (select max(season_year) from quality.dq_standard_summary) and source_system in (select distinct feed from phase5.p5_record_quality where market_id = ?) order by source_system""", [m]))
     print("\n  The ask in one line: send birth year (not date of birth), ZIP3, the canonical league id, flag registrations only, and with each consent: when, which wording, which purposes, how.")
     print("  What it costs to ask for less (birth year and ZIP3 instead of date of birth and ZIP5): about 4 points of recall, no loss of precision (docs/data-standard.md).")
     print("\nDone. Open questions for the stakeholders: docs/questions-for-stakeholders.md")

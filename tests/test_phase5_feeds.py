@@ -116,7 +116,7 @@ def test_data_standard_names_every_field_and_the_exclusions():
     import csv
     root = Path(__file__).resolve().parent.parent
     doc = (root / "docs" / "data-standard.md").read_text(encoding="utf-8")
-    with open(root / "dbt" / "seeds" / "p5_data_standard.csv", newline="", encoding="utf-8") as fh:
+    with open(root / "dbt" / "seeds" / "data_standard_fields.csv", newline="", encoding="utf-8") as fh:
         fields = [r["field_name"] for r in csv.DictReader(fh)]
     assert all(f"`{f}`" in doc for f in fields)
     assert "deliberately do not ask for" in doc

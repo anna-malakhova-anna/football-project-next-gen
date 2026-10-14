@@ -125,7 +125,7 @@ Treating league-communications consent as a marketing opt-in would have admitted
 households; household grouping precision 1.0, recall 0.94.
 
 **Data standard** ([`docs/data-standard.md`](docs/data-standard.md)). 16 fields, each with purposes and a retention rule, plus the fields deliberately *not* asked for (full date of birth, ZIP5, child contact details, parent name,
-tackle registrations). Asking for birth year and ZIP3 instead of full DOB and ZIP5 costs about four points of recall (0.866 to 0.827) and no precision. No feed meets the standard today; `p5_standard_check` validates any new one.
+tackle registrations). Asking for birth year and ZIP3 instead of full DOB and ZIP5 costs about four points of recall (0.866 to 0.827) and no precision. Only `US_LEAGUE` meets the core fields today and no source meets the consent fields; `validate_against_standard` validates any new one.
 
 **Market estimate** ([`docs/market-estimate.md`](docs/market-estimate.md)). Children are placed by ZIP3 into a market and a market into a synthetic club territory, with shared markets and areas with no club handled on purpose;
 children with no usable ZIP are allocated by where placed children of the same league live. The club-facing schema `phase5_club` is aggregate only with a minimum cell size of 10 and a test that fails the build otherwise.

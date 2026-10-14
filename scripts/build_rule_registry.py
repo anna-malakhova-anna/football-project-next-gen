@@ -3,11 +3,12 @@
   uv run python -m scripts.build_rule_registry           # rewrite the seed
   uv run python -m scripts.build_rule_registry --check   # exit 1 if the committed seed is out of date
 
-Three origins, one table:
+Four origins, one table:
   PHASE1    every Phase 1 data-quality flag (dq_flag_severity) is checked by a registry rule: `not list_has_any(dq_flags, [...])` over dq_record_base. Flag treatment in the counting
             rules (AFFECTS_COUNT, MISSING_VALUE, NORMALIZED) stays in dq_flag_severity; the registry measures how often each flag fires. The two answer different questions (ADR-014).
   CONTRACT  every `quality:` rule of every contract (contracts/*.yml). Contracts keep owning schema, thresholds and validation (scripts/validate_contracts.py, quality.dq_contract_results);
             the registry row references the contract and its version and turns the contract's maximum violation rate into a minimum pass rate. No threshold is restated here: it is read.
+  STANDARD  one INFO rule per field of the data standard (data_standard_fields): conformance of each source to the ask, measured by the validate_against_standard macro, never scored.
   PHASE5    rules the earlier phases did not have: the Phase 5 v1 rules that no Phase 1 flag covers, and the organization-level and consent-provenance rules.
 
 Rules are data: `check_sql` is a SQL predicate over the columns of dq_record_base (record grain) or dq_org_season_base (ORG_SEASON grain): TRUE passes, FALSE fails, NULL = not applicable.
@@ -158,8 +159,20 @@ def contract_rules() -> list[dict]:
     return out
 
 
+def standard_rules() -> list[dict]:
+    """One INFO rule per field of the data standard (seed data_standard_fields): conformance of a source to the ASK, measured by the validate_against_standard macro and reported in
+    dq_rule_results with origin STANDARD. INFO, so it is never scored into a purpose score (a missing ZIP would count twice: here and in DQ-COMP-POSTAL)."""
+    out = []
+    with open(ROOT / "dbt" / "seeds" / "data_standard_fields.csv", newline="", encoding="utf-8") as fh:
+        for f in csv.DictReader(fh):
+            out.append(dict(rule_id="DQ-STD-" + f["field_name"].upper().replace("_", "-"), dimension="CONFORMITY", applies_to=f"dq_standardized_records.{f['field_name']}",
+                            grain="ORG_SEASON", check_sql="", thresholds={}, severity="INFO", owner_role=DATA_LEAD,
+                            fix_guidance=f"Send {f['field_name']}: {f['definition'].rstrip('.')} ({f['format']}). {f['requirement'].title()} in the data standard.", origin="STANDARD"))
+    return out
+
+
 def all_rules() -> list[dict]:
-    rules = PHASE1 + PHASE5 + contract_rules()
+    rules = PHASE1 + PHASE5 + contract_rules() + standard_rules()
     rows = []
     for r in rules:
         th = r.pop("thresholds")

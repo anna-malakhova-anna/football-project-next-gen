@@ -57,3 +57,37 @@ case when ({{ n }}) > 0 then
     / (1 + {{ z }} * {{ z }} / ({{ n }}))
 end
 {%- endmacro %}
+
+{#-
+  validate_against_standard(relation, keys)
+  Validates ANY relation that carries the data standard's columns (seed data_standard_fields) against the standard. For every standard field, per grouping key, it counts the rows
+  (n_rows), the rows where the field is missing (NULL or blank) and the rows where it is present but invalid (fails the field's regex pattern or allowed values). `keys` lists the
+  grouping columns of the relation (they are returned as they are). A field the relation lacks entirely is reported as 100% missing. Use it on a new feed before onboarding it:
+  map its columns to the standard names in a model, then select {{ validate_against_standard(ref('my_feed_in_standard_shape'), ['grp_source_system']) }}.
+  Reads the standard with run_query at compile time (the seed must be loaded first; callers add a depends_on line for it).
+-#}
+{% macro validate_against_standard(relation, keys=['grp_source_system', 'grp_org_id', 'grp_season_year']) -%}
+{%- if execute -%}
+{%- set fields = run_query("select field_name, requirement, pattern, allowed_values from " ~ ref('data_standard_fields') ~ " order by ordinal") -%}
+{%- set cols = adapter.get_columns_in_relation(relation) | map(attribute='name') | map('lower') | list -%}
+{%- for f in fields.rows %}
+{% set name = f[0] %}{% set present = name in cols %}
+select {{ keys | join(', ') }}, '{{ name }}' as field_name, '{{ f[1] }}' as requirement, count(*) as n_rows,
+       {% if present -%}
+       count(*) filter (where nullif(trim(cast({{ name }} as varchar)), '') is null) as n_missing,
+       count(*) filter (where nullif(trim(cast({{ name }} as varchar)), '') is not null and not (
+           {%- if f[3] %} cast({{ name }} as varchar) in ({% for v in f[3].split('|') %}'{{ v }}'{% if not loop.last %}, {% endif %}{% endfor %})
+           {%- elif f[2] %} regexp_matches(cast({{ name }} as varchar), '{{ f[2] | replace("'", "''") }}')
+           {%- else %} true {%- endif %})) as n_invalid
+       {%- else -%}
+       count(*) as n_missing, 0 as n_invalid
+       {%- endif %}
+from {{ relation }}
+group by {{ keys | join(', ') }}
+{% if not loop.last %}union all
+{% endif %}
+{%- endfor %}
+{%- else -%}
+select {% for k in keys %}cast(null as varchar) as {{ k }}, {% endfor %}cast(null as varchar) as field_name, cast(null as varchar) as requirement, 0 as n_rows, 0 as n_missing, 0 as n_invalid where false
+{%- endif -%}
+{%- endmacro %}

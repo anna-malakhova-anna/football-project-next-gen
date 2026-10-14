@@ -80,4 +80,16 @@ models:
     description: PURPOSE_SCORE over time for each source and organization with P-chart control limits (and mean +/- 3 sd from three prior seasons); out_of_control flags a shift against the entity's own history.
     config:
       tags: [phase5]
+  - name: dq_standardized_records
+    description: What every registration source looks like in the shape of the data standard (one column per standard field, grp_* grouping keys). A value a source cannot supply is NULL, never filled in.
+    config:
+      tags: [phase5]
+  - name: dq_standard_conformance
+    description: "Every source against the data standard, per organization, season and field: rows, missing, invalid and conformance. Measured by the validate_against_standard macro; INFO in the registry, never scored."
+    config:
+      tags: [phase5]
+  - name: dq_standard_summary
+    description: Per source and season, whether the source meets the data standard on the core (REQUIRED) and consent (CONDITIONAL) fields at the configured conformance, and which fields fail.
+    config:
+      tags: [phase5]
 

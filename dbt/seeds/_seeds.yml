@@ -365,19 +365,23 @@ seeds:
         data_tests:
           - accepted_values: {arguments: {values: [COMPLETENESS, VALIDITY, UNIQUENESS, TIMELINESS, CONSISTENCY, CONSENT_PROVENANCE]}}
 
-  - name: p5_data_standard
+  - name: data_standard_fields
     description: >
-      Phase 5. The minimum viable data standard, machine-readable: one row per field a league or channel must submit, with definition, format (a regex pattern or allowed values),
-      REQUIRED or CONDITIONAL, the purposes it serves, the retention rule and the rationale. docs/data-standard.md is the human version; the p5_standard_check macro validates any feed against this table.
+      The minimum viable data standard, machine-readable (ADR-016 and docs/data-standard.md): one row per field a league or channel must submit, with definition, format (a regex pattern or allowed
+      values), REQUIRED or CONDITIONAL, the purposes it serves (from dq_purposes), PII class, retention rule, the evidence that justifies the field's granularity (a link to the minimization result)
+      and the rationale. The validate_against_standard macro checks any source against this table; results land in dq_rule_results with origin STANDARD.
     config:
       tags: [phase5]
-      column_types: {ordinal: integer, field_name: varchar, definition: varchar, format: varchar, pattern: varchar, allowed_values: varchar, requirement: varchar, purposes: varchar, retention_rule: varchar, rationale: varchar}
+      column_types: {ordinal: integer, field_name: varchar, definition: varchar, format: varchar, pattern: varchar, allowed_values: varchar, requirement: varchar, purposes: varchar, pii_class: varchar, retention_rule: varchar, evidence: varchar, rationale: varchar}
     columns:
       - name: field_name
         data_tests: [unique, not_null]
       - name: requirement
         data_tests:
           - accepted_values: {arguments: {values: [REQUIRED, CONDITIONAL]}}
+      - name: pii_class
+        data_tests:
+          - accepted_values: {arguments: {values: [none, quasi, direct]}}
 
   - name: p5_consent_purposes
     description: >
@@ -452,7 +456,7 @@ seeds:
           - accepted_values: {arguments: {values: [INFO, WARN, ERROR]}}
       - name: origin
         data_tests:
-          - accepted_values: {arguments: {values: [PHASE1, CONTRACT, PHASE5]}}
+          - accepted_values: {arguments: {values: [PHASE1, CONTRACT, STANDARD, PHASE5]}}
 
   - name: dq_purposes
     description: The five purposes a record can be fit for (COUNT, SEGMENT, GEO, RETAIN, ACTIVATE), the question each supports and its bar. Every score is computed per purpose.

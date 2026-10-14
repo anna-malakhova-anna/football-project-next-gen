@@ -1,9 +1,11 @@
 {{ config(tags=['phase5']) }}
--- The registry is the only place a rule is defined. A RECORD or ORG_SEASON rule has SQL; a CONTRACT rule has NONE (the contract owns its measurement) and names its contract;
+-- The registry is the only place a rule is defined. A RECORD or ORG_SEASON rule has SQL; a CONTRACT rule has NONE (the contract owns its measurement) and names its contract; a STANDARD rule has none
+-- (the validate_against_standard macro measures it), is INFO and at ORG_SEASON grain;
 -- an INFO rule has no threshold; an ERROR or WARN rule has at least one; every purpose named is a known purpose; every threshold is a rate; every rule has guidance and an owner.
 select rule_id, 'bad definition' as problem
 from {{ ref('dq_rule_registry') }} r
-where (r.origin <> 'CONTRACT' and nullif(trim(r.check_sql), '') is null)
+where (r.origin not in ('CONTRACT', 'STANDARD') and nullif(trim(r.check_sql), '') is null)
+   or (r.origin = 'STANDARD' and (nullif(trim(r.check_sql), '') is not null or r.grain <> 'ORG_SEASON' or r.severity <> 'INFO'))
    or (r.origin = 'CONTRACT' and (nullif(trim(r.check_sql), '') is not null or nullif(trim(r.contract_ref), '') is null or r.grain <> 'SOURCE_SEASON'))
    or (r.severity = 'INFO' and coalesce(r.threshold_count, r.threshold_segment, r.threshold_geo, r.threshold_retain, r.threshold_activate) is not null)
    or (r.severity in ('ERROR', 'WARN') and coalesce(r.threshold_count, r.threshold_segment, r.threshold_geo, r.threshold_retain, r.threshold_activate) is null)

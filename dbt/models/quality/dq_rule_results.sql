@@ -1,9 +1,11 @@
 -- depends_on: {{ ref('dq_rule_registry') }}
 -- depends_on: {{ ref('dq_record_base') }}
 -- depends_on: {{ ref('dq_org_season_base') }}
+-- depends_on: {{ ref('dq_standard_conformance') }}
 -- The long-form fact everything in the data quality layer reads: one row per rule x grain key x purpose.
 --   RECORD rules (origin PHASE1, PHASE5)  are evaluated over dq_record_base and aggregated to (source, organization, season); an organization-less stream (fan, school) is keyed by source and season
 --   ORG_SEASON rules                      are evaluated over dq_org_season_base (dark organizations included)
+--   STANDARD rules                        are the data standard's field conformance (dq_standard_conformance, from validate_against_standard), INFO, never scored
 --   CONTRACT rules                        are the contract's own measurement (quality.dq_contract_results, written by scripts/validate_contracts.py), read here, not re-measured:
 --                                         the contract's maximum violation rate becomes a minimum pass rate; the grain is the source over all seasons
 -- observed_value is a pass rate in [0, 1]. threshold is the registry's minimum pass rate for that purpose; `pass` is NULL for a rule with no threshold for any purpose (INFO) and
@@ -33,11 +35,22 @@ contract as (
 
 ),
 
+standard as (
+
+    -- conformance to the data standard: measured by validate_against_standard, one registry rule per field (origin STANDARD, INFO)
+    select 'DQ-STD-' || upper(replace(field_name, '_', '-')) as rule_id, source_system, org_id, season_year,
+           n_rows as n_evaluated, n_rows - n_missing - n_invalid as n_pass, conformance as pass_rate_override
+    from {{ ref('dq_standard_conformance') }}
+
+),
+
 unioned as (
 
     select rule_id, source_system, org_id, season_year, n_evaluated, n_pass, n_pass::double / nullif(n_evaluated, 0) as pass_rate from measured
     union all
     select rule_id, source_system, org_id, season_year, n_evaluated, n_pass, pass_rate_override from contract
+    union all
+    select rule_id, source_system, org_id, season_year, n_evaluated, n_pass, pass_rate_override from standard
 
 ),
 
