@@ -1,7 +1,7 @@
 # Retrofitted data contract: Canadian club registrations (Source B). Synthetic data.
 source_system: CA_CLUB
-version: 1.0.0
-effective_date: 2026-10-01
+version: 1.1.0
+effective_date: 2026-10-14   # 1.1.0: consents.text_version added (wording version of the club's form; absent where the platform does not emit it)
 owner_role: "Club Platform Partnerships, Canada"
 partner_type: "club management platform"
 delivery:
@@ -43,6 +43,7 @@ schema:
   - {column: postal_code, raw: "$.postal_code", type: string, required: true, pii: quasi}
   - {column: consents.casl_marketing, raw: "$.consents.casl_marketing", type: boolean, required: false, pii: none, allowed_values: ["true", "false"]}
   - {column: consents.photo_media, raw: "$.consents.photo_media", type: boolean, required: false, pii: none, allowed_values: ["true", "false"]}
+  - {column: consents.text_version, raw: "$.consents.text_version", type: string, required: false, pii: none, allowed_values: [v1_ops_only, v2_ops_photo, v3_ops_comms, v4_full]}
   - {column: consents.consent_captured_at, raw: "$.consents.consent_captured_at", type: timestamp, required: false, pii: quasi, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'}
   - {column: updated_at, raw: "$.updated_at", type: timestamp, required: true, pii: quasi, pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'}
 quality:

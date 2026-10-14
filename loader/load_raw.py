@@ -4,6 +4,7 @@ All values are stored as the strings found in the files (empty CSV fields stay '
 stay their raw numeric string). Typing, trimming, NULLIF and junk removal happen in dbt staging.
 Ground truth (data/ground_truth/) is never read here.
 
+  raw.org_registry              one row per known organization and season: where it is, its channel, and whether it sent a file (the coverage denominator)
   raw.us_league_registrations   one row per CSV data row; `_row_number` = 1-based data row index
   raw.ca_club_records           one row per API record; nested JSON kept whole in `record_json`
   raw.school_headcounts         one row per CSV data row of the aggregate school / recreation program headcounts (no individuals)
@@ -30,7 +31,7 @@ from openpyxl import load_workbook
 
 from generator.population import load_config
 
-RAW_TABLES = ("us_league_registrations", "ca_club_records", "intl_federation_returns", "school_headcounts", "fan_accounts", "fan_events",
+RAW_TABLES = ("org_registry", "us_league_registrations", "ca_club_records", "intl_federation_returns", "school_headcounts", "fan_accounts", "fan_events",
               "fan_consent_events", "fan_transactions")
 
 
@@ -52,6 +53,15 @@ def read_us(raw: Path) -> tuple[list[str], list[list]]:
             for n, rec in enumerate(reader, start=1):
                 rows.append(rec + [_rel(f, raw), n])
     return columns, rows
+
+
+def read_org_registry(raw: Path) -> tuple[list[str], list[list]]:
+    """The organization registry (what the program knows): one row per known org and season, with whether it sent a file."""
+    path = raw / "org_registry.csv"
+    with open(path, newline="", encoding="utf-8") as fh:
+        reader = csv.reader(fh)
+        header = next(reader)
+        return header, [rec + [_rel(path, raw), n] for n, rec in enumerate(reader, start=1)]
 
 
 def read_ca(raw: Path) -> list[list]:
@@ -132,6 +142,7 @@ def load(raw_dir: str | None = None, db_path: str | None = None, cfg: dict | Non
     db.parent.mkdir(parents=True, exist_ok=True)
     loaded_at = dt.datetime.now().replace(microsecond=0)
 
+    reg_cols, reg_rows = read_org_registry(raw)
     us_cols, us_rows = read_us(raw)
     ca_rows = read_ca(raw)
     width, intl_rows = read_intl(raw)
@@ -142,6 +153,7 @@ def load(raw_dir: str | None = None, db_path: str | None = None, cfg: dict | Non
     fan_txn_rows = _read_jsonl(raw, "fan_transactions_*.jsonl")
 
     tables = {
+        "org_registry": _table(reg_cols + ["_source_file", "_row_number"], reg_rows, {"_row_number": pa.int32()}),
         "us_league_registrations": _table(
             us_cols + ["_source_file", "_row_number"], us_rows, {"_row_number": pa.int32()}),
         "ca_club_records": _table(
@@ -170,7 +182,7 @@ def load(raw_dir: str | None = None, db_path: str | None = None, cfg: dict | Non
         counts = {n: con.execute(f"SELECT count(*) FROM raw.{n}").fetchone()[0] for n in tables}
     finally:
         con.close()
-    expected = {"us_league_registrations": len(us_rows), "ca_club_records": len(ca_rows),
+    expected = {"org_registry": len(reg_rows), "us_league_registrations": len(us_rows), "ca_club_records": len(ca_rows),
                 "intl_federation_returns": len(intl_rows), "school_headcounts": len(school_rows),
                 "fan_accounts": len(fan_acc_rows), "fan_events": len(fan_event_rows),
                 "fan_consent_events": len(fan_consent_rows), "fan_transactions": len(fan_txn_rows)}

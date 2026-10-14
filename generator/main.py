@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import csv
+
 import pyarrow as pa
 import pyarrow.parquet as pq
 
@@ -26,6 +28,8 @@ def run(cfg: dict | None = None, raw_dir: str | None = None, truth_dir: str | No
         outputs.append(out)
     truth = [t for o in outputs for t in o.truth]
     manifest = [m for o in outputs for m in o.manifest]
+    for m in manifest:
+        m.setdefault("mechanism", None)           # the injected mechanism per record (org profile, missing-not-at-random pattern); evaluation only
     pq.write_table(pa.Table.from_pylist(truth), truth_out / "registration_truth.parquet")
     pq.write_table(pa.Table.from_pylist(manifest), truth_out / "defect_manifest.parquet")
     # aggregate-source truth: program-year totals with the true overlap, and the overlapping people (ground truth; evaluation only)
@@ -43,6 +47,20 @@ def run(cfg: dict | None = None, raw_dir: str | None = None, truth_dir: str | No
     pq.write_table(pa.Table.from_pylist([{"min_age": b["min_age"], "max_age": b["max_age"], "churn_p": float(b["p"]),
                                           "youth_max_age": cfg["population"]["youth_age_range"][1]}
                                          for b in cfg["participation"]["churn_by_age"]]), truth_out / "churn_truth.parquet")
+    # ---- structured quality (phase 5 spec section 3): org profiles and dark organizations ----
+    structured = [o for o in outputs if "orgs" in o.extra]
+    orgs = [g for o in structured for g in o.extra["orgs"]]
+    pq.write_table(pa.Table.from_pylist(orgs), truth_out / "org_quality_truth.parquet")                 # the latent profile of every org: ground truth
+    pq.write_table(pa.Table.from_pylist([u for o in structured for u in o.extra["unreported"]]), truth_out / "unreported_participation_truth.parquet")
+    # the org registry is RAW (what the program knows): every known organization, every season, and whether it sent a file. It carries the channel, never the profile.
+    with open(raw / "org_registry.csv", "w", newline="", encoding="utf-8") as fh:
+        w = csv.writer(fh, lineterminator="\n")
+        w.writerow(["org_id", "source_system", "org_name", "region_code", "zip3", "channel", "season_year", "reports_data"])
+        for o in structured:
+            dark = o.extra["dark"]
+            for g in o.extra["orgs"]:
+                for y in cfg["seasons"]["years"]:
+                    w.writerow([g["org_id"], g["source_system"], g["org_name"], g["region_code"], g["zip3"], g["channel"], y, "N" if g["org_id"] in dark[y] else "Y"])
     (raw / "README_SYNTHETIC.txt").write_text(SYNTHETIC_NOTE + "\n")
     return {"people": len(people), "outputs": outputs}
 

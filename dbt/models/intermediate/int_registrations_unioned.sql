@@ -45,6 +45,7 @@ select
 
     consent_photo,
     consent_marketing,
+    cast(consent_text_version as varchar)                                       as consent_text_version,
 
     registered_at,
     dq_flags,

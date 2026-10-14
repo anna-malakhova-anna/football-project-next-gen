@@ -12,6 +12,8 @@ it). The matcher never sees them. Tables:
   eval.fan_market_truth     per market-year: launch year, new accounts, and how many the programme caused (the answer key for acquisition incrementality)
   eval.fan_consent_truth    each account's intended final consent status per channel (the answer key for the consent history)
   eval.fan_effect_truth     per participant account-month: expected events as observed and with no programme (the oracle behind the fandom estimate)
+  eval.org_quality_truth    each organization's latent data-quality profile and form properties (the answer key for the scorecards)
+  eval.unreported_participation_truth  participants whose organization sent no file that season: they exist here and in no source
   eval.churn_truth          the true per-season churn probability by age band (the answer key for the retention curves)
 """
 from __future__ import annotations
@@ -34,6 +36,8 @@ TABLES = {
     "fan_market_truth": "fan_market_truth.parquet",
     "fan_consent_truth": "fan_consent_truth.parquet",
     "fan_effect_truth": "fan_effect_truth.parquet",
+    "org_quality_truth": "org_quality_truth.parquet",
+    "unreported_participation_truth": "unreported_participation_truth.parquet",
 }
 
 

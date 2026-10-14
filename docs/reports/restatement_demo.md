@@ -180,3 +180,34 @@ ramps up across the window).
 
 **What was done.** Nothing was reissued yet. The published snapshots stay (they are immutable) and are now out of date against the rebuilt data. Methodology v2.0 (rework step 12)
 publishes new baselines for 2021 to 2025, records the `METHODOLOGY_CHANGE`, and the CHANGELOG ties the two together.
+
+## Example 5: structured data quality and dark organizations (`NEW_SOURCE_DATA`, Phase 5 step 2)
+
+Phase 5 amended the generator (spec section 3): every organization gets a latent quality profile (35% disciplined, 45% typical, 15% struggling, 5% manual), defects are placed at the same
+overall counts but weighted toward the worse profiles and missing-not-at-random patterns, and **20-24% of known organizations send no file in a given season** (their participants exist in
+the truth and in no source). The counting rules and every KPI definition were untouched. The scorecard published immediately before the change (the five v2.0 snapshots of 2021 to 2025)
+was compared with the rebuilt one:
+
+| Cause | Rows | Distinct KPIs | Restatement required |
+|---|---|---|---|
+| `NEW_SOURCE_DATA` | 90 (19 KPIs x 5 years minus 5) | 19 | **57** |
+| any other cause | 0 | 0 | 0 |
+
+By KPI group all 5 north-star, 20 growth, 30 reach and 15 depth rows were listed as headline movements; the 20 data-trust rows move but never require a restatement. Headline examples:
+
+| Year | KPI | Published | Rebuilt | Change |
+|---|---|---|---|---|
+| 2022 | Unique participants | 3,354 | 2,504 | -25.3% |
+| 2025 | Unique participants | 8,959 | 7,249 | -19.1% |
+| 2025 | New participants | 3,957 | 3,791 | -4.2% |
+| 2025 | Returning participants | 5,002 | 3,059 | -38.8% |
+| 2025 | International participants | 3,354 | 2,855 | -14.9% |
+| 2025 | Retention rate | 68.6% | 53.9% | -14.7 pts |
+| 2025 | Girls' share of youth | 46.3% | 45.8% | -1.1% |
+
+**What the movement is.** Mostly *coverage*, not a change of definition: people who played at a dark organization are not in the data that season. That is why returning participants and
+retention fall most: a player who is dark for a season looks like a churner. The retention evaluation now states the effect: the Kaplan-Meier curve sits about the coverage share (0.79)
+per year below the churn parameters' curve, and agrees with that curve once it is adjusted for the share of organization-seasons that reported (`eval_retention`). Nothing was reissued here: this log
+is evidence for the phase's design, and the new baselines are published when the phase is complete.
+
+**What the log cannot say.** It says `NEW_SOURCE_DATA` because raw row counts differ; it cannot tell a dark organization from a late file, which is the point of the organization registry.

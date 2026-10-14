@@ -47,6 +47,7 @@ cleaned as (
 
         r.division                                                          as division_label_raw,
         d.canonical_division,
+        coalesce(d.notes like 'Free-text spreadsheet label%', false)       as division_is_free_text,
 
         {{ normalize_email('r.guardian_email') }}                           as contact_email,
         r.guardian_email                                                    as raw_email,
@@ -58,6 +59,7 @@ cleaned as (
         {{ to_consent_boolean('r.marketing_opt_in') }}                      as consent_marketing,
         r.photo_consent                                                     as raw_consent_photo,
         r.marketing_opt_in                                                  as raw_consent_marketing,
+        {{ blank_to_null('r.consent_text_version') }}                       as consent_text_version,
         {{ to_consent_boolean('r.waiver_signed') }}                         as waiver_signed,
 
         try_cast(r.registered_at as timestamp)                              as registered_at,
@@ -88,7 +90,8 @@ flagged as (
 
     select
         *,
-        age_at_cutoff < 18                                                  as is_minor,
+        -- a file with no DOB (division gives an age band only) still says whether the registrant is a youth
+        coalesce(age_at_cutoff < 18, canonical_division like 'U%')          as is_minor,
         row_number() over (partition by row_hash order by source_file, source_row) > 1
                                                                             as is_exact_duplicate,
         age_at_cutoff < 0 or age_at_cutoff > 80                             as is_impossible_dob,
@@ -118,7 +121,10 @@ select
         case when is_exact_duplicate then 'exact_duplicate' end,
         case when is_near_duplicate then 'near_duplicate' end,
         case when is_impossible_dob then 'impossible_dob' end,
-        case when dob_parse_status in ('AMBIGUOUS', 'UNPARSEABLE', 'BLANK') then 'dob_unparseable' end,
+        case when dob_parse_status in ('AMBIGUOUS', 'UNPARSEABLE') then 'dob_unparseable' end,
+        case when dob_parse_status = 'BLANK' then 'dob_age_group_only' end,
+        case when {{ blank_to_null('raw_postal') }} is null then 'missing_zip' end,
+        case when division_is_free_text then 'free_text_division' end,
         case when {{ blank_to_null('raw_sex') }} is null then 'missing_gender'
              when sex = 'U' then 'unmapped_gender' end,
         case when {{ blank_to_null('raw_consent_photo') }} is null then 'missing_photo_consent' end,

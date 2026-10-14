@@ -8,7 +8,11 @@
 --                 isolates the estimator, not the mix of players.
 -- naive_survival  the same Kaplan-Meier calculation where a player who turns 18 is counted as a churn event. Right censoring is still handled
 --                 correctly in both, so the difference between the two columns is the age-out rule and nothing else.
--- truth_in_ci     the true curve lies inside the 95% interval of the KM estimate (about 95% of cells should, if the intervals are honest).
+-- COVERAGE (Phase 5): known organizations that send no file in a season make their players vanish from the data for that season, which the survival
+--                 estimator reads as churn. `true_survival_if_all_reported` is the curve the churn parameters imply; `true_survival` is that curve times
+--                 coverage_share ^ k, with coverage_share the share of org-seasons that sent a file (label-free, from the org registry): the curve an estimator
+--                 that cannot see dark organizations should land on. The gap between the two is a finding about coverage, not an estimator error.
+-- truth_in_ci     the (coverage-adjusted) true curve lies inside the 95% interval of the KM estimate (about 95% of cells should, if the intervals are honest).
 with s as (select * from {{ ref('retention_spells') }} where age_known),
 
 true_person as (
@@ -84,13 +88,17 @@ select
     km.survival                                                                                    as km_survival,
     km.ci_low                                                                                      as km_ci_low,
     km.ci_high                                                                                     as km_ci_high,
-    round(c.true_survival, 6)                                                                      as true_survival,
-    round(km.survival - c.true_survival, 6)                                                        as km_error,
-    c.true_survival between km.ci_low and km.ci_high                                               as truth_in_ci,
+    round(c.true_survival, 6)                                                                      as true_survival_if_all_reported,
+    round(c.true_survival * power(cov.coverage_share, km.years_since_entry), 6)                     as true_survival,
+    cov.coverage_share,
+    round(km.survival - c.true_survival * power(cov.coverage_share, km.years_since_entry), 6)      as km_error,
+    c.true_survival * power(cov.coverage_share, km.years_since_entry) between km.ci_low and km.ci_high as truth_in_ci,
+    c.true_survival between km.ci_low and km.ci_high                                               as unadjusted_truth_in_ci,
     round(c.naive_survival, 6)                                                                     as naive_survival,
-    round(c.naive_survival - c.true_survival, 6)                                                   as naive_error,
+    round(c.naive_survival - c.true_survival * power(cov.coverage_share, km.years_since_entry), 6) as naive_error,
     round(km.survival - c.naive_survival, 6)                                                       as naive_understates_by,
     km.reliable
 from {{ ref('mart_retention_survival') }} km
+cross join (select avg((reports_data = 'Y')::int) as coverage_share from {{ source('raw', 'org_registry') }}) cov
 join curves c on c.segment_type = km.segment_type and c.segment_value = km.segment_value and c.k = km.years_since_entry
 order by km.segment_type, km.segment_value, km.years_since_entry

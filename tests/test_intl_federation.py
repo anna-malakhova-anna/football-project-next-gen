@@ -159,15 +159,19 @@ def test_name_change_cases_get_a_new_family_name_and_a_new_player_id(run):
             pid = truth[f"{r[0]}|{year}"]
             if pid in changers:
                 seen[pid].append((year, r[0], r[1]))
+    both = 0
     for pid, recs in seen.items():
         p = changers[pid]
         assert p["sex"] == "F" and not p["is_minor"] and p["segment"] == "INTL"
         before = [x for x in recs if x[0] < p["name_change_season"]]
         after = [x for x in recs if x[0] >= p["name_change_season"]]
-        assert before and after
+        if not (before and after):
+            continue                          # a dark club (no file that season) can hide every row before or after the change
+        both += 1
         assert {x[1] for x in before}.isdisjoint({x[1] for x in after})      # no id links the two names
         assert all(p["family_name"] in x[2] for x in before)
         assert all(p["later_family_name"] in x[2] for x in after)
+    assert both >= 1
     manifest = [m for m in out.manifest if m["defect_id"] == "family_name_change"]
     expected = sum(1 for pid, recs in seen.items() for x in recs if x[0] >= changers[pid]["name_change_season"])
     assert len(manifest) == expected

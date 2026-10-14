@@ -25,6 +25,7 @@ with raw as (
         json_extract_string(record_json, '$.consents.casl_marketing')      as casl_marketing_raw,
         json_extract_string(record_json, '$.consents.photo_media')         as photo_media_raw,
         json_extract_string(record_json, '$.consents.consent_captured_at') as consent_captured_at_raw,
+        json_extract_string(record_json, '$.consents.text_version')        as consent_text_version_raw,
         json_extract_string(record_json, '$.updated_at')                   as updated_at_raw
     from {{ source('raw', 'ca_club_records') }}
 
@@ -79,6 +80,7 @@ cleaned as (
         {{ to_consent_boolean('r.casl_marketing_raw') }}                    as consent_marketing,
         r.photo_media_raw                                                   as raw_consent_photo,
         r.casl_marketing_raw                                                as raw_consent_marketing,
+        r.consent_text_version_raw                                          as consent_text_version,
         cast(null as boolean)                                               as waiver_signed,
 
         -- consent capture time is the closest thing the API has to a registration time

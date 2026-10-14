@@ -40,7 +40,8 @@ def test_row_counts_match_files(loaded):
     fan_ev = sum(sum(1 for _ in open(f, encoding="utf-8")) for f in (raw / "fan").glob("events_*.jsonl"))
     fan_consent = sum(1 for _ in open(raw / "fan" / "fan_consent_events.jsonl", encoding="utf-8"))
     fan_txn = sum(sum(1 for _ in open(f, encoding="utf-8")) for f in (raw / "fan").glob("fan_transactions_*.jsonl"))
-    assert counts == {"us_league_registrations": us, "ca_club_records": ca, "intl_federation_returns": intl, "school_headcounts": school,
+    registry = sum(1 for _ in csv.reader(open(raw / "org_registry.csv", encoding="utf-8"))) - 1
+    assert counts == {"org_registry": registry, "us_league_registrations": us, "ca_club_records": ca, "intl_federation_returns": intl, "school_headcounts": school,
                       "fan_accounts": fan_acc, "fan_events": fan_ev, "fan_consent_events": fan_consent, "fan_transactions": fan_txn}
 
 

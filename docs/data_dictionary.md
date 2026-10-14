@@ -49,6 +49,7 @@ need the strictest handling (Phase 3).
 | `postal_code` | varchar | Yes (always NULL for INTL_FED) | Quasi-identifier | US ZIP (5 digits) or Canadian postal code (A1A 1A1). | normalize_us_zip restores a dropped leading zero; normalize_ca_postal uppercases and adds the space. |
 | `consent_photo` | boolean | Yes (NULL = not captured) | Non-PII | Photo / media consent. NULL means not captured, never FALSE. | to_consent_boolean: Y/yes/true -> TRUE, N/no/false -> FALSE, blank or absent -> NULL. |
 | `consent_marketing` | boolean | Yes (NULL = not captured; always NULL for INTL_FED) | Non-PII | Marketing consent. NULL means not captured, never FALSE. | to_consent_boolean, as for consent_photo. |
+| `consent_text_version` | varchar | Yes (NULL = wording unknown; always NULL for INTL_FED) | Non-PII | Wording version of the registration form the consent was captured on (v1_ops_only to v4_full). NULL means the platform does not emit it, so the wording is unknown. A marketing opt-in on a version that has no club-marketing purpose is not evidence of club-marketing consent (consent provenance, Phase 5). | blank_to_null on the raw column; read from consents.text_version for CA_CLUB. |
 | `registered_at` | timestamp | Yes (always NULL for INTL_FED) | Quasi-identifier | When the registration was made, where the source says. | Cast to timestamp; no time zone handling (sources do not state one). |
 | `dq_flags` | varchar[] | No (empty list when clean) | Non-PII | Every data-quality flag raised on the record (see dq_defect_log for raw values and rules). | Staging flags collected into a list. |
 
@@ -83,6 +84,7 @@ need the strictest handling (Phase 3).
 | `postal_code` | zip | postal_code | not collected |
 | `consent_photo` | photo_consent | consents.photo_media | Media Consent |
 | `consent_marketing` | marketing_opt_in | consents.casl_marketing | not captured |
+| `consent_text_version` | consent_text_version | consents.text_version | not captured |
 | `registered_at` | registered_at | consents.consent_captured_at (NULL when the consents object is missing) | not collected |
 | `dq_flags` | up to 11 flags | up to 10 flags | up to 9 flags |
 

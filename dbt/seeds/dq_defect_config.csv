@@ -11,6 +11,9 @@ US_LEAGUE,missing_gender,rate,0.03,,rows,all rows,true,player_gender is blank (m
 US_LEAGUE,missing_photo_consent,rate,0.1,,rows,all rows,true,"photo_consent is blank: not captured (NULL), never FALSE."
 US_LEAGUE,missing_marketing_opt_in,rate,0.05,,rows,all rows,true,"marketing_opt_in is blank: not captured (NULL), never FALSE."
 US_LEAGUE,zip_leading_zero_dropped,rate,0.5,,zip_eligible_rows,zips that start with 0 (including those that lost it),true,ZIP has 4 digits: a leading zero was dropped upstream and is restored in staging.
+US_LEAGUE,missing_zip,rate,0.03,,rows,all rows,true,ZIP is blank. Placed with weights: likelier where the organization's registration form does not require a ZIP (missing not at random).
+US_LEAGUE,dob_age_group_only,rate,0.02,,rows,all rows,true,"DOB is blank and only the division gives an age band. Whole MANUAL organizations, chosen so their row mass is closest to the configured share, so the observed rate is approximate."
+US_LEAGUE,free_text_division,rate,0.01,,rows,all rows,true,"Division is a spreadsheet label (Littles, Middle kids, Teens, Open) from a MANUAL organization; mapped in division_map to a coarser band."
 US_LEAGUE,unmapped_division,zero,0.0,,rows,all rows,true,Division label is missing from division_map.
 US_LEAGUE,unmapped_gender,zero,0.0,,rows,all rows,true,Non-blank gender value missing from gender_map.
 US_LEAGUE,dob_unparseable,zero,0.0,,rows,all rows,true,"DOB is blank, ambiguous or not a real date."

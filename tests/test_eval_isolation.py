@@ -65,8 +65,8 @@ def test_load_eval_loads_the_truth_tables_into_schema_eval(loaded):
     base, counts = loaded
     n = load_config()["population"]["total_people"]
     assert counts["person_registry"] == n
-    assert counts["registration_truth"] > 2 * n and counts["defect_manifest"] > 0
+    assert counts["registration_truth"] > n and counts["defect_manifest"] > 0       # about 1.9 records per person; roughly a fifth of org-seasons send no file
     con = duckdb.connect(str(base / "w.duckdb"), read_only=True)
     tables = {r[0] for r in con.execute("select table_name from information_schema.tables where table_schema='eval'").fetchall()}
-    assert tables == {"person_registry", "registration_truth", "defect_manifest", "school_truth", "school_overlap_truth", "churn_truth", "fan_truth", "fan_account_truth", "fan_market_truth", "fan_consent_truth", "fan_effect_truth"}
+    assert tables == {"person_registry", "registration_truth", "defect_manifest", "school_truth", "school_overlap_truth", "churn_truth", "fan_truth", "fan_account_truth", "fan_market_truth", "fan_consent_truth", "fan_effect_truth", "org_quality_truth", "unreported_participation_truth"}
     assert con.execute("select count(*) from information_schema.schemata where schema_name='raw'").fetchone()[0] == 0

@@ -7,6 +7,10 @@ sources:
       cleaning. Loaded by loader/load_raw.py. Ground truth is never loaded here.
     schema: raw
     tables:
+      - name: org_registry
+        description: >
+          The organization registry (what the program knows, not ground truth): one row per known organization and season with its region, ZIP3, registration channel and whether it
+          sent a file that season. The denominator for coverage. Every column is VARCHAR.
       - name: us_league_registrations
         description: >
           US youth league registration exports (CSV). One row per CSV data row. Every source column

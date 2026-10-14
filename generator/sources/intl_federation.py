@@ -22,6 +22,7 @@ from pathlib import Path
 from openpyxl import Workbook
 
 from generator import defects as D
+from generator import profiles as P
 
 SOURCE = "INTL_FED"
 COLUMNS = ["Player ID", "Full Name", "Date of Birth", "Gender", "Category", "Club", "Country", "Email", "Media Consent"]
@@ -133,18 +134,37 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
             rows[-1]["defects"].append("name_order_inverted")
         if c in sc["unstable_player_id_sheets"]:
             rows[-1]["defects"].append("player_id_reissued")
+    # ---- 2b. structure (phase 5 spec section 3): org profiles, dark clubs ----
+    prng = random.Random(cfg["seed"] + 53)
+    club_ids = sorted({r["club"] for r in rows})
+    country_of = {r["club"]: r["country"] for r in rows}
+    counts: dict[str, int] = {}
+    for r in rows:
+        counts[r["club"]] = counts.get(r["club"], 0) + 1
+    profile = P.assign_profiles(prng, [{"org_id": o, "region": country_of[o], "n_records": counts[o]} for o in club_ids], cfg)
+    channel = {o: P.channel_for(prng, profile[o]) for o in club_ids}
+    dark = P.pick_unreporting(prng, club_ids, cfg["seasons"]["years"], cfg)
+    unreported = [{"source_system": SOURCE, "org_id": r["club"], "season_year": r["year"], "season_term": "ANNUAL", "true_person_id": r["pid"]}
+                  for r in rows if r["club"] in dark[r["year"]]]
+    rows = [r for r in rows if r["club"] not in dark[r["year"]]]
+    for r in rows:
+        r["profile"] = profile[r["club"]]
     N = len(rows)
     all_idx = list(range(N))
 
+    def wpick(eligible, rate, total):
+        w = {i: P.multiplier(cfg, rows[i]["profile"]) for i in eligible}
+        return P.pick_weighted(rng, eligible, w, rate, total)
+
     # ---- 3. rate defects ----
     uk = [i for i in all_idx if rows[i]["country"] == "GB"]
-    for i in D.pick(rng, uk, rates["uk_dob_excel_serial"], len(uk)):
+    for i in wpick(uk, rates["uk_dob_excel_serial"], len(uk)):
         rows[i]["serial"] = True
         rows[i]["defects"].append("uk_dob_excel_serial")
-    for i in D.pick(rng, all_idx, rates["country_value_inconsistency"], N):
+    for i in wpick(all_idx, rates["country_value_inconsistency"], N):
         rows[i]["country_cell"] = rng.choice(COUNTRY_ALT[rows[i]["country"]])
         rows[i]["defects"].append("country_value_inconsistency")
-    for i in D.pick(rng, all_idx, rates["missing_media_consent"], N):
+    for i in wpick(all_idx, rates["missing_media_consent"], N):
         rows[i]["media"] = None
         rows[i]["defects"].append("missing_media_consent")
 
@@ -172,7 +192,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
                 rid = f"{r['player_id']}|{year}"
                 out.truth.append({"source_system": SOURCE, "source_file": fname, "source_record_id": rid, "true_person_id": r["pid"]})
                 for d in r["defects"]:
-                    out.manifest.append({"source_system": SOURCE, "source_file": fname, "source_record_id": rid, "defect_id": d})
+                    out.manifest.append({"source_system": SOURCE, "source_file": fname, "source_record_id": rid, "defect_id": d, "mechanism": f"ORG_PROFILE:{r['profile']}"})
             n_rows = len(srows)
             junk = []
             if title:
@@ -184,6 +204,10 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
                                      "source_record_id": f"{SHEET_NAME[c]}|row{row_no}", "defect_id": d})
             out.n_records += n_rows
         out.files[fname] = [{"sheets": sheets}]
+    out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": o, "region_code": country_of[o], "zip3": "", "channel": channel[o], "profile": profile[o],
+                          "zip_optional_form": False, "age_group_only": False, "consent_text_version": None, "n_records_all_seasons": counts[o]} for o in club_ids]
+    out.extra["dark"] = {y: sorted(v) for y, v in dark.items()}
+    out.extra["unreported"] = unreported
     return out
 
 

@@ -20,3 +20,6 @@ all_caps_names,NORMALIZED,Repaired in staging (title case).
 postal_code_format,NORMALIZED,Repaired in staging (standard A1A 1A1).
 uk_dob_excel_serial,NORMALIZED,Decoded in staging (Excel serial to date).
 country_value_inconsistency,NORMALIZED,Mapped in staging through country_map.
+missing_zip,MISSING_VALUE,"ZIP not captured: the registration cannot be placed in a market; never guessed."
+dob_age_group_only,MISSING_VALUE,"DOB not captured: only the division gives an age band; age is unknown, never imputed."
+free_text_division,NORMALIZED,"Spreadsheet division label mapped through division_map to a coarser band."

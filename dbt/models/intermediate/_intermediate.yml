@@ -276,6 +276,15 @@ models:
           pii: Non-PII
           derivation: "to_consent_boolean, as for consent_photo."
           source_mapping: {US_LEAGUE: "marketing_opt_in", CA_CLUB: "consents.casl_marketing", INTL_FED: "not captured"}
+      - name: consent_text_version
+        data_type: varchar
+        description: "Wording version of the registration form the consent was captured on (v1_ops_only to v4_full). NULL means the platform does not emit it, so the wording is unknown. A marketing opt-in on a version that has no club-marketing purpose is not evidence of club-marketing consent (consent provenance, Phase 5)."
+        meta:
+          group: business
+          nullable: "Yes (NULL = wording unknown; always NULL for INTL_FED)"
+          pii: Non-PII
+          derivation: "blank_to_null on the raw column; read from consents.text_version for CA_CLUB."
+          source_mapping: {US_LEAGUE: "consent_text_version", CA_CLUB: "consents.text_version", INTL_FED: "not captured"}
       - name: registered_at
         data_type: timestamp
         description: When the registration was made, where the source says.

@@ -17,6 +17,7 @@ import random
 from pathlib import Path
 
 from generator import defects as D
+from generator import profiles as P
 from generator.population import random_us_zip
 
 SOURCE = "US_LEAGUE"
@@ -24,7 +25,7 @@ COLUMNS = [
     "registration_id", "league_id", "league_name", "season", "division",
     "player_first_name", "player_last_name", "player_dob", "player_gender",
     "guardian_name", "guardian_email", "guardian_phone", "zip", "team_name",
-    "registered_at", "waiver_signed", "photo_consent", "marketing_opt_in",
+    "registered_at", "waiver_signed", "photo_consent", "marketing_opt_in", "consent_text_version",
 ]
 TERM_ORDER = {"SPRING": 0, "FALL": 1}
 
@@ -39,6 +40,10 @@ ADULT_LABELS = {
     "ADULT_M": ["Adult Men", "Men's Open", "Mens"],
     "ADULT_MIXED": ["Adult Co-ed", "Coed Adult", "Co-Ed"],
 }
+# Spreadsheet labels used by MANUAL orgs (free text, mapped in division_map): one label per band.
+FREE_TEXT_LABELS = {"U6": "Littles", "U8": "Littles", "U10": "Middle kids", "U12": "Middle kids", "U14": "Teens", "U17": "Teens",
+                    "ADULT_W": "Open", "ADULT_M": "Open", "ADULT_MIXED": "Open"}
+COED_YOUNGER = {"U6", "U8", "U10"}
 GENDER_STYLES = [("M", "F"), ("Boy", "Girl"), ("Male", "Female")]
 DOB_FORMATS = ["%m/%d/%Y", "%Y-%m-%d"]
 LEAGUES_PER_STATE = 6
@@ -153,43 +158,92 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
             "defects": [], "marks": {},
         })
 
+    # ---- 1b. structure (phase 5 spec section 3): org profiles, dark orgs, late registrations, org-level form properties ----
+    prng = random.Random(cfg["seed"] + 51)                       # its own stream: the profile draws never shift the defect draws below
+    oq = cfg["org_quality"]
+    league_ids = sorted({r["league"]["league_id"] for r in rows})
+    state_of = {lg["league_id"]: st for st, lgs in catalog.items() for lg in lgs}
+    counts: dict[str, int] = {}
+    for r in rows:
+        counts[r["league"]["league_id"]] = counts.get(r["league"]["league_id"], 0) + 1
+    profile = P.assign_profiles(prng, [{"org_id": o, "region": state_of[o], "n_records": counts[o]} for o in league_ids], cfg)
+    zip_optional = {o: prng.random() < oq["zip_optional_share_by_profile"][profile[o]] for o in league_ids}
+    version_of = P.assign_consent_versions(prng, league_ids, profile, cfg)
+    channel = {o: P.channel_for(prng, profile[o]) for o in league_ids}
+    dark = P.pick_unreporting(prng, league_ids, cfg["seasons"]["years"], cfg)
+    zips3: dict[str, dict[str, int]] = {}
+    for r in rows:
+        z3 = r["zip"][:3]
+        zips3.setdefault(r["league"]["league_id"], {})[z3] = zips3.setdefault(r["league"]["league_id"], {}).get(z3, 0) + 1
+    unreported = [{"source_system": SOURCE, "org_id": r["league"]["league_id"], "season_year": r["year"], "season_term": r["term"], "true_person_id": r["pid"]}
+                  for r in rows if r["league"]["league_id"] in dark[r["year"]]]
+    rows = [r for r in rows if r["league"]["league_id"] not in dark[r["year"]]]       # a dark org's participants exist in the truth only
+    # whole MANUAL orgs whose file carries a division but no DOB: the subset whose row mass is closest to the configured share
+    manual = [o for o in league_ids if profile[o] == "MANUAL"]
+    mass = {o: sum(1 for r in rows if r["league"]["league_id"] == o) for o in manual}
+    target = rates["dob_age_group_only"] * len(rows)
+    best, best_gap = (), float("inf")
+    for mask in range(1 << len(manual)):
+        pick = tuple(o for k, o in enumerate(manual) if mask >> k & 1)
+        gap = abs(sum(mass[o] for o in pick) - target)
+        if gap < best_gap:
+            best, best_gap = pick, gap
+    age_group_only = set(best)
+    for r in rows:
+        r["org"] = r["league"]["league_id"]
+        r["profile"] = profile[r["org"]]
+        r["mech"] = {}
+    late_idx = P.pick_weighted(prng, list(range(len(rows))), [1.0] * len(rows), oq["late_registration_share"], len(rows))
+    for i in late_idx:                                           # walk-up and paper registrations: the last days of the registration window
+        start, end = ((dt.date(rows[i]["year"], 1, 5), dt.date(rows[i]["year"], 2, 28)) if rows[i]["term"] == "SPRING"
+                      else (dt.date(rows[i]["year"], 6, 1), dt.date(rows[i]["year"], 8, 20)))
+        day = end - dt.timedelta(days=prng.randint(0, oq["late_window_days"]))
+        rows[i]["registered_at"] = dt.datetime(day.year, day.month, day.day, prng.randint(6, 23), prng.randint(0, 59), prng.randint(0, 59))
+        rows[i]["late"] = True
+
     # ---- 2. near-duplicates: same person/league/season, new id and timestamp ----
+    def wpick(eligible, rate, total, factor=None):
+        """Exact-count defect placement (round(rate * total)), weighted by the org's profile and, where given, a missingness mechanism."""
+        w = {i: P.multiplier(cfg, rows[i]["profile"]) * (factor(i) if factor else 1.0) for i in eligible}
+        return P.pick_weighted(rng, eligible, w, rate, total)
+
     n_base = len(rows)
-    for i in D.pick(rng, list(range(n_base)), rates["near_duplicate"], n_base):
-        dup = {**rows[i], "defects": ["near_duplicate"], "marks": {}}
+    for i in wpick(list(range(n_base)), rates["near_duplicate"], n_base):
+        dup = {**rows[i], "defects": ["near_duplicate"], "marks": {}, "mech": {}}
         dup["registered_at"] = rows[i]["registered_at"] + dt.timedelta(minutes=rng.randint(30, 2880))
         rows.append(dup)
     N = len(rows)
     all_idx = list(range(N))
     rereg_idx = [i for i in all_idx if rows[i]["rereg"]]
 
-    def mark(i, defect):
+    def mark(i, defect, mech=None):
         rows[i]["defects"].append(defect)
+        rows[i]["mech"][defect] = mech or f"ORG_PROFILE:{rows[i]['profile']}"
 
     # ---- 3. name defects (re-registrations only) ----
-    typo_rows = D.pick(rng, rereg_idx, rates["name_typo_reregistration"], len(rereg_idx))
+    typo_rows = wpick(rereg_idx, rates["name_typo_reregistration"], len(rereg_idx))
     for i in typo_rows:
         field = rng.choice(["first", "last"])
         rows[i][field] = D.typo(rng, rows[i][field])
         mark(i, "name_typo_reregistration")
     nick_pool = [i for i in rereg_idx if rows[i]["nickname"] and "name_typo_reregistration" not in rows[i]["defects"]]
     nick_share = cfg["population"]["nickname_share"]
-    for i in D.pick(rng, nick_pool, rates["nickname_reregistration"] / nick_share, len(nick_pool)):
+    for i in wpick(nick_pool, rates["nickname_reregistration"] / nick_share, len(nick_pool)):
         rows[i]["first"] = rows[i]["nickname"]
         mark(i, "nickname_reregistration")
 
     # ---- 4. DOB defects (swap first, impossible from the untouched rest) ----
     swappable = [i for i in all_idx if D.can_swap_day_month(rows[i]["dob"])]
-    for i in D.pick(rng, swappable, rates["dob_day_month_swapped"], N):
+    for i in wpick(swappable, rates["dob_day_month_swapped"], N):
         rows[i]["dob"] = D.swap_day_month(rows[i]["dob"])
         mark(i, "dob_day_month_swapped")
     untouched = [i for i in all_idx if "dob_day_month_swapped" not in rows[i]["defects"]]
-    for i in D.pick(rng, untouched, rates["impossible_dob"], N):
+    for i in wpick(untouched, rates["impossible_dob"], N):
         rows[i]["dob"] = D.impossible_dob(rng, rows[i]["dob"], rows[i]["year"])
         mark(i, "impossible_dob")
 
     # ---- 5. guardian email: change (persists for later seasons), then case/whitespace ----
-    changed = set(D.pick(rng, rereg_idx, rates["guardian_email_changed_between_seasons"], len(rereg_idx)))
+    changed = set(wpick(rereg_idx, rates["guardian_email_changed_between_seasons"], len(rereg_idx)))
     order = sorted(all_idx, key=lambda i: (rows[i]["pid"], rows[i]["year"], TERM_ORDER[rows[i]["term"]], rows[i]["registered_at"]))
     current: dict[str, str] = {}
     for i in order:
@@ -200,22 +254,47 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
             mark(i, "guardian_email_changed_between_seasons")
         if r["pid"] in current:
             r["email"] = current[r["pid"]]
-    for i in D.pick(rng, all_idx, rates["guardian_email_case_whitespace"], N):
+    for i in wpick(all_idx, rates["guardian_email_case_whitespace"], N):
         rows[i]["email"] = D.email_variant(rng, rows[i]["email"])
         mark(i, "guardian_email_case_whitespace")
 
     # ---- 6. missing values ----
-    for i in D.pick(rng, all_idx, rates["missing_gender"], N):
+    mn = oq["mnar"]
+
+    def gender_factor(i):                                         # MNAR: blank gender is likelier in co-ed younger divisions and in MANUAL orgs (biases the girls' share)
+        return (mn["gender_coed_younger_divisions"] if rows[i]["division"] in COED_YOUNGER else 1.0) * (mn["gender_manual_org"] if rows[i]["profile"] == "MANUAL" else 1.0)
+
+    def consent_factor(i):                                        # MNAR: consent is likelier blank on late registrations; a MANUAL org's consent fields are blank entirely
+        return 1000.0 if rows[i]["profile"] == "MANUAL" else (mn["consent_late_registration"] if rows[i].get("late") else 1.0)
+
+    def mnar_gender(i):
+        return "MNAR:" + ("MANUAL_ORG" if rows[i]["profile"] == "MANUAL" else "COED_YOUNGER_DIVISION" if rows[i]["division"] in COED_YOUNGER else "ORG_PROFILE") + f":{rows[i]['profile']}"
+
+    def mnar_consent(i):
+        return "MNAR:" + ("MANUAL_ORG_NO_CONSENT_FIELDS" if rows[i]["profile"] == "MANUAL" else "LATE_REGISTRATION" if rows[i].get("late") else "ORG_PROFILE") + f":{rows[i]['profile']}"
+
+    for i in wpick(all_idx, rates["missing_gender"], N, gender_factor):
         rows[i]["sex"] = None
-        mark(i, "missing_gender")
-    for i in D.pick(rng, all_idx, rates["missing_photo_consent"], N):
+        mark(i, "missing_gender", mnar_gender(i))
+    for i in wpick(all_idx, rates["missing_photo_consent"], N, consent_factor):
         rows[i]["photo"] = None
-        mark(i, "missing_photo_consent")
-    for i in D.pick(rng, all_idx, rates["missing_marketing_opt_in"], N):
+        mark(i, "missing_photo_consent", mnar_consent(i))
+    for i in wpick(all_idx, rates["missing_marketing_opt_in"], N, consent_factor):
         rows[i]["marketing"] = None
-        mark(i, "missing_marketing_opt_in")
+        mark(i, "missing_marketing_opt_in", mnar_consent(i))
+    for i in wpick(all_idx, rates["missing_zip"], N, lambda i: mn["zip_optional_form"] if zip_optional[rows[i]["org"]] else 1.0):
+        rows[i]["zip"] = ""
+        mark(i, "missing_zip", "MNAR:ZIP_OPTIONAL_FORM" if zip_optional[rows[i]["org"]] else f"ORG_PROFILE:{rows[i]['profile']}")
+    manual_idx = [i for i in all_idx if rows[i]["profile"] == "MANUAL"]
+    for i in P.pick_weighted(rng, manual_idx, {i: 1.0 for i in manual_idx}, rates["free_text_division"], N):
+        rows[i]["free_text"] = True
+        mark(i, "free_text_division", "MANUAL_ORG")
+    for i in all_idx:
+        if rows[i]["org"] in age_group_only:
+            rows[i]["dob_blank"] = True
+            mark(i, "dob_age_group_only", "MANUAL_ORG:AGE_GROUP_ONLY")
     lead0 = [i for i in all_idx if rows[i]["zip"].startswith("0")]
-    for i in D.pick(rng, lead0, rates["zip_leading_zero_dropped"], len(lead0)):
+    for i in wpick(lead0, rates["zip_leading_zero_dropped"], len(lead0)):
         rows[i]["zip"] = rows[i]["zip"].lstrip("0")
         mark(i, "zip_leading_zero_dropped")
 
@@ -232,7 +311,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
             r["rid"] = f"USR-{tag}-{n:06d}"
         dup_src = [n for n, r in enumerate(frows) if "near_duplicate" not in r["defects"]]
         n_dup = round(rates["exact_duplicate"] * len(frows))
-        dups = sorted(rng.sample(dup_src, min(n_dup, len(dup_src))))
+        dups = sorted(P.pick_weighted(rng, dup_src, {n: P.multiplier(cfg, frows[n]["profile"]) for n in dup_src}, rates["exact_duplicate"], len(frows)))
         # ---- 9. render to strings (once per row, so exact copies are byte-identical) ----
         rendered = []
         for n, r in enumerate(frows):
@@ -244,30 +323,37 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
                 if r["adult"] and style[0] == "Boy":
                     style = GENDER_STYLES[2]
                 gender = style[0 if r["sex"] == "M" else 1]
-            label = (ADULT_LABELS if r["adult"] else YOUTH_LABELS)[r["division"]][lg["label_style"]]
+            label = FREE_TEXT_LABELS[r["division"]] if r.get("free_text") else (ADULT_LABELS if r["adult"] else YOUTH_LABELS)[r["division"]][lg["label_style"]]
             row = {
                 "registration_id": r["rid"], "league_id": lg["league_id"], "league_name": lg["league_name"],
                 "season": f"{term.title()} {year}", "division": label,
                 "player_first_name": r["first"], "player_last_name": r["last"],
-                "player_dob": r["dob"].strftime(lg["dob_format"]), "player_gender": gender,
+                "player_dob": "" if r.get("dob_blank") else r["dob"].strftime(lg["dob_format"]), "player_gender": gender,
                 "guardian_name": r["g_name"], "guardian_email": r["email"],
-                "guardian_phone": _fmt_phone(rng, r["phone"]), "zip": r["zip"], "team_name": r["team"],
+                "guardian_phone": _fmt_phone(rng, r["phone"]), "zip": r["zip"], "team_name": "" if r["profile"] == "MANUAL" else r["team"],
                 "registered_at": r["registered_at"].strftime("%Y-%m-%d %H:%M:%S"),
                 "waiver_signed": _yn(rng, r["waiver"]),
                 "photo_consent": "" if r["photo"] is None else ("Y" if r["photo"] else "N"),
                 "marketing_opt_in": "" if r["marketing"] is None else ("Y" if r["marketing"] else "N"),
+                "consent_text_version": version_of[r["org"]] or "",
             }
             rendered.append(row)
             out.truth.append({"source_system": SOURCE, "source_file": fname,
                               "source_record_id": r["rid"], "true_person_id": r["pid"]})
             defects = list(r["defects"]) + (["exact_duplicate"] if n in dups else [])
             for d in defects:
-                out.manifest.append({"source_system": SOURCE, "source_file": fname,
-                                     "source_record_id": r["rid"], "defect_id": d})
+                out.manifest.append({"source_system": SOURCE, "source_file": fname, "source_record_id": r["rid"], "defect_id": d,
+                                     "mechanism": r["mech"].get(d) or f"ORG_PROFILE:{r['profile']}"})
             if n in dups:
                 rendered.append(dict(row))
         out.files[fname] = rendered
         out.n_records += len(rendered)
+    out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": next(lg["league_name"] for lgs in catalog.values() for lg in lgs if lg["league_id"] == o),
+                          "region_code": state_of[o], "zip3": max(zips3[o], key=zips3[o].get), "channel": channel[o], "profile": profile[o],
+                          "zip_optional_form": zip_optional[o], "age_group_only": o in age_group_only, "consent_text_version": version_of[o], "n_records_all_seasons": counts[o]}
+                         for o in league_ids]
+    out.extra["dark"] = {y: sorted(v) for y, v in dark.items()}
+    out.extra["unreported"] = unreported
     return out
 
 

@@ -1,7 +1,7 @@
 # Retrofitted data contract: US league registrations (Source A). Synthetic data.
 source_system: US_LEAGUE
-version: 1.0.0
-effective_date: 2026-10-01
+version: 1.1.0
+effective_date: 2026-10-14   # 1.1.0: consent_text_version added (wording version of the registration form; blank where the platform does not emit it)
 owner_role: "League Ops, US"
 partner_type: "league operator"
 delivery:
@@ -43,6 +43,7 @@ schema:
   - {column: registered_at, raw: registered_at, type: timestamp, required: true, pii: quasi, pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'}
   - {column: waiver_signed, raw: waiver_signed, type: boolean, required: true, pii: none, allowed_values: ["Y", "N", yes, no, "TRUE", "FALSE"]}
   - {column: photo_consent, raw: photo_consent, type: boolean, required: true, pii: none, allowed_values: ["Y", "N", ""]}
+  - {column: consent_text_version, raw: consent_text_version, type: string, required: false, pii: none, allowed_values: [v1_ops_only, v2_ops_photo, v3_ops_comms, v4_full, ""]}
   - {column: marketing_opt_in, raw: marketing_opt_in, type: boolean, required: true, pii: none, allowed_values: ["Y", "N", ""]}
 quality:
   - {rule: max_null_rate, column: player_dob, threshold: 0.05}

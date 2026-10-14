@@ -20,6 +20,7 @@ import uuid
 from pathlib import Path
 
 from generator import defects as D
+from generator import profiles as P
 from generator.population import random_ca_postal
 
 SOURCE = "CA_CLUB"
@@ -153,37 +154,66 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
             },
             "guardian": contact, "postal_code": postal, "consents": consents, "updated_at": _iso(updated),
         })
+    # ---- 1b. structure (phase 5 spec section 3): org profiles, dark clubs, consent wording ----
+    prng = random.Random(cfg["seed"] + 52)
+    oq = cfg["org_quality"]
+    club_ids = sorted({r["club"]["club_code"] for r in recs})
+    province_of = {c["club_code"]: prov for prov, cl in catalog.items() for c in cl}
+    counts: dict[str, int] = {}
+    for r in recs:
+        counts[r["club"]["club_code"]] = counts.get(r["club"]["club_code"], 0) + 1
+    profile = P.assign_profiles(prng, [{"org_id": o, "region": province_of[o], "n_records": counts[o]} for o in club_ids], cfg)
+    version_of = P.assign_consent_versions(prng, club_ids, profile, cfg)
+    channel = {o: P.channel_for(prng, profile[o]) for o in club_ids}
+    dark = P.pick_unreporting(prng, club_ids, cfg["seasons"]["years"], cfg)
+    postal3: dict[str, dict[str, int]] = {}
+    for r in recs:
+        z = r["postal_code"][:3]
+        postal3.setdefault(r["club"]["club_code"], {})[z] = postal3.setdefault(r["club"]["club_code"], {}).get(z, 0) + 1
+    unreported = [{"source_system": SOURCE, "org_id": r["club"]["club_code"], "season_year": r["season_year"], "season_term": "ANNUAL", "true_person_id": r["_pid"]}
+                  for r in recs if r["club"]["club_code"] in dark[r["season_year"]]]
+    recs = [r for r in recs if r["club"]["club_code"] not in dark[r["season_year"]]]
+    for r in recs:
+        r["_profile"] = profile[r["club"]["club_code"]]
+        r["_mech"] = {}
+        if version_of[r["club"]["club_code"]] and "consents" in r:
+            r["consents"]["text_version"] = version_of[r["club"]["club_code"]]
     N = len(recs)
     all_idx = list(range(N))
+
+    def wpick(eligible, rate, total):
+        """Exact-count defect placement weighted by the org's profile (the overall rate is unchanged)."""
+        w = {i: P.multiplier(cfg, recs[i]["_profile"]) for i in eligible}
+        return P.pick_weighted(rng, eligible, w, rate, total)
 
     def mark(i, d):
         recs[i]["_defects"].append(d)
 
     # ---- 2. field defects ----
     accented = [i for i in all_idx if _has_accent(recs[i]["participant"]["prenom_first"] + recs[i]["participant"]["nom_last"])]
-    for i in D.pick(rng, accented, rates["accents_stripped"], len(accented)):
+    for i in wpick(accented, rates["accents_stripped"], len(accented)):
         pt, g = recs[i]["participant"], recs[i]["guardian"]
         pt["prenom_first"], pt["nom_last"] = D.strip_accents(pt["prenom_first"]), D.strip_accents(pt["nom_last"])
         g["full_name"] = D.strip_accents(g["full_name"])
         mark(i, "accents_stripped")
-    for i in D.pick(rng, all_idx, rates["all_caps_names"], N):
+    for i in wpick(all_idx, rates["all_caps_names"], N):
         pt = recs[i]["participant"]
         pt["prenom_first"], pt["nom_last"] = pt["prenom_first"].upper(), pt["nom_last"].upper()
         mark(i, "all_caps_names")
-    for i in D.pick(rng, all_idx, rates["birth_year_off_by_one"], N):
+    for i in wpick(all_idx, rates["birth_year_off_by_one"], N):
         recs[i]["participant"]["birth_year"] += rng.choice([-1, 1])
         mark(i, "birth_year_off_by_one")
-    for i in D.pick(rng, all_idx, rates["postal_code_format"], N):
+    for i in wpick(all_idx, rates["postal_code_format"], N):
         pc = recs[i]["postal_code"]
         recs[i]["postal_code"] = rng.choice([pc.replace(" ", ""), pc.lower(), pc.replace(" ", "").lower()])
         mark(i, "postal_code_format")
-    for i in D.pick(rng, all_idx, rates["null_photo_media"], N):
+    for i in wpick(all_idx, rates["null_photo_media"], N):
         recs[i]["consents"]["photo_media"] = None
         mark(i, "null_photo_media")
-    for i in D.pick(rng, all_idx, rates["null_casl_marketing"], N):
+    for i in wpick(all_idx, rates["null_casl_marketing"], N):
         recs[i]["consents"]["casl_marketing"] = None
         mark(i, "null_casl_marketing")
-    for i in D.pick(rng, all_idx, rates["missing_consents_object"], N):
+    for i in wpick(all_idx, rates["missing_consents_object"], N):
         del recs[i]["consents"]
         mark(i, "missing_consents_object")
 
@@ -221,9 +251,16 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
             out.truth.append({"source_system": SOURCE, "source_file": fname, "source_record_id": rid,
                               "true_person_id": r["_pid"]})
             for d in r["_defects"]:
-                out.manifest.append({"source_system": SOURCE, "source_file": fname, "source_record_id": rid, "defect_id": d})
+                out.manifest.append({"source_system": SOURCE, "source_file": fname, "source_record_id": rid, "defect_id": d,
+                                     "mechanism": f"ORG_PROFILE:{r['_profile']}"})
         out.files[fname] = [{"page": n, "next_page": n + 1 if n < len(pages) else None, "records": body}]
         out.n_records += len(body)
+    club_name = {c["club_code"]: c["club_name"] for cl in catalog.values() for c in cl}
+    out.extra["orgs"] = [{"source_system": SOURCE, "org_id": o, "org_name": club_name[o], "region_code": province_of[o], "zip3": max(postal3[o], key=postal3[o].get),
+                          "channel": channel[o], "profile": profile[o], "zip_optional_form": False, "age_group_only": False,
+                          "consent_text_version": version_of[o], "n_records_all_seasons": counts[o]} for o in club_ids]
+    out.extra["dark"] = {y: sorted(v) for y, v in dark.items()}
+    out.extra["unreported"] = unreported
     return out
 
 

@@ -112,6 +112,10 @@ defects:
     # Not in the spec's defect list; added so every consent column can be NULL:
     missing_marketing_opt_in: 0.05
     zip_leading_zero_dropped: 0.50      # of zips that start with 0 (NJ, MA, CT)
+    # Phase 5 spec section 3.2 (structured / MNAR): placed with weights, not uniformly
+    missing_zip: 0.03                   # zip blank; likelier where the org's form does not require it (zip_optional_form)
+    dob_age_group_only: 0.02            # of rows: the file carries a division but no DOB; whole MANUAL orgs, chosen so the row mass is closest to this share
+    free_text_division: 0.01            # of rows: the division is a spreadsheet label (MANUAL orgs only), mapped in division_map
   ca_club:
     accents_stripped: 0.10
     all_caps_names: 0.05
@@ -301,3 +305,39 @@ phase5:
     revocation_share: 0.03               # of households (synthetic): revoke consent between revocation_from and revocation_to
     revocation_from: "2025-09-01"
     revocation_to: "2026-09-30"
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------
+# Phase 5 spec, section 3: structured quality problems. SYNTHETIC. Every org (US league, CA club, INTL federation) gets a latent profile; defects are placed at the SAME exact
+# overall counts as before but weighted toward the worse profiles and the missingness mechanisms below, so configured overall rates stay true. Truth goes to data/ground_truth only.
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------
+org_quality:
+  profile_mix: {DISCIPLINED: 0.35, TYPICAL: 0.45, STRUGGLING: 0.15, MANUAL: 0.05}
+  size_weight: 1.0                       # risk score: small organizations skew to STRUGGLING / MANUAL ...
+  region_weight: 0.5                     # ... and so do organizations in a risky region
+  noise: 0.6
+  risky_regions: [TX, FL, GA, OH, MB, NS]
+  defect_multiplier: {DISCIPLINED: 0.3, TYPICAL: 1.0, STRUGGLING: 4.0, MANUAL: 5.0}   # relative chance a row of that profile gets a defect (the overall rate is unchanged)
+  mnar:                                  # missing-not-at-random: relative chance that a value is blank
+    gender_coed_younger_divisions: 4.0   # blank gender is likelier in co-ed younger divisions (U6, U8, U10) ...
+    gender_manual_org: 3.0               # ... and in MANUAL organizations: biases the girls' share
+    zip_optional_form: 6.0               # blank ZIP is likelier where the registration form does not require it
+    consent_late_registration: 3.0       # consent fields are likelier blank on late (paper or walk-up) registrations
+  zip_optional_share_by_profile: {DISCIPLINED: 0.05, TYPICAL: 0.2, STRUGGLING: 0.5, MANUAL: 0.7}   # share of orgs whose form does not require a ZIP
+  late_registration_share: 0.12          # of registrations: late (walk-up or paper), in the last late_window_days of the registration window
+  late_window_days: 10
+  manual:
+    age_group_only_org_share: 0.5        # of MANUAL orgs: the file carries a division but no DOB
+    free_text_division_share: 0.6        # of MANUAL rows: the division is a free-text spreadsheet label
+    blank_columns: 2                     # empty columns in a MANUAL org's upload
+  unreporting:                           # known organizations that send no file in a season (their participants exist in the truth only)
+    share_of_known_orgs: 0.20            # 15 to 25 percent per season
+    share_range: [0.15, 0.25]
+  consent_text_versions:                 # the wording an org's form uses; some omit purposes. Emitted where the format allows (US CSV column, CA consents object)
+    v1_ops_only:       {purposes: [LEAGUE_OPS], share: 0.15}
+    v2_ops_photo:      {purposes: [LEAGUE_OPS, PHOTO_MEDIA], share: 0.25}
+    v3_ops_comms:      {purposes: [LEAGUE_OPS, LEAGUE_COMMS, PHOTO_MEDIA], share: 0.30}
+    v4_full:           {purposes: [LEAGUE_OPS, LEAGUE_COMMS, CLUB_MARKETING, PHOTO_MEDIA], share: 0.30}
+  fix_list_adoption:                     # section 3.5, OFF by default: used only for the simulated feedback-loop demo
+    enabled: false
+    share_of_struggling_orgs: 0.5
+    final_season_improves_to: TYPICAL

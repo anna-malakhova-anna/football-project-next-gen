@@ -47,7 +47,7 @@ def test_record_schema(run):
         assert set(r["participant"]) == {"prenom_first", "nom_last", "birth_year", "sex", "language"}
         assert set(r["guardian"]) == {"full_name", "email", "phone"}
         if "consents" in r:
-            assert set(r["consents"]) == {"casl_marketing", "photo_media", "consent_captured_at"}
+            assert set(r["consents"]) - {"text_version"} == {"casl_marketing", "photo_media", "consent_captured_at"}      # text_version only where the club's form emits it
 
 
 def test_defect_counts_match_config(run):
