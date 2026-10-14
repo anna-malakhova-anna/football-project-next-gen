@@ -1,5 +1,5 @@
--- One row per in-scope (flag) feed record with every quality fact the rules in the p5_dq_rules seed need, as plain columns.
--- Nothing here judges a record: the rules (check_sql in the seed) do. Parameters (ages, lateness, season starts) come from the p5_params seed.
+-- One row per in-scope (flag) feed record with every quality fact the rules of dq_rule_registry need, as plain columns.
+-- Nothing here judges a record: the rules (check_sql in dq_rule_registry) do. Parameters (ages, lateness, season starts) come from the p5_params seed.
 with params as (
 
     select

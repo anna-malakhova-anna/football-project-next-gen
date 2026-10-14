@@ -350,21 +350,6 @@ seeds:
       - name: param
         data_tests: [unique, not_null]
 
-  - name: p5_dq_rules
-    description: >
-      Phase 5. One row per data quality check, stored as data so the rules are auditable: id, dimension, description, the SQL predicate (check_sql, over the columns of
-      p5_record_quality: TRUE passes, FALSE fails, NULL means not applicable), the minimum pass rate for each purpose (blank = the rule does not apply to that purpose),
-      and the fix text an operator can act on. Participation reporting is the lower bar; club activation is the higher bar and needs consent provenance.
-    config:
-      tags: [phase5]
-      column_types: {rule_id: varchar, dimension: varchar, description: varchar, check_sql: varchar, threshold_participation_reporting: double, threshold_club_activation: double, fix_text: varchar}
-    columns:
-      - name: rule_id
-        data_tests: [unique, not_null]
-      - name: dimension
-        data_tests:
-          - accepted_values: {arguments: {values: [COMPLETENESS, VALIDITY, UNIQUENESS, TIMELINESS, CONSISTENCY, CONSENT_PROVENANCE]}}
-
   - name: data_standard_fields
     description: >
       The minimum viable data standard, machine-readable (ADR-016 and docs/data-standard.md): one row per field a league or channel must submit, with definition, format (a regex pattern or allowed

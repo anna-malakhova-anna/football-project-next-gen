@@ -111,7 +111,7 @@ Done from the reconciliation tables: the v1 market estimate, the club territory 
 - **The six channel feeds and the revocations file are onboarded to `Contracted`** (seven contracts, seven onboarding logs in `docs/playbook/`, `source_registry` rows): scored as sources, not counted. This moved the data-trust KPI `sources_known` from 5 to 12 (a registry change, not a methodology change). The registry went from 115 to 140 rules (the contracts' quality rules).
 
 Still open, stated plainly:
-- **`p5_dq_rules` and `p5_record_quality` are not retired.** They still evaluate the six channel feeds, and `dq_record_base` reads their record flags; moving those rules into `dq_rule_registry` is follow-up work. Until then there are two places a rule can live for those feeds.
+- **`p5_dq_rules` is retired** (its seed, macro and test removed; no model read it any more). `p5_record_quality` stays: it is not a rule engine but the per-record facts of the six channel feeds, which `dq_record_base` reads, so the registry is now the only place a rule lives.
 - **The data standard's point on the minimization frontier is not chosen** (Anna decides; ADR-018).
 - **No new scorecard snapshot is published** (ADR-007 keeps publishing a deliberate step); the restatement log shows the difference live.
 - **The ACS fetch script is untested against the live API** (`scripts/fetch_acs_youth_population.py`); `population_denominators` stays empty until Anna loads it.
