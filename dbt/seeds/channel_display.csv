@@ -1,0 +1,5 @@
+channel,plain_name,sort_order
+PREFERRED_PLATFORM,Uses the recommended software,1
+OTHER_PLATFORM,Uses other software,2
+SPREADSHEET,Sends spreadsheets,3
+CHANNEL_FEED,New intake channel,4

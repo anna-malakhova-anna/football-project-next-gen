@@ -27,7 +27,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 SEED = ROOT / "dbt" / "seeds" / "dq_rule_registry.csv"
 PURPOSES = ["COUNT", "SEGMENT", "GEO", "RETAIN", "ACTIVATE"]
-FIELDS = ["rule_id", "dimension", "applies_to", "grain", "check_sql", "purposes", *[f"threshold_{p}" for p in PURPOSES], "severity", "owner_role", "fix_guidance", "origin", "contract_ref"]
+FIELDS = ["rule_id", "dimension", "applies_to", "grain", "check_sql", "purposes", *[f"threshold_{p}" for p in PURPOSES], "severity", "owner_role", "fix_guidance", "origin", "contract_ref", "plain_label", "plain_action"]
 
 LEAGUE_OPS, DATA_LEAD, PRIVACY, PROGRAM = "League Ops, US", "Flag Football Data Lead", "Privacy Lead", "Program Insights Lead"
 
@@ -171,6 +171,34 @@ def standard_rules() -> list[dict]:
     return out
 
 
+PLAIN = ROOT / "config" / "rule_plain_text.csv"
+
+
+def _words(text: str, n: int) -> str:
+    return " ".join(re.sub(r"[^A-Za-z0-9 ]+", " ", text.split(".")[-1].replace("_", " ")).split()[:n]).lower()
+
+
+def plain_text(r: dict, hand: dict) -> tuple[str, str]:
+    """Plain label (<= 6 words) and action (<= 15 words, starts with a verb) for the site. Hand-written for the rules people act on (config/rule_plain_text.csv); templated for the
+    contract and data-standard rules, which only appear in analyst detail."""
+    if r["rule_id"] in hand:
+        return hand[r["rule_id"]]
+    m = re.search(r"#(max_[a-z_]+):", r.get("contract_ref", ""))
+    rule = m.group(1) if m else ""
+    if r["origin"] == "CONTRACT":
+        if rule == "max_expression_rate":
+            col = _words(r["applies_to"], 5)
+            return col.capitalize(), f"Fix the rows that fail this check: {col}."
+        col = _words(r["applies_to"], 3)
+        label = {"max_null_rate": f"{col} often blank", "max_nonmatching_rate": f"{col} in wrong format", "max_invalid_rate": f"{col} has odd values",
+                 "max_duplicate_rate": f"duplicate {col}"}.get(rule, f"{col} outside agreed limit")
+        return label.capitalize(), f"Bring {col} within the limit agreed with the partner."
+    if r["origin"] == "STANDARD":
+        col = _words(r["applies_to"], 3)
+        return f"{col} off standard".capitalize(), f"Send {col} as the data standard asks."
+    raise KeyError(r["rule_id"])
+
+
 def all_rules() -> list[dict]:
     rules = PHASE1 + PHASE5 + contract_rules() + standard_rules()
     rows = []
@@ -178,6 +206,10 @@ def all_rules() -> list[dict]:
         th = r.pop("thresholds")
         purposes = [p for p in PURPOSES if p in th]
         rows.append({**{f: "" for f in FIELDS}, **r, "purposes": "|".join(purposes), **{f"threshold_{p}": th[p] for p in purposes}})
+    with open(PLAIN, newline="", encoding="utf-8") as fh:
+        hand = {x["rule_id"]: (x["plain_label"], x["plain_action"]) for x in csv.DictReader(fh)}
+    for r in rows:
+        r["plain_label"], r["plain_action"] = plain_text(r, hand)
     ids = [r["rule_id"] for r in rows]
     assert len(ids) == len(set(ids)), "duplicate rule ids"
     return rows

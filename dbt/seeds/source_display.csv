@@ -1,0 +1,13 @@
+source_system,plain_name,source_group,sort_order
+US_LEAGUE,US league registrations,Original sources,1
+CA_CLUB,Canadian club registrations,Original sources,2
+INTL_FED,International federation returns,Original sources,3
+SCHOOL_AGGREGATES,School and recreation program headcounts,Original sources,4
+FAN_ENGAGEMENT,Fan app and ticketing,Original sources,5
+matrix_export,League software export (preferred platform),New intake channels,6
+vendor_reg_a,Registration platform A,New intake channels,7
+vendor_reg_b,Registration platform B (age group only),New intake channels,8
+pop_warner_feed,Youth football association feed,New intake channels,9
+pal_chapter_csv,Police Athletic League chapters (spreadsheets),New intake channels,10
+school_program,School rosters,New intake channels,11
+parent_revocations,Parent requests to withdraw consent,New intake channels,12

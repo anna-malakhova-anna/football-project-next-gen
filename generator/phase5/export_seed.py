@@ -34,6 +34,17 @@ def _read(path: str) -> list[dict]:
         return list(csv.DictReader(fh))
 
 
+STATE_NAMES = {"AZ": "Arizona", "CA": "California", "CO": "Colorado", "CT": "Connecticut", "FL": "Florida", "GA": "Georgia", "IL": "Illinois", "MA": "Massachusetts", "NJ": "New Jersey",
+               "NY": "New York", "OH": "Ohio", "PA": "Pennsylvania", "TX": "Texas", "WA": "Washington"}
+
+
+def plain_market_name(market_id: str) -> str:
+    """"Georgia market 2" from CM-GA-02. A default the program owner may replace with approximate metro names ("Atlanta area"); never a team name."""
+    if market_id == "NO_CLUB_MARKET":
+        return "Outside any club market"
+    return f"{STATE_NAMES.get(market_id[3:5], market_id[3:5])} market {int(market_id[-2:])}"
+
+
 NOTE = "PROJECT APPROXIMATION: contiguous ZIP3 groups; not any club's actual territory definition. Shared markets split equally (default, labelled)."
 
 
@@ -79,7 +90,7 @@ def club_market_rows(cfg: dict, geo: list[dict]) -> list[dict]:
         assert abs(sum(x[1] for x in w) - 1.0) < 1e-9
         for cm, weight, method in w:
             name = "No club market" if cm == "NO_CLUB_MARKET" else f"{cm[3:5]} club market {cm[-2:]}"          # named from its id, so a market shared across two states has one name
-            out.append({"zip3": z, "club_market_id": cm, "market_name": name, "state": state_of_zip[z], "allocation_weight": weight, "mapping_method": method, "approximation_note": NOTE})
+            out.append({"zip3": z, "club_market_id": cm, "market_name": name, "plain_name": plain_market_name(cm), "state": state_of_zip[z], "allocation_weight": weight, "mapping_method": method, "approximation_note": NOTE})
     return out
 
 
@@ -93,7 +104,7 @@ def _write(path: str, fields: list[str], rows: list[dict]) -> None:
 def main_market_seeds(cfg: dict | None = None, seeds: str = "dbt/seeds") -> None:
     cfg = cfg or load_config()
     geo = _read(f"{seeds}/market_geo_map.csv")
-    _write(f"{seeds}/club_market_map.csv", ["zip3", "club_market_id", "market_name", "state", "allocation_weight", "mapping_method", "approximation_note"], club_market_rows(cfg, geo))
+    _write(f"{seeds}/club_market_map.csv", ["zip3", "club_market_id", "market_name", "plain_name", "state", "allocation_weight", "mapping_method", "approximation_note"], club_market_rows(cfg, geo))
     # population denominators are NEVER invented (Phase 3 rule): a header-only seed that Anna fills from the Census ACS (scripts/fetch_acs_youth_population.py), or leaves empty
     pd = Path(f"{seeds}/population_denominators.csv")
     if not pd.exists():

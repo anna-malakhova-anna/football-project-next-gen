@@ -1,0 +1,47 @@
+rule_id,plain_label,plain_action
+DQ-UNIQ-EXACT-DUPLICATE,Same registration sent twice,Remove duplicate rows before sending the file.
+DQ-UNIQ-NEAR-DUPLICATE,Same player registered twice,Keep one registration per player each season.
+DQ-VAL-IMPOSSIBLE-DOB,Birth date cannot be right,Correct birth dates that fall in the future or make a player over 80.
+DQ-VAL-DOB-UNPARSEABLE,Birth date cannot be read,Send birth dates as year-month-day with a four-digit year.
+DQ-COMP-DOB-DIVISION-ONLY,Division given but no birth year,Collect each player's birth year as well as the division.
+DQ-COMP-SEX,Gender left blank,Ask for gender on the form and offer a prefer-not-to-say option.
+DQ-COMP-POSTAL,ZIP code missing,Require at least the first three digits of the ZIP on the form.
+DQ-CONF-DIVISION-UNMAPPED,Division name not recognised,Pick the division from the standard list.
+DQ-CONF-GENDER-UNMAPPED,Gender value not recognised,"Use M, F, X or U for gender."
+DQ-CONF-COUNTRY-UNMAPPED,Country not recognised,Use the two-letter country code.
+DQ-CONF-DIVISION-FREE-TEXT,Division typed in free text,Let people pick the division from a list instead of typing it.
+DQ-CONF-COUNTRY-VARIANT,Country spelled several ways,Use one spelling of each country in the file.
+DQ-CONF-POSTAL-FORMAT,ZIP code in the wrong format,Store ZIP codes as text so leading zeros are kept.
+DQ-CONF-EMAIL-FORMAT,Email has stray spaces or capitals,Trim and lower-case emails when they are typed in.
+DQ-CONF-NAME-CASE,Names in the wrong case,Capture names in normal capital and lower-case letters.
+DQ-CONF-DOB-EXCEL-SERIAL,Birth date saved as a number,"Export dates as dates, not as spreadsheet serial numbers."
+DQ-COMP-CONSENT-PHOTO,Photo permission left blank,Record photo permission as a clear yes or no.
+DQ-COMP-CONSENT-MARKETING,Marketing choice left blank,Record each family's marketing choice as a clear yes or no.
+DQ-UNIQ-DUPLICATE-REPORT,Same report sent twice,"Send each program, year or event once."
+DQ-VAL-TOTAL-MISMATCH,Total does not match the parts,"Make the total equal girls plus boys, and send counts rather than estimates."
+DQ-COMP-GRADE-BAND,School grade left blank,Report the grade band of each program.
+DQ-TIME-LATE-OR-SKEWED,Events arrive in the wrong month,Deliver events in the month they happened.
+DQ-CONS-CONSENT-ORDER,Consent changes out of order,Timestamp consent changes in the order they happen.
+DQ-STRUCT-JUNK-ROW,Title or total rows in data,"Send data rows only, with no titles, blanks or totals."
+DQ-COMP-ORG-KNOWN,League cannot be identified,Send the official league id with every registration.
+DQ-COMP-AGE-SIGNAL,No age information,"Collect a birth year, an age group or a school grade."
+DQ-COMP-EMAIL,Parent email missing,Collect one parent email for every registration.
+DQ-VAL-POSTAL-KNOWN,ZIP code is not real,Check the ZIP code against a list when it is entered.
+DQ-VAL-EMAIL-WELLFORMED,Email address is malformed,Check email addresses for the right shape when they are entered.
+DQ-UNIQ-CHILD-SEASON,Child registered more than once,Make sure each child registers once per season.
+DQ-TIME-REGISTERED-ON-TIME,Registered after the season started,Open registration early enough for players to join before the season starts.
+DQ-CONS-DOB-AGREES,Birth date differs between records,Ask the parent which birth date is right and fix it.
+DQ-CONS-SEX-AGREES,Gender differs between records,Confirm each child's gender with the parent.
+DQ-CONS-POSTAL-AGREES,Home ZIP differs between records,Confirm the family's address with them.
+DQ-CONS-AGE-GROUP-AGREES,Age group contradicts birth date,Check the age group against the birth date.
+DQ-TIME-ORG-REPORTED,League sent no file,"Send this season's registration file, in any format."
+DQ-PROV-CONSENT-RECORDED,No consent on record,Record consent with every registration.
+DQ-PROV-CONSENT-WORDING,Consent form wording unknown,Record which consent form version each family signed.
+DQ-PROV-CONSENT-TIMESTAMP,Consent date unknown,Record the date and time each family gave consent.
+DQ-PROV-MARKETING-PURPOSE-COVERED,Form never mentioned marketing,Use a form that says the club may contact families about marketing.
+DQ-CTR-FAN_ENGAGEMENT__ACCOUNTS-EXPRESSION-HOLDER-IS-AN-ADULT-AT-SIGNUP,Account holder not an adult,Check that every account holder is an adult at signup.
+DQ-CTR-FAN_ENGAGEMENT__ACCOUNTS-EXPRESSION-EMAIL-NOT-NORMALIZED,Email not tidied,Trim and lower-case emails when accounts are created.
+DQ-CTR-FAN_ENGAGEMENT__EVENTS-EXPRESSION-DELIVERED-AFTER-THE-MONTH-IT-HAPPENED,Events arrive a month late,Deliver events in the month they happened.
+DQ-CTR-FAN_ENGAGEMENT__TRANSACTIONS-EXPRESSION-REFUND-WITHOUT-AN-ORIGINAL-ID,Refund without its original sale,Name the original purchase on every refund.
+DQ-CTR-SCHOOL_AGGREGATES-EXPRESSION-TOTAL-EQUALS-GIRLS-PLUS-BOYS,Total does not match the parts,Make each total equal girls plus boys.
+DQ-CTR-SCHOOL_AGGREGATES-EXPRESSION-TOTAL-IS-NOT-A-ROUND-ESTIMATE,Total looks like a round estimate,"Send counted totals, not round estimates."

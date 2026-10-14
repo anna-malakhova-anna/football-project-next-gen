@@ -1,0 +1,9 @@
+dimension,plain_label,sort_order
+COMPLETENESS,Fields filled in,1
+VALIDITY,Values make sense,2
+UNIQUENESS,No duplicates,3
+CONSISTENCY,Agrees across sources,4
+CONFORMITY,Right format,5
+TIMELINESS,Arrived on time,6
+CONSENT_PROVENANCE,We know what they agreed to,7
+PURPOSE_SCORE,Overall for this use,8
