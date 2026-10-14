@@ -1,3 +1,4 @@
+-- depends_on: {{ ref('p5_params') }}
 -- The one record-level stream the rule registry is evaluated against. One row per record of every source, with the SAME small set of facts for every source:
 -- registrations of the three modelled sources, the six Phase 5 channel feeds (Contracted, not counted), school headcount rows, and the fan streams. A fact a source
 -- cannot supply is NULL, which a rule reads as "not applicable" (never as pass or fail). No rule logic lives here: the rules are rows of dq_rule_registry.
@@ -16,7 +17,10 @@ reg as (
         cast(null as boolean)                                               as postal_known,
         cast(null as boolean)                                               as registered_late,
         u.source_system = 'CA_CLUB' and not list_contains(u.dq_flags, 'missing_consents_object') or u.consent_photo is not null or u.consent_marketing is not null as consent_recorded,
-        (u.source_system = 'CA_CLUB' and not list_contains(u.dq_flags, 'missing_consents_object'))                                                                  as consent_ts_known,
+        -- when was consent given? Under the configured assumption (phase5.dq.consent_time_from_registration) the registration time is the consent time, because the form carries its consent in the
+        -- same submission; otherwise only Canada's explicit consent timestamp counts. A record with no registration time (INTL returns) never has one.
+        case when lower({{ p5_param('consent_time_from_registration') }}::varchar) = 'true' then (u.registered_at is not null and (u.source_system = 'CA_CLUB' and not list_contains(u.dq_flags, 'missing_consents_object') or u.consent_photo is not null or u.consent_marketing is not null))
+             else (u.source_system = 'CA_CLUB' and not list_contains(u.dq_flags, 'missing_consents_object')) end as consent_ts_known,
         u.consent_text_version is not null                                  as consent_version_known,
         case when u.consent_marketing is true then coalesce(c.covers_club_marketing, false) end as marketing_form_covers_purpose,
         u.dob, u.sex, case when u.source_system <> 'INTL_FED' then left(u.postal_code, 3) end as postal3, u.birth_year,

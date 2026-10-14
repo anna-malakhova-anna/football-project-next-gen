@@ -27,3 +27,9 @@ All data in this project is synthetic and every answer below changes a *configur
 - Colts Flag Football Leagues: https://www.colts.com/news/colts-flag-football-leagues-registration-open-spring-season-2025-nfl
 - Finnegan, amended COPPA Rule in effect: https://www.finnegan.com/en/insights/articles/coppas-amended-rule-is-now-in-full-effect-what-operators-need-to-know.html
 - Finnegan, updated COPPA Rule overview: https://www.finnegan.com/en/insights/articles/the-ftcs-updated-coppa-rule-redefining-childrens-digital-privacy-protection.html
+
+## Added at spec step 8
+| # | Question | Owner (role) | Why it matters | What the build assumes today | What changes if the answer differs |
+|---|---|---|---|---|---|
+| 14 | **Should the Phase 3 marketing contact list read the consent wording and revocations?** | Privacy lead | Of 3,087 contacts, only 430 match a household with a fully evidenced club-marketing consent; 1,373 recorded an opt-in on a form whose wording names no club-marketing purpose; 10 revoked. | The list is unchanged (its own rule: every participant sharing the address opted in). The finding is reported. | Tightening the share to `GRANTED_FULL` would cut the list sharply and change a Phase 3 output (a restatement of what the audience can reach). |
+| 15 | **Is the registration time an acceptable consent time?** | Privacy lead | The funnel's "known provenance" step depends on it; without it no US household has a consent timestamp. | Yes, because the form carries its consent in the same submission (`consent_time_from_registration`). | With it off, step 5 and 6 fall to the Canadian records only. |

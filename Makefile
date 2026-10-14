@@ -1,4 +1,4 @@
-.PHONY: nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: consent nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -101,6 +101,13 @@ dq: dbt/profiles.yml
 	$(DBT) run --profiles-dir . --select dq_record_base dq_org_season_base dq_standardized_records dq_standard_conformance dq_standard_summary dq_rule_results dq_record_fitness dq_scorecard_org dq_scorecard_source dq_trend mart_dq_impact dq_fix_list eval_scorecard_vs_profile
 	$(DBT) test --profiles-dir . --select dq_rule_registry dq_purposes dq_grade_bands dq_severity_weights consent_text_versions dq_registry_rules_are_defined_as_data dq_every_phase1_flag_has_exactly_one_registry_rule dq_rule_results_match_the_registry dq_record_fitness_follows_the_registry dq_scorecards_obey_the_scoring_rules dq_trend_limits_are_consistent dq_impact_and_fix_list_are_consistent dq_standard_and_standardized_records_agree dq_standard_conformance_is_complete_and_consistent data_standard_fields
 	$(PY) -m scripts.print_dq
+
+# Phase 5 spec, step 8: consent events (household-keyed), household-year consent status, record provenance grade and the activation funnel (DQ vs PRIVACY losses), with their tests
+consent: dbt/profiles.yml
+	$(DBT) seed --profiles-dir . --full-refresh --select consent_purposes p5_params
+	$(DBT) run --profiles-dir . --select int_consent_event int_household_year_consent mart_activation_funnel mart_activation_funnel_loss dq_record_fitness
+	$(DBT) test --profiles-dir . --select consent_purposes consent_purpose_limitation_holds activation_outputs_never_touch_the_child
+	$(PY) -m scripts.print_consent
 
 # Phase 5 spec, step 7: the uncertainty decomposition (identity, DQ exclusions, coverage; shown side by side) and the missingness bias (Manski bounds, tests), with their evaluations
 nuance: dbt/profiles.yml

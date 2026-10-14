@@ -492,3 +492,14 @@ seeds:
     columns:
       - name: severity
         data_tests: [unique, not_null]
+
+  - name: consent_purposes
+    description: >
+      The purpose taxonomy for consent (spec section 8): LEAGUE_OPS, LEAGUE_COMMS, CLUB_MARKETING, PARTNER_DISCLOSURE, PROFILING, PHOTO_MEDIA. separate_consent_required marks purposes that need their own
+      opt-in; counts_for_club_activation marks the only purpose that can make a household eligible for club activation (CLUB_MARKETING). A consent for one purpose is never read as another.
+    config:
+      tags: [phase5]
+      column_types: {purpose_id: varchar, label: varchar, description: varchar, separate_consent_required: boolean, counts_for_club_activation: boolean, note: varchar}
+    columns:
+      - name: purpose_id
+        data_tests: [unique, not_null]

@@ -123,4 +123,14 @@ models:
       associated with channel, division, timing or country (NOT_MISSING_AT_RANDOM). Girls' share of youth by year and division; age band mix by year.
     config:
       tags: [phase5]
+  - name: mart_activation_funnel
+    description: >
+      The activation funnel per participation year and attributed market: registrations, resolved participants, households, households with a valid contact, with known consent provenance and consenting to
+      CLUB_MARKETING. Counts only; each step carries loss_type DQ (the data cannot say), PRIVACY (the family said no or withdrew) or UNIT (children to households). market_id ALL is the national row.
+    config:
+      tags: [phase5]
+  - name: mart_activation_funnel_loss
+    description: Why households leave the activation funnel, by step, reason and type of loss (DQ or PRIVACY). A household appears once, at the first step it fails. Counts only.
+    config:
+      tags: [phase5]
 

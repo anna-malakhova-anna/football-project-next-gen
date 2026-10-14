@@ -279,6 +279,7 @@ phase5:
     grade_a: 0.95                        # overall score (mean of the dimension scores) at or above which the grade is A, B, C; below grade_c is D
     grade_b: 0.85
     grade_c: 0.70
+    consent_time_from_registration: true  # ASSUMPTION: a registration form carries its consent in the same submission, so the registration time is the consent time (Canada's own field consents.consent_captured_at is the registration time). false = only an explicit consent timestamp counts
     systemic_share: 0.80                  # a fix-list issue breached by at least this share of a source's organizations in a season is SYSTEMIC (a platform or process problem, not one organization's)
     standard_min_conformance: 0.95        # a feed meets the data standard for a field when this share of its rows is present and valid
     activation_requires_timestamp: true   # club activation needs the marketing opt-in to carry a timestamp (when) ...
