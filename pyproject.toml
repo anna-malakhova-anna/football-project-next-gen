@@ -27,5 +27,7 @@ build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
+    "playwright>=1.64.0",
     "pytest-xdist>=3.8.0",
+    "textstat>=0.7.13",
 ]
