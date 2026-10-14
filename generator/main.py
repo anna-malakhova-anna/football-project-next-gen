@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import csv
+import shutil
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -21,6 +22,9 @@ def run(cfg: dict | None = None, raw_dir: str | None = None, truth_dir: str | No
     people, parts = population.build_population(cfg)
     population.write_ground_truth(people, parts, truth_out)
 
+    # clear the source folders first: a run that writes fewer files (the Canadian API pages) must not leave the previous run's extra files behind to be loaded as data
+    for sub in ("us_league", "ca_club", "intl", "school", "fan"):
+        shutil.rmtree(raw / sub, ignore_errors=True)
     outputs = []
     for module in (us_league, ca_club, intl_federation, school, fan):
         out = module.generate(people, parts, cfg)

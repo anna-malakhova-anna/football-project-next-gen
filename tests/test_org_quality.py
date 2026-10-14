@@ -134,3 +134,14 @@ def test_pick_weighted_is_exact_and_respects_weights():
     assert len(got) == 100 and len(set(got)) == 100
     assert sum(1 for i in got if i < 100) > 60            # the heavy rows are chosen far more often than their 10% share
     assert len(P.pick_weighted(rng, idx[:5], {i: 1.0 for i in idx[:5]}, 0.9, 1000)) == 5       # never more than are eligible
+
+
+def test_a_rerun_leaves_no_files_from_an_earlier_run(tmp_path):
+    """A run that writes fewer API pages must not leave the previous run's extra pages to be loaded as data (found when stale Canadian pages inflated the warehouse)."""
+    cfg = load_config()
+    raw = tmp_path / "raw"
+    main.run(cfg, raw_dir=str(raw), truth_dir=str(tmp_path / "truth"))
+    stale = raw / "ca_club" / "page_9999.json"
+    stale.write_text('{"page": 9999, "next_page": null, "records": [{"stale": true}]}', encoding="utf-8")
+    main.run(cfg, raw_dir=str(raw), truth_dir=str(tmp_path / "truth"))
+    assert not stale.exists()

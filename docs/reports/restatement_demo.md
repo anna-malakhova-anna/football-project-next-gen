@@ -198,12 +198,12 @@ By KPI group, 5 north-star, 20 growth, 30 reach and 15 depth rows were listed as
 | Year | KPI | Published | Rebuilt | Change |
 |---|---|---|---|---|
 | 2022 | Unique participants | 3,354 | 2,705 | -19.4% |
-| 2025 | Unique participants | 8,959 | 7,673 | -14.4% |
-| 2025 | New participants | 3,957 | 3,911 | -1.2% |
-| 2025 | Returning participants | 5,002 | 3,366 | -32.7% |
-| 2025 | International participants | 3,354 | 2,873 | -14.3% |
-| 2025 | Retention rate | 68.6% | 59.2% | -9.4 pts |
-| 2025 | Girls' share of youth | 46.3% | 46.5% | +0.4% |
+| 2025 | Unique participants | 8,959 | 7,430 | -17.1% |
+| 2025 | New participants | 3,957 | 3,787 | -4.3% |
+| 2025 | Returning participants | 5,002 | 3,285 | -34.3% |
+| 2025 | International participants | 3,354 | 2,624 | -21.8% |
+| 2025 | Retention rate | 68.6% | 57.8% | -10.8 pts |
+| 2025 | Girls' share of youth | 46.3% | 46.5% | +0.5% |
 
 **What the movement is.** Mostly *coverage*, not a change of definition: people who played at a dark organization are not in the data that season. That is why returning participants and
 retention fall most: a player who is dark for a season looks like a churner. The retention evaluation now states the effect: the Kaplan-Meier curve sits about the coverage share (0.79)
