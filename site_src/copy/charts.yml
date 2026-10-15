@@ -25,7 +25,7 @@ charts:
       The cost is what failing records remove from a count, not what a fix would recover.
   Q1:
     status: draft
-    headline_template: "Most sources are fine for counting players. Only {n_ready_activate} of {n_sources} are ready for contacting families."
+    headline_template: "Only {n_ready_activate} of {n_sources} sources are ready for contacting families. Most can count players."
     fallback_headline: "The same data earns different grades for different uses."
     slide_headline_templates:
       GRID: "Only {n_ready_activate} of {n_sources} sources are ready for contacting families; {n_ready_count} are ready for counting players."
@@ -54,7 +54,7 @@ charts:
       The investigation and the options (individuals chart on the score, Laney P-prime) are in `docs/reports/site_after/control_chart_note.md`; the method is Anna's decision (ADR-020).
   Q4:
     status: draft
-    headline_template: "{pct_cd_size_small} of small leagues are graded C or D for splitting players by age and gender. Only {pct_cd_size_large} of large ones are."
+    headline_template: "{pct_cd_size_small} of small leagues score C or D. Only {pct_cd_size_large} of large leagues do."
     fallback_headline: "Small leagues and new intake channels have the weakest grades."
     slide_headline_templates:
       SIZE: "{pct_cd_size_small} of small leagues are graded C or D. Only {pct_cd_size_large} of large leagues are."
@@ -157,7 +157,7 @@ charts:
       Both panels come from `share_club` aggregates for the six largest published markets, latest season. The deletion count at age-out (from `retention_log`) is not on this panel: it lives in a restricted store and has no approved share yet.
   U1:
     status: draft
-    headline_template: "The {latest_year} count is {count_point} players. Leagues that sent no file add the most doubt: {coverage_extra_high} more."
+    headline_template: "The count is {count_point}. Missing leagues could add {coverage_extra_high} more."
     fallback_headline: "The count has three separate doubts. Leagues that sent no file add the most."
     slide_headline_templates: {}
     question: "Why is there a range, not one number?"
@@ -171,7 +171,7 @@ charts:
       Values are rounded to the nearest 10 players.
   U2:
     status: draft
-    headline_template: "Girls are {girls_share_pct} of players whose gender is known. Missing gender moves that by {girls_bounds_width}."
+    headline_template: "Girls are {girls_share_pct} of players. Missing gender moves that by {girls_bounds_width}."
     fallback_headline: "Missing gender barely changes the girls' share."
     slide_headline_templates: {}
     question: "Is the girls' trend real?"
@@ -236,12 +236,12 @@ charts:
       For each consent wording (`share_privacy__purpose_coverage`), whether the form names each purpose. Reads the wording the generator gave each form; a purpose that needs its own consent is never covered by a terms acceptance.
   P3:
     status: draft
-    headline_template: "Asking for birth year, not full birth date, cuts unique records from {pct_unique_v0} to {pct_unique_standard}. The cost: {matching_cost} of matching accuracy."
+    headline_template: "Birth year, not birth date, cuts unique records from {pct_unique_v0} to {pct_unique_standard}."
     fallback_headline: "Asking for less data protects children and costs little matching accuracy."
     slide_headline_templates: {}
     question: "What does each field buy us, and what does it cost?"
-    means_club: "Each dot is a choice of fields. The ringed dot is the data standard. A hashed contact matches as well but cannot reach a family."
-    means_privacy: "Left is safer. Only the horizontal axis is a privacy measure. The vertical axis is what matching keeps."
+    means_club: "Each dot is a choice of fields. The ringed dot is the data standard. It costs {matching_cost} of matching accuracy. A hashed contact cannot reach a family."
+    means_privacy: "Left is safer. Only the horizontal axis is a privacy measure. The vertical axis is what matching keeps: the standard loses {matching_cost}."
     action_club: "Ask for the fields in the data standard and no more."
     action_privacy: "Use the ringed choice as the default and review it when the data changes."
     caution: "This is one made-up data set. Read the pattern, not the decimals."
