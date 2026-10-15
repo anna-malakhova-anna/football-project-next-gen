@@ -1,0 +1,30 @@
+{{ config(tags=['phase5']) }}
+-- EVALUATION: the numbers inside headline sentences of the cards that are graded against the synthetic answer key (Phase 5.1, section 5.2). Same long shape as the share_*__chart_insights models, but it lives here
+-- because it reads evaluation models: an answer-key number never enters a share. Counts of checks and score points; no person-level value.
+with u as (
+    select participation_year,
+           identity_interval_contains_truth as identity_ok,
+           true_participants_in_data between dq_strict and dq_lenient as dq_ok,
+           true_total_participants between identity_point + coverage_low and identity_point + coverage_high as coverage_ok
+    from {{ ref('eval_uncertainty_decomposition') }}
+),
+
+checks as (
+    select count(*) * 3 as n_checks, sum(identity_ok::int + dq_ok::int + coverage_ok::int) as n_inside from u
+),
+
+f as (
+    select variant_id, f1, in_standard from {{ ref('eval_minimization_tradeoff') }} where is_headline_matcher and f1 is not null
+),
+
+cost as (
+    select 100 * ((select f1 from f order by variant_id limit 1) - (select f1 from f where in_standard limit 1)) as pts
+),
+
+rows_ as (
+    select 'U3' as chart_id, 'both' as lens, 'n_checks' as field, cast(n_checks as varchar) as value_display, n_checks * 1.0 as value_raw from checks
+    union all select 'U3', 'both', 'n_inside', cast(n_inside as varchar), n_inside * 1.0 from checks
+    union all select 'P3', 'both', 'matching_cost', case when pts < 0.5 then 'less than half a point' else cast(round(pts, 1) as varchar) || ' points' end, round(pts, 2) from cost
+)
+
+select chart_id, lens, field, value_display, value_raw, 'NONE' as suppressed from rows_ order by chart_id, field

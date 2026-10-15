@@ -11,7 +11,7 @@ APPROVED = {
     "quality.dq_scorecard_source", "quality.dq_scorecard_org", "quality.dq_trend", "quality.mart_dq_impact", "quality.dq_fix_list",
     "quality.mart_uncertainty_decomposition", "quality.mart_missingness_bias",
 }
-EVAL = {"evaluation.eval_uncertainty_decomposition", "evaluation.eval_minimization_tradeoff", "demo_fix_list.scores", "demo_fix_list.nuance"}
+EVAL = {"evaluation.eval_chart_insights", "evaluation.eval_uncertainty_decomposition", "evaluation.eval_minimization_tradeoff", "demo_fix_list.scores", "demo_fix_list.nuance"}
 GOVERNANCE = {"reference.privacy_params", "reference.club_market_map", "reference.funnel_step_display", "reference.p5_params", "reference.source_display", "reference.dq_dimensions", "reference.dq_grade_bands", "reference.channel_display", "reference.dq_rule_registry", "reference.dq_purposes"}
 
 GRADES = ["A", "B", "C", "D"]
@@ -135,24 +135,27 @@ DATASETS = [
         order by pk.example_no, f.rank_in_scope""", ["quality.dq_fix_list", "quality.dq_scorecard_org", "quality.dq_scorecard_source", "reference.dq_rule_registry", "reference.dq_purposes", "reference.privacy_params"], "approved_aggregate",
        "Example fix lists for three made-up leagues, one per quality profile"),
     _D("unc_decomp", """
-        select participation_year, component, reported_point, interval_low, interval_high, contribution
+        select participation_year, component,
+               case component when 'IDENTITY' then 'Matching people' when 'DQ_EXCLUSIONS' then 'Records that fail the rules' else 'Leagues that sent no file' end as component_label,
+               case component when 'IDENTITY' then 1 when 'DQ_EXCLUSIONS' then 2 else 3 end as component_order,
+               round(reported_point, -1) as reported_point, round(interval_low, -1) as interval_low, round(interval_high, -1) as interval_high
         from quality.mart_uncertainty_decomposition order by participation_year, component""", ["quality.mart_uncertainty_decomposition"], "approved_aggregate",
        "Participants counted, with three separate uncertainty intervals"),
     _D("miss_dumbbell", f"""
-        select participation_year, segment_value as division, value_known_only, bound_low, bound_high, unknown, total
+        select participation_year, segment_value as division, round(100 * value_known_only, 1) as girls_pct, round(100 * bound_low, 1) as bound_low_pct, round(100 * bound_high, 1) as bound_high_pct, unknown, total
         from quality.mart_missingness_bias
         where kpi = 'girls_share_of_youth' and club_market_id = 'ALL' and segment_value <> 'ALL' and total >= {K_MIN}
         order by participation_year, segment_value""", ["quality.mart_missingness_bias", "reference.privacy_params"], "approved_aggregate",
        "Girls' share of youth by division: known-only value and the bounds when unknown genders are assigned either way"),
     _D("unc_truth", """
-        select participation_year, 'Identity' as component, identity_low as low, identity_high as high, true_participants_in_data as truth,
+        select participation_year, 'Matching people' as component, round(identity_low, -1) as low, round(identity_high, -1) as high, round(true_participants_in_data, -1) as truth,
                identity_interval_contains_truth as truth_inside
         from evaluation.eval_uncertainty_decomposition
         union all
-        select participation_year, 'Data-quality exclusions', dq_strict, dq_lenient, true_participants_in_data, true_participants_in_data between dq_strict and dq_lenient
+        select participation_year, 'Records that fail the rules', round(dq_strict, -1), round(dq_lenient, -1), round(true_participants_in_data, -1), true_participants_in_data between dq_strict and dq_lenient
         from evaluation.eval_uncertainty_decomposition
         union all
-        select participation_year, 'Coverage (total incl. dark organizations)', identity_point + coverage_low, identity_point + coverage_high, true_total_participants,
+        select participation_year, 'Leagues that sent no file', round(identity_point + coverage_low, -1), round(identity_point + coverage_high, -1), round(true_total_participants, -1),
                true_total_participants between identity_point + coverage_low and identity_point + coverage_high
         from evaluation.eval_uncertainty_decomposition
         order by 1, 2""", ["evaluation.eval_uncertainty_decomposition"], "evaluation", "Each uncertainty component against the synthetic truth"),
@@ -254,7 +257,7 @@ DATASETS = [
        ["share_club.share_club__market_year", "reference.dq_purposes", "reference.dq_grade_bands"], "share_club", "Grades for each use in the six largest club markets"),
     # ---- privacy ----
     _D("frontier", """
-        select variant_id, label as variant_label, in_standard, pct_unique, pct_rows_below_k_min, precision, recall, f1, sibling_or_twin_false_merges, participant_count_error_pct, fit_for_activate, contact_fields_held
+        select variant_id, case variant_id when 'V0_FULL' then 'Full birth date and ZIP code' when 'V1_BIRTH_MONTH' then 'Birth month, full ZIP code' when 'V2_BIRTH_YEAR' then 'Birth year, 3-digit ZIP, email and phone' when 'V3_NO_PHONE' then 'Birth year, 3-digit ZIP, email only' when 'V4_HASHED_CONTACT' then 'Birth year, 3-digit ZIP, hashed email' else label end as short_label, label as variant_label, in_standard, pct_unique, pct_rows_below_k_min, precision, recall, f1, sibling_or_twin_false_merges, participant_count_error_pct, fit_for_activate, contact_fields_held
         from evaluation.eval_minimization_tradeoff where is_headline_matcher and precision is not null order by variant_id""",
        ["evaluation.eval_minimization_tradeoff"], "evaluation", "Minimization frontier: re-identification risk against identity accuracy, one point per variant"),
     _D("consent_prov", """
@@ -265,11 +268,14 @@ DATASETS = [
         s as (
             select *, coalesce(sum(consent_events) over (partition by source_system, consent_text_version order by provenance_grade rows between unbounded preceding and 1 preceding), 0) as x0
             from c)
-        select source_system, consent_text_version, provenance_grade, consent_events, suppressed, x0, x0 + coalesce(consent_events, 0) as x1,
-               source_system || ' / ' || consent_text_version as form
-        from s order by source_system, consent_text_version, provenance_grade""", ["share_privacy.share_privacy__consent_provenance"], "share_privacy",
+        select s.source_system, s.consent_text_version, case s.provenance_grade when 'KNOWN_FULL' then 'Fully recorded' when 'KNOWN_PARTIAL' then 'Partly recorded' else 'Not recorded' end as provenance_label,
+               s.provenance_grade, s.consent_events, s.suppressed, s.x0, s.x0 + coalesce(s.consent_events, 0) as x1,
+               coalesce(d.plain_name, s.source_system) || ' \u00b7 ' || case s.consent_text_version when 'v1_ops_only' then 'form 1 (league operations only)' when 'v2_ops_photo' then 'form 2 (adds photos)'
+                    when 'v3_ops_comms' then 'form 3 (adds league messages)' else 'form 4 (adds club marketing)' end as form
+        from s left join reference.source_display d on d.source_system = s.source_system order by s.source_system, s.consent_text_version, s.provenance_grade""", ["share_privacy.share_privacy__consent_provenance", "reference.source_display"], "share_privacy",
        "Consent events by provenance grade, source and consent text version, latest season"),
-    _D("purpose_matrix", "select consent_text_version, purpose, purpose_label, form_names_purpose, separate_consent_required, "
+    _D("purpose_matrix", "select case consent_text_version when 'v1_ops_only' then 'Form 1 (league operations only)' when 'v2_ops_photo' then 'Form 2 (adds photos)' when 'v3_ops_comms' then 'Form 3 (adds league messages)' else 'Form 4 (adds club marketing)' end as form, "
+       "consent_text_version, purpose, purpose_label, form_names_purpose, separate_consent_required, "
        "case when form_names_purpose then 'Named on the form' else 'Not named' end as coverage, case when form_names_purpose then 'yes' else 'no' end as mark "
        "from share_privacy.share_privacy__purpose_coverage order by consent_text_version, purpose",
        ["share_privacy.share_privacy__purpose_coverage"], "share_privacy", "Which purposes each consent wording names"),
@@ -279,6 +285,8 @@ DATASETS = [
         union all
         select metric_label, 'Identity re-run on anonymized inputs', coalesce(identity_rebuilt_change, 0), survives_identity_rebuilt from share_privacy.share_privacy__retention_vs_deletion where baseline > 0
         order by 1, 2""", ["share_privacy.share_privacy__retention_vs_deletion"], "share_privacy", "Change in each retention figure after the age-out deletion"),
+    _D("chart_insights_eval", "select chart_id, lens, field, value_display, value_raw, suppressed from evaluation.eval_chart_insights order by 1, 3", ["evaluation.eval_chart_insights"], "evaluation",
+       "Numbers used inside headline sentences (evaluation cards)"),
     _D("analyst_k", "select participation_year, participant_years, equivalence_classes, smallest_class, average_class_size, pct_unique, pct_rows_below_k_warn, pct_rows_below_k_min "
        "from share_privacy.share_privacy__analyst_k_anonymity order by 1", ["share_privacy.share_privacy__analyst_k_anonymity"], "share_privacy", "How identifying the analyst share is, per year"),
     _D("policy_results", "select check_name, violations from share_privacy.share_privacy__policy_checks order by 1", ["share_privacy.share_privacy__policy_checks"], "share_privacy", "Share-policy check results"),
@@ -304,7 +312,7 @@ COLUMN_LABELS = {
     "consent_text_version": "Consent wording", "provenance_grade": "Provenance", "consent_events": "Consent events", "form": "Form", "purpose_label": "Purpose", "form_names_purpose": "Named on form",
     "separate_consent_required": "Needs its own consent", "coverage": "Coverage", "mark": "Named", "metric_label": "Figure", "scenario": "Scenario", "change": "Change", "survives": "Within tolerance",
     "participation_year": "Year", "participant_years": "Participant-years", "equivalence_classes": "Classes", "smallest_class": "Smallest class", "average_class_size": "Average class size",
-    "pct_rows_below_k_warn": "Below warning size (%)", "check_name": "Check", "violations": "Violations", "participants_allocated_label": "Participants", "plain_action": "What to do", "rule_label": "Problem", "impact_bar": "Affected (rounded)", "impact_text_x": "Label position", "impact_label": "Affected", "impact_short": "Label", "label_x": "Label position", "x_mid": "Label position", "bar_label": "Label", "amount_label": "Amount", "players_text": "Players", "leagues_text": "Leagues", "range_text": "Range", "reach_text": "Reach", "consent_text": "Consent", "receives_text": "What the club receives", "growth_index": "Index (first year = 100)", "index_low": "Range from", "index_high": "Range to", "slide_title": "Slide", "step_name": "Step", "state_name": "State", "market_no": "Market no.", "state_order": "State order", "dark_rank": "Rank", "slide_no": "Slide", "size_rank": "Size rank", "first_year": "First year", "display_no": "Step no.", "part_order": "Order", "part": "Part", "unit": "Unit", "plain_name": "Market", "status": "Reading", "source_plain": "Source", "purpose_wrapped": "Use", "purpose_wrapped_wide": "Use", "source_wrapped": "Source", "worst_rank": "Rank (worst first)", "source_rank": "Order", "grade_label": "Meaning", "grade_or_na": "Grade", "grade_text": "Grade", "dimension_label": "Check", "dimension_wrapped": "Check", "dimension_order": "Order", "purpose_order": "Order", "source_group": "Group", "lower_limit": "Normal range from", "upper_limit": "to", "status": "Reading", "group_kind": "Group kind", "group_label": "Group", "group_order": "Order", "share_pct": "Share (%)", "share_label": "Share", "measure": "Measure", "channel_plain": "How it sends data", "league_label": "League", "profile_label": "Profile", "fix_no": "Fix", "plain_label": "Problem", "why": "Why", "scale_text": "Scale", "is_no_file": "No file sent", "example_no": "Example", "is_latest": "Latest season",
+    "pct_rows_below_k_warn": "Below warning size (%)", "check_name": "Check", "violations": "Violations", "participants_allocated_label": "Participants", "plain_action": "What to do", "rule_label": "Problem", "impact_bar": "Affected (rounded)", "impact_text_x": "Label position", "impact_label": "Affected", "impact_short": "Label", "short_label": "Fields kept", "label_x": "Label position", "x_mid": "Label position", "bar_label": "Label", "amount_label": "Amount", "players_text": "Players", "leagues_text": "Leagues", "range_text": "Range", "reach_text": "Reach", "consent_text": "Consent", "receives_text": "What the club receives", "growth_index": "Index (first year = 100)", "index_low": "Range from", "index_high": "Range to", "slide_title": "Slide", "step_name": "Step", "state_name": "State", "market_no": "Market no.", "state_order": "State order", "dark_rank": "Rank", "slide_no": "Slide", "size_rank": "Size rank", "first_year": "First year", "display_no": "Step no.", "part_order": "Order", "part": "Part", "unit": "Unit", "plain_name": "Market", "status": "Reading", "source_plain": "Source", "purpose_wrapped": "Use", "purpose_wrapped_wide": "Use", "source_wrapped": "Source", "worst_rank": "Rank (worst first)", "source_rank": "Order", "grade_label": "Meaning", "grade_or_na": "Grade", "grade_text": "Grade", "dimension_label": "Check", "dimension_wrapped": "Check", "dimension_order": "Order", "purpose_order": "Order", "source_group": "Group", "lower_limit": "Normal range from", "upper_limit": "to", "status": "Reading", "group_kind": "Group kind", "group_label": "Group", "group_order": "Order", "share_pct": "Share (%)", "share_label": "Share", "measure": "Measure", "channel_plain": "How it sends data", "league_label": "League", "profile_label": "Profile", "fix_no": "Fix", "plain_label": "Problem", "why": "Why", "scale_text": "Scale", "is_no_file": "No file sent", "example_no": "Example", "is_latest": "Latest season",
 }
 RATE_COLUMNS = {"cumulative_share", "change", "value_known_only", "bound_low", "bound_high", "precision", "recall", "f1", "fit_for_activate"}
 
@@ -339,105 +347,10 @@ def charts():
         card=dict(id="Q3", datasets=["dq_pareto"], thumb=pareto_spec("ACTIVATE", 6, 230, True), open_slide=5,
                   slides=[dict(title=label, key=use, spec=pareto_spec(use, 10, "container", False)) for use, label in uses]))
     C.update(quality_cards())
-    # ---- How sure are we ----
-    C["u1_decomp"] = dict(
-        page="sure", title="Why can't you give me one number, and what drives the range? (three separate intervals)", datasets=["unc_decomp"],
-        question="Why can't you give me one number, and what drives the range? (executives and clubs)",
-        spec={"data": _src("unc_decomp"), "facet": {"field": "participation_year", "type": "ordinal", "columns": 5, "title": None},
-              "spec": {"width": 150, "height": 170, "layer": [
-                  {"mark": {"type": "rule", "strokeWidth": 7, "opacity": 0.55}, "encoding": {"y": {"field": "component", "type": "nominal", "title": None, "sort": ["IDENTITY", "DQ_EXCLUSIONS", "COVERAGE"]},
-                      "x": {"field": "interval_low", "type": "quantitative", "scale": {"zero": False}, "title": "Participants"}, "x2": {"field": "interval_high"}, "color": {"field": "component", "type": "nominal", "legend": None}}},
-                  {"mark": {"type": "tick", "color": "#000000", "thickness": 2, "size": 18}, "encoding": {"y": {"field": "component", "type": "nominal", "sort": ["IDENTITY", "DQ_EXCLUSIONS", "COVERAGE"]},
-                      "x": {"field": "reported_point", "type": "quantitative"}}}]}},
-        shows="For each year, the participant count (tick) with three separate bars: what identity resolution could move it by, what dropping records that fail the counting rules would remove, and what organizations that sent no file might add.",
-        doesnt="One overall interval, on purpose: the three are not independent and coverage is an estimate, not a bound, so they are never added together (ADR-015).",
-        lens=dict(club="The coverage bar is the one clubs can act on: it is the organizations that did not report.", privacy="The identity bar is the one with a privacy edge: wrongly merged siblings sit in it."))
-    C["u2_missing"] = dict(
-        page="sure", title="Is the girls' trend real, or an artefact of missing data? (known-only value and bounds)", datasets=["miss_dumbbell"],
-        question="Is the girls' trend real, or an artefact of missing data? (clubs and the privacy lead)",
-        spec={"data": _src("miss_dumbbell"), "facet": {"field": "participation_year", "type": "ordinal", "columns": 5, "title": None},
-              "spec": {"width": 150, "height": 190, "layer": [
-                  {"mark": {"type": "rule", "strokeWidth": 4, "opacity": 0.6}, "encoding": {"y": {"field": "division", "type": "nominal", "title": None},
-                      "x": {"field": "bound_low", "type": "quantitative", "scale": {"zero": False}, "axis": {"format": "%", "title": "Girls' share"}}, "x2": {"field": "bound_high"}}},
-                  {"mark": {"type": "point", "filled": True, "color": "#D9622B", "size": 60}, "encoding": {"y": {"field": "division", "type": "nominal"},
-                      "x": {"field": "value_known_only", "type": "quantitative"}, "tooltip": [{"field": "division"}, {"field": "unknown"}, {"field": "total"}]}}]}},
-        shows="By division and year, the girls' share among children whose gender is known (dot) and the range it would span if every unknown were a girl or a boy (bar). Missing gender is concentrated in the youngest divisions and in spreadsheet files.",
-        doesnt="The truth: the bar is a bound, not an estimate, and it narrows with fewer unknowns. Divisions with fewer than k_min children are left out. Nothing is imputed.",
-        lens=dict(club="Compare divisions you coach: the bars are widest where gender is most often blank.", privacy="Gender is not collected on every form on purpose; the bar is what that choice costs the statistic."))
-    C["u3_overlay"] = dict(
-        page="sure", title="Do the methods work? (each component against the synthetic truth)", datasets=["unc_truth"], evaluation=True,
-        question="Do the methods work? (technical reviewers)",
-        spec={"data": _src("unc_truth"), "facet": {"field": "participation_year", "type": "ordinal", "columns": 5, "title": None},
-              "spec": {"width": 150, "height": 150, "layer": [
-                  {"mark": {"type": "rule", "strokeWidth": 7, "opacity": 0.5}, "encoding": {"y": {"field": "component", "type": "nominal", "title": None},
-                      "x": {"field": "low", "type": "quantitative", "scale": {"zero": False}, "title": "Participants"}, "x2": {"field": "high"}, "color": {"field": "truth_inside", "type": "nominal",
-                      "scale": {"domain": [True, False], "range": ["#2F6B4F", "#D9622B"]}, "legend": {"title": "Truth inside"}}}},
-                  {"mark": {"type": "point", "shape": "cross", "color": "#000000", "size": 90, "strokeWidth": 2}, "encoding": {"y": {"field": "component", "type": "nominal"},
-                      "x": {"field": "truth", "type": "quantitative"}}}]}},
-        shows="Each component's interval with the true number (cross) from the generator's answer key. Identity and data-quality exclusions bracket the truth; the coverage interval does so in some years only.",
-        doesnt="Performance on real data, where there is no answer key. The coverage estimate was not tuned after seeing these results, and its interval is too narrow in some years: that is reported, not hidden.",
-        lens=dict(club="The coverage miss is why the club view shows a range, not a point.", privacy="Identity bounds covering the truth is the evidence that sibling merges are not hiding in the count."))
-    C["u4_fixdemo"] = dict(
-        page="sure", title="What's the payoff of fixing upstream? (SIMULATED fix-list adoption)", datasets=["fix_demo_scores", "fix_demo_nuance"], evaluation=True,
-        question="What's the payoff of fixing upstream? (clubs and the privacy lead)",
-        spec={"data": _src("fix_demo_scores"), "facet": {"field": "org_group", "type": "nominal", "columns": 2, "title": None},
-              "spec": {"width": 260, "height": 190, "layer": [
-                  {"mark": {"type": "rule", "strokeWidth": 3, "color": "#8A96A3"}, "encoding": {"y": {"field": "purpose", "type": "nominal", "sort": PURPOSES, "title": None},
-                      "x": {"field": "score_before", "type": "quantitative", "scale": {"domain": [50, 100]}, "title": "Purpose score"}, "x2": {"field": "score_after"}}},
-                  {"mark": {"type": "point", "filled": True, "color": "#8A96A3", "size": 70}, "encoding": {"y": {"field": "purpose", "type": "nominal", "sort": PURPOSES}, "x": {"field": "score_before", "type": "quantitative"}}},
-                  {"mark": {"type": "point", "filled": True, "color": "#2F6B4F", "size": 70, "shape": "diamond"}, "encoding": {"y": {"field": "purpose", "type": "nominal", "sort": PURPOSES}, "x": {"field": "score_after", "type": "quantitative"}}}]}},
-        shows="Purpose scores before (grey dot) and after (green diamond) half the struggling organizations act on their fix list in the final season, beside the struggling organizations that did not. The table shows what it does to the uncertainty.",
-        doesnt="That any organization would act, or an effect size. It is a simulated scenario on synthetic data. It narrows the missingness bounds only slightly, because the large uncertainty is coverage, which a fix list does not touch.",
-        lens=dict(club="Fixing upstream lifts your organization's scores; it does not close the coverage gap.", privacy="Better forms and fewer blanks improve quality without collecting more personal data."))
-    # ---- Club markets ----
     C.update(market_cards())
-    # ---- Privacy by design ----
-    C["p1_frontier"] = dict(
-        page="privacy", title="What does each field buy us, and what does it cost? (the minimization frontier)", datasets=["frontier"], evaluation=True,
-        question="What does each field buy us, and what does it cost? (the privacy lead, then clubs)",
-        spec={"data": _src("frontier"), "width": "container", "height": 330, "layer": [
-            {"mark": {"type": "line", "color": "#8A96A3", "strokeDash": [4, 3]}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative", "title": "Participant-years that are unique (%), lower is safer", "scale": {"zero": False}},
-                "y": {"field": "f1", "type": "quantitative", "scale": {"domain": [0.97, 1]}, "title": "Identity F1 (final matcher, before review)"}, "order": {"field": "variant_id"}}},
-            {"mark": {"type": "point", "filled": True, "size": 120}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative"}, "y": {"field": "f1", "type": "quantitative"},
-                "color": {"field": "variant_id", "type": "nominal", "title": "Variant"}, "tooltip": [{"field": "variant_label"}, {"field": "precision"}, {"field": "recall"}, {"field": "sibling_or_twin_false_merges"},
-                                                                                                   {"field": "pct_rows_below_k_min"}, {"field": "fit_for_activate"}]}},
-            {"mark": {"type": "point", "filled": False, "size": 520, "strokeWidth": 3}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative"}, "y": {"field": "f1", "type": "quantitative"},
-                "stroke": {"field": "in_standard", "type": "nominal", "scale": {"domain": [True, False], "range": ["#000000", "rgba(0,0,0,0)"]}, "legend": None}}},
-            {"mark": {"type": "text", "dy": -14, "fontSize": 11}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative"}, "y": {"field": "f1", "type": "quantitative"}, "text": {"field": "variant_id", "type": "nominal"}}}]},
-        shows="One point per field-granularity variant, from the full date of birth and postal code (V0) to a birth year, ZIP3 and a hashed email (V4). Left is safer (fewer participant-years are unique); higher is a more accurate identity match. Dropping the day of birth and ZIP5 costs the matcher almost nothing here.",
-        doesnt="The whole story: the ringed point (V2) is the variant the data standard cites, chosen by the program owner on 2026-10-14 from this frontier (ADR-018), not an optimum. Share below k_min is above 97% for every variant, so it cannot separate them and the horizontal axis uses the share of unique participant-years instead. One synthetic dataset, so read the pattern, not the decimals.",
-        note=lambda d: "The ringed point is the data standard's choice (V2: birth year, ZIP3, email and an optional phone for matching). A hashed email (V4) matches as well as a clear one and gives up the activation purpose entirely.",
-        lens=dict(club="The cost to a club is in the last column of the table: a hashed contact cannot reach a family.", privacy="Only the x-axis is a privacy measure; the y-axis is what identity resolution keeps."))
-    C["p2_provenance"] = dict(
-        page="privacy", title="Do we know what families agreed to? (consent provenance)", datasets=["consent_prov"],
-        question="Do we know what families agreed to? (the privacy lead)",
-        spec={"data": _src("consent_prov"), "width": "container", "height": 300, "mark": {"type": "bar"},
-              "encoding": {"y": {"field": "form", "type": "nominal", "title": None}, "x": {"field": "x0", "type": "quantitative", "title": "Consent events, latest season"}, "x2": {"field": "x1"},
-                           "color": {"field": "provenance_grade", "type": "nominal", "title": "Provenance",
-                                     "scale": {"domain": ["KNOWN_FULL", "KNOWN_PARTIAL", "UNKNOWN"], "range": ["#2F6B4F", "#B8A06A", "#8A96A3"]}}, "tooltip": [{"field": "form"}, {"field": "provenance_grade"}, {"field": "consent_events"}]}},
-        shows="For each source and consent wording, how many consent events are fully evidenced (wording, time and purpose known), partly evidenced, or unknown. The bars are in events.",
-        doesnt="Whether a family would agree today, or that a fully evidenced consent was valid: provenance is about what is on record. A cell with fewer than k_min events is hidden and shows as <k in the table.",
-        lens=dict(club="Unknown provenance means the family cannot be contacted for marketing, whatever they ticked.", privacy="This is the chart behind the claim that a consent email is not a marketing opt-in."))
-    C["p3_matrix"] = dict(
-        page="privacy", title="Which purposes can we lawfully pursue, per form? (purpose coverage)", datasets=["purpose_matrix"],
-        question="Which purposes can we pursue, per form? (the privacy lead)",
-        spec={"data": _src("purpose_matrix"), "width": "container", "height": 160, "layer": [
-            {"mark": {"type": "rect", "stroke": "#ffffff"}, "encoding": {"x": {"field": "purpose_label", "type": "nominal", "title": None}, "y": {"field": "consent_text_version", "type": "nominal", "title": None},
-                "color": {"field": "coverage", "type": "nominal", "scale": {"domain": ["Named on the form", "Not named"], "range": ["#92c5de", "#f4a582"]}, "title": "Wording"}}},
-            {"mark": {"type": "text", "fontSize": 14}, "encoding": {"x": {"field": "purpose_label", "type": "nominal"}, "y": {"field": "consent_text_version", "type": "nominal"}, "text": {"field": "mark", "type": "nominal"}}}]},
-        shows="For each consent wording, whether the form names each purpose (yes) or not (no). Only a form that names club marketing can carry a club-marketing opt-in.",
-        doesnt="Legal advice or a finding about any form: whether a wording is sufficient is a question for counsel. This chart reads the wording the generator gave each form, and a purpose that needs its own consent is never covered by a terms acceptance.",
-        lens=dict(club="Only the last wording lets a club market to the family.", privacy="Purpose limitation: a yes here is necessary, not sufficient."))
-    C["p5_retention"] = dict(
-        page="privacy", title="Can we delete and still measure retention? (analytics after the age-out deletion)", datasets=["retention_del"],
-        question="Can we delete and still measure retention? (the privacy lead)",
-        spec={"data": _src("retention_del"), "width": "container", "height": 300, "mark": {"type": "bar"},
-              "encoding": {"y": {"field": "metric_label", "type": "nominal", "title": None}, "x": {"field": "change", "type": "quantitative", "axis": {"format": "%"}, "title": "Change in the figure after deletion"},
-                           "yOffset": {"field": "scenario", "type": "nominal"}, "color": {"field": "scenario", "type": "nominal", "title": None, "scale": {"range": ["#2F6B4F", "#D9622B"]}}}},
-        shows="How much each retention figure moves when children who aged out are anonymized: not at all if the marts are rebuilt from the pseudonymous facts, by about a sixth if identity resolution is re-run on the anonymized inputs.",
-        doesnt="The loss of re-linking a returning adult to their youth history: this synthetic data has no child who plays on as an adult inside the window, so that case is zero here and cannot be shown. The retention periods are assumptions.",
-        lens=dict(club="Retention rates survive if the pipeline keeps the pseudonymous key.", privacy="The design constraint: freeze the participant key before the identifiers go, and never re-run identity over deleted records (ADR-017)."))
-    order = ["q1_grid", "q2_trend", "q3_pareto", "q4_size", "q5_fix"]
+    C.update(sure_cards())
+    C.update(privacy_cards())
+    order = ["q1_grid", "q2_trend", "q3_pareto", "q4_size", "q5_fix", "p3_frontier", "p1_provenance", "p2_matrix", "p4_retention", "p5_kanon"]
     C = {**{k: C[k] for k in order if k in C}, **{k: v for k, v in C.items() if k not in order}}
     return C
 
@@ -711,6 +624,145 @@ def market_cards():
                   note_html=lambda d: ("<p class='vnote'><b>No leagues known yet:</b> " + ", ".join(__import__("html").escape(r["plain_name"]) for r in d["market_no_leagues"]["rows"]) + ".</p>") if d["market_no_leagues"]["rows"] else ""))
     C["m5_pair"] = dict(page="markets", title="The same market, two lenses", datasets=["market_pairs", "market_pair_grades"],
         card=dict(id="M5", datasets=["market_pairs", "market_pair_grades"], thumb_html=lambda d: pair_html(d, 1), open_slide=1, slides=pair_slides))
+    return C
+
+
+def _latest(d, ds, key="participation_year"):
+    return max(r[key] for r in d[ds]["rows"])
+
+
+def _unc_spec(year, thumb):
+    y = {"field": "component_label", "type": "nominal", "title": None, "sort": {"field": "component_order", "op": "min"}, "axis": {"labelLimit": 300, "labelFontSize": 12 if thumb else 14}}
+    return {"data": _src("unc_decomp"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 12, "top": 4, "bottom": 4},
+            "transform": [{"filter": f"datum.participation_year === {year}"}],
+            "layer": [
+                {"mark": {"type": "rule", "strokeWidth": 10 if thumb else 14, "opacity": 0.6, "clip": True}, "encoding": {"y": y,
+                    "x": {"field": "interval_low", "type": "quantitative", "scale": {"zero": False}, "title": None if thumb else "Players counted", "axis": {"format": ",d", "tickCount": 4 if thumb else 8}}, "x2": {"field": "interval_high"},
+                    "color": {"field": "component_label", "type": "nominal", "legend": None, "scale": {"range": ["#3D7CC9", "#D9622B", "#B8A06A"]}},
+                    "tooltip": [{"field": "component_label", "title": "Source of doubt"}, {"field": "reported_point", "title": "Counted"}, {"field": "interval_low", "title": "Low"}, {"field": "interval_high", "title": "High"}]}},
+                {"mark": {"type": "tick", "color": "#000000", "thickness": 3, "size": 26 if thumb else 34, "clip": True}, "encoding": {"y": y, "x": {"field": "reported_point", "type": "quantitative"}}}]}
+
+
+def _miss_spec(year, thumb):
+    y = {"field": "division", "type": "nominal", "title": None, "axis": {"labelFontSize": 12 if thumb else 14}}
+    return {"data": _src("miss_dumbbell"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 12, "top": 4, "bottom": 4},
+            "transform": [{"filter": f"datum.participation_year === {year}"}],
+            "layer": [
+                {"mark": {"type": "rule", "strokeWidth": 6, "opacity": 0.5, "clip": True, "color": "#8A96A3"}, "encoding": {"y": y,
+                    "x": {"field": "bound_low_pct", "type": "quantitative", "scale": {"zero": False}, "title": None if thumb else "Girls' share of players (%)", "axis": {"format": "d", "tickCount": 5}}, "x2": {"field": "bound_high_pct"}}},
+                {"mark": {"type": "point", "filled": True, "color": "#D9622B", "size": 80 if thumb else 120, "clip": True}, "encoding": {"y": y, "x": {"field": "girls_pct", "type": "quantitative"},
+                    "tooltip": [{"field": "division", "title": "Age group"}, {"field": "girls_pct", "title": "Girls' share, known only (%)"}, {"field": "bound_low_pct", "title": "Lowest it could be"},
+                                {"field": "bound_high_pct", "title": "Highest it could be"}, {"field": "unknown", "title": "Gender not recorded"}, {"field": "total", "title": "Players"}]}}]}
+
+
+def _truth_spec(year, thumb):
+    y = {"field": "component", "type": "nominal", "title": None, "axis": {"labelLimit": 300, "labelFontSize": 12 if thumb else 14}}
+    return {"data": _src("unc_truth"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 12, "top": 4, "bottom": 4},
+            "transform": [{"filter": f"datum.participation_year === {year}"}],
+            "layer": [
+                {"mark": {"type": "rule", "strokeWidth": 10 if thumb else 14, "opacity": 0.6, "clip": True}, "encoding": {"y": y,
+                    "x": {"field": "low", "type": "quantitative", "scale": {"zero": False}, "title": None if thumb else "Players counted", "axis": {"format": ",d", "tickCount": 4 if thumb else 8}}, "x2": {"field": "high"},
+                    "color": {"field": "truth_inside", "type": "nominal", "title": None, "scale": {"domain": [True, False], "range": ["#2F6B4F", "#D9622B"]},
+                              "legend": {"orient": "top", "labelExpr": "datum.value ? 'True number inside the range' : 'True number outside the range'", "labelLimit": 400}}}},
+                {"mark": {"type": "point", "shape": "cross", "color": "#000000", "size": 120, "strokeWidth": 2.5, "clip": True}, "encoding": {"y": y, "x": {"field": "truth", "type": "quantitative"},
+                    "tooltip": [{"field": "component", "title": "Method"}, {"field": "truth", "title": "True number (synthetic answer key)"}, {"field": "low", "title": "Range from"}, {"field": "high", "title": "to"}]}}]}
+
+
+def _fixdemo_spec(group, thumb):
+    safe = group.replace("'", "\\'")
+    y = {"field": "purpose", "type": "nominal", "sort": PURPOSES, "title": None, "axis": {"labelFontSize": 12 if thumb else 14}}
+    return {"data": _src("fix_demo_scores"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 12, "top": 4, "bottom": 4},
+            "transform": [{"filter": f"datum.org_group === '{safe}'"}],
+            "layer": [
+                {"mark": {"type": "rule", "strokeWidth": 3, "color": "#8A96A3", "clip": True}, "encoding": {"y": y, "x": {"field": "score_before", "type": "quantitative", "scale": {"domain": [50, 100]}, "title": None if thumb else "Quality score"}, "x2": {"field": "score_after"}}},
+                {"mark": {"type": "point", "filled": True, "color": "#8A96A3", "size": 90, "clip": True}, "encoding": {"y": y, "x": {"field": "score_before", "type": "quantitative"}, "tooltip": [{"field": "purpose", "title": "Use"}, {"field": "score_before", "title": "Before"}, {"field": "score_after", "title": "After"}]}},
+                {"mark": {"type": "point", "filled": True, "color": "#2F6B4F", "size": 110, "shape": "diamond", "clip": True}, "encoding": {"y": y, "x": {"field": "score_after", "type": "quantitative"}}}]}
+
+
+def sure_cards():
+    def slides_for(ds, fn):
+        return lambda d: [dict(title=str(yr), key="YEAR", spec=fn(yr, False)) for yr in sorted({r["participation_year"] for r in d[ds]["rows"]}, reverse=True)]
+
+    C = {}
+    C["u1_decomp"] = dict(page="sure", title="Why is there a range, not one number?", datasets=["unc_decomp"],
+        card=dict(id="U1", datasets=["unc_decomp"], thumb=lambda d: _unc_spec(_latest(d, "unc_decomp"), True), open_slide=1, slides=slides_for("unc_decomp", _unc_spec)))
+    C["u2_missing"] = dict(page="sure", title="Is the girls' trend real?", datasets=["miss_dumbbell"],
+        card=dict(id="U2", datasets=["miss_dumbbell"], thumb=lambda d: _miss_spec(_latest(d, "miss_dumbbell"), True), open_slide=1, slides=slides_for("miss_dumbbell", _miss_spec)))
+    C["u3_overlay"] = dict(page="sure", title="Do the methods work?", datasets=["unc_truth"], evaluation=True,
+        card=dict(id="U3", datasets=["unc_truth"], thumb=lambda d: _truth_spec(_latest(d, "unc_truth"), True), open_slide=1, slides=slides_for("unc_truth", _truth_spec)))
+    groups = lambda d: sorted({r["org_group"] for r in d["fix_demo_scores"]["rows"]}, reverse=True)
+    C["u4_fixdemo"] = dict(page="sure", title="What is the payoff of fixing problems early?", datasets=["fix_demo_scores", "fix_demo_nuance"], evaluation=True,
+        card=dict(id="U4", datasets=["fix_demo_scores", "fix_demo_nuance"], thumb=lambda d: _fixdemo_spec(groups(d)[0], True), open_slide=1,
+                  slides=lambda d: [dict(title=g.replace("Organizations", "Leagues").replace("organizations", "leagues"), key="GROUP", spec=_fixdemo_spec(g, False)) for g in groups(d)]))
+    return C
+
+
+def _prov_spec(thumb):
+    y = {"field": "form", "type": "nominal", "title": None, "axis": {"labelLimit": 420, "labelFontSize": 11 if thumb else 13}}
+    return {"data": _src("consent_prov"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 12, "top": 4, "bottom": 4},
+            "mark": {"type": "bar", "clip": True, "height": {"band": 0.7}, "stroke": "#ffffff", "strokeWidth": 1},
+            "encoding": {"y": y, "x": {"field": "x0", "type": "quantitative", "title": None if thumb else "Consent records, latest season", "axis": {"format": ",d", "tickCount": 4 if thumb else 8}}, "x2": {"field": "x1"},
+                         "color": {"field": "provenance_label", "type": "nominal", "title": None, "scale": {"domain": ["Fully recorded", "Partly recorded", "Not recorded"], "range": ["#2F6B4F", "#B8A06A", "#8A96A3"]},
+                                   "legend": {"orient": "top", "labelFontSize": 11 if thumb else 13, "columns": 1 if thumb else 3}},
+                         "tooltip": [{"field": "form", "title": "Source and form"}, {"field": "provenance_label", "title": "Recorded"}, {"field": "consent_events", "title": "Consent records"}]}}
+
+
+def _matrix_spec(thumb):
+    x = {"field": "purpose_label", "type": "nominal", "title": None, "axis": {"orient": "top", "labelAngle": 0, "labelLimit": 220, "labelFontSize": 11 if thumb else 13}}
+    y = {"field": "form", "type": "nominal", "title": None, "axis": {"labelLimit": 360, "labelFontSize": 11 if thumb else 13}}
+    return {"data": _src("purpose_matrix"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 12, "top": 4, "bottom": 4},
+            "layer": [
+                {"mark": {"type": "rect", "stroke": "#ffffff", "strokeWidth": 2, "clip": True}, "encoding": {"x": x, "y": y,
+                    "color": {"field": "coverage", "type": "nominal", "scale": {"domain": ["Named on the form", "Not named"], "range": ["#92c5de", "#f4a582"]}, "title": None, "legend": {"orient": "bottom"}}}},
+                {"mark": {"type": "text", "fontSize": 13 if thumb else 16, "fontWeight": "bold"}, "encoding": {"x": x, "y": y, "text": {"field": "mark", "type": "nominal"}}}]}
+
+
+def _retention_spec(thumb):
+    return {"data": _src("retention_del"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 12, "top": 4, "bottom": 4},
+            "mark": {"type": "bar", "clip": True},
+            "encoding": {"y": {"field": "metric_label", "type": "nominal", "title": None, "axis": {"labelLimit": 380, "labelFontSize": 11 if thumb else 13}},
+                         "x": {"field": "change", "type": "quantitative", "axis": {"format": "%"}, "title": None if thumb else "Change in the figure after deletion"},
+                         "yOffset": {"field": "scenario", "type": "nominal"},
+                         "color": {"field": "scenario", "type": "nominal", "title": None, "scale": {"range": ["#2F6B4F", "#D9622B"]}, "legend": {"orient": "top", "labelLimit": 400}},
+                         "tooltip": [{"field": "metric_label", "title": "Figure"}, {"field": "scenario", "title": "Scenario"}, {"field": "change", "title": "Change", "format": ".1%"}]}}
+
+
+def _kanon_spec(thumb):
+    xe = {"field": "participation_year", "type": "ordinal", "title": None, "axis": {"labelAngle": 0}}
+    return {"data": _src("analyst_k"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 12, "top": 8, "bottom": 4},
+            "layer": [
+                {"mark": {"type": "line", "point": True, "color": "#7D4E8E", "clip": True, "strokeWidth": 2}, "encoding": {"x": xe, "y": {"field": "pct_unique", "type": "quantitative", "scale": {"domain": [0, 100]},
+                    "title": None if thumb else "Participant-years that are unique (%)", "axis": {"format": "d"}},
+                    "tooltip": [{"field": "participation_year", "title": "Season"}, {"field": "pct_unique", "title": "Unique (%)"}, {"field": "smallest_class", "title": "Smallest group"}]}}]}
+
+
+def _frontier_spec(thumb):
+    spec = {"data": _src("frontier"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 12, "top": 12, "bottom": 4},
+            "layer": [
+                {"mark": {"type": "line", "color": "#8A96A3", "strokeDash": [4, 3], "clip": True}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative", "title": None if thumb else "Participant-years that are unique (%): lower is safer", "scale": {"zero": False}},
+                    "y": {"field": "f1", "type": "quantitative", "scale": {"domain": [0.99, 1.0]}, "title": None if thumb else "Matching accuracy (F1)", "axis": {"format": ".1%", "tickCount": 5}}, "order": {"field": "variant_id"}}},
+                {"mark": {"type": "point", "filled": True, "size": 110 if thumb else 160, "clip": True}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative"}, "y": {"field": "f1", "type": "quantitative"},
+                    "color": {"field": "short_label", "type": "nominal", "title": None, "legend": {"orient": "top", "labelLimit": 400, "columns": 2 if thumb else 5, "labelFontSize": 11 if thumb else 13}},
+                    "tooltip": [{"field": "variant_label", "title": "Fields kept"}, {"field": "pct_unique", "title": "Unique (%)"}, {"field": "f1", "title": "Matching accuracy", "format": ".1%"}, {"field": "sibling_or_twin_false_merges", "title": "Sibling or twin mix-ups"}]}},
+                {"mark": {"type": "point", "filled": False, "size": 420, "strokeWidth": 3, "clip": True}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative"}, "y": {"field": "f1", "type": "quantitative"},
+                    "stroke": {"field": "in_standard", "type": "nominal", "scale": {"domain": [True, False], "range": ["#000000", "rgba(0,0,0,0)"]}, "legend": None}}},
+                {"mark": {"type": "text", "dy": -16, "fontSize": 11 if thumb else 13, "clip": False}, "encoding": {"x": {"field": "pct_unique", "type": "quantitative"}, "y": {"field": "f1", "type": "quantitative"}, "text": {"field": "short_label", "type": "nominal"}}}]}
+    return spec
+
+
+def privacy_cards():
+    C = {}
+    one = lambda fn: (lambda d: [dict(title="Chart", key="ONE", spec=fn(False))])
+    C["p3_frontier"] = dict(page="privacy", title="What does each field buy us, and what does it cost?", datasets=["frontier"], evaluation=True,
+        card=dict(id="P3", datasets=["frontier"], thumb=_frontier_spec(True), open_slide=1, slides=one(_frontier_spec)))
+    C["p1_provenance"] = dict(page="privacy", title="Do we know what families agreed to?", datasets=["consent_prov"],
+        card=dict(id="P1", datasets=["consent_prov"], thumb=_prov_spec(True), open_slide=1, slides=one(_prov_spec)))
+    C["p2_matrix"] = dict(page="privacy", title="Which purposes does each consent form cover?", datasets=["purpose_matrix"],
+        card=dict(id="P2", datasets=["purpose_matrix"], thumb=_matrix_spec(True), open_slide=1, slides=one(_matrix_spec)))
+    C["p4_retention"] = dict(page="privacy", title="Can we delete and still measure who comes back?", datasets=["retention_del"],
+        card=dict(id="P4", datasets=["retention_del"], thumb=_retention_spec(True), open_slide=1, slides=one(_retention_spec)))
+    C["p5_kanon"] = dict(page="privacy", title="How identifying is the analyst share?", datasets=["analyst_k"],
+        card=dict(id="P5", datasets=["analyst_k"], thumb=_kanon_spec(True), open_slide=1, slides=one(_kanon_spec)))
     return C
 
 

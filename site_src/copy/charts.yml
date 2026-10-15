@@ -155,3 +155,122 @@ charts:
     caution: "Counts are rounded. A count under 10 is never shown."
     analyst_md: |
       Both panels come from `share_club` aggregates for the six largest published markets, latest season. The deletion count at age-out (from `retention_log`) is not on this panel: it lives in a restricted store and has no approved share yet.
+  U1:
+    status: draft
+    headline_template: "The {latest_year} count is {count_point} players. Leagues that sent no file add the most doubt: {coverage_extra_high} more."
+    fallback_headline: "The count has three separate doubts. Leagues that sent no file add the most."
+    slide_headline_templates: {}
+    question: "Why is there a range, not one number?"
+    means_club: "The tick is the count. Each bar is one reason the true number could differ. We do not add the three bars together."
+    means_privacy: "The top bar is about matching people. Two children wrongly treated as one would sit in that bar."
+    action_club: "Ask the leagues that sent no file to send one. That narrows the widest bar."
+    action_privacy: "Check the matching bar each year for signs that siblings were merged."
+    caution: "The bar for leagues that sent no file is an estimate, not a hard limit."
+    analyst_md: |
+      Three intervals from `mart_uncertainty_decomposition`, per year, never added (ADR-015): **identity** (what the resolver could move the count by), **data-quality exclusions** (strict versus lenient counting rules), and **coverage** (organizations that sent no file; an estimate, not a bound).
+      Values are rounded to the nearest 10 players.
+  U2:
+    status: draft
+    headline_template: "Girls are {girls_share_pct} of players whose gender is known. Missing gender moves that by {girls_bounds_width}."
+    fallback_headline: "Missing gender barely changes the girls' share."
+    slide_headline_templates: {}
+    question: "Is the girls' trend real?"
+    means_club: "The dot is the girls' share among players with a recorded gender. The grey bar shows how far it could move if every blank were a girl, or a boy."
+    means_privacy: "Gender is not asked on every form. The bar shows what that choice costs the statistic."
+    action_club: "Collect gender on every form for the youngest age groups first."
+    action_privacy: "Keep gender optional where families object. A wider bar is the price."
+    caution: "Age groups with fewer than 10 players are left out. Nothing is guessed."
+    analyst_md: |
+      Girls' share of youth by division (`mart_missingness_bias`, KPI `girls_share_of_youth`), national. The bounds assign every unknown gender to girls, then to boys (Manski bounds); the width is reported in share points. Nothing is imputed.
+  U3:
+    status: draft
+    headline_template: "In {n_inside} of {n_checks} checks, the true number fell inside our range."
+    fallback_headline: "Most of our ranges contain the true number."
+    slide_headline_templates: {}
+    question: "Do the methods work?"
+    means_club: "The cross is the true number from the made-up data. A green bar contains it. An orange bar misses it."
+    means_privacy: "The matching bar contains the truth every year. That is evidence siblings are not hiding in the count."
+    action_club: "Treat the range for leagues that sent no file as a guide, not a promise."
+    action_privacy: "No action. Re-run this check whenever the matching rules change."
+    caution: "This only works on made-up data, where the true answer is known. Real data has no answer key."
+    analyst_md: |
+      Each component's interval against the generator's answer key (`eval_uncertainty_decomposition`), evaluation only. The coverage estimate was not tuned after the answer key was read, and its interval misses the truth in some years; that is reported, not hidden.
+  U4:
+    status: draft
+    headline_template: "Leagues that fix their top problems lift their grades. The gap from silent leagues stays."
+    fallback_headline: "Leagues that fix their top problems lift their grades."
+    slide_headline_templates: {}
+    question: "What is the payoff of fixing problems early?"
+    means_club: "Grey dots are grades before. Green diamonds are after. Half of the struggling leagues acted on their fix list in the last season."
+    means_privacy: "Better forms and fewer blanks lift quality without collecting more personal data."
+    action_club: "Send fix lists to the leagues that struggle most."
+    action_privacy: "Prefer form changes to extra data collection."
+    caution: "This is a simulated scenario on made-up data. It shows what could happen, not what will."
+    analyst_md: |
+      A simulation on a COPY of the warehouse (`make fix-list-demo`): half of the struggling organizations apply their fix list in the final season. Purpose scores before and after, beside the struggling organizations that did not act. It narrows the missingness bounds only slightly, because the large uncertainty is coverage, which a fix list does not touch.
+  P1:
+    status: draft
+    headline_template: "{pct_provenance_full} of consent records show exactly what the family agreed to."
+    fallback_headline: "Not every consent record shows what the family agreed to."
+    slide_headline_templates: {}
+    question: "Do we know what families agreed to?"
+    means_club: "A family can only be contacted if we know what they agreed to. Records marked partly or not recorded cannot be used."
+    means_privacy: "This is why a consent email is not a marketing opt-in. We need the wording, the date and the purpose."
+    action_club: "Ask your league to record the form version and the date with every consent."
+    action_privacy: "Fix the weakest source first. Check that its form names each purpose."
+    caution: "This says what is on record. It does not say a family would agree today."
+    analyst_md: |
+      Consent events by provenance grade (`share_privacy__consent_provenance`), latest season: fully known (wording, time and purpose), partly known, unknown. A cell with fewer than the small-cell limit is hidden.
+  P2:
+    status: draft
+    headline_template: "{n_versions_ok} of {n_versions} consent forms name club marketing as a purpose."
+    fallback_headline: "Only some consent forms name club marketing."
+    slide_headline_templates: {}
+    question: "Which purposes does each consent form cover?"
+    means_club: "Only a form that names club marketing can carry a club-marketing opt-in."
+    means_privacy: "A yes here is needed but not enough. Some purposes also need their own consent."
+    action_club: "Do not market to families who signed a form that does not name it."
+    action_privacy: "Update the older forms and keep a record of the version each family signed."
+    caution: "This is not legal advice. Whether a form is enough is a question for counsel."
+    analyst_md: |
+      For each consent wording (`share_privacy__purpose_coverage`), whether the form names each purpose. Reads the wording the generator gave each form; a purpose that needs its own consent is never covered by a terms acceptance.
+  P3:
+    status: draft
+    headline_template: "Asking for birth year, not full birth date, cuts unique records from {pct_unique_v0} to {pct_unique_standard}. The cost: {matching_cost} of matching accuracy."
+    fallback_headline: "Asking for less data protects children and costs little matching accuracy."
+    slide_headline_templates: {}
+    question: "What does each field buy us, and what does it cost?"
+    means_club: "Each dot is a choice of fields. The ringed dot is the data standard. A hashed contact matches as well but cannot reach a family."
+    means_privacy: "Left is safer. Only the horizontal axis is a privacy measure. The vertical axis is what matching keeps."
+    action_club: "Ask for the fields in the data standard and no more."
+    action_privacy: "Use the ringed choice as the default and review it when the data changes."
+    caution: "This is one made-up data set. Read the pattern, not the decimals."
+    analyst_md: |
+      One point per field-granularity variant V0 to V4 (`eval_minimization_tradeoff`, final matcher before review). The ringed point is the data standard's choice (V2), made by the program owner on 2026-10-14 from this frontier (ADR-018), not an optimum.
+      Share below the small-cell limit is above 97% for every variant, so it cannot separate them; the x axis uses the share of unique participant-years.
+  P4:
+    status: draft
+    headline_template: "{n_metrics_kept_facts} of {n_metrics} retention figures survive deleting old records, if we rebuild from anonymized facts."
+    fallback_headline: "Most retention figures survive deleting old records."
+    slide_headline_templates: {}
+    question: "Can we delete and still measure who comes back?"
+    means_club: "Deleting children's records after age-out does not stop us measuring who comes back, if the counts are kept in anonymized form."
+    means_privacy: "Rebuilding from anonymized facts keeps every figure. Re-running matching on the anonymized data moves most figures."
+    action_club: "No action. Keep the anonymized counts."
+    action_privacy: "Rebuild from anonymized facts when records age out. Do not re-run matching on them."
+    caution: "This was tested on a copy of the data. The real deletion job has not been run."
+    analyst_md: |
+      Change in each retention figure after the age-out deletion, on a warehouse COPY (`share_privacy__retention_vs_deletion`), under two scenarios, against the tolerance in `phase5.retention`.
+  P5:
+    status: draft
+    headline_template: "{pct_unique_analyst_share} of participant-years in the analyst share are unique on four fields."
+    fallback_headline: "Many records in the analyst share are unique on four fields."
+    slide_headline_templates: {}
+    question: "How identifying is the analyst share?"
+    means_club: "Clubs do not receive the analyst share. This chart is for the privacy lead."
+    means_privacy: "A unique record can be picked out with the four fields birth year, ZIP3, sex and country. That is why the share is pseudonymized and its use needs a stated purpose."
+    action_club: "No action."
+    action_privacy: "Keep the analyst share inside the team and record the purpose of each use."
+    caution: "Pseudonymized is not anonymous."
+    analyst_md: |
+      Share of participant-years that are unique or in a small class on the quasi-identifiers birth year, ZIP3, sex and country (`share_privacy__analyst_k_anonymity`). See ADR-006.

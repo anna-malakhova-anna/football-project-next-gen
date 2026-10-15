@@ -11,7 +11,7 @@ prov as (
 
 cover as (
     select count(distinct consent_text_version) as versions,
-           count(distinct consent_text_version) filter (where counts_for_club_activation) as versions_ok
+           count(distinct consent_text_version) filter (where counts_for_club_activation and form_names_purpose) as versions_ok
     from {{ ref('share_privacy__purpose_coverage') }}
 ),
 

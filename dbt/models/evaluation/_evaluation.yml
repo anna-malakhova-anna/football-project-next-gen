@@ -165,3 +165,8 @@ models:
       - name: passed
         data_tests:
           - accepted_values: {arguments: {values: [true]}}
+
+  - name: eval_chart_insights
+    description: >
+      EVALUATION. The numbers inside headline sentences of the cards graded against the synthetic answer key (long format, like the share chart_insights models): how many year-by-method checks
+      had the truth inside the range, and what the data standard's field choice costs in matching accuracy.

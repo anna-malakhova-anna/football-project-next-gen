@@ -86,6 +86,19 @@ growth as (
     group by club_market_id
 ),
 
+unc as (
+    select participation_year, component, reported_point, interval_low, interval_high
+    from {{ ref('mart_uncertainty_decomposition') }}
+    where participation_year = (select max(participation_year) from {{ ref('mart_uncertainty_decomposition') }})
+),
+
+girls as (
+    select value_known_only, bound_low, bound_high
+    from {{ ref('mart_missingness_bias') }}
+    where kpi = 'girls_share_of_youth' and club_market_id = 'ALL' and segment_value = 'ALL'
+    order by participation_year desc limit 1
+),
+
 funnel as (
     select f.step_no, f.n, f.lost_dq, f.lost_privacy
     from {{ ref('mart_activation_funnel') }} f
@@ -114,6 +127,12 @@ rows_ as (
     -- Q4: share of leagues graded C or D for splitting players by age and gender (a group of fewer than k_min leagues is not reported)
     union all select 'Q4', 'both', 'pct_cd_' || lower(replace(grp, ':', '_')), cast(round(100.0 * n_cd / n) as bigint) || '%', round(100.0 * n_cd / n), false from org_groups where n >= {{ k }}
     union all select 'Q4', 'both', 'n_leagues_' || lower(replace(grp, ':', '_')), cast(n as varchar), n * 1.0, false from org_groups where n >= {{ k }}
+    -- U1 (the count and its doubts, never added: the coverage figure is the largest single doubt) and U2 (girls' share with the bounds missing gender allows)
+    union all select 'U1', 'both', 'latest_year', cast(participation_year as varchar), participation_year * 1.0, false from unc where component = 'IDENTITY'
+    union all select 'U1', 'both', 'count_point', 'about ' || format('{:,}', cast(round(reported_point, -1) as bigint)), reported_point, true from unc where component = 'IDENTITY'
+    union all select 'U1', 'both', 'coverage_extra_high', 'up to about ' || format('{:,}', cast(round(interval_high - reported_point, -1) as bigint)), interval_high - reported_point, true from unc where component = 'COVERAGE'
+    union all select 'U2', 'both', 'girls_share_pct', cast(round(100 * value_known_only) as bigint) || '%', round(100 * value_known_only), false from girls
+    union all select 'U2', 'both', 'girls_bounds_width', case when 100 * (bound_high - bound_low) < 1 then 'less than 1 point' else cast(round(100 * (bound_high - bound_low)) as bigint) || ' points' end, 100 * (bound_high - bound_low), false from girls
     -- Q3, one set of fields per use
     union all select 'Q3', 'both', 'top_k_' || lower(purpose), cast(k as varchar), k * 1.0, false from pareto_cum
     union all select 'Q3', 'both', 'cum_pct_' || lower(purpose), cast(round(100 * cumulative_share) as bigint) || '%', round(100 * cumulative_share), false from pareto_cum

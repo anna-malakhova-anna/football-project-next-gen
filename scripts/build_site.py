@@ -975,9 +975,7 @@ def phase5_pages(blocks: dict, data: dict) -> dict:
     for slug in ("quality", "sure", "markets", "privacy"):
         inner = group_cards(blocks[slug])
         if slug == "privacy":
-            inner += ("<h2>How identifying is the analyst share?</h2>" + table_html(data["analyst_k"])
-                      + "<p class='note'><b>What this shows.</b> For each year, how many participant-years are unique or in a small class of the analyst share's quasi-identifiers (birth year, ZIP3, sex, country). <b>What it does not show.</b> That the share is anonymous: it is pseudonymized and its use needs a stated purpose (ADR-006).</p>"
-                      + "<h2>Share-policy check</h2>" + table_html(data["policy_results"])
+            inner += ("<h2>Share-policy check</h2>" + table_html(data["policy_results"])
                       + "<p class='note'>Violations found on the last run of the check that guards every share (no direct or quasi identifier in the club or privacy shares, only approved aggregate marts upstream, every metric in the catalog). Zero is the expected result.</p>")
         default = "privacy" if slug == "privacy" else "club"
         title = PAGE_HEAD[slug][0]
@@ -1036,7 +1034,7 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
                   "audience_month": str(max(r["month"] for r in rows("audience_series")))[:7]})
     diag = {r["measure"]: r["value"] for r in rows("fan_diagnostics")}
     facts.update({"fandom_treated": diag["fandom_matched_treated"], "fandom_comparison": diag["fandom_matched_comparison"]})
-    site_cards.configure(data["chart_insights_club"]["rows"] + data["chart_insights_privacy"]["rows"])
+    site_cards.configure(data["chart_insights_club"]["rows"] + data["chart_insights_privacy"]["rows"] + data["chart_insights_eval"]["rows"])
     relabel(data)                       # plain labels for every code name, after the facts above have used the codes
     if out.exists():
         shutil.rmtree(out)
