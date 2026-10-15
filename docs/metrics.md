@@ -103,6 +103,7 @@ Methodology version: **1.0** at the time of the first metric; *Since* is the met
 | `fit_for_retain` | Share fit for retention analytics | As fit_for_count, for RETAIN. | variant | `RATIO` | ratio | Flag Football Data Lead | 2.0 |
 | `fit_for_activate` | Share fit for activation | As fit_for_count, for ACTIVATE; zero when the contact is only a hash. | variant | `RATIO` | ratio | Flag Football Data Lead | 2.0 |
 | `rules_no_longer_evaluable` | Rules no longer evaluable | Registry rules a minimization variant can no longer evaluate because the field is coarsened (lost detection, not gained quality). | variant | `NON_ADDITIVE` | count | Flag Football Data Lead | 2.0 |
+| `value_raw` | Headline number (raw) | The unrounded value behind a number written inside a headline sentence on the site (Phase 5.1). The rounded text is value_display; a count above zero and below k_min is hidden. | chart and field | `NON_ADDITIVE` | count | Flag Football Data Lead | 2.0 |
 
 ## Supporting metrics
 

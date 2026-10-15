@@ -519,6 +519,17 @@ Explicitly **not** available:
 | `loss_type` | DIMENSION |
 | `suppressed` | SUPPRESSION_FLAG |
 
+**`share_club__chart_insights`**
+
+| Column | Treatment |
+|---|---|
+| `chart_id` | DIMENSION |
+| `lens` | DIMENSION |
+| `field` | DIMENSION |
+| `value_display` | DIMENSION |
+| `value_raw` | AGGREGATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
 **`share_club__market_missingness`**
 
 | Column | Treatment |
@@ -572,6 +583,17 @@ Explicitly **not** available:
 | `pct_unique` | DERIVED_RATE_SUPPRESSED |
 | `pct_rows_below_k_warn` | DERIVED_RATE_SUPPRESSED |
 | `pct_rows_below_k_min` | DERIVED_RATE_SUPPRESSED |
+
+**`share_privacy__chart_insights`**
+
+| Column | Treatment |
+|---|---|
+| `chart_id` | DIMENSION |
+| `lens` | DIMENSION |
+| `field` | DIMENSION |
+| `value_display` | DIMENSION |
+| `value_raw` | AGGREGATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
 
 **`share_privacy__consent_provenance`**
 
