@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Counting flag football&#39;s fans: Counting Flag Football</title>
+<meta name="description" content="What this project is and how to read it.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@600;700&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="assets/viewer.css">
+<script>try{var t=localStorage.getItem("cff-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the content</a>
+<div class="notice" id="notice" role="note">
+  <div class="notice-inner">
+    <p>All figures come from synthetic data generated for this project. <a href="index.html">Read how it was built.</a></p>
+    <button type="button" id="notice-dismiss" aria-label="Dismiss this notice">Dismiss</button>
+  </div>
+</div>
+<header class="topbar" id="topbar">
+  <div class="topbar-inner">
+    <a class="wordmark" href="index.html"><svg class="wordmark-mark" data-mark="project" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Counting Flag Football mark"><rect width="32" height="32" fill="#2F6B4F"/><rect x="4" y="14" width="24" height="4" fill="#F2C230"/></svg>Counting Flag Football</a>
+    <button type="button" class="icon-btn menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav class="nav" id="site-nav" aria-label="Pages">
+      <div class="nav-group">
+        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-1">Results<span aria-hidden="true" class="caret"></span></button>
+        <div class="nav-menu" id="menu-1"><a href="participation.html">Participation</a><a href="sure.html">How sure</a><a href="acquisition.html">Acquisition</a><a href="value.html">Value</a><a href="audience.html">Audience</a></div>
+      </div><div class="nav-group">
+        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-2">Data quality<span aria-hidden="true" class="caret"></span></button>
+        <div class="nav-menu" id="menu-2"><a href="quality.html">Data quality</a><a href="markets.html">Club markets</a></div>
+      </div><div class="nav-group">
+        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-3">Privacy<span aria-hidden="true" class="caret"></span></button>
+        <div class="nav-menu" id="menu-3"><a href="privacy.html">Privacy by design</a><a href="trust.html">Trust and governance</a></div>
+      </div><div class="nav-group is-current">
+        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-4" data-current="true">About<span aria-hidden="true" class="caret"></span></button>
+        <div class="nav-menu" id="menu-4"><a href="index.html" aria-current="page">Overview</a><a href="trust.html#documents">Methodology</a><a href="glossary.html">Glossary</a></div>
+      </div>
+    </nav>
+    <div class="nav-secondary">
+      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch between light and dark theme" title="Switch theme">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2a6 6 0 0 0 0 12z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<div class="page-head">
+  <h1>Counting flag football&#39;s fans</h1>
+  <p class="page-question">What this project is and how to read it.</p>
+  
+</div>
+<main id="main">
+
+<p>Flag football registers children. This project asks a different question: <i>how many fans does that create, how engaged and valuable are they, and how many can we actually contact?</i>
+It is a governed data platform built end to end on <b>synthetic</b> data (the real equivalent would be minors' personal data), and every claim is graded against the generator's answer key.</p>
+<div class="flow"><span>sources</span> <i>&rarr;</i> <span>contracts</span> <i>&rarr;</i> <span>raw</span> <i>&rarr;</i> <span>staging</span> <i>&rarr;</i> <span>identity</span> <i>&rarr;</i> <span>households</span> <i>&rarr;</i> <span>fan models</span> <i>&rarr;</i> <span>shares</span> <i>&rarr;</i> <span>this site</span></div>
+<p class="note">Five sources (a league CSV, a club API, a federation workbook, school headcounts and a fan feed) are contracted, loaded as-is, cleaned in SQL, resolved to people and households,
+linked to fan accounts under a restricted-zone policy, shared by audience with small numbers suppressed, and published as versioned snapshots.</p>
+<h2>Headline</h2>
+<table><tbody>
+<tr><td>Fan accounts the programme added (incremental estimate, with interval)</td><td>1,264 (897 to 1,630); the naive count says 2,019</td></tr>
+<tr><td>Addressable audience, 2025-12 (households a guardian has opted in)</td><td>3,182 of 11,787 registered households</td></tr>
+<tr><td>Consent gap (active households with no opt-in)</td><td>725, about 25% of active households</td></tr>
+<tr><td>Unique registered participants, 2025</td><td>7,430 (identity range 7,405 to 7,437)</td></tr>
+<tr><td>Matched fan-engagement uplift after a first registration (linked households)</td><td>+20.0% (naive says +16.5%; truth +20.5%)</td></tr>
+</tbody></table>
+<h2>A five-minute tour</h2>
+<ol class="tour">
+<li><a href="acquisition.html">Fan acquisition</a>: how many fans flag football created, and why the naive count is too big.</li>
+<li><a href="value.html">Fan value &amp; activeness</a>: who is engaged, how long fans stay, what a fan is worth, and what registering a child changes.</li>
+<li><a href="audience.html">Audience &amp; consent</a>: how many fans can be contacted, where consent is captured, and the gap. Governance sets the size of the marketable audience.</li>
+<li><a href="participation.html">Participation</a>: the original question, how many people play, and who stays.</li>
+<li><a href="trust.html">Data trust &amp; governance</a>: identity resolution (why the household count is right), contracts, who sees what, what changed after publishing.</li>
+</ol>
+<p class="note">Decisions and their reasons are in the ADRs; the counting rules are in the methodology memos. Both are linked from <a href="trust.html">Data trust &amp; governance</a>.</p>
+</main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p class="footer-disclaimer">Independent portfolio project using synthetic data. Not affiliated with or endorsed by any league or team.</p>
+    <p>Scorecard methodology 2.0 · methodology memo 1.2 · built 2026-10-15 by scripts/build_site.py · <a href="glossary.html">Glossary</a> · <a href="appendix.html">Appendix: school and recreation programs (a stretch source)</a></p>
+    <p>No number on this site is computed in the browser.</p>
+  </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+<script src="js/site.js"></script>
+<script src="assets/viewer.js"></script>
+</body>
+</html>

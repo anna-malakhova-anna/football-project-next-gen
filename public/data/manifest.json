@@ -1,0 +1,442 @@
+{
+ "datasets": [
+  {
+   "name": "participation_bounds",
+   "source": "share_exec.share_exec__participation_bounds",
+   "kind": "share_exec",
+   "rows": 5
+  },
+  {
+   "name": "participation_by_country_latest",
+   "source": "share_exec.share_exec__participation_by_country",
+   "kind": "share_exec",
+   "rows": 16
+  },
+  {
+   "name": "girls_share",
+   "source": "share_exec.share_exec__participation_segments",
+   "kind": "share_exec",
+   "rows": 5
+  },
+  {
+   "name": "combined_reach",
+   "source": "share_exec.share_exec__participation_bounds, share_exec.share_exec__reported_headcount",
+   "kind": "share_exec",
+   "rows": 5
+  },
+  {
+   "name": "suppression_example",
+   "source": "share_exec.share_exec__participation_by_sex",
+   "kind": "share_exec",
+   "rows": 20
+  },
+  {
+   "name": "retention_km_age",
+   "source": "share_exec.share_exec__retention_survival",
+   "kind": "share_exec",
+   "rows": 24
+  },
+  {
+   "name": "retention_km_all",
+   "source": "share_exec.share_exec__retention_survival",
+   "kind": "share_exec",
+   "rows": 3
+  },
+  {
+   "name": "retention_km_sex",
+   "source": "share_exec.share_exec__retention_survival",
+   "kind": "share_exec",
+   "rows": 6
+  },
+  {
+   "name": "retention_cohorts",
+   "source": "share_exec.share_exec__retention_cohorts",
+   "kind": "share_exec",
+   "rows": 10
+  },
+  {
+   "name": "fan_effect",
+   "source": "share_exec.share_exec__fan_engagement_effect",
+   "kind": "share_exec",
+   "rows": 2
+  },
+  {
+   "name": "link_rate",
+   "source": "share_exec.share_exec__household_link_rate",
+   "kind": "share_exec",
+   "rows": 9
+  },
+  {
+   "name": "fan_event_study",
+   "source": "share_analyst.share_analyst__fan_event_study",
+   "kind": "approved_aggregate",
+   "rows": 62
+  },
+  {
+   "name": "fan_event_study_effect",
+   "source": "share_analyst.share_analyst__fan_event_study",
+   "kind": "approved_aggregate",
+   "rows": 31
+  },
+  {
+   "name": "threshold_sweep",
+   "source": "evaluation.eval_threshold_sweep",
+   "kind": "evaluation",
+   "rows": 40
+  },
+  {
+   "name": "sibling_merges_by_threshold",
+   "source": "evaluation.eval_threshold_sweep",
+   "kind": "evaluation",
+   "rows": 20
+  },
+  {
+   "name": "matcher_comparison",
+   "source": "evaluation.eval_clusters, evaluation.eval_pairwise",
+   "kind": "evaluation",
+   "rows": 6
+  },
+  {
+   "name": "error_categories",
+   "source": "evaluation.eval_errors",
+   "kind": "evaluation",
+   "rows": 13
+  },
+  {
+   "name": "identity_truth_check",
+   "source": "evaluation.eval_participation_accuracy",
+   "kind": "evaluation",
+   "rows": 5
+  },
+  {
+   "name": "retention_vs_truth",
+   "source": "evaluation.eval_retention",
+   "kind": "evaluation",
+   "rows": 9
+  },
+  {
+   "name": "retention_vs_truth_all",
+   "source": "evaluation.eval_retention",
+   "kind": "evaluation",
+   "rows": 9
+  },
+  {
+   "name": "fan_vs_truth",
+   "source": "evaluation.eval_fan_effect",
+   "kind": "evaluation",
+   "rows": 2
+  },
+  {
+   "name": "fan_diagnostics",
+   "source": "evaluation.eval_fan_matching_diagnostics",
+   "kind": "evaluation",
+   "rows": 10
+  },
+  {
+   "name": "reach_vs_truth",
+   "source": "evaluation.eval_headcount_overlap",
+   "kind": "evaluation",
+   "rows": 5
+  },
+  {
+   "name": "household_linkage_vs_truth",
+   "source": "evaluation.eval_household_linkage",
+   "kind": "evaluation",
+   "rows": 6
+  },
+  {
+   "name": "fan_status_mix",
+   "source": "share_exec.share_exec__fan_funnel",
+   "kind": "share_exec",
+   "rows": 5
+  },
+  {
+   "name": "funnel_rates",
+   "source": "share_exec.share_exec__fan_funnel",
+   "kind": "share_exec",
+   "rows": 11
+  },
+  {
+   "name": "fan_rfm_latest",
+   "source": "share_exec.share_exec__fan_rfm",
+   "kind": "share_exec",
+   "rows": 20
+  },
+  {
+   "name": "fan_survival",
+   "source": "share_exec.share_exec__fan_survival",
+   "kind": "share_exec",
+   "rows": 219
+  },
+  {
+   "name": "fan_ltv",
+   "source": "share_exec.share_exec__fan_value",
+   "kind": "share_exec",
+   "rows": 4
+  },
+  {
+   "name": "uplift_events",
+   "source": "share_exec.share_exec__fan_value_uplift",
+   "kind": "share_exec",
+   "rows": 3
+  },
+  {
+   "name": "uplift_spend",
+   "source": "share_exec.share_exec__fan_value_uplift",
+   "kind": "share_exec",
+   "rows": 3
+  },
+  {
+   "name": "audience_series",
+   "source": "share_exec.share_exec__addressable_audience",
+   "kind": "share_exec",
+   "rows": 290
+  },
+  {
+   "name": "audience_latest",
+   "source": "share_exec.share_exec__addressable_audience",
+   "kind": "share_exec",
+   "rows": 5
+  },
+  {
+   "name": "drive_stages",
+   "source": "share_exec.share_exec__addressable_audience",
+   "kind": "share_exec",
+   "rows": 5
+  },
+  {
+   "name": "consent_by_capture_point",
+   "source": "share_exec.share_exec__consent_capture",
+   "kind": "share_exec",
+   "rows": 12
+  },
+  {
+   "name": "market_scatter",
+   "source": "share_exec.share_exec__market_quadrants",
+   "kind": "share_exec",
+   "rows": 36
+  },
+  {
+   "name": "quadrant_counts",
+   "source": "share_exec.share_exec__market_quadrants",
+   "kind": "share_exec",
+   "rows": 4
+  },
+  {
+   "name": "acq_estimates",
+   "source": "evaluation.eval_acquisition",
+   "kind": "evaluation",
+   "rows": 3
+  },
+  {
+   "name": "acq_event_study",
+   "source": "evaluation.eval_acquisition_event_study",
+   "kind": "evaluation",
+   "rows": 5
+  },
+  {
+   "name": "contract_status",
+   "source": "quality.dq_contract_results",
+   "kind": "governance",
+   "rows": 15
+  },
+  {
+   "name": "source_status",
+   "source": "reference.source_registry",
+   "kind": "governance",
+   "rows": 12
+  },
+  {
+   "name": "audience_matrix",
+   "source": "reference.audience_column_policy",
+   "kind": "governance",
+   "rows": 7
+  },
+  {
+   "name": "restatement_log",
+   "source": "measurement.mart_restatement_log",
+   "kind": "governance",
+   "rows": 0
+  },
+  {
+   "name": "dq_pareto",
+   "source": "quality.dq_scorecard_source, quality.mart_dq_impact, reference.dq_purposes, reference.dq_rule_registry, reference.privacy_params",
+   "kind": "approved_aggregate",
+   "rows": 20
+  },
+  {
+   "name": "chart_insights_club",
+   "source": "share_club.share_club__chart_insights",
+   "kind": "share_club",
+   "rows": 57
+  },
+  {
+   "name": "chart_insights_privacy",
+   "source": "share_privacy.share_privacy__chart_insights",
+   "kind": "share_privacy",
+   "rows": 10
+  },
+  {
+   "name": "dq_grid",
+   "source": "quality.dq_scorecard_source, reference.dq_grade_bands, reference.dq_purposes, reference.source_display",
+   "kind": "approved_aggregate",
+   "rows": 55
+  },
+  {
+   "name": "dq_dims",
+   "source": "quality.dq_scorecard_source, reference.dq_dimensions, reference.dq_grade_bands, reference.dq_purposes, reference.source_display",
+   "kind": "approved_aggregate",
+   "rows": 440
+  },
+  {
+   "name": "dq_trend_lines",
+   "source": "quality.dq_scorecard_source, quality.dq_trend, reference.dq_purposes, reference.source_display",
+   "kind": "approved_aggregate",
+   "rows": 125
+  },
+  {
+   "name": "dq_org_grades",
+   "source": "quality.dq_scorecard_org, quality.dq_scorecard_source, reference.channel_display, reference.dq_grade_bands, reference.p5_params, reference.privacy_params",
+   "kind": "approved_aggregate",
+   "rows": 25
+  },
+  {
+   "name": "dq_org_scatter",
+   "source": "quality.dq_scorecard_org, quality.dq_scorecard_source, reference.channel_display",
+   "kind": "approved_aggregate",
+   "rows": 200
+  },
+  {
+   "name": "dq_fix_examples",
+   "source": "quality.dq_fix_list, quality.dq_scorecard_org, quality.dq_scorecard_source, reference.dq_purposes, reference.dq_rule_registry, reference.privacy_params",
+   "kind": "approved_aggregate",
+   "rows": 7
+  },
+  {
+   "name": "unc_decomp",
+   "source": "quality.mart_uncertainty_decomposition",
+   "kind": "approved_aggregate",
+   "rows": 15
+  },
+  {
+   "name": "miss_dumbbell",
+   "source": "quality.mart_missingness_bias, reference.privacy_params",
+   "kind": "approved_aggregate",
+   "rows": 30
+  },
+  {
+   "name": "unc_truth",
+   "source": "evaluation.eval_uncertainty_decomposition",
+   "kind": "evaluation",
+   "rows": 15
+  },
+  {
+   "name": "fix_demo_scores",
+   "source": "demo_fix_list.scores",
+   "kind": "evaluation",
+   "rows": 10
+  },
+  {
+   "name": "fix_demo_nuance",
+   "source": "demo_fix_list.nuance",
+   "kind": "evaluation",
+   "rows": 3
+  },
+  {
+   "name": "market_tiles",
+   "source": "reference.club_market_map, reference.dq_purposes, reference.privacy_params, share_club.share_club__market_year",
+   "kind": "share_club",
+   "rows": 160
+  },
+  {
+   "name": "market_growth",
+   "source": "reference.club_market_map, share_club.share_club__market_year",
+   "kind": "share_club",
+   "rows": 93
+  },
+  {
+   "name": "market_funnel",
+   "source": "reference.club_market_map, reference.funnel_step_display, reference.privacy_params, share_club.share_club__activation_funnel, share_club.share_club__market_year",
+   "kind": "share_club",
+   "rows": 52
+  },
+  {
+   "name": "market_orgs",
+   "source": "reference.club_market_map, share_club.share_club__market_year",
+   "kind": "share_club",
+   "rows": 28
+  },
+  {
+   "name": "market_no_leagues",
+   "source": "reference.club_market_map, share_club.share_club__market_year",
+   "kind": "share_club",
+   "rows": 13
+  },
+  {
+   "name": "market_pairs",
+   "source": "reference.club_market_map, reference.privacy_params, share_club.share_club__activation_funnel, share_club.share_club__market_year",
+   "kind": "share_club",
+   "rows": 6
+  },
+  {
+   "name": "market_pair_grades",
+   "source": "reference.dq_grade_bands, reference.dq_purposes, share_club.share_club__market_year",
+   "kind": "share_club",
+   "rows": 30
+  },
+  {
+   "name": "frontier",
+   "source": "evaluation.eval_minimization_tradeoff",
+   "kind": "evaluation",
+   "rows": 3
+  },
+  {
+   "name": "consent_prov",
+   "source": "reference.source_display, share_privacy.share_privacy__consent_provenance",
+   "kind": "share_privacy",
+   "rows": 16
+  },
+  {
+   "name": "purpose_matrix",
+   "source": "share_privacy.share_privacy__purpose_coverage",
+   "kind": "share_privacy",
+   "rows": 24
+  },
+  {
+   "name": "retention_del",
+   "source": "share_privacy.share_privacy__retention_vs_deletion",
+   "kind": "share_privacy",
+   "rows": 14
+  },
+  {
+   "name": "glossary_checks",
+   "source": "reference.dq_dimensions, reference.dq_grade_bands, reference.dq_purposes",
+   "kind": "governance",
+   "rows": 16
+  },
+  {
+   "name": "glossary_rules",
+   "source": "reference.dq_rule_registry",
+   "kind": "governance",
+   "rows": 141
+  },
+  {
+   "name": "chart_insights_eval",
+   "source": "evaluation.eval_chart_insights",
+   "kind": "evaluation",
+   "rows": 3
+  },
+  {
+   "name": "analyst_k",
+   "source": "share_privacy.share_privacy__analyst_k_anonymity",
+   "kind": "share_privacy",
+   "rows": 5
+  },
+  {
+   "name": "policy_results",
+   "source": "share_privacy.share_privacy__policy_checks",
+   "kind": "share_privacy",
+   "rows": 14
+  }
+ ]
+}

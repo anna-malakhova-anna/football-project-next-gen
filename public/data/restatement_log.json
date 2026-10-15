@@ -1,0 +1,1 @@
+{"name": "restatement_log", "title": "Restatement log against the latest published snapshots", "source": "measurement.mart_restatement_log", "kind": "governance", "columns": ["likely_cause", "kpi_rows", "kpis", "restatement_required"], "rows": []}

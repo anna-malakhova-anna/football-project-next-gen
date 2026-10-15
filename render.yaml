@@ -1,0 +1,12 @@
+# Render Blueprint: the results site as a static site, served from the pre-built `public/` folder (make public). Synthetic data only.
+# No build step on Render: the data build takes about 10 minutes and needs the generator and dbt, so the site is built here and committed.
+services:
+  - type: web
+    name: counting-flag-football
+    runtime: static
+    staticPublishPath: ./public
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff

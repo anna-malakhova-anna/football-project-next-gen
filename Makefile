@@ -1,4 +1,4 @@
-.PHONY: site-check site-check-ci phase5 phase5-experiments minimize retention-vs-deletion fix-list-demo markets consent nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: public site-check site-check-ci phase5 phase5-experiments minimize retention-vs-deletion fix-list-demo markets consent nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -169,6 +169,10 @@ linkage: dbt/profiles.yml
 # Phase 4: the static results site (reads share_exec and whitelisted evaluation summaries; fails if a chart computes a number in the browser)
 site:
 	$(PY) -m scripts.build_site
+
+# The deployable site (Render static site, see render.yaml): built WITHOUT the git-ignored local logo, into the committed `public/` folder. Rebuild and commit it after `make site` changes.
+public:
+	$(PY) -m scripts.build_site --public --out public
 
 # Phase 5.1: layout, content and viewer checks on the built site (Playwright drives the installed Chrome). `site-check` runs the four Phase 5 pages; `site-check-ci` two pages, to keep CI short.
 site-check: site
