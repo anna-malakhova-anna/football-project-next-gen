@@ -197,7 +197,7 @@ charts:
       Each component's interval against the generator's answer key (`eval_uncertainty_decomposition`), evaluation only. The coverage estimate was not tuned after the answer key was read, and its interval misses the truth in some years; that is reported, not hidden.
   U4:
     status: draft
-    headline_template: "Leagues that fix their top problems lift their grades. The gap from silent leagues stays."
+    headline_template: "Fixing a league's top problems lifts its grades. It does not find missing leagues."
     fallback_headline: "Leagues that fix their top problems lift their grades."
     slide_headline_templates: {}
     question: "What is the payoff of fixing problems early?"
