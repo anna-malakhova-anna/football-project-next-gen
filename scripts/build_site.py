@@ -674,11 +674,12 @@ PAGE_HEAD = {
     "participation": ("Participation", "How many play, and how sure are we?"),
     "trust": ("Data trust and governance", "Why can these numbers be trusted?"),
     **P5.PAGE_HEAD,
+    "glossary": ("Glossary", "What each plain term on this site means, and what analysts call it."),
     "appendix": ("Appendix: school and recreation programs", "A stretch source: how many children do schools and recreation departments report?"),
 }
 SRC = ROOT / "site_src"
 LOCAL_LOGO = ROOT / "local_assets" / "logo.webp"       # optional and git-ignored: shown on a local build only, so CI and the published site never carry it
-APPENDIX = [("appendix", "Appendix")]          # a stretch source (school and recreation headcounts): built, linked from the footer, not in the main navigation
+APPENDIX = [("appendix", "Appendix"), ("glossary", "Glossary")]          # a stretch source (school and recreation headcounts): built, linked from the footer, not in the main navigation
 
 # Plain labels for code names. Values are relabelled in the exported rows (so charts and tables agree); headers are relabelled when a table is drawn.
 # Source lines (the <code> under each table title) keep the model names on purpose.
@@ -815,13 +816,29 @@ def chart_block(cid: str, ch: dict, data: dict) -> str:
             f'{script}</section>')
 
 
+NAV_GROUPS = [
+    ("Results", [("participation.html", "Participation", "participation"), ("sure.html", "How sure", "sure"), ("acquisition.html", "Acquisition", "acquisition"), ("value.html", "Value", "value"), ("audience.html", "Audience", "audience")]),
+    ("Data quality", [("quality.html", "Data quality", "quality"), ("markets.html", "Club markets", "markets")]),
+    ("Privacy", [("privacy.html", "Privacy by design", "privacy"), ("trust.html", "Trust and governance", "trust")]),
+    ("About", [("index.html", "Overview", "index"), ("trust.html#documents", "Methodology", "methodology"), ("glossary.html", "Glossary", "glossary")]),
+]
+
+
+def memo_version() -> str:
+    """The methodology memo's own version (it differs from the scorecard methodology version on purpose): read from the memo, the single source."""
+    import re
+    m = re.search(r"Memo version \*\*([0-9.]+)\*\*", (ROOT / "docs" / "methodology" / "counting-a-participant.md").read_text(encoding="utf-8"))
+    return m.group(1) if m else "unknown"
+
+
 def render_page(slug: str, body: str, built: str, version: str) -> str:
     """Render one page through the Jinja base template (site_src/templates/base.html)."""
     from jinja2 import Environment, FileSystemLoader, StrictUndefined
     env = Environment(loader=FileSystemLoader(str(SRC / "templates")), autoescape=True, undefined=StrictUndefined)
     title, question = PAGE_HEAD[slug]
     return env.get_template("base.html").render(title=title, question=question, body=body, built=built, version=version, libs=LIBS,
-                                                nav=[(sl, lb) for sl, lb in PAGES if sl != "index"], current=slug, appendix=True, logo=LOCAL_LOGO.exists())
+                                                nav_groups=[{"label": g, "items": items, "current": any(sl == slug for _h, _l, sl in items)} for g, items in NAV_GROUPS], current=slug, appendix=True,
+                                                logo=LOCAL_LOGO.exists(), memo_version=memo_version())
 
 
 FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#2F6B4F"/>'
@@ -938,16 +955,30 @@ linked to fan accounts under a restricted-zone policy, shared by audience with s
 <li><code>docs/playbook/onboard-a-source.md</code>: how a source is onboarded, with the logs for the two Phase 4 sources</li>
 <li><code>docs/access_policy.md</code>, <code>docs/metrics.md</code>, <code>docs/data_dictionary.md</code></li></ul>""")
     built.update(phase5_pages(blocks, data))
+    built["glossary"] = ("Glossary", glossary_body(data))
     return built
 
 
-def lens_scope(inner: str, default: str, demo: str) -> str:
+def lens_scope(inner: str, default: str, demo: str, demo_slide: str = "") -> str:
     """Page-level Club lens / Privacy lens toggle. It only shows and hides precomputed annotations and panels (CSS attribute selectors); it never filters or computes."""
     toggle = ('<div class="lens-toggle" role="group" aria-label="Choose a lens"><span class="note">Lens</span>'
               f'<button type="button" data-set-lens="club" aria-pressed="{"true" if default == "club" else "false"}">Club lens</button>'
               f'<button type="button" data-set-lens="privacy" aria-pressed="{"true" if default == "privacy" else "false"}">Privacy lens</button></div>')
-    path = f'<aside class="demo-path"><b>Demo path (5 minutes).</b> {esc(demo)}</aside>'
+    go = f' <a class="demo-go" href="#view={esc(demo_slide)}">Start the 5-minute path \u2192</a>' if demo_slide else ""
+    path = f'<aside class="demo-path"><span><b>5-minute path.</b> {esc(demo)}</span>{go}</aside>'
     return f'{path}{toggle}<div class="lens-scope" data-lens-active="{default}">{inner}</div>'
+
+
+def glossary_body(data: dict) -> str:
+    """The glossary: hand-written terms (site_src/copy/glossary.yml), then the uses, checks and grades from the seeds, then every problem we check (in a collapsed section: codes live there)."""
+    import yaml
+    terms = yaml.safe_load((SRC / "copy" / "glossary.yml").read_text(encoding="utf-8"))["terms"]
+    dl = "".join(f"<dt>{esc(t['term'])}</dt><dd>{esc(t['definition'])} <span class='tech'>Analysts call this: {esc(t['technical'])}.</span></dd>" for t in terms)
+    seeds = "".join(f"<dt>{esc(r['term'])} <span class='tech'>({esc(r['kind'].lower())})</span></dt><dd>{esc(r['meaning'])} <span class='tech'>Analysts call this: {esc(r['technical'])}.</span></dd>"
+                    for r in data["glossary_checks"]["rows"])
+    rules = "".join(f"<tr><td>{esc(r['problem'])}</td><td>{esc(r['what_to_do'])}</td><td><code>{esc(r['technical'])}</code></td></tr>" for r in data["glossary_rules"]["rows"])
+    return (f"<p class='note intro'><b>Plain words first. Each term has the name analysts use for it, so the two can be matched.</b></p><dl class='glossary'>{dl}{seeds}</dl>"
+            f"<details><summary>Every problem we check ({len(data['glossary_rules']['rows'])})</summary><table><thead><tr><th>Problem</th><th>What to do</th><th>Code</th></tr></thead><tbody>{rules}</tbody></table></details>")
 
 
 def group_cards(blocks: list[str]) -> str:
@@ -966,12 +997,7 @@ def group_cards(blocks: list[str]) -> str:
 
 def phase5_pages(blocks: dict, data: dict) -> dict:
     out = {}
-    intro = {
-        "quality": "<p class='note'><b>The same data earns different grades for different purposes, and a few rules account for most of the cost.</b> Grades are per purpose (counting, segmenting, geography, retention, activation); a purpose's score is its weakest dimension. Small sources carry an interval and are graded on its lower bound. All synthetic.</p>",
-        "sure": "<p class='note'><b>The participant count has three separate uncertainties that are never added: identity resolution, records that fail the counting rules, and organizations that sent no file.</b> The coverage one is an estimate, not a bound, and the evaluation below says honestly where it misses. Missing gender is biased, not just sparse.</p>",
-        "markets": "<p class='note'><b>The same market looks different to a club and to a privacy lead.</b> The markets are a project approximation made of ZIP3 groups, not any club's territory (ADR-016); participants are allocated to them by weight, so counts are fractional and a ZIP3 shared by two markets is split. A market with fewer than 10 players shows no grade.</p>",
-        "privacy": "<p class='note'><b>Collecting less is a measured choice, not an assertion.</b> The frontier shows what each field buys and what it costs; the other charts show what is on record about consent, which purposes each form names, and what survives deletion. No legal conclusion is drawn about any organization: where the law matters it is a question for counsel.</p>",
-    }
+    pages = site_cards.load_pages()
     for slug in ("quality", "sure", "markets", "privacy"):
         inner = group_cards(blocks[slug])
         if slug == "privacy":
@@ -979,7 +1005,9 @@ def phase5_pages(blocks: dict, data: dict) -> dict:
                       + "<p class='note'>Violations found on the last run of the check that guards every share (no direct or quasi identifier in the club or privacy shares, only approved aggregate marts upstream, every metric in the catalog). Zero is the expected result.</p>")
         default = "privacy" if slug == "privacy" else "club"
         title = PAGE_HEAD[slug][0]
-        out[slug] = (title, intro[slug] + lens_scope(inner, default, P5.DEMO_PATH[slug]))
+        pg = pages[slug]
+        intro = f"<p class='note intro'><b>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</b></p>"
+        out[slug] = (title, intro + lens_scope(inner, default, pg["demo_text"], pg["demo_slide"]))
     return out
 
 

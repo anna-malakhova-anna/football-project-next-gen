@@ -29,6 +29,16 @@
     });
   }
 
+  // Grouped navigation: a button opens its menu; a click elsewhere or Esc closes it. On a phone every link is shown, so the buttons do nothing.
+  var groups = document.querySelectorAll(".nav-group");
+  function closeGroups(except) { groups.forEach(function (g) { if (g !== except) { g.classList.remove("open"); g.querySelector(".nav-trigger").setAttribute("aria-expanded", "false"); } }); }
+  groups.forEach(function (g) {
+    var t = g.querySelector(".nav-trigger");
+    t.addEventListener("click", function (ev) { ev.stopPropagation(); var open = !g.classList.contains("open"); closeGroups(g); g.classList.toggle("open", open); t.setAttribute("aria-expanded", open ? "true" : "false"); });
+  });
+  document.addEventListener("click", function () { closeGroups(null); });
+  document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { closeGroups(null); } });
+
   // Lens toggle (Phase 5 pages): shows one of two precomputed annotations/panels. It only sets an attribute; nothing is filtered or computed.
   var scope = document.querySelector(".lens-scope");
   var lensButtons = document.querySelectorAll("[data-set-lens]");
@@ -38,6 +48,8 @@
     lensButtons.forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-set-lens") === name ? "true" : "false"); });
     store("cff-lens", name);
   }
+  var savedLens = read("cff-lens");
+  if (scope && (savedLens === "club" || savedLens === "privacy")) { setLens(savedLens); }
   lensButtons.forEach(function (b) { b.addEventListener("click", function () { setLens(b.getAttribute("data-set-lens")); }); });
 
   var specs = document.querySelectorAll('script[type="application/json"][data-chart]');

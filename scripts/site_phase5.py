@@ -12,7 +12,7 @@ APPROVED = {
     "quality.mart_uncertainty_decomposition", "quality.mart_missingness_bias",
 }
 EVAL = {"evaluation.eval_chart_insights", "evaluation.eval_uncertainty_decomposition", "evaluation.eval_minimization_tradeoff", "demo_fix_list.scores", "demo_fix_list.nuance"}
-GOVERNANCE = {"reference.privacy_params", "reference.club_market_map", "reference.funnel_step_display", "reference.p5_params", "reference.source_display", "reference.dq_dimensions", "reference.dq_grade_bands", "reference.channel_display", "reference.dq_rule_registry", "reference.dq_purposes"}
+GOVERNANCE = {"reference.privacy_params", "reference.dq_purposes", "reference.club_market_map", "reference.funnel_step_display", "reference.p5_params", "reference.source_display", "reference.dq_dimensions", "reference.dq_grade_bands", "reference.channel_display", "reference.dq_rule_registry", "reference.dq_purposes"}
 
 GRADES = ["A", "B", "C", "D"]
 GRADE_COLORS = ["#2166ac", "#92c5de", "#f4a582", "#b2182b"]          # blue to red: separable for the common colour-vision differences, and every cell also carries its letter
@@ -60,7 +60,7 @@ DATASETS = [
                        row_number() over (order by coalesce(a.act_score, 101), d.plain_name) as worst_rank
                 from reference.source_display d join act a on a.source_system = d.source_system)
         select src.plain_name as source_plain, rtrim(regexp_replace(src.plain_name, '(.{{1,24}})( |$)', '\\1' || chr(10), 'g'), chr(10)) as source_wrapped, src.source_group, src.source_rank, src.worst_rank,
-               s.purpose, rtrim(regexp_replace(p.plain_label, '(.{{1,13}})( |$)', '\\1' || chr(10), 'g'), chr(10)) as purpose_wrapped, p.plain_label as purpose_label, rtrim(regexp_replace(p.plain_label, '(.{{1,22}})( |$)', '\\1' || chr(10), 'g'), chr(10)) as purpose_wrapped_wide,
+               s.purpose, rtrim(regexp_replace(p.plain_label, '(.{{1,9}})( |$)', '\\1' || chr(10), 'g'), chr(10)) as purpose_wrapped, p.plain_label as purpose_label, rtrim(regexp_replace(p.plain_label, '(.{{1,22}})( |$)', '\\1' || chr(10), 'g'), chr(10)) as purpose_wrapped_wide,
                array_position(['COUNT', 'SEGMENT', 'GEO', 'RETAIN', 'ACTIVATE'], s.purpose) as purpose_order, s.grade, b.plain_label as grade_label
         from s join src on src.source_system = s.source_system join reference.dq_purposes p on p.purpose = s.purpose join reference.dq_grade_bands b on b.grade = s.grade
         order by src.source_rank, purpose_order""", ["quality.dq_scorecard_source", "reference.source_display", "reference.dq_purposes", "reference.dq_grade_bands"], "approved_aggregate",
@@ -285,6 +285,13 @@ DATASETS = [
         union all
         select metric_label, 'Identity re-run on anonymized inputs', coalesce(identity_rebuilt_change, 0), survives_identity_rebuilt from share_privacy.share_privacy__retention_vs_deletion where baseline > 0
         order by 1, 2""", ["share_privacy.share_privacy__retention_vs_deletion"], "share_privacy", "Change in each retention figure after the age-out deletion"),
+    _D("glossary_checks", """
+        select 'Use' as kind, plain_label as term, plain_question as meaning, purpose as technical from reference.dq_purposes
+        union all select 'Quality check', plain_label, 'One of the checks behind a grade.', dimension from reference.dq_dimensions where dimension <> 'PURPOSE_SCORE'
+        union all select 'Grade', plain_label || ' (' || grade || ')', description, 'minimum score ' || cast(min_score as varchar) from reference.dq_grade_bands
+        order by 1, 2""", ["reference.dq_purposes", "reference.dq_dimensions", "reference.dq_grade_bands"], "governance", "Plain names for uses, quality checks and grades"),
+    _D("glossary_rules", "select plain_label as problem, plain_action as what_to_do, rule_id as technical from reference.dq_rule_registry order by plain_label",
+       ["reference.dq_rule_registry"], "governance", "Plain names for every problem we check"),
     _D("chart_insights_eval", "select chart_id, lens, field, value_display, value_raw, suppressed from evaluation.eval_chart_insights order by 1, 3", ["evaluation.eval_chart_insights"], "evaluation",
        "Numbers used inside headline sentences (evaluation cards)"),
     _D("analyst_k", "select participation_year, participant_years, equivalence_classes, smallest_class, average_class_size, pct_unique, pct_rows_below_k_warn, pct_rows_below_k_min "
@@ -381,8 +388,8 @@ def _grid_spec(thumb):
             "color": {"field": "grade", "type": "nominal", "scale": GRADE_SCALE, "legend": None if thumb else {"title": "Grade", "orient": "bottom", "direction": "horizontal"}},
             "tooltip": [{"field": "source_plain", "title": "Source"}, {"field": "purpose_label", "title": "Use"}, {"field": "grade", "title": "Grade"}, {"field": "grade_label", "title": "Meaning"}]}},
         {"mark": {"type": "text", "fontSize": 13 if thumb else 20, "fontWeight": "bold", "clip": True}, "encoding": {"x": _purpose_axis(thumb), "y": y, "text": {"field": "grade", "type": "nominal"}, "color": GRADE_TEXT}},
-        _col_headers("purpose_label", "purpose_wrapped" if thumb else "purpose_wrapped_wide", "purpose_order", "worst_rank" if thumb else "source_rank", 11 if thumb else 14, 3 if thumb else 2)]
-    spec = {"data": _src("dq_grid"), **SIZE, "padding": {"left": 4, "right": 8, "top": 52 if thumb else 44, "bottom": 4 if thumb else 36}, "layer": layers}
+        _col_headers("purpose_label", "purpose_wrapped" if thumb else "purpose_wrapped_wide", "purpose_order", "worst_rank" if thumb else "source_rank", 11 if thumb else 14, 4 if thumb else 2)]
+    spec = {"data": _src("dq_grid"), **SIZE, "padding": {"left": 4, "right": 8, "top": 66 if thumb else 44, "bottom": 4 if thumb else 36}, "layer": layers}
     spec["height"] = "container"
     if thumb:
         spec["transform"] = [{"filter": "datum.worst_rank <= 6"}]

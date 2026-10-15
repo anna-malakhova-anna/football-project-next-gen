@@ -115,6 +115,8 @@ def test_the_site_builds_from_the_warehouse_with_every_page_and_data_file(tmp_pa
         text = (site / f"{slug}.html").read_text()
         assert text.count("What this shows") == text.count("What it does not show")      # old-style sections come in pairs
         assert text.count("What this shows") + text.count('class="vcard"') >= 1             # a page has old sections, cards, or both
+    assert f"methodology memo {bs.memo_version()}" in index and "Scorecard methodology" in index          # two versions, read from their own sources, both named
+    assert "glossary.html" in index and (site / "glossary.html").exists()
     # the two-lenses pair always renders both panels (M6 in the Phase 5.1 handover: the privacy panel was missing)
     markets = (site / "markets.html").read_text()
     assert markets.count("Club lens \\u00b7") == markets.count("Privacy lens \\u00b7") >= 6

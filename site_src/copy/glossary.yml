@@ -1,0 +1,18 @@
+# Glossary terms (Phase 5.1, section 5.3): each plain term on the site, one line, and what analysts call it. Plain labels for rules, uses, checks and grades are generated from the seeds, below these.
+terms:
+  - {term: "Made-up data", definition: "Every number on this site comes from data generated for this project. No real child is in it.", technical: "synthetic data"}
+  - {term: "Use", definition: "What the data will be used for: counting players, splitting them by age and gender, placing them on the map, following them year to year, or contacting families.", technical: "purpose"}
+  - {term: "Grade", definition: "How good the data is for one use. A means ready to use, B usable with care, C use with caution, D not fit for this use.", technical: "purpose score band (A at 95 or more, B at 85, C at 70)"}
+  - {term: "Normal wobble", definition: "The amount a score usually moves from one year to the next. A point outside it is a real change.", technical: "control limits (P-chart; an individuals chart is proposed)"}
+  - {term: "Range", definition: "The lowest and highest the true number could reasonably be.", technical: "interval, lower and upper bound"}
+  - {term: "Hidden to protect privacy (fewer than 10)", definition: "A count under 10 is never shown, because it could point at a few children. A second number may be hidden too, so the first cannot be worked out by subtraction.", technical: "small-cell suppression, primary and secondary (k_min = 10)"}
+  - {term: "What they agreed to", definition: "A record of which consent form a family signed, when, and for what. Without it, a family cannot be contacted for marketing.", technical: "consent provenance"}
+  - {term: "Matching people", definition: "Working out that two registrations belong to the same child, without joining two different children.", technical: "identity resolution"}
+  - {term: "League that sent no data", definition: "A league we know exists that sent no registration file this season. Its players are in none of the counts.", technical: "dark organization"}
+  - {term: "Market", definition: "A group of nearby ZIP code areas made up for this project. It is not any club's real territory.", technical: "club market (ZIP3 approximation, ADR-016)"}
+  - {term: "Players in a market", definition: "Players counted for a market. A ZIP code area shared by two markets is split between them, so these counts are rounded to the nearest 10.", technical: "allocated participants"}
+  - {term: "Family", definition: "The adults who answer for one or more registered children, counted once.", technical: "household"}
+  - {term: "Fixable data problem", definition: "A family or player lost because a record is missing or unusable. A league can fix it.", technical: "data-quality loss"}
+  - {term: "Family's choice or never asked", definition: "A family lost because they said no, withdrew, or were never asked the right question. We do not try to win these back.", technical: "privacy loss (consent)"}
+  - {term: "Unique record", definition: "A record that no other record shares on birth year, ZIP code area, sex and country. The more records are unique, the easier it is to pick one child out.", technical: "unique participant-year, k-anonymity"}
+  - {term: "Pseudonymized", definition: "Names and contact details are replaced by codes. This is not the same as anonymous.", technical: "pseudonymization (ADR-006)"}

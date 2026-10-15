@@ -15,12 +15,17 @@ from pathlib import Path
 import yaml
 
 COPY_PATH = Path(__file__).resolve().parent.parent / "site_src" / "copy" / "charts.yml"
-PLACEHOLDER = re.compile(r"\{([a-z0-9_]+)\}")
+PLACEHOLDER = re.compile(r"\{(?:([A-Z][0-9])\.)?([a-z0-9_]+)\}")
 _state: dict = {"copy": {}, "insights": {}}
 
 
 def load_copy(path: Path = COPY_PATH) -> dict:
     return (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("charts", {})
+
+
+def load_pages(path: Path = COPY_PATH) -> dict:
+    """Page-level copy: the intro (leads with the page's main finding, filled from the insight export) and the one-line demo path."""
+    return (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("pages", {})
 
 
 def configure(insight_rows: list[dict], copy: dict | None = None) -> None:
@@ -43,9 +48,9 @@ def fill(template: str, chart_id: str, fallback: str | None) -> str:
     missing: list[str] = []
 
     def sub(m):
-        row = _state["insights"].get((chart_id, m.group(1)))
+        row = _state["insights"].get((m.group(1) or chart_id, m.group(2)))
         if row is None or row["value_display"] is None:
-            missing.append(m.group(1))
+            missing.append(m.group(0))
             return m.group(0)
         return str(row["value_display"])
 

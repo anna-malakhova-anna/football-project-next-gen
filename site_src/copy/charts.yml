@@ -274,3 +274,28 @@ charts:
     caution: "Pseudonymized is not anonymous."
     analyst_md: |
       Share of participant-years that are unique or in a small class on the quasi-identifiers birth year, ZIP3, sex and country (`share_privacy__analyst_k_anonymity`). See ADR-006.
+pages:
+  quality:
+    status: draft
+    intro_template: "Only {Q1.n_ready_activate} of {Q1.n_sources} sources are good enough to contact families, though {Q1.n_ready_count} can count players. A few problems cause most of the loss, and small leagues have the weakest grades. All numbers come from made-up data."
+    fallback_intro: "The same data earns different grades for different uses. A few problems cause most of the loss. All numbers come from made-up data."
+    demo_text: "Start with the grade grid, then see which few fixes matter."
+    demo_slide: "Q1-1"
+  sure:
+    status: draft
+    intro_template: "The count for {U1.latest_year} is {U1.count_point} players, but it is a range, not one number. Leagues that sent no file add the most doubt. Missing gender hardly moves the girls' share."
+    fallback_intro: "The player count is a range, not one number. Leagues that sent no file add the most doubt."
+    demo_text: "See the three separate doubts, then check that the methods work."
+    demo_slide: "U1-1"
+  markets:
+    status: draft
+    intro_template: "{M1.n_markets_ready} of {M1.n_markets} markets can be counted reliably, but only {M3.activatable_households} of {M3.households_total} families can be contacted by their club. The markets are made-up groups of ZIP code areas, not any club's territory."
+    fallback_intro: "Most markets can be counted, but few families can be contacted. The markets are made-up groups of ZIP code areas, not any club's territory."
+    demo_text: "Find a market, see why families are not reached, then compare the two lenses."
+    demo_slide: "M1-1"
+  privacy:
+    status: draft
+    intro_template: "Asking for birth year instead of full birth date cuts unique records from {P3.pct_unique_v0} to {P3.pct_unique_standard}. {P1.pct_provenance_full} of consent records show exactly what the family agreed to. No legal conclusion is drawn about any organization."
+    fallback_intro: "Asking for less data protects children. No legal conclusion is drawn about any organization."
+    demo_text: "See what each field costs, then what is on record about consent."
+    demo_slide: "P3-1"

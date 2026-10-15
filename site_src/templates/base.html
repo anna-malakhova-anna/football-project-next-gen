@@ -27,10 +27,12 @@
     <a class="wordmark" href="index.html">{% if logo %}<img class="wordmark-logo" src="img/logo.webp" alt="" width="36" height="36">{% else %}<svg class="wordmark-mark" data-mark="project" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Counting Flag Football mark"><rect width="32" height="32" fill="#2F6B4F"/><rect x="4" y="14" width="24" height="4" fill="#F2C230"/></svg>{% endif %}Counting Flag Football</a>
     <button type="button" class="icon-btn menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav">Menu</button>
     <nav class="nav" id="site-nav" aria-label="Pages">
-      {% for slug, label in nav %}<a href="{{ slug }}.html"{% if slug == current %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+      {% for g in nav_groups %}<div class="nav-group{% if g.current %} is-current{% endif %}">
+        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-{{ loop.index }}"{% if g.current %} data-current="true"{% endif %}>{{ g.label }}<span aria-hidden="true" class="caret"></span></button>
+        <div class="nav-menu" id="menu-{{ loop.index }}">{% for href, label, slug in g['items'] %}<a href="{{ href }}"{% if slug == current %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</div>
+      </div>{% endfor %}
     </nav>
     <div class="nav-secondary">
-      <a href="trust.html#documents">Methodology</a>
       <button type="button" class="icon-btn" id="theme-toggle" aria-label="Switch between light and dark theme" title="Switch theme">
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2a6 6 0 0 0 0 12z" fill="currentColor"/></svg>
       </button>
@@ -48,7 +50,7 @@
 <footer class="site-footer">
   <div class="footer-inner">
     <p class="footer-disclaimer">Independent portfolio project using synthetic data. Not affiliated with or endorsed by any league or team.</p>
-    <p>Methodology version {{ version }} · built {{ built }} by scripts/build_site.py{% if appendix %} · <a href="appendix.html">Appendix: school and recreation programs (a stretch source)</a>{% endif %}</p>
+    <p>Scorecard methodology {{ version }} · methodology memo {{ memo_version }} · built {{ built }} by scripts/build_site.py · <a href="glossary.html">Glossary</a>{% if appendix %} · <a href="appendix.html">Appendix: school and recreation programs (a stretch source)</a>{% endif %}</p>
     <p>No number on this site is computed in the browser.</p>
   </div>
 </footer>
