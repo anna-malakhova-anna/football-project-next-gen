@@ -105,7 +105,7 @@ dq: dbt/profiles.yml
 # Phase 5 spec, step 9: the club-market lens (ZIP3 -> club market allocation, market coverage, market scorecard, funnel and missingness by market) with its tests. Needs `make p5-feeds` seeds loaded.
 markets: dbt/profiles.yml
 	$(PY) -m generator.phase5.export_seed
-	$(DBT) seed --profiles-dir . --full-refresh --select club_market_map population_denominators
+	$(DBT) seed --profiles-dir . --full-refresh --select club_market_map population_denominators funnel_step_display
 	$(DBT) run --profiles-dir . --select int_participant_year_market int_dark_org_coverage dq_market_rule_results dq_scorecard_market mart_market_coverage mart_activation_funnel_loss mart_activation_funnel mart_missingness_bias
 	$(DBT) test --profiles-dir . --select club_market_map population_denominators market_lens_is_consistent activation_outputs_never_touch_the_child dq_decomposition_and_missingness_are_consistent
 	$(PY) -m scripts.print_markets

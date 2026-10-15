@@ -73,7 +73,8 @@ def test_every_defined_chart_passes_the_checks_and_has_a_shows_and_a_does_not_sh
         assert ch.get("spec") or ch.get("render") or ch.get("card"), cid
         assert set(ch["datasets"]) <= names, cid
         if ch.get("card"):
-            for sp in [ch["card"].get("thumb")] + [sl.get("spec") for sl in ch["card"]["slides"]]:
+            slides = ch["card"]["slides"] if not callable(ch["card"]["slides"]) else []
+            for sp in [ch["card"].get("thumb") if not callable(ch["card"].get("thumb")) else None] + [sl.get("spec") for sl in slides]:
                 if sp is None:
                     continue
                 assert bs.check_spec(sp, known, cid) == [], cid
@@ -114,6 +115,11 @@ def test_the_site_builds_from_the_warehouse_with_every_page_and_data_file(tmp_pa
         text = (site / f"{slug}.html").read_text()
         assert text.count("What this shows") == text.count("What it does not show")      # old-style sections come in pairs
         assert text.count("What this shows") + text.count('class="vcard"') >= 1             # a page has old sections, cards, or both
+    # the two-lenses pair always renders both panels (M6 in the Phase 5.1 handover: the privacy panel was missing)
+    markets = (site / "markets.html").read_text()
+    assert markets.count("Club lens \\u00b7") == markets.count("Privacy lens \\u00b7") >= 6
+    orgs = json.loads((site / "data" / "market_orgs.json").read_text())["rows"]
+    assert all(float(r["x1"]) <= 100 for r in orgs)                                      # shares of whole leagues, never fractional leagues
     # no JavaScript in the pages computes anything: the only script is the embed loop
     for slug, _ in bs.PAGES:
         text = (site / f"{slug}.html").read_text()

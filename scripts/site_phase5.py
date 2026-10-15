@@ -12,7 +12,7 @@ APPROVED = {
     "quality.mart_uncertainty_decomposition", "quality.mart_missingness_bias",
 }
 EVAL = {"evaluation.eval_uncertainty_decomposition", "evaluation.eval_minimization_tradeoff", "demo_fix_list.scores", "demo_fix_list.nuance"}
-GOVERNANCE = {"reference.privacy_params", "reference.p5_params", "reference.source_display", "reference.dq_dimensions", "reference.dq_grade_bands", "reference.channel_display", "reference.dq_rule_registry", "reference.dq_purposes"}
+GOVERNANCE = {"reference.privacy_params", "reference.club_market_map", "reference.funnel_step_display", "reference.p5_params", "reference.source_display", "reference.dq_dimensions", "reference.dq_grade_bands", "reference.channel_display", "reference.dq_rule_registry", "reference.dq_purposes"}
 
 GRADES = ["A", "B", "C", "D"]
 GRADE_COLORS = ["#2166ac", "#92c5de", "#f4a582", "#b2182b"]          # blue to red: separable for the common colour-vision differences, and every cell also carries its letter
@@ -162,61 +162,96 @@ DATASETS = [
        "SIMULATED: what the fix list does to the nuance layer"),
     # ---- club markets (share_club only) ----
     _D("market_tiles", f"""
-        with latest as (select max(participation_year) as y from share_club.share_club__market_year),
-        m as (
-            select club_market_id, participation_year, participants_allocated, participants_allocated_interval_low as lo, participants_allocated_interval_high as hi,
-                   grade_count, grade_segment, grade_geo, grade_retain, grade_activate, suppressed,
-                   substr(club_market_id, 4, 2) as state, cast(right(club_market_id, 2) as integer) as n
-            from share_club.share_club__market_year, latest where regexp_matches(club_market_id, '^CM-') and participation_year = latest.y),
-        tiles as (
-            select m.*, 2 * t.c + ((n - 1) % 2) as x, 2 * t.r + ((n - 1) // 2) as y from m join {TILE} on t.state = m.state),
-        long as (
-            select club_market_id, x, y, 1 as k, 'COUNT' as purpose, grade_count as grade, suppressed, participants_allocated, lo, hi from tiles
-            union all select club_market_id, x, y, 2, 'SEGMENT', grade_segment, suppressed, participants_allocated, lo, hi from tiles
-            union all select club_market_id, x, y, 3, 'GEO', grade_geo, suppressed, participants_allocated, lo, hi from tiles
-            union all select club_market_id, x, y, 4, 'RETAIN', grade_retain, suppressed, participants_allocated, lo, hi from tiles
-            union all select club_market_id, x, y, 5, 'ACTIVATE', grade_activate, suppressed, participants_allocated, lo, hi from tiles)
-        select club_market_id, x, y, purpose, grade, suppressed,
-               case when suppressed = 'NONE' then cast(round(participants_allocated) as varchar) else '<k' end as participants_label,
-               case when suppressed = 'NONE' and hi > 0 then round(100.0 * participants_allocated / ((lo + hi) / 2)) end as coverage_pct
-        from long
-        order by k, club_market_id""", ["share_club.share_club__market_year"], "share_club", "Club-market tile map: grade for each purpose, participants and coverage"),
-    _D("market_series", """
-        select club_market_id, participation_year, participants_allocated, participants_allocated_interval_low as interval_low, participants_allocated_interval_high as interval_high, suppressed
-        from share_club.share_club__market_year where regexp_matches(club_market_id, '^CM-') and suppressed = 'NONE' order by club_market_id, participation_year""",
-       ["share_club.share_club__market_year"], "share_club", "Participants per club market and year, with the coverage interval"),
-    _D("market_funnel", """
-        with latest as (select max(participation_year) as y from share_club.share_club__activation_funnel),
-        f as (
-            select step_no, step, unit, funnel_count as remaining, funnel_lost_dq as lost_dq, funnel_lost_privacy as lost_privacy
-            from share_club.share_club__activation_funnel, latest where participation_year = latest.y and club_market_id = 'ALL')
-        select step_no, step, unit, 'Lost to data quality' as loss, 0 as x0, lost_dq as x1, remaining from f where step_no > 1
-        union all
-        select step_no, step, unit, 'Lost to privacy (consent)', lost_dq, lost_dq + lost_privacy, remaining from f where step_no > 1
-        order by step_no, loss""", ["share_club.share_club__activation_funnel"], "share_club", "Where families are lost between registration and a reachable guardian, by cause (all markets)"),
+        with y as (select max(participation_year) as y from share_club.share_club__market_year),
+        mk as (select club_market_id, any_value(plain_name) as plain_name, any_value(state) as state from reference.club_market_map where regexp_matches(club_market_id, '^CM-') group by 1),
+        m as (select s.* from share_club.share_club__market_year s, y where s.participation_year = y.y and regexp_matches(s.club_market_id, '^CM-')),
+        p as (select purpose, plain_label, array_position(['COUNT', 'SEGMENT', 'GEO', 'RETAIN', 'ACTIVATE'], purpose) as purpose_order from reference.dq_purposes)
+        select mk.club_market_id, mk.plain_name, regexp_replace(mk.plain_name, ' market [0-9]+$', '') as state_name,
+               array_position(['WA', 'CA', 'AZ', 'CO', 'TX', 'IL', 'OH', 'PA', 'NY', 'NJ', 'CT', 'MA', 'GA', 'FL'], mk.state) as state_order, cast(right(mk.club_market_id, 2) as integer) as market_no,
+               p.purpose, p.plain_label as purpose_label, p.purpose_order,
+               case when m.club_market_id is null then 'No data yet' when m.suppressed <> 'NONE' then 'Hidden' else 'Graded' end as status,
+               case p.purpose when 'COUNT' then m.grade_count when 'SEGMENT' then m.grade_segment when 'GEO' then m.grade_geo when 'RETAIN' then m.grade_retain else m.grade_activate end as grade,
+               case when m.club_market_id is null then 'No data yet' when m.suppressed <> 'NONE' then 'fewer than ' || {K_MIN} || ' players'
+                    else 'about ' || format('{{:,}}', cast(round(m.participants_allocated, -1) as bigint)) || ' players' end as players_text,
+               case when m.club_market_id is null then '' when coalesce(m.orgs_known, 0) = 0 then 'No leagues known yet'
+                    else cast(cast(m.orgs_reporting as bigint) as varchar) || ' of ' || cast(cast(m.orgs_known as bigint) as varchar) || ' leagues reporting' end as leagues_text
+        from mk cross join p left join m on m.club_market_id = mk.club_market_id
+        order by p.purpose_order, state_order, market_no""", ["share_club.share_club__market_year", "reference.club_market_map", "reference.dq_purposes", "reference.privacy_params"], "share_club",
+       "Club-market tiles: grade for each use, players and leagues reporting, latest season (all markets, including those with no data yet)"),
+    _D("market_growth", f"""
+        with s as (select club_market_id, participation_year, participants_allocated as p, participants_allocated_interval_low as lo, participants_allocated_interval_high as hi
+                   from share_club.share_club__market_year where regexp_matches(club_market_id, '^CM-') and suppressed = 'NONE'),
+        base as (select club_market_id, arg_min(p, participation_year) as p0, min(participation_year) as first_year, arg_max(p, participation_year) as p_latest from s group by 1),
+        ranked as (select club_market_id, row_number() over (order by p_latest desc, club_market_id) as rnk from base)
+        select (select any_value(plain_name) from reference.club_market_map c where c.club_market_id = s.club_market_id) as plain_name, s.participation_year,
+               cast(round(100.0 * s.p / b.p0) as bigint) as growth_index, cast(round(100.0 * s.lo / b.p0) as bigint) as index_low, cast(round(100.0 * s.hi / b.p0) as bigint) as index_high,
+               b.first_year, (r.rnk - 1) // 6 + 1 as slide_no, r.rnk as size_rank
+        from s join base b using (club_market_id) join ranked r using (club_market_id)
+        order by r.rnk, s.participation_year""", ["share_club.share_club__market_year", "reference.club_market_map"], "share_club",
+       "Players per club market since its first year (first year = 100), with the range that allows for leagues that sent no data"),
+    _D("market_funnel", f"""
+        with y as (select max(participation_year) as y from share_club.share_club__activation_funnel),
+        top6 as (select club_market_id, row_number() over (order by participants_allocated desc, club_market_id) as slide_no
+                 from share_club.share_club__market_year where regexp_matches(club_market_id, '^CM-') and suppressed = 'NONE'
+                   and participation_year = (select max(participation_year) from share_club.share_club__market_year) qualify slide_no <= 6),
+        keys as (select 'ALL' as club_market_id, 'All club markets' as slide_title, 0 as slide_no
+                 union all select t.club_market_id, (select any_value(plain_name) from reference.club_market_map c where c.club_market_id = t.club_market_id), t.slide_no from top6 t),
+        f as (select k.club_market_id, k.slide_title, k.slide_no, d.display_no, d.plain_name as step_name, d.plain_unit,
+                     round(f.funnel_count, -1) as r, round(coalesce(f.funnel_lost_dq, 0), -1) as dq, round(coalesce(f.funnel_lost_privacy, 0), -1) as pr
+              from share_club.share_club__activation_funnel f join keys k on k.club_market_id = f.club_market_id join y on f.participation_year = y.y
+              join reference.funnel_step_display d on d.step_no = f.step_no where f.funnel_count is not null),
+        big as (select slide_no, max(r) as top from f group by 1),
+        seg as (
+            select f.slide_no, f.slide_title, f.display_no, f.step_name, f.plain_unit, 'Still reachable' as part, 1 as part_order, 0.0 as x0, f.r as x1, f.r as amount, big.top from f join big using (slide_no)
+            union all select f.slide_no, f.slide_title, f.display_no, f.step_name, f.plain_unit, 'Fixable data problem', 2, f.r, f.r + f.dq, f.dq, big.top from f join big using (slide_no) where f.dq > 0
+            union all select f.slide_no, f.slide_title, f.display_no, f.step_name, f.plain_unit, 'Family''s choice or never asked', 3, f.r + f.dq, f.r + f.dq + f.pr, f.pr, big.top from f join big using (slide_no) where f.pr > 0)
+        select slide_no, slide_title, display_no, step_name, part, part_order, x0, x1, (x0 + x1) / 2 as x_mid,
+               case when amount < {K_MIN} then 'fewer than ' || {K_MIN} else 'about ' || format('{{:,}}', cast(amount as bigint)) end as amount_label,
+               case when amount >= 0.04 * top then format('{{:,}}', cast(amount as bigint)) else '' end as bar_label, plain_unit as unit
+        from seg order by slide_no, display_no, part_order""", ["share_club.share_club__activation_funnel", "share_club.share_club__market_year", "reference.club_market_map", "reference.funnel_step_display", "reference.privacy_params"], "share_club",
+       "Players and families remaining at each step, and what was lost, nationally and for the six largest markets"),
     _D("market_orgs", """
-        select club_market_id, 'Reporting organizations' as kind, 0 as x0, orgs_reporting as x1
-        from share_club.share_club__market_year where regexp_matches(club_market_id, '^CM-') and suppressed = 'NONE'
-          and participation_year = (select max(participation_year) from share_club.share_club__market_year)
-        union all
-        select club_market_id, 'Dark organizations (sent no file)', orgs_reporting, orgs_reporting + orgs_dark
-        from share_club.share_club__market_year where regexp_matches(club_market_id, '^CM-') and suppressed = 'NONE'
-          and participation_year = (select max(participation_year) from share_club.share_club__market_year)
-        order by 1, 2""", ["share_club.share_club__market_year"], "share_club", "Known organizations per club market: reporting and dark, latest season"),
-    _D("lens_club", """
-        select club_market_id, market_name, participation_year, participants_allocated, participants_allocated_interval_low, participants_allocated_interval_high, orgs_known, orgs_dark,
-               grade_count, grade_segment, grade_geo, grade_retain, grade_activate
-        from share_club.share_club__market_year
-        where club_market_id = (select club_market_id from share_club.share_club__market_year where regexp_matches(club_market_id, '^CM-') and suppressed = 'NONE'
-                                and participation_year = (select max(participation_year) from share_club.share_club__market_year) order by participants_allocated desc, club_market_id limit 1)
-          and suppressed = 'NONE' order by participation_year""", ["share_club.share_club__market_year"], "share_club", "The largest market in the club lens: participants, coverage and grades by year"),
-    _D("lens_privacy", """
-        select f.club_market_id, f.step_no, f.step, f.unit, f.funnel_count, f.funnel_lost_dq, f.funnel_lost_privacy, f.suppressed
-        from share_club.share_club__activation_funnel f
-        where f.club_market_id = (select club_market_id from share_club.share_club__market_year where regexp_matches(club_market_id, '^CM-') and suppressed = 'NONE'
-                                  and participation_year = (select max(participation_year) from share_club.share_club__market_year) order by participants_allocated desc, club_market_id limit 1)
-          and f.participation_year = (select max(participation_year) from share_club.share_club__activation_funnel) order by f.step_no""",
-       ["share_club.share_club__activation_funnel", "share_club.share_club__market_year"], "share_club", "The same market in the privacy lens: the activation funnel and what each loss is"),
+        with y as (select max(participation_year) as y from share_club.share_club__market_year),
+        m as (select s.club_market_id, cast(s.orgs_reporting as bigint) as sent, cast(s.orgs_dark as bigint) as dark, cast(s.orgs_known as bigint) as known
+              from share_club.share_club__market_year s, y where s.participation_year = y.y and regexp_matches(s.club_market_id, '^CM-') and s.suppressed = 'NONE' and s.orgs_known > 0),
+        r as (select *, row_number() over (order by 1.0 * dark / known desc, known desc, club_market_id) as rnk from m)
+        select (select any_value(plain_name) from reference.club_market_map c where c.club_market_id = r.club_market_id) as plain_name, r.rnk as dark_rank, (r.rnk - 1) // 12 + 1 as slide_no,
+               p.part, p.part_order, case when p.part_order = 1 then 0.0 else 100.0 * r.sent / r.known end as x0, case when p.part_order = 1 then 100.0 * r.sent / r.known else 100.0 end as x1,
+               cast(r.sent as varchar) || ' of ' || cast(r.known as varchar) || ' leagues sent data' as leagues_text, 100.0 as label_x
+        from r cross join (values ('Sent data', 1), ('Sent no data', 2)) p(part, part_order)
+        where p.part_order = 1 or r.dark > 0
+        order by r.rnk, p.part_order""", ["share_club.share_club__market_year", "reference.club_market_map"], "share_club", "Leagues known in each club market that sent data and that sent none, latest season"),
+    _D("market_no_leagues", """
+        with y as (select max(participation_year) as y from share_club.share_club__market_year),
+        known as (select s.club_market_id from share_club.share_club__market_year s, y where s.participation_year = y.y and s.orgs_known > 0 and s.club_market_id is not null)
+        select any_value(plain_name) as plain_name, club_market_id from reference.club_market_map where regexp_matches(club_market_id, '^CM-') and club_market_id not in (select club_market_id from known)
+        group by club_market_id order by club_market_id""", ["share_club.share_club__market_year", "reference.club_market_map"], "share_club", "Club markets with no known league yet"),
+    _D("market_pairs", f"""
+        with y as (select max(participation_year) as y from share_club.share_club__market_year),
+        top6 as (select s.*, row_number() over (order by s.participants_allocated desc, s.club_market_id) as slide_no
+                 from share_club.share_club__market_year s, y where s.participation_year = y.y and regexp_matches(s.club_market_id, '^CM-') and s.suppressed = 'NONE' qualify slide_no <= 6),
+        fun as (select f.club_market_id, f.step_no, f.funnel_count from share_club.share_club__activation_funnel f where f.participation_year = (select y from y)),
+        fam as (select club_market_id, max(funnel_count) filter (where step_no = 3) as families, max(funnel_count) filter (where step_no = 5) as known_consent, max(funnel_count) filter (where step_no = 6) as reachable from fun group by 1)
+        select t.slide_no, (select any_value(plain_name) from reference.club_market_map c where c.club_market_id = t.club_market_id) as plain_name,
+               'about ' || format('{{:,}}', cast(round(t.participants_allocated, -1) as bigint)) || ' players' as players_text,
+               case when t.participants_allocated_interval_high > t.participants_allocated_interval_low
+                    then 'between ' || format('{{:,}}', cast(round(t.participants_allocated_interval_low, -1) as bigint)) || ' and ' || format('{{:,}}', cast(round(t.participants_allocated_interval_high, -1) as bigint)) || ' once leagues that sent no data are allowed for' else '' end as range_text,
+               cast(cast(t.orgs_reporting as bigint) as varchar) || ' of ' || cast(cast(t.orgs_known as bigint) as varchar) || ' leagues reporting' as leagues_text,
+               case when f.reachable is null or f.families is null then 'fewer than ' || {K_MIN} || ' families' else 'about ' || format('{{:,}}', cast(round(f.reachable, -1) as bigint)) || ' of about ' || format('{{:,}}', cast(round(f.families, -1) as bigint)) || ' families can be contacted by the club' end as reach_text,
+               case when f.known_consent is null or f.families is null then 'fewer than ' || {K_MIN} || ' families' else 'about ' || format('{{:,}}', cast(round(f.known_consent, -1) as bigint)) || ' of about ' || format('{{:,}}', cast(round(f.families, -1) as bigint)) || ' families have a consent record we can read' end as consent_text,
+               'The club receives counts only, and the smallest count shown is {{K_MIN_TEXT}}.' as receives_text
+        from top6 t left join fam f on f.club_market_id = t.club_market_id
+        order by t.slide_no""".replace("{K_MIN_TEXT}", "' || " + K_MIN + " || '"), ["share_club.share_club__market_year", "share_club.share_club__activation_funnel", "reference.club_market_map", "reference.privacy_params"], "share_club",
+       "The six largest club markets, as the club sees them and as the privacy lead sees them"),
+    _D("market_pair_grades", """
+        with y as (select max(participation_year) as y from share_club.share_club__market_year),
+        top6 as (select s.*, row_number() over (order by s.participants_allocated desc, s.club_market_id) as slide_no
+                 from share_club.share_club__market_year s, y where s.participation_year = y.y and regexp_matches(s.club_market_id, '^CM-') and s.suppressed = 'NONE' qualify slide_no <= 6),
+        g as (select slide_no, 'COUNT' as purpose, grade_count as grade from top6 union all select slide_no, 'SEGMENT', grade_segment from top6 union all select slide_no, 'GEO', grade_geo from top6
+              union all select slide_no, 'RETAIN', grade_retain from top6 union all select slide_no, 'ACTIVATE', grade_activate from top6)
+        select g.slide_no, p.plain_label as purpose_label, array_position(['COUNT', 'SEGMENT', 'GEO', 'RETAIN', 'ACTIVATE'], g.purpose) as purpose_order, g.grade, b.plain_label as grade_label
+        from g join reference.dq_purposes p on p.purpose = g.purpose join reference.dq_grade_bands b on b.grade = g.grade order by g.slide_no, purpose_order""",
+       ["share_club.share_club__market_year", "reference.dq_purposes", "reference.dq_grade_bands"], "share_club", "Grades for each use in the six largest club markets"),
     # ---- privacy ----
     _D("frontier", """
         select variant_id, label as variant_label, in_standard, pct_unique, pct_rows_below_k_min, precision, recall, f1, sibling_or_twin_false_merges, participant_count_error_pct, fit_for_activate, contact_fields_held
@@ -269,7 +304,7 @@ COLUMN_LABELS = {
     "consent_text_version": "Consent wording", "provenance_grade": "Provenance", "consent_events": "Consent events", "form": "Form", "purpose_label": "Purpose", "form_names_purpose": "Named on form",
     "separate_consent_required": "Needs its own consent", "coverage": "Coverage", "mark": "Named", "metric_label": "Figure", "scenario": "Scenario", "change": "Change", "survives": "Within tolerance",
     "participation_year": "Year", "participant_years": "Participant-years", "equivalence_classes": "Classes", "smallest_class": "Smallest class", "average_class_size": "Average class size",
-    "pct_rows_below_k_warn": "Below warning size (%)", "check_name": "Check", "violations": "Violations", "participants_allocated_label": "Participants", "plain_action": "What to do", "rule_label": "Problem", "impact_bar": "Affected (rounded)", "impact_text_x": "Label position", "impact_label": "Affected", "impact_short": "Label", "source_plain": "Source", "purpose_wrapped": "Use", "purpose_wrapped_wide": "Use", "source_wrapped": "Source", "worst_rank": "Rank (worst first)", "source_rank": "Order", "grade_label": "Meaning", "grade_or_na": "Grade", "grade_text": "Grade", "dimension_label": "Check", "dimension_wrapped": "Check", "dimension_order": "Order", "purpose_order": "Order", "source_group": "Group", "lower_limit": "Normal range from", "upper_limit": "to", "status": "Reading", "group_kind": "Group kind", "group_label": "Group", "group_order": "Order", "share_pct": "Share (%)", "share_label": "Share", "measure": "Measure", "channel_plain": "How it sends data", "league_label": "League", "profile_label": "Profile", "fix_no": "Fix", "plain_label": "Problem", "why": "Why", "scale_text": "Scale", "is_no_file": "No file sent", "example_no": "Example", "is_latest": "Latest season",
+    "pct_rows_below_k_warn": "Below warning size (%)", "check_name": "Check", "violations": "Violations", "participants_allocated_label": "Participants", "plain_action": "What to do", "rule_label": "Problem", "impact_bar": "Affected (rounded)", "impact_text_x": "Label position", "impact_label": "Affected", "impact_short": "Label", "label_x": "Label position", "x_mid": "Label position", "bar_label": "Label", "amount_label": "Amount", "players_text": "Players", "leagues_text": "Leagues", "range_text": "Range", "reach_text": "Reach", "consent_text": "Consent", "receives_text": "What the club receives", "growth_index": "Index (first year = 100)", "index_low": "Range from", "index_high": "Range to", "slide_title": "Slide", "step_name": "Step", "state_name": "State", "market_no": "Market no.", "state_order": "State order", "dark_rank": "Rank", "slide_no": "Slide", "size_rank": "Size rank", "first_year": "First year", "display_no": "Step no.", "part_order": "Order", "part": "Part", "unit": "Unit", "plain_name": "Market", "status": "Reading", "source_plain": "Source", "purpose_wrapped": "Use", "purpose_wrapped_wide": "Use", "source_wrapped": "Source", "worst_rank": "Rank (worst first)", "source_rank": "Order", "grade_label": "Meaning", "grade_or_na": "Grade", "grade_text": "Grade", "dimension_label": "Check", "dimension_wrapped": "Check", "dimension_order": "Order", "purpose_order": "Order", "source_group": "Group", "lower_limit": "Normal range from", "upper_limit": "to", "status": "Reading", "group_kind": "Group kind", "group_label": "Group", "group_order": "Order", "share_pct": "Share (%)", "share_label": "Share", "measure": "Measure", "channel_plain": "How it sends data", "league_label": "League", "profile_label": "Profile", "fix_no": "Fix", "plain_label": "Problem", "why": "Why", "scale_text": "Scale", "is_no_file": "No file sent", "example_no": "Example", "is_latest": "Latest season",
 }
 RATE_COLUMNS = {"cumulative_share", "change", "value_known_only", "bound_low", "bound_high", "precision", "recall", "f1", "fit_for_activate"}
 
@@ -355,53 +390,7 @@ def charts():
         doesnt="That any organization would act, or an effect size. It is a simulated scenario on synthetic data. It narrows the missingness bounds only slightly, because the large uncertainty is coverage, which a fix list does not touch.",
         lens=dict(club="Fixing upstream lifts your organization's scores; it does not close the coverage gap.", privacy="Better forms and fewer blanks improve quality without collecting more personal data."))
     # ---- Club markets ----
-    C["m1_tiles"] = dict(
-        page="markets", title="How's my market? (grade by purpose, participants and coverage)", datasets=["market_tiles"],
-        question="How's my market? (clubs)",
-        spec={"data": _src("market_tiles"), "facet": {"field": "purpose", "type": "nominal", "sort": PURPOSES, "columns": 3, "title": None},
-              "spec": {"width": 230, "height": 150, "layer": [
-                  {"mark": {"type": "rect", "stroke": "#ffffff", "strokeWidth": 1}, "encoding": {"x": {"field": "x", "type": "ordinal", "axis": None}, "y": {"field": "y", "type": "ordinal", "axis": None},
-                      "color": {"field": "grade", "type": "nominal", "scale": GRADE_SCALE, "legend": {"title": "Grade"}},
-                      "tooltip": [{"field": "club_market_id"}, {"field": "grade"}, {"field": "participants_label"}, {"field": "coverage_pct"}]}},
-                  {"mark": {"type": "text", "fontSize": 9}, "encoding": {"x": {"field": "x", "type": "ordinal"}, "y": {"field": "y", "type": "ordinal"}, "text": {"field": "participants_label", "type": "nominal"},
-                      "color": {"value": "#000000"}}}]}},
-        note=lambda d: "Markets with no participants in the data are not drawn.",
-        shows="Each tile is one club market, laid out roughly like a map of the states that have one (no boundaries are drawn). Colour and letter are the market's grade for the purpose in the panel; the label is the participants allocated to it.",
-        doesnt="A club's territory: the markets are a project approximation made of ZIP3 groups (ADR-016). The labels are allocated, so a market that shares a ZIP3 holds a fraction of it. Cells below the small-cell size show as <k.",
-        lens=dict(club="Find your tile in each panel: counted, but perhaps not reachable.", privacy="The same tile is not graded for sharing: grades say fitness for a purpose, not permission to use data for it."))
-    C["m2_series"] = dict(
-        page="markets", title="Is growth real or just better reporting? (participants and coverage band per market)", datasets=["market_series"],
-        question="Is growth real or just better reporting? (clubs)",
-        spec={"data": _src("market_series"), "facet": {"field": "club_market_id", "type": "nominal", "columns": 6, "title": None},
-              "spec": {"width": 110, "height": 80, "layer": [
-                  {"mark": {"type": "area", "opacity": 0.25}, "encoding": {"x": {"field": "participation_year", "type": "ordinal", "title": None, "axis": {"labelAngle": -90, "labelFontSize": 8}},
-                      "y": {"field": "interval_low", "type": "quantitative", "title": None, "axis": {"labelFontSize": 8}}, "y2": {"field": "interval_high"}}},
-                  {"mark": {"type": "line", "point": True}, "encoding": {"x": {"field": "participation_year", "type": "ordinal"}, "y": {"field": "participants_allocated", "type": "quantitative"}}}]},
-              "resolve": {"scale": {"y": "independent"}}},
-        shows="For each market, allocated participants by year (line) with the band that allows for organizations that did not report that year. A rise inside a widening band is better reporting, not growth.",
-        doesnt="Growth in the sport. The band is an estimate, markets launch in different years in this synthetic world, and each panel has its own vertical scale, so panels are not comparable by height.",
-        lens=dict(club="Read the band before the line.", privacy="The same lines are what an unsuppressed small market would reveal: markets below the small-cell size are not drawn."))
-    C["m3_funnel"] = dict(
-        page="markets", title="Why can't I reach more families? (where families drop out, by cause)", datasets=["market_funnel"],
-        question="Why can't I reach more families? (clubs, answered with the privacy lead)",
-        spec={"data": _src("market_funnel"), "width": "container", "height": 260, "mark": {"type": "bar"},
-              "encoding": {"y": {"field": "step", "type": "nominal", "sort": {"field": "step_no"}, "title": None},
-                           "x": {"field": "x0", "type": "quantitative", "title": "Households lost at the step"}, "x2": {"field": "x1"},
-                           "color": {"field": "loss", "type": "nominal", "scale": {"domain": ["Lost to data quality", "Lost to privacy (consent)"], "range": ["#D9622B", "#7D4E8E"]}, "title": "Cause"},
-                           "tooltip": [{"field": "step"}, {"field": "loss"}, {"field": "remaining"}]},
-              },
-        shows="At each step from registration to a contactable guardian, the households lost because a record is missing or unusable (orange) and because consent was declined, revoked or never covered the purpose (purple). Nationally, all markets together.",
-        doesnt="A choice about which to fix: the privacy losses are the family's decision and are not a defect. The national figures are shown; a single market's funnel is in the market lens below.",
-        lens=dict(club="The orange bars are yours to fix with the league; the purple bars are the families' answer.", privacy="The purple bars are the privacy design working: a family that said no, or whose form never asked, is not contacted."))
-    C["m4_orgs"] = dict(
-        page="markets", title="How much of my market is dark? (known and reporting organizations)", datasets=["market_orgs"],
-        question="How much of my market is dark? (clubs)",
-        spec={"data": _src("market_orgs"), "width": "container", "height": 520, "mark": {"type": "bar"},
-              "encoding": {"y": {"field": "club_market_id", "type": "nominal", "title": None}, "x": {"field": "x0", "type": "quantitative", "title": "Known organizations"}, "x2": {"field": "x1"},
-                           "color": {"field": "kind", "type": "nominal", "scale": {"domain": ["Reporting organizations", "Dark organizations (sent no file)"], "range": ["#2F6B4F", "#B8A06A"]}, "title": None}}},
-        shows="For each market, the organizations known to exist in the latest season: those that sent a file (green) and those that sent none (sand). The participants of a dark organization are in no source.",
-        doesnt="The size of a dark organization: this counts organizations, not people. The people are estimated in the coverage band of the previous chart.",
-        lens=dict(club="Dark organizations are where a call from the club helps most.", privacy="A dark organization sent nothing, so nothing about its families was ever held."))
+    C.update(market_cards())
     # ---- Privacy by design ----
     C["p1_frontier"] = dict(
         page="privacy", title="What does each field buy us, and what does it cost? (the minimization frontier)", datasets=["frontier"], evaluation=True,
@@ -586,6 +575,142 @@ def quality_cards():
         page="quality", title="What do we ask a league to do?", datasets=["dq_fix_examples"],
         card=dict(id="Q5", datasets=["dq_fix_examples"], thumb=None, thumb_html=lambda d: render_fix_letter([r for r in d["dq_fix_examples"]["rows"] if r["example_no"] == 1]), open_slide=1,
                   slides=[dict(title=f"Example {n}", key=f"EX{n}", html=(lambda n: lambda d: render_fix_letter([r for r in d["dq_fix_examples"]["rows"] if r["example_no"] == n]))(n)) for n in (1, 2, 3)]))
+    return C
+
+
+def render_tiles(rows, use, compact=False) -> str:
+    """One use's tile map as HTML: tiles grouped by state, west to east. Grade letter, market name, players, leagues reporting. Empty markets are outlined tiles."""
+    from html import escape as e
+    mine = sorted((r for r in rows if r["purpose"] == use), key=lambda r: (r["state_order"], r["market_no"]))
+    states: dict = {}
+    for r in mine:
+        states.setdefault(r["state_name"], []).append(r)
+    out = []
+    for name, tiles in states.items():
+        cells = []
+        for t in tiles:
+            if t["status"] == "No data yet":
+                cls, letter, label = "g-none", "", "No data yet"
+            elif t["status"] == "Hidden":
+                cls, letter, label = "g-hidden", "", t["players_text"]
+            else:
+                cls, letter, label = f"g-{t['grade']}", t["grade"], t["players_text"]
+            detail = f"<span class='mdetail'>{e(label)}</span>" + (f"<span class='mdetail'>{e(t['leagues_text'])}</span>" if t["leagues_text"] else "")
+            cells.append(f"<div class='mtile {cls}' title='{e(t['plain_name'])}: {e(label)}'><span class='mletter'>{e(letter) or '&nbsp;'}</span><span class='mname'>{e(t['plain_name'])}</span>{detail}</div>")
+        out.append(f"<div class='vstate'><h4>{e(name)}</h4><div class='vstate-row'>{''.join(cells)}</div></div>")
+    return f"<div class='vtiles{' vtiles-compact' if compact else ''}' data-use='{use}'>{''.join(out)}</div>"
+
+
+def render_pair(pair, grades) -> str:
+    """The same market through two lenses, side by side: what the club sees and what the privacy lead sees. Counts only; the club receives no name, birth date or contact detail."""
+    from html import escape as e
+    rng = f"<p class='note'>That is {e(pair['range_text'])}.</p>" if pair["range_text"] else ""
+    lines = "".join(f"<div class='gradeline'><span class='gl g-{g['grade']}'>{e(g['grade'])}</span><span>{e(g['purpose_label'])}: {e(g['grade_label'].lower())}</span></div>" for g in grades)
+    club = (f"<div class='lenspanel'><h4>Club lens · {e(pair['plain_name'])}</h4><p><b>{e(pair['players_text'])}</b> played here.</p>{rng}"
+            f"<p>{e(pair['leagues_text'])}.</p>{lines}<p>{e(pair['reach_text'][0].upper() + pair['reach_text'][1:])}.</p></div>")
+    priv = (f"<div class='lenspanel'><h4>Privacy lens · {e(pair['plain_name'])}</h4><p>{e(pair['receives_text'])}</p>"
+            f"<p><b>What never leaves the league:</b> names, birth dates and contact details.</p><p>{e(pair['consent_text'][0].upper() + pair['consent_text'][1:])}.</p>"
+            f"<p class='note'>Families who said no, or were never asked, are not contacted. That is the design working.</p></div>")
+    return f"<div class='lenspair'>{club}{priv}</div>"
+
+
+def _growth_panel(name, small):
+    safe = name.replace("'", "\\'")
+    xe = {"field": "participation_year", "type": "ordinal", "title": None, "axis": {"labelAngle": 0, "labelFontSize": 9 if small else 12, "labelOverlap": True}}
+    ye = {"field": "growth_index", "type": "quantitative", "title": None, "scale": {"zero": False}, "axis": {"tickCount": 3 if small else 5, "format": "d", "labelFontSize": 9 if small else 12}}
+    ylo = {"field": "index_low", "type": "quantitative", "scale": {"zero": False}}
+    return {"data": _src("market_growth"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": 2,
+            "transform": [{"filter": f"datum.plain_name === '{safe}'"}],
+            "layer": [
+                {"mark": {"type": "area", "opacity": 0.25, "clip": True, "color": "#3D7CC9"}, "encoding": {"x": xe, "y": ylo, "y2": {"field": "index_high"}}},
+                {"mark": {"type": "line", "strokeDash": [4, 3], "color": "#3D7CC9", "strokeWidth": 1, "clip": True}, "encoding": {"x": xe, "y": ylo}},
+                {"mark": {"type": "line", "strokeDash": [4, 3], "color": "#3D7CC9", "strokeWidth": 1, "clip": True}, "encoding": {"x": xe, "y": {"field": "index_high", "type": "quantitative", "scale": {"zero": False}}}},
+                {"mark": {"type": "line", "point": True, "color": "#14263B", "clip": True, "strokeWidth": 2}, "encoding": {"x": xe, "y": ye,
+                    "tooltip": [{"field": "plain_name", "title": "Market"}, {"field": "participation_year", "title": "Season"}, {"field": "growth_index", "title": "Index (first year = 100)"},
+                                {"field": "index_low", "title": "Range from"}, {"field": "index_high", "title": "to"}]}}]}
+
+
+def _funnel_spec(slide_no, thumb):
+    y = {"field": "step_name", "type": "nominal", "title": None, "sort": {"field": "display_no", "op": "min"}, "axis": {"labelLimit": 360, "labelFontSize": 11 if thumb else 14}}
+    return {"data": _src("market_funnel"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 12, "top": 4, "bottom": 4},
+            "transform": [{"filter": f"datum.slide_no === {slide_no}"}],
+            "layer": [
+                {"mark": {"type": "bar", "clip": True, "height": {"band": 0.7}, "stroke": "#ffffff", "strokeWidth": 1}, "encoding": {"y": y,
+                    "x": {"field": "x0", "type": "quantitative", "title": None if thumb else "Players or families", "axis": {"format": ",d", "tickCount": 4 if thumb else 8}}, "x2": {"field": "x1"},
+                    "color": {"field": "part", "type": "nominal", "title": None, "scale": {"domain": ["Still reachable", "Fixable data problem", "Family's choice or never asked"], "range": ["#3D7CC9", "#D9622B", "#7D4E8E"]},
+                              "legend": {"orient": "top", "labelLimit": 400, "labelFontSize": 11 if thumb else 13, "symbolType": "square"}},
+                    "tooltip": [{"field": "step_name", "title": "Step"}, {"field": "part", "title": "Part"}, {"field": "amount_label", "title": "Amount"}]}},
+                {"mark": {"type": "text", "color": "#ffffff", "fontSize": 11 if thumb else 13, "fontWeight": "bold", "clip": True}, "encoding": {"y": y, "x": {"field": "x_mid", "type": "quantitative"}, "text": {"field": "bar_label", "type": "nominal"}}}]}
+
+
+def _orgs_spec(slide_no, thumb):
+    y = {"field": "plain_name", "type": "nominal", "title": None, "sort": {"field": "dark_rank", "op": "min"}, "axis": {"labelLimit": 300, "labelFontSize": 11 if thumb else 13}}
+    return {"data": _src("market_orgs"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 4 if thumb else 190, "top": 4, "bottom": 4},
+            "transform": [{"filter": f"datum.slide_no === {slide_no}" + (" && datum.dark_rank <= 6" if thumb else "")}],
+            "layer": [
+                {"mark": {"type": "bar", "clip": True, "height": {"band": 0.7}, "stroke": "#ffffff", "strokeWidth": 1}, "encoding": {"y": y,
+                    "x": {"field": "x0", "type": "quantitative", "title": None if thumb else "Share of known leagues (%)", "scale": {"domain": [0, 100]}, "axis": {"format": "d", "tickCount": 5}}, "x2": {"field": "x1"},
+                    "color": {"field": "part", "type": "nominal", "title": None, "scale": {"domain": ["Sent data", "Sent no data"], "range": ["#2F6B4F", "#B8A06A"]}, "legend": {"orient": "top", "labelFontSize": 11 if thumb else 13}},
+                    "tooltip": [{"field": "plain_name", "title": "Market"}, {"field": "part", "title": "Part"}, {"field": "leagues_text", "title": "Leagues"}]}}]
+            + ([] if thumb else [{"transform": [{"filter": "datum.part_order === 1"}],
+                                  "mark": {"type": "text", "align": "left", "dx": 6, "fontSize": 12, "clip": False, "color": "#4A5866"},
+                                  "encoding": {"y": y, "x": {"field": "label_x", "type": "quantitative"}, "text": {"field": "leagues_text", "type": "nominal"}}}])}
+
+
+def market_cards():
+    uses = [("COUNT", "Counting players"), ("SEGMENT", "Breaking down by age and gender"), ("GEO", "Placing players on the map"), ("RETAIN", "Tracking who comes back"), ("ACTIVATE", "Contacting families")]
+
+    def pre(d):
+        btns = "".join(f"<button type='button' data-seg='{u}' aria-pressed='{'true' if u == 'COUNT' else 'false'}'>{label}</button>" for u, label in uses)
+        return f"<div class='vseg' role='group' aria-label='Choose a use'>{btns}</div>"
+
+    def thumb_tiles(d):
+        rows = d["market_tiles"]["rows"]
+        return "<span class='vtiles-host' data-active='COUNT'>" + "".join(render_tiles(rows, u, True) for u, _ in uses) + "</span>"
+
+    def growth_slides(d):
+        names: dict = {}
+        for r in d["market_growth"]["rows"]:
+            names.setdefault(r["slide_no"], {})[r["size_rank"]] = r["plain_name"]
+        return [dict(title=f"Markets {min(v)} to {max(v)} by size", key="GROWTH", multi=[dict(title=v[k], spec=_growth_panel(v[k], False)) for k in sorted(v)]) for _, v in sorted(names.items())]
+
+    def growth_thumb(d):
+        first = {}
+        for r in d["market_growth"]["rows"]:
+            if r["slide_no"] == 1:
+                first[r["size_rank"]] = r["plain_name"]
+        return [dict(title=first[k], spec=_growth_panel(first[k], True)) for k in sorted(first)]
+
+    def funnel_slides(d):
+        seen = {}
+        for r in d["market_funnel"]["rows"]:
+            seen[r["slide_no"]] = r["slide_title"]
+        return [dict(title=t, key="ALL" if n == 0 else "MARKET", spec=_funnel_spec(n, False)) for n, t in sorted(seen.items())]
+
+    def orgs_slides(d):
+        nos = sorted({r["slide_no"] for r in d["market_orgs"]["rows"]})
+        return [dict(title=f"Markets, part {i}" if len(nos) > 1 else "All markets", key="ORGS", spec=_orgs_spec(n, False)) for i, n in enumerate(nos, 1)]
+
+    def pair_html(d, n):
+        pair = next(r for r in d["market_pairs"]["rows"] if r["slide_no"] == n)
+        return render_pair(pair, [g for g in d["market_pair_grades"]["rows"] if g["slide_no"] == n])
+
+    def pair_slides(d):
+        return [dict(title=r["plain_name"], key="PAIR", html=(lambda n: lambda dd: pair_html(dd, n))(r["slide_no"])) for r in d["market_pairs"]["rows"]]
+
+    C = {}
+    C["m1_tiles"] = dict(page="markets", title="How's my market?", datasets=["market_tiles"],
+        card=dict(id="M1", datasets=["market_tiles"], thumb_html=thumb_tiles, pre_html=pre, open_slide=1,
+                  slides=lambda d: [dict(title=label, key=u, html=(lambda u: lambda dd: render_tiles(dd["market_tiles"]["rows"], u))(u)) for u, label in uses]))
+    C["m2_growth"] = dict(page="markets", title="Is growth real, or just better reporting?", datasets=["market_growth"],
+        card=dict(id="M2", datasets=["market_growth"], thumb_multi=growth_thumb, open_slide=1, slides=growth_slides))
+    C["m3_funnel"] = dict(page="markets", title="Why can't I reach more families?", datasets=["market_funnel"],
+        card=dict(id="M3", datasets=["market_funnel"], thumb=_funnel_spec(0, True), open_slide=1, slides=funnel_slides))
+    C["m4_dark"] = dict(page="markets", title="How much of my market can't we see?", datasets=["market_orgs", "market_no_leagues"],
+        card=dict(id="M4", datasets=["market_orgs", "market_no_leagues"], thumb=_orgs_spec(1, True), open_slide=1, slides=orgs_slides,
+                  note_html=lambda d: ("<p class='vnote'><b>No leagues known yet:</b> " + ", ".join(__import__("html").escape(r["plain_name"]) for r in d["market_no_leagues"]["rows"]) + ".</p>") if d["market_no_leagues"]["rows"] else ""))
+    C["m5_pair"] = dict(page="markets", title="The same market, two lenses", datasets=["market_pairs", "market_pair_grades"],
+        card=dict(id="M5", datasets=["market_pairs", "market_pair_grades"], thumb_html=lambda d: pair_html(d, 1), open_slide=1, slides=pair_slides))
     return C
 
 

@@ -526,3 +526,13 @@ seeds:
         data_tests: [unique, not_null]
       - name: plain_name
         data_tests: [not_null]
+
+  - name: funnel_step_display
+    description: Plain names for the steps of the activation funnel on the site (Phase 5.1). Step 1 (raw registrations) is not shown; players are counted after duplicates are resolved.
+    config:
+      tags: [phase5]
+    columns:
+      - name: step_no
+        data_tests: [unique, not_null]
+      - name: plain_name
+        data_tests: [not_null]

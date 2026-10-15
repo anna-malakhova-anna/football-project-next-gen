@@ -75,6 +75,7 @@ def card_block(cid: str, ch: dict, data: dict, table_html) -> str:
     if cp is None:
         raise SystemExit(f"SITE BUILD REFUSED:\n  {card['id']}: no entry in site_src/copy/charts.yml")
     headline = fill(cp["headline_template"], card["id"], cp.get("fallback_headline"))
+    card = {**card, "slides": card["slides"](data) if callable(card["slides"]) else card["slides"], "thumb": card["thumb"](data) if callable(card.get("thumb")) else card.get("thumb")}
     n = len(card["slides"])
     open_id = f"{card['id']}-{card.get('open_slide', 1)}"
     tables = "".join(f"<p class='note'><b>{e(data[d]['title'])}</b> <code>{e(data[d]['source'])}</code></p>{table_html(data[d])}" for d in card["datasets"])
@@ -89,27 +90,36 @@ def card_block(cid: str, ch: dict, data: dict, table_html) -> str:
 
     def slide_script(i, s) -> str:
         html = s["html"](data) if s.get("html") else None
-        body = dump({"html": html}) if html is not None else dump(s["spec"])
-        kind = "html" if html is not None else "vega"
+        if html is not None:
+            body, kind = dump({"html": html}), "html"
+        elif s.get("multi") is not None:
+            body, kind = dump({"multi": s["multi"]}), "multi"
+        else:
+            body, kind = dump(s["spec"]), "vega"
         return (f'<script type="application/json" class="vspec" data-kind="{kind}" data-id="{card["id"]}-{i}" data-card="{card["id"]}" data-title="{e(s["title"])}" '
                 f'data-headline="{e(slide_headline(s))}">{body}</script>')
 
     slides = "".join(slide_script(i, s) for i, s in enumerate(card["slides"], 1))
-    if card.get("thumb_html"):
-        thumb, thumb_inner = "", f'<span class="vthumb-html">{card["thumb_html"](data)}</span>'
+    tm = card.get("thumb_multi")
+    tm = tm(data) if callable(tm) else tm
+    if tm is not None:
+        thumb, thumb_inner = f'<script type="application/json" id="thumb-{card["id"]}-spec">{dump({"multi": tm})}</script>', f'<span class="vthumb-box" id="thumb-{card["id"]}" role="img" aria-label="{e(headline)}"></span>'
+    elif card.get("thumb_html"):
+        thumb, thumb_inner = "", f'<div class="vthumb-html">{card["thumb_html"](data)}</div>'
     else:
         thumb, thumb_inner = f'<script type="application/json" id="thumb-{card["id"]}-spec">{dump(card["thumb"])}</script>', f'<span class="vthumb-box" id="thumb-{card["id"]}" role="img" aria-label="{e(headline)}"></span>'
     cp = {k: (fill(v, card["id"], None) if isinstance(v, str) and k in ("means_club", "means_privacy", "action_club", "action_privacy", "caution") else v) for k, v in cp.items()}
+    pre = card["pre_html"](data) if card.get("pre_html") else ""
     tag = '<span class="tag">Synthetic evaluation — not observable in production</span>' if ch.get("evaluation") else ""
     return (
         f'<article class="vcard" id="card-{card["id"]}" data-card="{card["id"]}" data-slides="{n}">'
         f'<div class="vcard-copy"><h3 class="vcard-headline">{e(headline)}{tag}</h3><p class="vcard-question">{e(cp["question"])}</p></div>'
-        f'<div class="vthumb-wrap"><div class="vthumb" role="button" tabindex="0" data-open="{open_id}" aria-label="Open the full-screen view: {e(cp["question"])}">'
+        f'{pre}<div class="vthumb-wrap"><div class="vthumb" role="button" tabindex="0" data-open="{open_id}" aria-label="Open the full-screen view: {e(cp["question"])}">'
         f'{thumb_inner}</div>'
         f'<button type="button" class="vexpand" data-open="{open_id}" aria-label="Expand: {e(cp["question"])}">Expand ⤢</button></div>'
         f'<div class="vcard-notes">'
         f'<p class="vnote lens-club"><b>What this means.</b> {e(cp["means_club"])}</p><p class="vnote lens-privacy"><b>What this means.</b> {e(cp["means_privacy"])}</p>'
         f'<p class="vnote lens-club"><b>What to do.</b> {e(cp["action_club"])}</p><p class="vnote lens-privacy"><b>What to do.</b> {e(cp["action_privacy"])}</p>'
-        f'<p class="vnote vcaution"><b>Be careful.</b> {e(cp["caution"])}</p></div>'
+        f'<p class="vnote vcaution"><b>Be careful.</b> {e(cp["caution"])}</p>{card["note_html"](data) if card.get("note_html") else ""}</div>'
         f'<details class="vanalyst"><summary>For analysts</summary><div class="vanalyst-body">{safe_md(cp.get("analyst_md", ""))}{tables}</div></details>'
         f'{thumb}{slides}</article>')

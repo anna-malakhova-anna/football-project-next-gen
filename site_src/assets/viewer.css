@@ -67,3 +67,55 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 .fixscale { font-size: .9375rem; }
 .vslide-html { overflow-y: auto; }
 .vthumb-html .fixletter { border: 0; padding: 0; }
+
+/* small multiples */
+.vmulti { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 16px; align-content: start; }
+.vmulti-cell { min-width: 0; }
+.vmulti-title { font-size: .9375rem; font-weight: 500; margin-bottom: 2px; }
+.vmulti-chart { width: 100%; height: 200px; }
+.vmulti-small { gap: 6px 10px; padding: 8px; }
+.vmulti-small .vmulti-title { font-size: .75rem; }
+.vmulti-small .vmulti-chart { height: 88px; }
+@media (max-width: 800px) { .vmulti { grid-template-columns: minmax(0, 1fr); } .vmulti-small { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* tile map */
+.vseg { display: flex; flex-wrap: wrap; gap: 6px; }
+.vseg button { font: inherit; font-size: .875rem; padding: 4px 12px; border: 1px solid var(--border); border-radius: var(--r-chip); background: var(--surface); color: var(--text); cursor: pointer; }
+.vseg button[aria-pressed="true"] { background: var(--series-turf); color: #fff; border-color: var(--series-turf); }
+.vtiles-host .vtiles { display: none; }
+.vtiles-host[data-active="COUNT"] .vtiles[data-use="COUNT"], .vtiles-host[data-active="SEGMENT"] .vtiles[data-use="SEGMENT"], .vtiles-host[data-active="GEO"] .vtiles[data-use="GEO"],
+.vtiles-host[data-active="RETAIN"] .vtiles[data-use="RETAIN"], .vtiles-host[data-active="ACTIVATE"] .vtiles[data-use="ACTIVATE"] { display: block; }
+.vtiles-single .vtiles { display: block; }
+.vtiles { padding: 4px; }
+.vstate { margin: 0 0 10px; }
+.vstate h4 { margin: 0 0 4px; font-size: .8125rem; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+.vstate-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.mtile { width: 136px; min-height: 98px; padding: 6px 8px; border-radius: var(--r-chip); display: flex; flex-direction: column; gap: 1px; color: #000; line-height: 1.2; font-size: .75rem; }
+.mtile .mletter { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+.mtile .mname { font-weight: 500; font-size: .8125rem; }
+.mtile.g-A { background: #2166ac; color: #fff; } .mtile.g-B { background: #92c5de; } .mtile.g-C { background: #f4a582; } .mtile.g-D { background: #b2182b; color: #fff; }
+.mtile.g-none { background: transparent; border: 2px dashed var(--slate-400); color: var(--text-muted); }
+.mtile.g-hidden { background: var(--bg); border: 2px solid var(--slate-400); color: var(--text); }
+.vtiles-compact .mtile { width: 74px; min-height: 52px; padding: 3px 5px; }
+.vtiles-compact .mtile .mletter { font-size: 1.125rem; }
+.vtiles-compact .mtile .mname { font-size: .6875rem; }
+.vtiles-compact .mtile .mdetail { display: none; }
+.vtiles-compact .vstate h4 { display: none; }
+.vtiles-compact .vstate { display: contents; }
+.vtiles-compact .vstate-row { display: contents; }
+.vtiles-compact { display: flex !important; flex-wrap: wrap; gap: 4px; }
+@media (max-width: 800px) { .mtile { width: 100%; min-height: 0; flex-direction: row; align-items: center; gap: 10px; } .vstate-row { flex-direction: column; } .vtiles-compact .mtile { width: 74px; flex-direction: column; align-items: flex-start; } .vtiles-compact .vstate-row { flex-direction: row; } }
+
+/* lens pair */
+.lenspair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.lenspanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: 12px 16px; font-size: .9375rem; }
+.lenspanel h4 { margin: 0 0 6px; font-size: 1rem; }
+.lenspanel p { margin: 0 0 6px; }
+.lenspanel ul { margin: 0 0 6px; padding-left: 1.2em; }
+.lenspanel .gradeline { display: flex; gap: 8px; align-items: center; margin: 2px 0; }
+.lenspanel .gl { display: inline-block; width: 1.6em; text-align: center; font-weight: 700; border-radius: var(--r-chip); }
+.gl.g-A { background: #2166ac; color: #fff; } .gl.g-B { background: #92c5de; } .gl.g-C { background: #f4a582; } .gl.g-D { background: #b2182b; color: #fff; }
+.vthumb-html .lenspair { grid-template-columns: 1fr 1fr; gap: 8px; } .vthumb-html .lenspanel { padding: 8px 10px; font-size: .8125rem; }
+@media (max-width: 800px) { .lenspair { grid-template-columns: 1fr; } }
+.vslide-html .vtiles { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: flex-start; }
+.vslide-html .vstate { margin: 0; }

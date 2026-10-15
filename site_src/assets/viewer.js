@@ -7,6 +7,17 @@
   function config() { return window.cffVegaConfig ? window.cffVegaConfig() : {}; }
   function embed(box, spec) { if (window.vegaEmbed && box) { window.vegaEmbed(box, spec, { actions: false, renderer: "svg", config: config() }); } }
 
+  // a grid of small charts (one Vega chart per cell, so the grid can wrap: 3 columns wide, 1 on a phone)
+  function renderMulti(box, items, small) {
+    box.classList.add("vmulti"); if (small) { box.classList.add("vmulti-small"); }
+    items.forEach(function (it) {
+      var cell = document.createElement("div"); cell.className = "vmulti-cell";
+      var t = document.createElement("div"); t.className = "vmulti-title"; t.textContent = it.title;
+      var c = document.createElement("div"); c.className = "vmulti-chart";
+      cell.appendChild(t); cell.appendChild(c); box.appendChild(cell); embed(c, it.spec);
+    });
+  }
+
   // ---- collect slides, in page order
   var slides = Array.prototype.map.call(document.querySelectorAll("script.vspec"), function (n) {
     var card = document.getElementById("card-" + n.dataset.card);
@@ -19,7 +30,11 @@
   function renderThumb(card) {
     var spec = document.getElementById("thumb-" + card.dataset.card + "-spec");
     var box = document.getElementById("thumb-" + card.dataset.card);
-    if (spec && box && !box.dataset.done) { box.dataset.done = "1"; embed(box, JSON.parse(spec.textContent)); }
+    if (spec && box && !box.dataset.done) {
+      box.dataset.done = "1";
+      var obj = JSON.parse(spec.textContent);
+      if (obj.multi) { renderMulti(box, obj.multi, true); } else { embed(box, obj); }
+    }
   }
   if ("IntersectionObserver" in window) {
     var thumbObs = new IntersectionObserver(function (entries) {
@@ -27,6 +42,17 @@
     }, { rootMargin: "300px" });
     thumbs.forEach(function (c) { thumbObs.observe(c); });
   } else { thumbs.forEach(renderThumb); }
+
+  // segmented control (tile map): shows one of the precomputed panels
+  document.querySelectorAll(".vseg").forEach(function (seg) {
+    var card = seg.closest(".vcard"); var host = card && card.querySelector(".vtiles-host");
+    seg.querySelectorAll("button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (host) { host.setAttribute("data-active", b.dataset.seg); }
+        seg.querySelectorAll("button").forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+      });
+    });
+  });
 
   // ---- the dialog
   var dlg = document.createElement("dialog");
@@ -72,7 +98,7 @@
         if (!rec.done) {
           rec.done = true;
           var sl = slides[+en.target.dataset.index];
-          if (sl.kind === "html") { rec.chart.classList.add("vslide-html"); rec.chart.removeAttribute("role"); rec.chart.innerHTML = sl.spec.html; } else { embed(rec.chart, sl.spec); }
+          if (sl.kind === "html") { rec.chart.classList.add("vslide-html"); rec.chart.removeAttribute("role"); rec.chart.innerHTML = sl.spec.html; } else if (sl.kind === "multi") { rec.chart.classList.add("vslide-html"); renderMulti(rec.chart, sl.spec.multi, false); } else { embed(rec.chart, sl.spec); }
         }
       });
     }, { root: scroller, rootMargin: "100% 0px 100% 0px" });
@@ -117,6 +143,7 @@
     secs[i].el.scrollIntoView({ behavior: "auto", block: "start" });
     setCurrent(i);
     scroller.focus({ preventScroll: true });
+    requestAnimationFrame(function () { scroller.style.scrollBehavior = "auto"; secs[i].el.scrollIntoView({ behavior: "auto", block: "start" }); scroller.style.scrollBehavior = ""; });
   }
   function close() { if (dlg.open) { dlg.close(); } }
   dlg.addEventListener("close", function () {

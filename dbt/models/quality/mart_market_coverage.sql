@@ -4,7 +4,7 @@
 --   participants_zip_placed / _unplaced_allocated / _outside_us   split by how the participants were placed (int_participant_year_market): a US participant with no usable ZIP is allocated by where
 --                                                                 their organization's (else state's) placed participants live, reported SEPARATELY and never merged into the placed count
 --   participants_allocated, youth_participants_allocated          the totals (youth = age 17 or under at the cutoff)
---   orgs_known / orgs_reporting / orgs_dark                       known organizations (organization registry, spread over markets by their ZIP3) and how many sent a file
+--   orgs_known / orgs_reporting / orgs_dark                       known organizations (organization registry; each organization belongs to the one market with the highest weight for its ZIP3) and how many sent a file
 --   coverage_*                                                    participants of dark organizations, estimated from reporting peers (int_dark_org_coverage), spread the same way: an estimate with an interval
 --   interval_low / interval_high                                  allocated participants + coverage low / high: the participant scale of the COVERAGE bar
 --   pct_records_geo_fit                                           the allocated share of the market's records that are fit for the GEO purpose
@@ -27,11 +27,20 @@ people as (
 
 ),
 
+primary_market as (
+
+    -- an organization is a whole thing: it belongs to ONE market, the one with the highest weight for its ZIP3 (ties: the lowest market id). Participants are still split by weight; organizations never are (Phase 5.1, ADR-020).
+    select zip3, club_market_id, 1.0 as weight
+    from (select zip3, club_market_id, row_number() over (partition by zip3 order by allocation_weight desc, club_market_id) as rn from {{ ref('club_market_map') }})
+    where rn = 1
+
+),
+
 org_w as (
 
     select o.source_system, o.org_id, o.season_year, o.reported, m.club_market_id, m.weight
     from {{ ref('dq_org_season_base') }} o
-    join (select zip3, club_market_id, allocation_weight as weight from {{ ref('club_market_map') }}) m on m.zip3 = o.zip3 and o.source_system = 'US_LEAGUE'
+    join primary_market m on m.zip3 = o.zip3 and o.source_system = 'US_LEAGUE'
     where o.source_system = 'US_LEAGUE'
     union all
     select o.source_system, o.org_id, o.season_year, o.reported, 'OUTSIDE_US', 1.0 from {{ ref('dq_org_season_base') }} o where o.source_system in ('CA_CLUB', 'INTL_FED')

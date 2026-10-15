@@ -969,17 +969,11 @@ def phase5_pages(blocks: dict, data: dict) -> dict:
     intro = {
         "quality": "<p class='note'><b>The same data earns different grades for different purposes, and a few rules account for most of the cost.</b> Grades are per purpose (counting, segmenting, geography, retention, activation); a purpose's score is its weakest dimension. Small sources carry an interval and are graded on its lower bound. All synthetic.</p>",
         "sure": "<p class='note'><b>The participant count has three separate uncertainties that are never added: identity resolution, records that fail the counting rules, and organizations that sent no file.</b> The coverage one is an estimate, not a bound, and the evaluation below says honestly where it misses. Missing gender is biased, not just sparse.</p>",
-        "markets": "<p class='note'><b>The same market looks different to a club and to a privacy lead.</b> The markets are a project approximation made of ZIP3 groups, not any club's territory (ADR-016); participants are allocated to them by weight, so counts are fractional and a ZIP3 shared by two markets is split. Cells below the small-cell size show as <k.</p>",
+        "markets": "<p class='note'><b>The same market looks different to a club and to a privacy lead.</b> The markets are a project approximation made of ZIP3 groups, not any club's territory (ADR-016); participants are allocated to them by weight, so counts are fractional and a ZIP3 shared by two markets is split. A market with fewer than 10 players shows no grade.</p>",
         "privacy": "<p class='note'><b>Collecting less is a measured choice, not an assertion.</b> The frontier shows what each field buys and what it costs; the other charts show what is on record about consent, which purposes each form names, and what survives deletion. No legal conclusion is drawn about any organization: where the law matters it is a question for counsel.</p>",
     }
     for slug in ("quality", "sure", "markets", "privacy"):
         inner = group_cards(blocks[slug])
-        if slug == "markets":
-            inner += ("<h2>The same market, two lenses</h2><p class='note'>The largest published market, seen through each lens. Both panels come from share_club; the toggle only chooses which to show.</p>"
-                      "<section class='chart lens-panel lens-club'><h3>Club lens: participants, coverage and grades</h3>" + table_html(data["lens_club"])
-                      + "<p class='note'>Counted for the market, with the interval that allows for organizations that did not report, and its grade for each purpose.</p></section>"
-                      "<section class='chart lens-panel lens-privacy'><h3>Privacy lens: why families are not reached</h3>" + table_html(data["lens_privacy"])
-                      + "<p class='note'>The same market's activation funnel: each loss is either data quality (a record is missing) or privacy (consent was declined, revoked or never covered the purpose). A privacy loss is the design working, not a defect.</p></section>")
         if slug == "privacy":
             inner += ("<h2>How identifying is the analyst share?</h2>" + table_html(data["analyst_k"])
                       + "<p class='note'><b>What this shows.</b> For each year, how many participant-years are unique or in a small class of the analyst share's quasi-identifiers (birth year, ZIP3, sex, country). <b>What it does not show.</b> That the share is anonymous: it is pseudonymized and its use needs a stated purpose (ADR-006).</p>"
@@ -1018,7 +1012,7 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     problems = [p for cid, ch in chart_defs.items() if ch.get("spec") for p in check_spec(ch["spec"], known, cid)]
     for cid, ch in chart_defs.items():
         if ch.get("card"):
-            for k, sp in [("thumb", ch["card"].get("thumb"))] + [(f"slide {i}", s.get("spec")) for i, s in enumerate(ch["card"]["slides"], 1)]:
+            for k, sp in [("thumb", ch["card"].get("thumb") if not callable(ch["card"].get("thumb")) else None)] + [(f"slide {i}", s.get("spec")) for i, s in enumerate([] if callable(ch["card"]["slides"]) else ch["card"]["slides"], 1)]:
                 if sp is None:
                     continue
                 problems += check_spec(sp, known, f"{cid} {k}")

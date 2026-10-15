@@ -78,6 +78,14 @@ markets as (
     where m.participation_year = my.y and regexp_matches(m.club_market_id, '^CM-') and m.participants_allocated >= {{ k }}
 ),
 
+growth as (
+    select club_market_id,
+           arg_min(participants_allocated, participation_year) as first_n, arg_max(participants_allocated, participation_year) as latest_n, count(*) as years
+    from {{ ref('mart_market_coverage') }}
+    where regexp_matches(club_market_id, '^CM-') and participants_allocated >= {{ k }}
+    group by club_market_id
+),
+
 funnel as (
     select f.step_no, f.n, f.lost_dq, f.lost_privacy
     from {{ ref('mart_activation_funnel') }} f
@@ -115,11 +123,16 @@ rows_ as (
     union all select 'M1', 'club', 'n_markets', cast(count(*) as varchar), count(*) * 1.0, false from markets
     union all select 'M1', 'club', 'n_markets_ready', cast(count(*) as varchar), count(*) * 1.0, false from markets where grade_count in ('A', 'B')
     union all select 'M1', 'club', 'n_markets_dark', cast(count(*) as varchar), count(*) * 1.0, false from markets where orgs_dark > 0
-    union all select 'M2', 'club', 'n_markets', cast(count(*) as varchar), count(*) * 1.0, false from markets
+    union all select 'M2', 'club', 'n_markets_history', cast(count(*) as varchar), count(*) * 1.0, false from growth where years >= 2
+    union all select 'M2', 'club', 'n_markets_growing', cast(count(*) as varchar), count(*) * 1.0, false from growth where years >= 2 and latest_n > first_n
+    union all select 'M4', 'club', 'n_dark_leagues', cast(cast(sum(orgs_dark) as bigint) as varchar), sum(orgs_dark) * 1.0, false from markets
+    union all select 'M4', 'club', 'n_markets_dark', cast(count(*) as varchar), count(*) * 1.0, false from markets where orgs_dark > 0
     -- M3: the two lenses on the same funnel
     union all select 'M3', 'club', 'activatable_households_ratio', 'about 1 in ' || cast(round(households / nullif(activatable, 0)) as bigint), activatable / nullif(households, 0), false from funnel_ends
-    union all select 'M3', 'club', 'households_total', 'about ' || cast(round(households, -1) as bigint), households, true from funnel_ends
-    union all select 'M3', 'club', 'activatable_households', 'about ' || cast(round(activatable, -1) as bigint), activatable, true from funnel_ends
+    union all select 'M3', 'club', 'households_total', 'about ' || format('{:,}', cast(round(households, -1) as bigint)), households, true from funnel_ends
+    union all select 'M3', 'club', 'activatable_households', 'about ' || format('{:,}', cast(round(activatable, -1) as bigint)), activatable, true from funnel_ends
+    union all select 'M3', 'club', 'lost_dq_households', 'about ' || format('{:,}', cast(round(lost_dq, -1) as bigint)), lost_dq, true from funnel_ends
+    union all select 'M3', 'club', 'lost_privacy_households', 'about ' || format('{:,}', cast(round(lost_privacy, -1) as bigint)), lost_privacy, true from funnel_ends
     union all select 'M3', 'club', 'main_loss', case when lost_dq >= lost_privacy then 'missing or unusable records' else 'consent that was missing, declined or withdrawn' end, null, false from funnel_ends
 )
 

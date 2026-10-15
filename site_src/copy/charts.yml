@@ -86,3 +86,72 @@ charts:
     analyst_md: |
       Examples are chosen by rule from the latest fix list, one per profile: the league with the most spreadsheet fixes, the league whose first fix is "no file sent", and the league with the largest consent-provenance cost.
       Fixes come from `dq_fix_list` (rank within the league, not systemic). Numbers below the small-cell limit read "fewer than 10"; others are rounded to the nearest 10. A number from other seasons is labelled estimated.
+  M1:
+    status: draft
+    headline_template: "{n_markets_ready} of {n_markets} markets can be counted reliably. {n_markets_dark} have leagues that send no data."
+    fallback_headline: "Most markets can be counted. Some have leagues that send no data."
+    slide_headline_templates: {}
+    question: "How is my market doing?"
+    means_club: "Each tile is one club market with its grade for the use you pick. Tiles with a dashed outline have no data yet."
+    means_privacy: "A grade says how good the data is for a use. It does not say the data may be used for it."
+    action_club: "Find your tile, then switch the use to see where it is weak."
+    action_privacy: "Check that no market is shown with fewer than 10 players."
+    caution: "Markets are groups of ZIP code areas made up for this project. They are not any club's real territory."
+    analyst_md: |
+      The markets are a **project approximation** built from contiguous ZIP3 groups (ADR-016); participants are allocated to markets by weight, so counts are fractional underneath and rounded to the nearest 10 here.
+      A market with fewer than the small-cell limit shows no grade and no count. Tiles are grouped by state from west to east; this is not a map. "Ready" means grade A or B for counting players.
+  M2:
+    status: draft
+    headline_template: "Players grew in {n_markets_growing} of {n_markets_history} markets. Read the shaded range before the line."
+    fallback_headline: "Growth can be real or better reporting. Read the shaded range."
+    slide_headline_templates: {}
+    question: "Is growth real, or just better reporting?"
+    means_club: "Each chart shows players since the market's first year, with that year set to 100. The shaded range shows how many players there could be if leagues that sent no data had."
+    means_privacy: "Markets with fewer than 10 players are not drawn, so a very small market cannot be picked out."
+    action_club: "Where the range widens, ask the leagues that stopped sending data to send it again."
+    action_privacy: "No action. Check that small markets stay hidden."
+    caution: "Markets start in different years in this made-up data, so growth rates are not comparable."
+    analyst_md: |
+      Index = participants allocated to the market in the season divided by its first published season, times 100. The band is the market's coverage interval on the same base (a heuristic band, not a statistical confidence interval; `docs/market-estimate.md`).
+      Slides hold six markets each, largest first. Whether growth came from more leagues reporting rather than more players is not computed here (`growth_from_new_reporting_share` is not built).
+  M3:
+    status: draft
+    headline_template: "Only {activatable_households} of {households_total} families can be contacted by their club."
+    fallback_headline: "Most families cannot be contacted by their club."
+    slide_headline_templates: {}
+    question: "Why can't I reach more families?"
+    means_club: "Orange is lost to data problems the leagues can fix. Purple is the family's choice, or a family that was never asked."
+    means_privacy: "Purple is the family's decision. We do not try to win those families back."
+    action_club: "Work with leagues on the orange part first."
+    action_privacy: "Treat the purple part as the design working, not as a defect."
+    caution: "Counts are rounded to the nearest 10 and some families are split across markets."
+    analyst_md: |
+      Funnel from `mart_activation_funnel` (latest season), one slide for all markets and one for each of the six largest. Counts are households allocated to markets by ZIP3 weight, so they are fractional underneath.
+      Each bar row is the previous step's total: still reachable, lost to a fixable data problem (missing or unusable record), and lost to privacy (consent declined, withdrawn, never covered the purpose). A step with fewer than 10 is hidden with the one after it.
+  M4:
+    status: draft
+    headline_template: "{n_dark_leagues} known leagues sent no data this season. Their players are missing from every count."
+    fallback_headline: "Some known leagues sent no data this season."
+    slide_headline_templates: {}
+    question: "How much of my market can't we see?"
+    means_club: "Each bar is the known leagues in a market. The sand part sent no file. The players in those leagues are in none of the counts."
+    means_privacy: "A league that sent nothing has no family data on file."
+    action_club: "Ask the leagues that sent no file to send one, in any format."
+    action_privacy: "No action. Nothing was collected from these leagues."
+    caution: "This counts leagues, not players. Markets with no known league are not shown."
+    analyst_md: |
+      A league belongs to one market only: the market with the highest weight for the league's ZIP3 (ties: lowest market id). Participants are still split by weight; leagues never are, so every count here is a whole number (ADR-020).
+      Markets with no known league yet are listed under the chart. A market with fewer than 10 players is hidden with its league counts.
+  M5:
+    status: draft
+    headline_template: "The club sees players and grades. The privacy lead sees what never leaves the league."
+    fallback_headline: "One market, seen by the club and by the privacy lead."
+    slide_headline_templates: {}
+    question: "What does each side see for the same market?"
+    means_club: "The left panel is what a club gets: counts, how many leagues reported, grades, and how many families it can contact."
+    means_privacy: "The right panel is what stays protected: names, birth dates and contact details never leave the league."
+    action_club: "Use the left panel to plan outreach in your market."
+    action_privacy: "Use the right panel to check what each club may receive."
+    caution: "Counts are rounded. A count under 10 is never shown."
+    analyst_md: |
+      Both panels come from `share_club` aggregates for the six largest published markets, latest season. The deletion count at age-out (from `retention_log`) is not on this panel: it lives in a restricted store and has no approved share yet.
