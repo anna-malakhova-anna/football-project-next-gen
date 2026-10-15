@@ -408,3 +408,15 @@ privacy,share_privacy__retention_vs_deletion,identity_rebuilt_change,Y,VALUE
 privacy,share_privacy__retention_vs_deletion,survives_facts_only,Y,DIMENSION
 privacy,share_privacy__retention_vs_deletion,survives_identity_rebuilt,Y,DIMENSION
 privacy,share_privacy__retention_vs_deletion,tolerance,Y,VALUE
+club,share_club__chart_insights,chart_id,Y,DIMENSION
+club,share_club__chart_insights,lens,Y,DIMENSION
+club,share_club__chart_insights,field,Y,DIMENSION
+club,share_club__chart_insights,value_display,Y,DIMENSION
+club,share_club__chart_insights,value_raw,Y,AGGREGATE_SUPPRESSED
+club,share_club__chart_insights,suppressed,Y,SUPPRESSION_FLAG
+privacy,share_privacy__chart_insights,chart_id,Y,DIMENSION
+privacy,share_privacy__chart_insights,lens,Y,DIMENSION
+privacy,share_privacy__chart_insights,field,Y,DIMENSION
+privacy,share_privacy__chart_insights,value_display,Y,DIMENSION
+privacy,share_privacy__chart_insights,value_raw,Y,AGGREGATE_SUPPRESSED
+privacy,share_privacy__chart_insights,suppressed,Y,SUPPRESSION_FLAG

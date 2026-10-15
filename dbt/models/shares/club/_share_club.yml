@@ -65,3 +65,17 @@ models:
         meta: {pii: none}
         data_tests:
           - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_club__chart_insights
+    description: >
+      Long format: the numbers written inside headline sentences (value_display is already rounded: whole numbers, "about" plus nearest 10 for estimates, "1 in N"). Counts below k_min read "fewer than k".
+    columns:
+      - {name: chart_id, meta: {pii: none}}
+      - {name: lens, meta: {pii: none}}
+      - {name: field, meta: {pii: none}}
+      - {name: value_display, meta: {pii: none}}
+      - {name: value_raw, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

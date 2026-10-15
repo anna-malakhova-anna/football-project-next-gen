@@ -42,12 +42,13 @@ NO_DIRECT = {"share_exec", "share_analyst"}
 NO_IDENTIFYING = {"share_club", "share_privacy"}                  # neither direct nor quasi identifiers
 CATALOG = ROOT / "dbt" / "seeds" / "metric_catalog.csv"
 # The only models a share_club model may read directly: aggregate marts built for it (spec section 11). Row-level or linkage models are never on this list.
-APPROVED_CLUB_MARTS = {"mart_market_coverage", "mart_activation_funnel", "mart_missingness_bias", "dq_scorecard_market", "mart_activation_funnel_loss"}
+APPROVED_CLUB_MARTS = {"mart_market_coverage", "mart_activation_funnel", "mart_missingness_bias", "dq_scorecard_market", "mart_activation_funnel_loss",
+                       "dq_scorecard_source", "dq_trend", "mart_dq_impact"}      # Phase 5.1: source- and rule-level aggregates for headline numbers (no organization key is selected)
 # Aggregated, small-cell-suppressed share models that may be built from `linkage` models (ADR-009). Everything else may not.
 APPROVED_LINKAGE_AGGREGATES = {
     "share_exec__fan_engagement_effect", "share_exec__household_link_rate", "share_exec__fan_funnel", "share_exec__acquisition_incrementality", "share_exec__fan_value",
     "share_exec__addressable_audience", "share_exec__market_quadrants",
-    "share_club__market_year", "share_club__market_missingness", "share_club__activation_funnel", "share_privacy__consent_provenance", "share_privacy__minimization_frontier",
+    "share_club__market_year", "share_club__market_missingness", "share_club__activation_funnel", "share_club__chart_insights", "share_privacy__chart_insights", "share_privacy__consent_provenance", "share_privacy__minimization_frontier",
     "share_exec__fan_rfm", "share_exec__fan_survival", "share_exec__fan_value_uplift", "share_exec__consent_capture", "share_analyst__fan_event_study", "share_analyst__fan_acquisition_event_study", "share_analyst__fan_market_year",
 }
 NO_LINKAGE_AT_ALL = {"share_marketing", "share_media"}
