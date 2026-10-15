@@ -75,18 +75,19 @@ Governance sets the size of the marketable audience: nothing linked reaches mark
 | [017 Retention versus deletion](docs/decisions/ADR-017-retention-vs-deletion.md) | Age-out deletion in the identity and linkage zones; what analytics survive |
 | [018 Minimization and the data standard](docs/decisions/ADR-018-minimization-and-data-standard.md) | The measured frontier of five variants; the data standard cites V2 (birth year, ZIP3), chosen by Anna |
 | [019 Consent provenance and the activation funnel](docs/decisions/ADR-019-consent-provenance-and-activation-funnel.md) | Household-keyed consent events, provenance grades, losses split into data quality and privacy |
+| [020 Site viewer and plain-language copy](docs/decisions/ADR-020-site-viewer-and-copy.md) | Cards and a full-screen viewer, copy rules and checks, a league belongs to one market, the open control-limit and market-name choices |
 
 ## Phase 5: data quality under privacy constraints
 
 **How do you fix thin, messy youth participation data when privacy rules block the obvious fixes (collect more, buy enrichment, share more)?** The real pain point is that participation data is sparse and poor quality; consent is
-not the bottleneck. Phase 5 tells one story through two lenses, built around **one club market end to end** (`make p5-demo`; the 15-minute two-audience path is in [`docs/demo_script.md`](docs/demo_script.md); the site has four new pages, each with a Club lens / Privacy lens toggle):
+not the bottleneck. Phase 5 tells one story through two lenses, built around **one club market end to end** (`make p5-demo`; the 15-minute two-audience path is in [`docs/demo_script.md`](docs/demo_script.md); the site has four new pages, each with a Club lens / Privacy lens toggle; every chart is a small card that opens in a full-screen viewer you can scroll or arrow through, and `page.html#view=Q3-2` links to a slide. Terms are explained in the [glossary](site/glossary.html); `make site-check` runs the layout and plain-language checks, [ADR-020](docs/decisions/ADR-020-site-viewer-and-copy.md)):
 
 | Lens | Question | Where the answer is |
 |---|---|---|
 | **Privacy / compliance lead** | What do we collect and why; what is a consent worth; what never leaves the league; when is it deleted? | [data standard](docs/data-standard.md), [consent provenance and the activation funnel](docs/decisions/ADR-019-consent-provenance-and-activation-funnel.md), [minimization frontier](docs/decisions/ADR-018-minimization-and-data-standard.md), [retention versus deletion](docs/decisions/ADR-017-retention-vs-deletion.md) |
 | **Clubs / analytics lead** | What can I see and act on in my market, and how far can I trust it? | [data quality explained](docs/data-quality.md), the purpose scorecards and fix lists (`make dq`), the club-market view ([ADR-016](docs/decisions/ADR-016-club-market-mapping.md)), `share_club` |
 
-All data is **synthetic**, and every claim about NFL, RCX, vendor or club systems is an **assumption**, labelled where it is made ([real-world context](docs/context/real-world-context.md)); legal points are open questions ([`docs/questions-for-stakeholders.md`](docs/questions-for-stakeholders.md)), never findings. The decisions are ADR-013 to ADR-019; ADR-013 records how the first build (v1, from the handover) was reconciled with the larger spec.
+All data is **synthetic**, and every claim about NFL, RCX, vendor or club systems is an **assumption**, labelled where it is made ([real-world context](docs/context/real-world-context.md)); legal points are open questions ([`docs/questions-for-stakeholders.md`](docs/questions-for-stakeholders.md)), never findings. The decisions are ADR-013 to ADR-020; ADR-013 records how the first build (v1, from the handover) was reconciled with the larger spec.
 
 ### What was built
 - **Structured defects.** Organizations get latent quality profiles (35% disciplined, 45% typical, 15% struggling, 5% manual), fields go missing for reasons that depend on who registers (not at random), 15 to 25% of known organizations send no file in a season, and consent wording comes in four versions. Counting rules and KPI definitions are unchanged.
