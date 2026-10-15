@@ -23,3 +23,66 @@ charts:
       The cumulative share in the headline is computed in SQL (`mart_dq_impact.cumulative_share`) at the smallest *k* that reaches 80%, capped at 6.
       A rule that affects fewer than the small-cell limit is shown as "fewer than 10"; other estimates are rounded to the nearest 10.
       The cost is what failing records remove from a count, not what a fix would recover.
+  Q1:
+    status: draft
+    headline_template: "Most sources are fine for counting players. Only {n_ready_activate} of {n_sources} are ready for contacting families."
+    fallback_headline: "The same data earns different grades for different uses."
+    slide_headline_templates:
+      GRID: "Only {n_ready_activate} of {n_sources} sources are ready for contacting families; {n_ready_count} are ready for counting players."
+    question: "Which data can I trust, and for what?"
+    means_club: "A source can be good enough to count players and still too weak to contact families. The worst grade for contacting families is on {worst_source_plain}."
+    means_privacy: "Contacting families has the lowest grades because of consent records, not typing mistakes."
+    action_club: "Check the row for your own source before you plan a campaign."
+    action_privacy: "Look at the last column: it shows where consent records are weakest."
+    caution: "These grades come from synthetic data made to test the method."
+    analyst_md: |
+      Grades are per use (purpose), latest season. A use's grade is its **weakest quality check** (the minimum of its dimension scores, ADR-014); a small source is graded on the lower end of its Wilson interval.
+      "Ready" means grade A or B. Checks a use does not need are shown as a grey dash and never count against it. Source order: worst grade for contacting families first.
+  Q2:
+    status: draft
+    headline_template: "Contacting-families quality held steady for {n_steady} sources. {n_shift} had a real change in {latest_season}."
+    fallback_headline: "Most sources show only normal year-to-year wobble."
+    slide_headline_templates: {}
+    question: "Is quality changing?"
+    means_club: "A shaded band shows how much a source normally moves from year to year. A point outside it is a real change worth a question."
+    means_privacy: "Consent records change slowly because forms change slowly. A sudden move usually means a form changed."
+    action_club: "Ask the source what changed when a point leaves its band."
+    action_privacy: "Check whether a consent form changed in the year of a real change."
+    caution: "With only a few seasons, the bands are rough. Newer sources have too few seasons to judge."
+    analyst_md: |
+      Limits are **provisional**: a P-chart (prior mean plus or minus 3 standard errors, record count as n), drawn only from the fourth season. They are narrow for large sources because the score also moves for reasons other than sampling noise.
+      The investigation and the options (individuals chart on the score, Laney P-prime) are in `docs/reports/site_after/control_chart_note.md`; the method is Anna's decision (ADR-020).
+  Q4:
+    status: draft
+    headline_template: "{pct_cd_size_small} of small leagues are graded C or D for splitting players by age and gender. Only {pct_cd_size_large} of large ones are."
+    fallback_headline: "Small leagues and new intake channels have the weakest grades."
+    slide_headline_templates:
+      SIZE: "{pct_cd_size_small} of small leagues are graded C or D. Only {pct_cd_size_large} of large leagues are."
+      CHANNEL: "{pct_cd_channel_spreadsheet} of leagues that send spreadsheets are graded C or D. None using the recommended software are."
+      SCATTER: "Each dot is one league: its score against how many players it registered."
+    question: "Is it small leagues, or everyone?"
+    means_club: "The weak grades sit mostly with small leagues and leagues that send spreadsheets or use new intake channels. Large leagues on the recommended software are mostly fine."
+    means_privacy: "The same pattern holds for consent records: small leagues and spreadsheet senders are least likely to record them."
+    action_club: "Offer the recommended software and a short guide to small leagues first."
+    action_privacy: "Add a required consent field to the spreadsheet template."
+    caution: "Leagues are grouped by size and by how they send data. Size and software overlap, so one does not fully explain the other."
+    analyst_md: |
+      Share of leagues at each grade for the *segmentation* purpose (age, gender, division), latest season, leagues that sent a file. Size bands come from `phase5.site` in `config/generation.yaml` (small below 60 scored registrations, large from 140). A group with fewer than the small-cell limit is not shown.
+      The last slide is the scatter of score against size (log scale), with each league's interval.
+  Q5:
+    status: draft
+    headline_template: "Each league gets a short letter with at most three fixes, in plain words."
+    fallback_headline: "Each league gets a short letter with at most three fixes."
+    slide_headline_templates:
+      EX1: "A league that sends spreadsheets: three fixes, with the families or players each affects."
+      EX2: "A league that sent no file: the first fix is to send one, in any format."
+      EX3: "A league with consent form gaps: the fixes are about forms, not typing."
+    question: "What do we ask a league to do?"
+    means_club: "Every league sees what to fix first, why it matters and how many players or families it affects."
+    means_privacy: "The letter names no child and no record. It gives counts only."
+    action_club: "Send each league its own letter before the season starts."
+    action_privacy: "Check that no letter includes a name or an email address."
+    caution: "These leagues are made up. The numbers are estimates and are rounded."
+    analyst_md: |
+      Examples are chosen by rule from the latest fix list, one per profile: the league with the most spreadsheet fixes, the league whose first fix is "no file sent", and the league with the largest consent-provenance cost.
+      Fixes come from `dq_fix_list` (rank within the league, not systemic). Numbers below the small-cell limit read "fewer than 10"; others are rounded to the nearest 10. A number from other seasons is labelled estimated.

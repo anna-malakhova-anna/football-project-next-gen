@@ -5,7 +5,7 @@
 .vcard-headline { margin: 0; font-size: 1.375rem; line-height: 1.25; }
 .vcard-question { margin: 0; color: var(--text-muted); font-size: .9375rem; }
 .vthumb-wrap { position: relative; }
-.vthumb { display: block; width: 100%; height: 250px; padding: 0; border: 1px solid var(--border); border-radius: var(--r-chip); background: var(--bg); cursor: zoom-in; overflow: hidden; }
+.vthumb { display: block; text-align: left; width: 100%; height: 250px; padding: 0; border: 1px solid var(--border); border-radius: var(--r-chip); background: var(--bg); cursor: zoom-in; overflow: hidden; }
 .vthumb-box { display: block; width: 100%; height: 100%; pointer-events: none; }
 .vexpand { display: block; margin: 8px 0 0 auto; font: inherit; font-size: .875rem; padding: 4px 12px; border: 1px solid var(--border); border-radius: var(--r-chip); background: var(--surface); color: var(--text); cursor: pointer; }
 .vexpand:hover { border-color: var(--accent); }
@@ -57,3 +57,13 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
   .vthumb { cursor: auto; }
   .vanalyst:not([open]) > .vanalyst-body { display: block; }
 }
+
+/* the fix letter (Q5): one page for a league operator */
+.vthumb-html { display: block; height: 100%; overflow: hidden; pointer-events: none; padding: 12px 16px; }
+.fixletter { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: 16px 20px; max-width: 640px; margin: 0 auto; }
+.fixletter p { margin: 0 0 6px; }
+.fixletter ol { margin: 8px 0 0; padding-left: 1.4em; }
+.fixletter li { margin-bottom: 10px; }
+.fixscale { font-size: .9375rem; }
+.vslide-html { overflow-y: auto; }
+.vthumb-html .fixletter { border: 0; padding: 0; }

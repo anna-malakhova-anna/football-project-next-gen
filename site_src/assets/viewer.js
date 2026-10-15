@@ -10,7 +10,7 @@
   // ---- collect slides, in page order
   var slides = Array.prototype.map.call(document.querySelectorAll("script.vspec"), function (n) {
     var card = document.getElementById("card-" + n.dataset.card);
-    return { id: n.dataset.id, cardId: n.dataset.card, title: n.dataset.title, headline: n.dataset.headline, spec: JSON.parse(n.textContent), card: card };
+    return { kind: n.dataset.kind, id: n.dataset.id, cardId: n.dataset.card, title: n.dataset.title, headline: n.dataset.headline, spec: JSON.parse(n.textContent), card: card };
   });
   if (!slides.length) { return; }
 
@@ -69,7 +69,11 @@
       entries.forEach(function (en) {
         if (!en.isIntersecting) { return; }
         var rec = secs[+en.target.dataset.index];
-        if (!rec.done) { rec.done = true; embed(rec.chart, slides[+en.target.dataset.index].spec); }
+        if (!rec.done) {
+          rec.done = true;
+          var sl = slides[+en.target.dataset.index];
+          if (sl.kind === "html") { rec.chart.classList.add("vslide-html"); rec.chart.removeAttribute("role"); rec.chart.innerHTML = sl.spec.html; } else { embed(rec.chart, sl.spec); }
+        }
       });
     }, { root: scroller, rootMargin: "100% 0px 100% 0px" });
     secs.forEach(function (r) { lazy.observe(r.el); });
@@ -133,7 +137,12 @@
   dlg.querySelector('[data-v="close"]').addEventListener("click", close);
   dlg.querySelector('[data-v="full"]').addEventListener("click", function () { if (dlg.requestFullscreen) { dlg.requestFullscreen().catch(function () { /* optional */ }); } });
 
-  document.querySelectorAll("[data-open]").forEach(function (b) { b.addEventListener("click", function () { open(b.dataset.open, b); }); });
+  document.querySelectorAll("[data-open]").forEach(function (b) {
+    b.addEventListener("click", function () { open(b.dataset.open, b); });
+    if (b.getAttribute("role") === "button") {
+      b.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(b.dataset.open, b); } });
+    }
+  });
 
   function fromHash() {
     var m = /^#view=([A-Za-z0-9_-]+)$/.exec(location.hash);

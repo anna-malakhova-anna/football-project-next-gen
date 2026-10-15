@@ -1,4 +1,5 @@
 {{ config(tags=['phase5']) }}
+-- depends_on: {{ ref('p5_params') }}
 -- CLUB share: every number that appears inside a headline sentence on the site (Phase 5.1, section 5.2), computed and rounded HERE so no page script or Python ever computes one.
 -- Long format: one row per chart, lens and field. value_display is the string to paste into a sentence (people and families as whole numbers, estimates rounded to the nearest 10 with "about",
 -- shares as whole percents or "1 in N"); value_raw is kept for tests. A count above zero and below k_min is never published: value_display reads "fewer than N" and suppressed is PRIMARY.
@@ -27,7 +28,24 @@ trend as (
 ),
 
 trend_latest as (
-    select entity_id, purpose, season_year, out_of_control, prior_seasons from trend where season_year = (select max(season_year) from trend)
+    select entity_id, purpose, season_year, out_of_control, prior_seasons from trend where prior_seasons >= 3 and season_year = (select max(season_year) from trend)
+),
+
+trend_early as (
+    select entity_id from trend where prior_seasons < 3 and season_year = (select max(season_year) from trend)
+),
+
+orgs as (
+    select o.channel, o.grade,
+           case when o.record_count < {{ p5_param('size_band_small_below') }} then 'small' when o.record_count >= {{ p5_param('size_band_large_from') }} then 'large' else 'medium' end as size_band
+    from {{ ref('dq_scorecard_org') }} o, q
+    where o.season_year = q.y and o.purpose = 'SEGMENT' and o.dimension = 'PURPOSE_SCORE' and o.reported and o.score is not null
+),
+
+org_groups as (
+    select 'channel:' || channel as grp, count(*) as n, count(*) filter (where grade in ('C', 'D')) as n_cd from orgs group by channel
+    union all
+    select 'size:' || size_band, count(*), count(*) filter (where grade in ('C', 'D')) from orgs group by size_band
 ),
 
 pareto as (
@@ -84,6 +102,10 @@ rows_ as (
     union all select 'Q2', 'both', 'n_steady', cast(count(*) filter (where not coalesce(out_of_control, false)) as varchar), count(*) filter (where not coalesce(out_of_control, false)) * 1.0, false from trend_latest
     union all select 'Q2', 'both', 'n_shift', cast(count(*) filter (where coalesce(out_of_control, false)) as varchar), count(*) filter (where coalesce(out_of_control, false)) * 1.0, false from trend_latest
     union all select 'Q2', 'both', 'latest_season', cast(max(season_year) as varchar), max(season_year) * 1.0, false from trend_latest
+    union all select 'Q2', 'both', 'n_too_early', cast(count(*) as varchar), count(*) * 1.0, false from trend_early
+    -- Q4: share of leagues graded C or D for splitting players by age and gender (a group of fewer than k_min leagues is not reported)
+    union all select 'Q4', 'both', 'pct_cd_' || lower(replace(grp, ':', '_')), cast(round(100.0 * n_cd / n) as bigint) || '%', round(100.0 * n_cd / n), false from org_groups where n >= {{ k }}
+    union all select 'Q4', 'both', 'n_leagues_' || lower(replace(grp, ':', '_')), cast(n as varchar), n * 1.0, false from org_groups where n >= {{ k }}
     -- Q3, one set of fields per use
     union all select 'Q3', 'both', 'top_k_' || lower(purpose), cast(k as varchar), k * 1.0, false from pareto_cum
     union all select 'Q3', 'both', 'cum_pct_' || lower(purpose), cast(round(100 * cumulative_share) as bigint) || '%', round(100 * cumulative_share), false from pareto_cum

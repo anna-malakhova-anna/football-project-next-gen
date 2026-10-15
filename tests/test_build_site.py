@@ -73,7 +73,9 @@ def test_every_defined_chart_passes_the_checks_and_has_a_shows_and_a_does_not_sh
         assert ch.get("spec") or ch.get("render") or ch.get("card"), cid
         assert set(ch["datasets"]) <= names, cid
         if ch.get("card"):
-            for sp in [ch["card"]["thumb"]] + [sl["spec"] for sl in ch["card"]["slides"]]:
+            for sp in [ch["card"].get("thumb")] + [sl.get("spec") for sl in ch["card"]["slides"]]:
+                if sp is None:
+                    continue
                 assert bs.check_spec(sp, known, cid) == [], cid
             assert ch["page"] in {p for p, _ in bs.PAGES + bs.APPENDIX}, cid
             continue
@@ -110,7 +112,8 @@ def test_the_site_builds_from_the_warehouse_with_every_page_and_data_file(tmp_pa
     assert "Synthetic data" in index and "5-minute" in index.lower() or "five-minute" in index.lower()
     for slug in ("acquisition", "value", "audience", "participation", "trust", "quality", "sure", "markets", "privacy"):
         text = (site / f"{slug}.html").read_text()
-        assert text.count("What this shows") == text.count("What it does not show") >= 1
+        assert text.count("What this shows") == text.count("What it does not show")      # old-style sections come in pairs
+        assert text.count("What this shows") + text.count('class="vcard"') >= 1             # a page has old sections, cards, or both
     # no JavaScript in the pages computes anything: the only script is the embed loop
     for slug, _ in bs.PAGES:
         text = (site / f"{slug}.html").read_text()

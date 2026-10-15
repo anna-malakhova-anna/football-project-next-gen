@@ -84,16 +84,28 @@ def card_block(cid: str, ch: dict, data: dict, table_html) -> str:
         t = per_slide.get(s.get("key"))
         return fill(t, card["id"], headline) if t else headline
 
-    slides = "".join(
-        f'<script type="application/json" class="vspec" data-id="{card["id"]}-{i}" data-card="{card["id"]}" data-title="{e(s["title"])}" data-headline="{e(slide_headline(s))}">{json.dumps(s["spec"])}</script>'
-        for i, s in enumerate(card["slides"], 1))
-    thumb = f'<script type="application/json" id="thumb-{card["id"]}-spec">{json.dumps(card["thumb"])}</script>'
+    def dump(o) -> str:
+        return json.dumps(o).replace("</", "<\\/")
+
+    def slide_script(i, s) -> str:
+        html = s["html"](data) if s.get("html") else None
+        body = dump({"html": html}) if html is not None else dump(s["spec"])
+        kind = "html" if html is not None else "vega"
+        return (f'<script type="application/json" class="vspec" data-kind="{kind}" data-id="{card["id"]}-{i}" data-card="{card["id"]}" data-title="{e(s["title"])}" '
+                f'data-headline="{e(slide_headline(s))}">{body}</script>')
+
+    slides = "".join(slide_script(i, s) for i, s in enumerate(card["slides"], 1))
+    if card.get("thumb_html"):
+        thumb, thumb_inner = "", f'<span class="vthumb-html">{card["thumb_html"](data)}</span>'
+    else:
+        thumb, thumb_inner = f'<script type="application/json" id="thumb-{card["id"]}-spec">{dump(card["thumb"])}</script>', f'<span class="vthumb-box" id="thumb-{card["id"]}" role="img" aria-label="{e(headline)}"></span>'
+    cp = {k: (fill(v, card["id"], None) if isinstance(v, str) and k in ("means_club", "means_privacy", "action_club", "action_privacy", "caution") else v) for k, v in cp.items()}
     tag = '<span class="tag">Synthetic evaluation — not observable in production</span>' if ch.get("evaluation") else ""
     return (
         f'<article class="vcard" id="card-{card["id"]}" data-card="{card["id"]}" data-slides="{n}">'
         f'<div class="vcard-copy"><h3 class="vcard-headline">{e(headline)}{tag}</h3><p class="vcard-question">{e(cp["question"])}</p></div>'
-        f'<div class="vthumb-wrap"><button type="button" class="vthumb" data-open="{open_id}" aria-label="Open the full-screen view: {e(cp["question"])}">'
-        f'<span class="vthumb-box" id="thumb-{card["id"]}" role="img" aria-label="{e(headline)}"></span></button>'
+        f'<div class="vthumb-wrap"><div class="vthumb" role="button" tabindex="0" data-open="{open_id}" aria-label="Open the full-screen view: {e(cp["question"])}">'
+        f'{thumb_inner}</div>'
         f'<button type="button" class="vexpand" data-open="{open_id}" aria-label="Expand: {e(cp["question"])}">Expand ⤢</button></div>'
         f'<div class="vcard-notes">'
         f'<p class="vnote lens-club"><b>What this means.</b> {e(cp["means_club"])}</p><p class="vnote lens-privacy"><b>What this means.</b> {e(cp["means_privacy"])}</p>'

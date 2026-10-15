@@ -12,6 +12,7 @@ def build_rows(cfg: dict) -> list[dict]:
     rows = [{"param": f"season_start_{term.lower()}", "value": md, "description": f"Month-day the {term.title()} season starts (an assumption for the demonstration)."}
             for term, md in c5["season_start"].items()]
     rows += [{"param": k, "value": v, "description": f"phase5.dq.{k} in config/generation.yaml"} for k, v in c5["dq"].items()]
+    rows += [{"param": k, "value": v, "description": f"phase5.site.{k} in config/generation.yaml (league size bands shown on the site)"} for k, v in c5["site"].items()]
     rows.append({"param": "retention_survival_tolerance", "value": c5["retention"]["survival_tolerance"],
                  "description": "phase5.retention.survival_tolerance: a retention figure survives the zone deletion when it moves by no more than this share"})
     return [{k: str(v) for k, v in r.items()} for r in rows]

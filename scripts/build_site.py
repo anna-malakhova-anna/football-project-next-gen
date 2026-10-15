@@ -1018,7 +1018,9 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     problems = [p for cid, ch in chart_defs.items() if ch.get("spec") for p in check_spec(ch["spec"], known, cid)]
     for cid, ch in chart_defs.items():
         if ch.get("card"):
-            for k, sp in [("thumb", ch["card"]["thumb"])] + [(f"slide {i}", s["spec"]) for i, s in enumerate(ch["card"]["slides"], 1)]:
+            for k, sp in [("thumb", ch["card"].get("thumb"))] + [(f"slide {i}", s.get("spec")) for i, s in enumerate(ch["card"]["slides"], 1)]:
+                if sp is None:
+                    continue
                 problems += check_spec(sp, known, f"{cid} {k}")
     for cid, ch in chart_defs.items():
         for n in ch["datasets"]:

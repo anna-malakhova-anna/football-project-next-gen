@@ -43,7 +43,7 @@ NO_IDENTIFYING = {"share_club", "share_privacy"}                  # neither dire
 CATALOG = ROOT / "dbt" / "seeds" / "metric_catalog.csv"
 # The only models a share_club model may read directly: aggregate marts built for it (spec section 11). Row-level or linkage models are never on this list.
 APPROVED_CLUB_MARTS = {"mart_market_coverage", "mart_activation_funnel", "mart_missingness_bias", "dq_scorecard_market", "mart_activation_funnel_loss",
-                       "dq_scorecard_source", "dq_trend", "mart_dq_impact"}      # Phase 5.1: source- and rule-level aggregates for headline numbers (no organization key is selected)
+                       "dq_scorecard_source", "dq_trend", "mart_dq_impact", "dq_scorecard_org"}      # Phase 5.1: source- and rule-level aggregates for headline numbers (no organization key is selected; dq_scorecard_org only feeds league counts by channel and size band)
 # Aggregated, small-cell-suppressed share models that may be built from `linkage` models (ADR-009). Everything else may not.
 APPROVED_LINKAGE_AGGREGATES = {
     "share_exec__fan_engagement_effect", "share_exec__household_link_rate", "share_exec__fan_funnel", "share_exec__acquisition_incrementality", "share_exec__fan_value",

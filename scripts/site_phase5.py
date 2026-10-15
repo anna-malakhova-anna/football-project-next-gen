@@ -12,12 +12,16 @@ APPROVED = {
     "quality.mart_uncertainty_decomposition", "quality.mart_missingness_bias",
 }
 EVAL = {"evaluation.eval_uncertainty_decomposition", "evaluation.eval_minimization_tradeoff", "demo_fix_list.scores", "demo_fix_list.nuance"}
-GOVERNANCE = {"reference.privacy_params", "reference.dq_rule_registry", "reference.dq_purposes"}
+GOVERNANCE = {"reference.privacy_params", "reference.p5_params", "reference.source_display", "reference.dq_dimensions", "reference.dq_grade_bands", "reference.channel_display", "reference.dq_rule_registry", "reference.dq_purposes"}
 
 GRADES = ["A", "B", "C", "D"]
 GRADE_COLORS = ["#2166ac", "#92c5de", "#f4a582", "#b2182b"]          # blue to red: separable for the common colour-vision differences, and every cell also carries its letter
 PURPOSES = ["COUNT", "SEGMENT", "GEO", "RETAIN", "ACTIVATE"]
 K_MIN = "(select cast(value as integer) from reference.privacy_params where param = 'k_min')"
+def P5_PARAM(name):
+    return f"(select cast(value as integer) from reference.p5_params where param = '{name}')"
+
+
 LATEST_Q = "(select max(season_year) from quality.dq_scorecard_source)"
 
 
@@ -29,16 +33,6 @@ def _D(name, sql, relations, kind, title):
 TILE = "(values ('WA',0,0),('CA',0,2),('AZ',1,3),('CO',2,2),('TX',3,4),('IL',4,1),('OH',5,1),('PA',6,1),('NY',6,0),('NJ',7,1),('CT',7,0),('MA',8,0),('GA',5,3),('FL',6,4)) t(state, c, r)"
 
 DATASETS = [
-    _D("dq_heatmap", f"""
-        select source_system, purpose, dimension, grade, score, score_interval_low, score_interval_high, record_count
-        from quality.dq_scorecard_source
-        where season_year = {LATEST_Q} and score is not null and dimension in ('COMPLETENESS','VALIDITY','UNIQUENESS','CONSISTENCY','CONFORMITY','TIMELINESS','CONSENT_PROVENANCE','PURPOSE_SCORE')
-        order by purpose, source_system, dimension""", ["quality.dq_scorecard_source"], "approved_aggregate", "Data quality grade by source, dimension and purpose, latest season"),
-    _D("dq_control", """
-        select entity_id as source_system, season_year, purpose, score, lcl, ucl, out_of_control, coalesce(direction, '') as direction
-        from quality.dq_trend
-        where entity_type = 'SOURCE' and entity_id in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') and purpose in ('COUNT', 'SEGMENT', 'ACTIVATE')
-        order by purpose, entity_id, season_year""", ["quality.dq_trend"], "approved_aggregate", "Source quality scores with control limits"),
     _D("dq_pareto", f"""
         with k as (select cast(value as integer) as k_min from reference.privacy_params where param = 'k_min')
         select i.purpose, p.plain_label as purpose_label, i.rank_in_purpose, r.plain_label as rule_label, r.plain_action,
@@ -58,18 +52,88 @@ DATASETS = [
        "Numbers used inside headline sentences (club share)"),
     _D("chart_insights_privacy", "select chart_id, lens, field, value_display, value_raw, suppressed from share_privacy.share_privacy__chart_insights order by 1, 3", ["share_privacy.share_privacy__chart_insights"], "share_privacy",
        "Numbers used inside headline sentences (privacy share)"),
+    _D("dq_grid", f"""
+        with s as (select source_system, purpose, grade, score from quality.dq_scorecard_source where season_year = {LATEST_Q} and dimension = 'PURPOSE_SCORE' and score is not null),
+        act as (select source_system, score as act_score from s where purpose = 'ACTIVATE'),
+        src as (select d.source_system, d.plain_name, d.source_group,
+                       row_number() over (order by case when d.source_group = 'Original sources' then 0 else 1 end, coalesce(a.act_score, 101), d.plain_name) as source_rank,
+                       row_number() over (order by coalesce(a.act_score, 101), d.plain_name) as worst_rank
+                from reference.source_display d join act a on a.source_system = d.source_system)
+        select src.plain_name as source_plain, rtrim(regexp_replace(src.plain_name, '(.{{1,24}})( |$)', '\\1' || chr(10), 'g'), chr(10)) as source_wrapped, src.source_group, src.source_rank, src.worst_rank,
+               s.purpose, rtrim(regexp_replace(p.plain_label, '(.{{1,13}})( |$)', '\\1' || chr(10), 'g'), chr(10)) as purpose_wrapped, p.plain_label as purpose_label, rtrim(regexp_replace(p.plain_label, '(.{{1,22}})( |$)', '\\1' || chr(10), 'g'), chr(10)) as purpose_wrapped_wide,
+               array_position(['COUNT', 'SEGMENT', 'GEO', 'RETAIN', 'ACTIVATE'], s.purpose) as purpose_order, s.grade, b.plain_label as grade_label
+        from s join src on src.source_system = s.source_system join reference.dq_purposes p on p.purpose = s.purpose join reference.dq_grade_bands b on b.grade = s.grade
+        order by src.source_rank, purpose_order""", ["quality.dq_scorecard_source", "reference.source_display", "reference.dq_purposes", "reference.dq_grade_bands"], "approved_aggregate",
+       "Grade for each use, by source, latest season"),
+    _D("dq_dims", f"""
+        with scored as (select distinct source_system from quality.dq_scorecard_source where season_year = {LATEST_Q} and dimension = 'PURPOSE_SCORE' and score is not null),
+        src as (select d.source_system, d.plain_name, d.source_group, row_number() over (order by case when d.source_group = 'Original sources' then 0 else 1 end, d.sort_order) as source_rank
+                from reference.source_display d join scored using (source_system))
+        select src.plain_name as source_plain, src.source_group, src.source_rank, p.purpose, p.plain_label as purpose_label, dm.sort_order as dimension_order,
+               rtrim(regexp_replace(dm.plain_label, '(.{{1,18}})( |$)', '\\1' || chr(10), 'g'), chr(10)) as dimension_wrapped, dm.plain_label as dimension_label,
+               coalesce(sc.grade, 'Not needed') as grade_or_na, coalesce(sc.grade, '\u2013') as grade_text, coalesce(b.plain_label, 'This use does not need this check') as grade_label
+        from src cross join reference.dq_purposes p cross join reference.dq_dimensions dm
+        left join quality.dq_scorecard_source sc on sc.source_system = src.source_system and sc.purpose = p.purpose and sc.dimension = dm.dimension and sc.season_year = {LATEST_Q} and sc.score is not null
+        left join reference.dq_grade_bands b on b.grade = sc.grade
+        order by p.purpose, src.source_rank, dm.sort_order""", ["quality.dq_scorecard_source", "reference.source_display", "reference.dq_purposes", "reference.dq_dimensions", "reference.dq_grade_bands"], "approved_aggregate",
+       "Grade for each quality check, by source and use, latest season"),
+    _D("dq_trend_lines", f"""
+        with seasons as (select source_system, count(distinct season_year) as n from quality.dq_scorecard_source where dimension = 'PURPOSE_SCORE' and score is not null group by 1)
+        select d.plain_name as source_plain, t.purpose, p.plain_label as purpose_label, array_position(['COUNT', 'SEGMENT', 'GEO', 'RETAIN', 'ACTIVATE'], t.purpose) as purpose_order,
+               t.season_year, round(t.score, 1) as score,
+               case when t.prior_seasons >= 3 then t.lcl end as lower_limit, case when t.prior_seasons >= 3 then t.ucl end as upper_limit,
+               case when t.prior_seasons < 3 then 'Too early to judge' when t.out_of_control then 'Real change' else 'Normal wobble' end as status,
+               t.season_year = (select max(season_year) from quality.dq_trend) as is_latest
+        from quality.dq_trend t join seasons s on s.source_system = t.entity_id and s.n >= 4
+        join reference.source_display d on d.source_system = t.entity_id join reference.dq_purposes p on p.purpose = t.purpose
+        where t.entity_type = 'SOURCE'
+        order by purpose_order, d.sort_order, t.season_year""", ["quality.dq_trend", "quality.dq_scorecard_source", "reference.source_display", "reference.dq_purposes"], "approved_aggregate",
+       "Source quality over the seasons with normal-wobble limits (provisional method)"),
+    _D("dq_org_grades", f"""
+        with o as (
+            select c.plain_name as channel_plain, c.sort_order as channel_order, o.grade,
+                   case when o.record_count < {P5_PARAM('size_band_small_below')} then 'Small leagues' when o.record_count >= {P5_PARAM('size_band_large_from')} then 'Large leagues' else 'Medium leagues' end as size_label
+            from quality.dq_scorecard_org o join reference.channel_display c on c.channel = o.channel
+            where o.season_year = {LATEST_Q} and o.purpose = 'SEGMENT' and o.dimension = 'PURPOSE_SCORE' and o.reported and o.score is not null),
+        g as (select 'League size' as group_kind, size_label as group_label, case size_label when 'Small leagues' then 1 when 'Medium leagues' then 2 else 3 end as group_order, grade from o
+              union all select 'How the league sends data', channel_plain, channel_order, grade from o),
+        n as (select group_kind, group_label, group_order, count(*) as group_n from g group by all),
+        c as (select group_kind, group_label, group_order, grade, count(*) as k from g group by all)
+        select c.group_kind, c.group_label, c.group_order, c.grade, b.plain_label as grade_label, round(100.0 * c.k / n.group_n, 1) as share_pct,
+               cast(round(100.0 * c.k / n.group_n) as bigint) || '% of ' || lower(c.group_label) as share_label, 'Leagues graded' as measure
+        from c join n using (group_kind, group_label, group_order) join reference.dq_grade_bands b on b.grade = c.grade
+        where n.group_n >= {K_MIN}
+        order by c.group_kind desc, c.group_order, c.grade""", ["quality.dq_scorecard_org", "quality.dq_scorecard_source", "reference.channel_display", "reference.dq_grade_bands", "reference.privacy_params", "reference.p5_params"], "approved_aggregate",
+       "Share of leagues at each grade for splitting players by age and gender, by league size and by how the league sends data"),
     _D("dq_org_scatter", f"""
-        select channel, record_count, score, score_interval_low, score_interval_high, interval_applied, grade
-        from quality.dq_scorecard_org
-        where season_year = {LATEST_Q} and purpose = 'SEGMENT' and dimension = 'PURPOSE_SCORE' and reported and source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED')
-        order by record_count""", ["quality.dq_scorecard_org", "quality.dq_scorecard_source"], "approved_aggregate", "Organization quality score against organization size, latest season"),
-    _D("dq_fix_card", f"""
-        with pick as (
-            select source_system, org_id from quality.dq_fix_list
-            where season_year = {LATEST_Q} and not is_systemic and rank_in_scope = 1 order by records_affected desc, org_id limit 1)
-        select 'League A (pseudonymized)' as organization, f.rank_in_scope as rank, f.rule_id, f.fix_guidance, f.records_affected, f.impact_estimate, f.impact_unit, f.owner_role
-        from quality.dq_fix_list f join pick p using (source_system, org_id)
-        where f.season_year = {LATEST_Q} and not f.is_systemic order by f.rank_in_scope""", ["quality.dq_fix_list", "quality.dq_scorecard_source"], "approved_aggregate", "An example fix list (one organization, pseudonymized)"),
+        select c.plain_name as channel_plain, o.record_count, round(o.score, 1) as score, round(o.score_interval_low, 1) as score_interval_low, round(o.score_interval_high, 1) as score_interval_high, o.grade
+        from quality.dq_scorecard_org o join reference.channel_display c on c.channel = o.channel
+        where o.season_year = {LATEST_Q} and o.purpose = 'SEGMENT' and o.dimension = 'PURPOSE_SCORE' and o.reported and o.score is not null
+        order by o.record_count""", ["quality.dq_scorecard_org", "quality.dq_scorecard_source", "reference.channel_display"], "approved_aggregate", "League score against league size, latest season"),
+    _D("dq_fix_examples", f"""
+        with f as (
+            select f.org_id, f.rule_id, f.rank_in_scope, f.impact_estimate, f.impact_unit, f.impact_basis, f.purposes_breached
+            from quality.dq_fix_list f where f.season_year = {LATEST_Q} and not f.is_systemic and f.rank_in_scope <= 3),
+        chan as (select distinct org_id, channel from quality.dq_scorecard_org),
+        per_org as (select org_id, count(*) as n_fixes, sum(impact_estimate) as total from f group by 1),
+        a as (select f.org_id from f join chan using (org_id) join per_org using (org_id) where chan.channel = 'SPREADSHEET' group by f.org_id, per_org.n_fixes, per_org.total order by per_org.n_fixes desc, per_org.total desc, f.org_id limit 1),
+        b as (select f.org_id from f join per_org using (org_id) where f.rank_in_scope = 1 and f.rule_id = 'DQ-TIME-ORG-REPORTED' and f.org_id not in (select org_id from a) order by f.impact_estimate desc, f.org_id limit 1),
+        c as (select f.org_id from f join per_org using (org_id) where f.rule_id like 'DQ-PROV-%' and per_org.n_fixes >= 2 and f.org_id not in (select org_id from a union select org_id from b)
+              group by f.org_id, per_org.total order by per_org.total desc, f.org_id limit 1),
+        picked as (select 1 as example_no, 'League A (made-up name)' as league_label, 'Sends spreadsheets' as profile_label, org_id from a
+                   union all select 2, 'League B (made-up name)', 'Late or missing file', org_id from b
+                   union all select 3, 'League C (made-up name)', 'Consent form gaps', org_id from c),
+        why as (select f.org_id, f.rule_id, string_agg(lower(p.plain_label), ', ' order by p.purpose) as uses
+                from f cross join unnest(f.purposes_breached) as u(purpose) join reference.dq_purposes p on p.purpose = u.purpose group by 1, 2)
+        select pk.example_no, pk.league_label, pk.profile_label, f.rank_in_scope as fix_no, r.plain_label, r.plain_action,
+               'So that it works for: ' || w.uses || '.' as why,
+               case when f.impact_estimate < {K_MIN} then 'fewer than ' || {K_MIN} || (case when f.impact_unit = 'HOUSEHOLDS' then ' families' else ' players' end)
+                    else 'about ' || cast(round(f.impact_estimate, -1) as bigint) || (case when f.impact_unit = 'HOUSEHOLDS' then ' families' else ' players' end) end
+               || (case when f.impact_basis = 'MEASURED' then '' else ' (estimated)' end) as scale_text,
+               f.rule_id = 'DQ-TIME-ORG-REPORTED' as is_no_file
+        from picked pk join f using (org_id) join reference.dq_rule_registry r on r.rule_id = f.rule_id join why w on w.org_id = f.org_id and w.rule_id = f.rule_id
+        order by pk.example_no, f.rank_in_scope""", ["quality.dq_fix_list", "quality.dq_scorecard_org", "quality.dq_scorecard_source", "reference.dq_rule_registry", "reference.dq_purposes", "reference.privacy_params"], "approved_aggregate",
+       "Example fix lists for three made-up leagues, one per quality profile"),
     _D("unc_decomp", """
         select participation_year, component, reported_point, interval_low, interval_high, contribution
         from quality.mart_uncertainty_decomposition order by participation_year, component""", ["quality.mart_uncertainty_decomposition"], "approved_aggregate",
@@ -186,8 +250,6 @@ DATASETS = [
 ]
 
 VALUE_LABELS = {
-    "dq_heatmap": {"source_system": {"US_LEAGUE": "US league", "CA_CLUB": "Canadian club", "INTL_FED": "International federation", "SCHOOL_AGGREGATES": "School programs", "FAN_ENGAGEMENT": "Fan app and ticketing"}},
-    "dq_control": {"source_system": {"US_LEAGUE": "US league", "CA_CLUB": "Canadian club", "INTL_FED": "International federation"}},
 }
 
 COLUMN_LABELS = {
@@ -207,7 +269,7 @@ COLUMN_LABELS = {
     "consent_text_version": "Consent wording", "provenance_grade": "Provenance", "consent_events": "Consent events", "form": "Form", "purpose_label": "Purpose", "form_names_purpose": "Named on form",
     "separate_consent_required": "Needs its own consent", "coverage": "Coverage", "mark": "Named", "metric_label": "Figure", "scenario": "Scenario", "change": "Change", "survives": "Within tolerance",
     "participation_year": "Year", "participant_years": "Participant-years", "equivalence_classes": "Classes", "smallest_class": "Smallest class", "average_class_size": "Average class size",
-    "pct_rows_below_k_warn": "Below warning size (%)", "check_name": "Check", "violations": "Violations", "participants_allocated_label": "Participants", "plain_action": "What to do", "rule_label": "Problem", "impact_bar": "Affected (rounded)", "impact_text_x": "Label position", "impact_label": "Affected", "impact_short": "Label",
+    "pct_rows_below_k_warn": "Below warning size (%)", "check_name": "Check", "violations": "Violations", "participants_allocated_label": "Participants", "plain_action": "What to do", "rule_label": "Problem", "impact_bar": "Affected (rounded)", "impact_text_x": "Label position", "impact_label": "Affected", "impact_short": "Label", "source_plain": "Source", "purpose_wrapped": "Use", "purpose_wrapped_wide": "Use", "source_wrapped": "Source", "worst_rank": "Rank (worst first)", "source_rank": "Order", "grade_label": "Meaning", "grade_or_na": "Grade", "grade_text": "Grade", "dimension_label": "Check", "dimension_wrapped": "Check", "dimension_order": "Order", "purpose_order": "Order", "source_group": "Group", "lower_limit": "Normal range from", "upper_limit": "to", "status": "Reading", "group_kind": "Group kind", "group_label": "Group", "group_order": "Order", "share_pct": "Share (%)", "share_label": "Share", "measure": "Measure", "channel_plain": "How it sends data", "league_label": "League", "profile_label": "Profile", "fix_no": "Fix", "plain_label": "Problem", "why": "Why", "scale_text": "Scale", "is_no_file": "No file sent", "example_no": "Example", "is_latest": "Latest season",
 }
 RATE_COLUMNS = {"cumulative_share", "change", "value_known_only", "bound_low", "bound_high", "precision", "recall", "f1", "fit_for_activate"}
 
@@ -224,36 +286,7 @@ NOT_SUPPRESSED_NOTE = "A cell shown as <k has fewer than k_min records behind it
 def charts():
     """-> {id: dict(page, title, spec|render, shows, doesnt, question, lens, datasets, ...)} for the four Phase 5 pages."""
     C = {}
-    C["q1_heatmap"] = dict(
-        page="quality", title="Which data can I trust, for what? (grade by source, dimension and purpose)", datasets=["dq_heatmap"],
-        question="Which data can I trust, for what? (asked by clubs and by the privacy lead)",
-        spec={"data": _src("dq_heatmap"), "facet": {"field": "purpose", "type": "nominal", "sort": PURPOSES, "columns": 2, "title": None},
-              "spec": {"width": 330, "height": 150, "layer": [
-                  {"mark": "rect", "encoding": {
-                      "x": {"field": "dimension", "type": "nominal", "title": None, "axis": {"labelAngle": -40}, "sort": ["COMPLETENESS", "VALIDITY", "UNIQUENESS", "CONSISTENCY", "CONFORMITY", "TIMELINESS", "CONSENT_PROVENANCE", "PURPOSE_SCORE"]},
-                      "y": {"field": "source_system", "type": "nominal", "title": None},
-                      "color": {"field": "grade", "type": "nominal", "scale": GRADE_SCALE, "legend": {"title": "Grade"}},
-                      "tooltip": [{"field": "source_system"}, {"field": "dimension"}, {"field": "grade"}, {"field": "score"}, {"field": "score_interval_low"}, {"field": "score_interval_high"}, {"field": "record_count"}]}},
-                  {"mark": {"type": "text", "fontSize": 11}, "encoding": {"x": {"field": "dimension", "type": "nominal", "sort": ["COMPLETENESS", "VALIDITY", "UNIQUENESS", "CONSISTENCY", "CONFORMITY", "TIMELINESS", "CONSENT_PROVENANCE", "PURPOSE_SCORE"]}, "y": {"field": "source_system", "type": "nominal"},
-                      "text": {"field": "grade", "type": "nominal"}, "color": {"value": "#000000"}}}]}},
-        shows="One panel per purpose, one cell per source and quality dimension, each with its grade as a colour and as a letter. The same sources earn different grades for different purposes, because a rule only counts against the purposes that need it.",
-        doesnt="A verdict on any organization, or real data quality: the data is synthetic. A grade rests on the rules in the registry, and a small source carries a wide interval (shown when you hover; the grade uses its lower bound).",
-        lens=dict(club="Read across a row: a source can be good enough to count and still poor for contacting families.", privacy="The ACTIVATE panel is the privacy panel: consent provenance, not typing errors, holds the grade down."))
-    C["q2_control"] = dict(
-        page="quality", title="Is quality getting better or worse, and is this a real shift? (control limits per source)", datasets=["dq_control"],
-        question="Is quality getting better or worse, and is this a real shift? (clubs and analytics)",
-        spec={"data": _src("dq_control"), "facet": {"field": "purpose", "type": "nominal", "sort": ["COUNT", "SEGMENT", "ACTIVATE"], "columns": 3, "title": None},
-              "spec": {"width": 230, "height": 200, "layer": [
-                  {"mark": {"type": "area", "opacity": 0.12}, "encoding": {"x": {"field": "season_year", "type": "ordinal", "title": "Season", "axis": {"labelAngle": 0}},
-                      "y": {"field": "lcl", "type": "quantitative", "scale": {"domain": [0, 100]}, "title": "Score"}, "y2": {"field": "ucl"}, "color": {"field": "source_system", "type": "nominal", "title": "Source"}}},
-                  {"mark": {"type": "line", "point": True}, "encoding": {"x": {"field": "season_year", "type": "ordinal"}, "y": {"field": "score", "type": "quantitative"},
-                      "color": {"field": "source_system", "type": "nominal", "title": "Source"}}},
-                  {"mark": {"type": "point", "shape": "diamond", "size": 160, "filled": False, "strokeWidth": 2.5}, "encoding": {"x": {"field": "season_year", "type": "ordinal"},
-                      "y": {"field": "score", "type": "quantitative"}, "stroke": {"field": "out_of_control", "type": "nominal", "scale": {"domain": [True, False], "range": ["#000000", "rgba(0,0,0,0)"]}, "legend": None},
-                      "tooltip": [{"field": "source_system"}, {"field": "season_year"}, {"field": "score"}, {"field": "direction"}]}}]}},
-        shows="A source's score each season against the limits that its own earlier seasons imply (a P-chart); a diamond marks a season outside them, and the tooltip says which way.",
-        doesnt="Why a score moved. A point outside the limits says the change is bigger than the season-to-season noise, not what caused it. The first season has no limits, and the limits are wide while a source has few seasons.",
-        lens=dict(club="A move outside the limits is worth a question to the source; a move inside is noise.", privacy="Consent provenance moves slowly because forms change slowly; a sudden move means a form changed."))
+    # Q1 and Q2 are built after Q3 below (cards)
     def pareto_spec(use, top, height, thumb):
         bar_x = {"field": "impact_bar", "type": "quantitative", "title": None if thumb else "Players or families affected (about)", "axis": {"tickMinStep": 1, "format": "d", "tickCount": 3 if thumb else 6}}
         y = {"field": "rule_label", "type": "nominal", "sort": {"field": "rank_in_purpose", "op": "min"}, "title": None, "axis": {"labelLimit": 320, "labelFontSize": 12 if thumb else 14}}
@@ -270,25 +303,7 @@ def charts():
         page="quality", title="Which few fixes matter most?", datasets=["dq_pareto"],
         card=dict(id="Q3", datasets=["dq_pareto"], thumb=pareto_spec("ACTIVATE", 6, 230, True), open_slide=5,
                   slides=[dict(title=label, key=use, spec=pareto_spec(use, 10, "container", False)) for use, label in uses]))
-    C["q4_scatter"] = dict(
-        page="quality", title="Is it small leagues, a channel, or everyone? (organization score against size)", datasets=["dq_org_scatter"],
-        question="Is it small leagues, a channel, or everyone? (clubs)",
-        spec={"data": _src("dq_org_scatter"), "width": "container", "height": 340, "layer": [
-            {"mark": {"type": "rule", "opacity": 0.35}, "encoding": {"x": {"field": "record_count", "type": "quantitative", "scale": {"type": "log"}, "title": "Registrations in the season (log scale)"},
-                "y": {"field": "score_interval_low", "type": "quantitative", "scale": {"domain": [0, 100]}, "title": "Segmentation purpose score"}, "y2": {"field": "score_interval_high"},
-                "color": {"field": "channel", "type": "nominal", "title": "Channel"}}},
-            {"mark": {"type": "point", "filled": True, "size": 60}, "encoding": {"x": {"field": "record_count", "type": "quantitative", "scale": {"type": "log"}},
-                "y": {"field": "score", "type": "quantitative"}, "color": {"field": "channel", "type": "nominal"}, "tooltip": [{"field": "grade"}, {"field": "record_count"}, {"field": "score"}, {"field": "channel"}]}}]},
-        shows="Each point is an organization's segmentation score for the latest season; the vertical bar is its interval, which is wide for small organizations and shrinks with size.",
-        doesnt="Which organization is which: the points carry no names. It also does not show cause: small organizations and the spreadsheet channel overlap.",
-        lens=dict(club="If your league is small, read your interval before your grade.", privacy="Small organizations also carry the highest re-identification risk when their data is shared."))
-    C["q5_fixcard"] = dict(
-        page="quality", title="What do we actually ask an operator to do? (a fix list)", datasets=["dq_fix_card"],
-        question="What do we actually ask an operator to do? (clubs and the privacy lead)",
-        render=lambda d: render_fix_card(d["dq_fix_card"]["rows"]),
-        shows="The top fixes for one organization, worded as actions with the number of records each affects, who owns it, and the estimated cost in participants or households.",
-        doesnt="Any real organization: this one is pseudonymized and synthetic. Records are counted, never listed, so the card carries nothing about a person.",
-        lens=dict(club="This is the page a league operator would receive.", privacy="The card names records by count only; the operator sees their own rows in their own system."))
+    C.update(quality_cards())
     # ---- How sure are we ----
     C["u1_decomp"] = dict(
         page="sure", title="Why can't you give me one number, and what drives the range? (three separate intervals)", datasets=["unc_decomp"],
@@ -433,6 +448,144 @@ def charts():
         shows="How much each retention figure moves when children who aged out are anonymized: not at all if the marts are rebuilt from the pseudonymous facts, by about a sixth if identity resolution is re-run on the anonymized inputs.",
         doesnt="The loss of re-linking a returning adult to their youth history: this synthetic data has no child who plays on as an adult inside the window, so that case is zero here and cannot be shown. The retention periods are assumptions.",
         lens=dict(club="Retention rates survive if the pipeline keeps the pseudonymous key.", privacy="The design constraint: freeze the participant key before the identifiers go, and never re-run identity over deleted records (ADR-017)."))
+    order = ["q1_grid", "q2_trend", "q3_pareto", "q4_size", "q5_fix"]
+    C = {**{k: C[k] for k in order if k in C}, **{k: v for k, v in C.items() if k not in order}}
+    return C
+
+
+GRADE_TEXT = {"condition": {"test": "datum.grade === 'A' || datum.grade === 'D'", "value": "#ffffff"}, "value": "#000000"}
+GRADE_DOMAIN_NA = {"domain": GRADES + ["Not needed"], "range": GRADE_COLORS + ["#d9d9d9"]}
+SIZE = {"autosize": {"type": "fit", "contains": "padding"}, "width": "container"}
+
+
+def _purpose_axis(thumb):
+    return {"field": "purpose_label", "type": "nominal", "title": None, "sort": {"field": "purpose_order", "op": "min"}, "axis": None}
+
+
+def _col_headers(x_field, text_field, order_field, rank_field, size, lines):
+    """Column headers as a text layer so they can wrap (axis labels cannot): drawn once, from the first row of each column, above the plot."""
+    return {"transform": [{"filter": f"datum.{rank_field} === 1"}],
+            "mark": {"type": "text", "lineBreak": "\n", "baseline": "top", "dy": -(lines * (size + 3) + 6), "fontSize": size, "lineHeight": size + 3, "clip": False},
+            "encoding": {"x": {"field": x_field, "type": "nominal", "title": None, "sort": {"field": order_field, "op": "min"}, "axis": None},
+                         "y": {"value": 0}, "text": {"field": text_field, "type": "nominal"}, "color": {"value": "#4A5866"}}}
+
+
+def _grid_spec(thumb):
+    """Sources down, the five uses across; each cell is the grade as a letter on a colour. The thumbnail keeps the six worst sources for contacting families."""
+    y = {"field": "source_plain", "type": "nominal", "title": None, "sort": {"field": "worst_rank" if thumb else "source_rank", "op": "min"},
+         "axis": {"labelLimit": 400, "labelFontSize": 11 if thumb else 14, "labelPadding": 6}}
+    layers = [
+        {"mark": {"type": "rect", "stroke": "#ffffff", "strokeWidth": 2, "clip": True}, "encoding": {"x": _purpose_axis(thumb), "y": y,
+            "color": {"field": "grade", "type": "nominal", "scale": GRADE_SCALE, "legend": None if thumb else {"title": "Grade", "orient": "bottom", "direction": "horizontal"}},
+            "tooltip": [{"field": "source_plain", "title": "Source"}, {"field": "purpose_label", "title": "Use"}, {"field": "grade", "title": "Grade"}, {"field": "grade_label", "title": "Meaning"}]}},
+        {"mark": {"type": "text", "fontSize": 13 if thumb else 20, "fontWeight": "bold", "clip": True}, "encoding": {"x": _purpose_axis(thumb), "y": y, "text": {"field": "grade", "type": "nominal"}, "color": GRADE_TEXT}},
+        _col_headers("purpose_label", "purpose_wrapped" if thumb else "purpose_wrapped_wide", "purpose_order", "worst_rank" if thumb else "source_rank", 11 if thumb else 14, 3 if thumb else 2)]
+    spec = {"data": _src("dq_grid"), **SIZE, "padding": {"left": 4, "right": 8, "top": 52 if thumb else 44, "bottom": 4 if thumb else 36}, "layer": layers}
+    spec["height"] = "container"
+    if thumb:
+        spec["transform"] = [{"filter": "datum.worst_rank <= 6"}]
+    return spec
+
+
+def _dims_spec(use):
+    x = {"field": "dimension_label", "type": "nominal", "title": None, "sort": {"field": "dimension_order", "op": "min"}, "axis": None}
+    y = {"field": "source_plain", "type": "nominal", "title": None, "sort": {"field": "source_rank", "op": "min"}, "axis": {"labelLimit": 400, "labelFontSize": 13, "labelPadding": 6}}
+    return {"data": _src("dq_dims"), **SIZE, "height": "container", "padding": {"left": 4, "right": 8, "top": 44, "bottom": 36},
+            "transform": [{"filter": f"datum.purpose === '{use}'"}],
+            "layer": [
+                {"mark": {"type": "rect", "stroke": "#ffffff", "strokeWidth": 2, "clip": True}, "encoding": {"x": x, "y": y,
+                    "color": {"field": "grade_or_na", "type": "nominal", "scale": GRADE_DOMAIN_NA, "legend": {"title": "Grade", "orient": "bottom", "direction": "horizontal", "labelLimit": 300}},
+                    "tooltip": [{"field": "source_plain", "title": "Source"}, {"field": "dimension_label", "title": "Check"}, {"field": "grade_label", "title": "Meaning"}]}},
+                {"mark": {"type": "text", "fontSize": 16, "fontWeight": "bold", "clip": True}, "encoding": {"x": x, "y": y, "text": {"field": "grade_text", "type": "nominal"},
+                    "color": {"condition": {"test": "datum.grade_or_na === 'A' || datum.grade_or_na === 'D'", "value": "#ffffff"}, "value": "#000000"}}},
+                _col_headers("dimension_label", "dimension_wrapped", "dimension_order", "source_rank", 12, 2)]}
+
+
+def _trend_spec(use, thumb):
+    """One line per source with its normal-wobble band. Seasons with fewer than three earlier ones carry no band and read 'too early to judge'."""
+    xe = {"field": "season_year", "type": "ordinal", "title": None, "axis": {"labelAngle": 0, "labelFontSize": 11 if thumb else 13}}
+    ye = {"field": "score", "type": "quantitative", "title": "Quality score" if not thumb else None, "scale": {"zero": False}, "axis": {"tickCount": 4 if thumb else 8, "format": "d"}}
+    col = {"field": "source_plain", "type": "nominal", "title": None, "legend": {"orient": "top", "labelLimit": 500, "columns": 2 if thumb else 3, "symbolLimit": 0, "labelFontSize": 11 if thumb else 13}}
+    dash = {"field": "source_plain", "type": "nominal", "legend": None}
+    status = {"field": "status", "type": "nominal", "title": None, "scale": {"domain": ["Normal wobble", "Real change", "Too early to judge"], "range": ["circle", "diamond", "triangle-up"]},
+              "legend": {"orient": "bottom", "labelLimit": 300, "symbolFillColor": "transparent", "symbolStrokeColor": "#555555", "title": "Reading", "direction": "horizontal"}}
+    return {"data": _src("dq_trend_lines"), **SIZE, "height": "container", "padding": {"left": 4, "right": 8, "top": 4, "bottom": 4},
+            "transform": [{"filter": f"datum.purpose === '{use}'"}],
+            "layer": [
+                {"mark": {"type": "area", "opacity": 0.12, "clip": True}, "encoding": {"x": xe, "y": {"field": "lower_limit", "type": "quantitative", "scale": {"zero": False}}, "y2": {"field": "upper_limit"}, "color": {**col, "legend": None}}},
+                {"mark": {"type": "line", "clip": True, "strokeWidth": 2}, "encoding": {"x": xe, "y": ye, "color": col, "strokeDash": dash}},
+                {"mark": {"type": "point", "filled": True, "size": 70 if thumb else 110, "clip": True, "strokeWidth": 2}, "encoding": {"x": xe, "y": ye, "color": col, "shape": status,
+                    "tooltip": [{"field": "source_plain", "title": "Source"}, {"field": "season_year", "title": "Season"}, {"field": "score", "title": "Score"}, {"field": "status", "title": "Reading"},
+                                {"field": "lower_limit", "title": "Normal range from"}, {"field": "upper_limit", "title": "to"}]}}]}
+
+
+def _size_spec(thumb):
+    """Share of leagues at each grade, as 100% bars, by league size and by how the league sends data."""
+    return {"data": _src("dq_org_grades"), **SIZE, "height": "container", "padding": {"left": 4, "right": 8, "top": 4, "bottom": 4},
+            "mark": {"type": "bar", "clip": True, "height": {"band": 0.75}, "stroke": "#ffffff", "strokeWidth": 1},
+            "encoding": {"y": {"field": "group_label", "type": "nominal", "title": None, "sort": {"field": "group_order", "op": "min"}, "axis": {"labelLimit": 400, "labelFontSize": 12 if thumb else 14}},
+                         "x": {"field": "share_pct", "type": "quantitative", "title": None if thumb else "Share of leagues (%)", "scale": {"domain": [0, 100]}, "axis": {"tickCount": 5, "format": "d"}},
+                         "color": {"field": "grade", "type": "nominal", "scale": GRADE_SCALE, "legend": {"title": "Grade", "orient": "top", "direction": "horizontal"}, "sort": GRADES},
+                         "order": {"field": "grade", "type": "nominal", "sort": "descending"},
+                         "tooltip": [{"field": "group_label", "title": "Group"}, {"field": "grade", "title": "Grade"}, {"field": "grade_label", "title": "Meaning"}, {"field": "share_label", "title": "Share"}]}}
+
+
+def _size_rows(kind, thumb):
+    spec = _size_spec(thumb)
+    spec["transform"] = [{"filter": f"datum.group_kind === '{kind}'"}]
+    return spec
+
+
+def _scatter_spec():
+    return {"data": _src("dq_org_scatter"), **SIZE, "height": "container", "padding": {"left": 4, "right": 8, "top": 8, "bottom": 4},
+            "layer": [
+                {"mark": {"type": "rule", "opacity": 0.35, "clip": True}, "encoding": {"x": {"field": "record_count", "type": "quantitative", "scale": {"type": "log", "domain": [8, 300]}, "title": "Registrations in the season (log scale)"},
+                    "y": {"field": "score_interval_low", "type": "quantitative", "scale": {"domain": [40, 100]}, "title": "Score for splitting by age and gender"}, "y2": {"field": "score_interval_high"},
+                    "color": {"field": "channel_plain", "type": "nominal", "title": None, "legend": {"orient": "top", "labelLimit": 400, "labelFontSize": 13, "symbolStrokeWidth": 4}}}},
+                {"mark": {"type": "point", "filled": True, "size": 60, "clip": True}, "encoding": {"x": {"field": "record_count", "type": "quantitative", "scale": {"type": "log", "domain": [8, 300]}},
+                    "y": {"field": "score", "type": "quantitative", "scale": {"domain": [40, 100]}}, "color": {"field": "channel_plain", "type": "nominal", "legend": None},
+                    "shape": {"field": "channel_plain", "type": "nominal", "legend": None},
+                    "tooltip": [{"field": "channel_plain", "title": "How it sends data"}, {"field": "record_count", "title": "Registrations"}, {"field": "score", "title": "Score"}, {"field": "grade", "title": "Grade"}]}}]}
+
+
+def render_fix_letter(rows) -> str:
+    """One league's fix list as a short letter: bold action, one line of why, and the scale. Counts only; no record or person is named."""
+    from html import escape as e
+    if not rows:
+        return "<p class='note'>No fix list for this league.</p>"
+    items = []
+    for r in rows:
+        if r["is_no_file"]:
+            action = r["plain_action"]
+            scale = f"Right now {r['scale_text'].replace(' (estimated)', '')} from this league are missing from every count (estimated)."
+        else:
+            action = r["plain_action"]
+            scale = f"Affects {r['scale_text']}."
+        items.append(f"<li><b>{e(action)}</b><br><span class='note'>{e(r['why'])}</span><br><span class='fixscale'>{e(scale)}</span></li>")
+    return (f"<div class='fixletter'><p class='fixto'><b>{e(rows[0]['league_label'])}</b> \u00b7 {e(rows[0]['profile_label'])}</p>"
+            f"<p class='fixlead'>Here is what to fix first:</p><ol>{''.join(items)}</ol></div>")
+
+
+def quality_cards():
+    uses = [("COUNT", "Counting players"), ("SEGMENT", "Breaking down by age and gender"), ("GEO", "Placing players on the map"), ("RETAIN", "Tracking who comes back"), ("ACTIVATE", "Contacting families")]
+    C = {}
+    C["q1_grid"] = dict(
+        page="quality", title="Which data can I trust, and for what?", datasets=["dq_grid", "dq_dims"],
+        card=dict(id="Q1", datasets=["dq_grid", "dq_dims"], thumb=_grid_spec(True), open_slide=1,
+                  slides=[dict(title="All sources and uses", key="GRID", spec=_grid_spec(False))] + [dict(title=label, key=use, spec=_dims_spec(use)) for use, label in uses]))
+    C["q2_trend"] = dict(
+        page="quality", title="Is quality changing?", datasets=["dq_trend_lines"],
+        card=dict(id="Q2", datasets=["dq_trend_lines"], thumb=_trend_spec("ACTIVATE", True), open_slide=5,
+                  slides=[dict(title=label, key=use, spec=_trend_spec(use, False)) for use, label in uses]))
+    C["q4_size"] = dict(
+        page="quality", title="Is it small leagues, or everyone?", datasets=["dq_org_grades", "dq_org_scatter"],
+        card=dict(id="Q4", datasets=["dq_org_grades", "dq_org_scatter"], thumb=_size_rows("League size", True), open_slide=1,
+                  slides=[dict(title="By league size", key="SIZE", spec=_size_rows("League size", False)), dict(title="By how the league sends data", key="CHANNEL", spec=_size_rows("How the league sends data", False)),
+                          dict(title="Every league (for analysts)", key="SCATTER", spec=_scatter_spec())]))
+    C["q5_fix"] = dict(
+        page="quality", title="What do we ask a league to do?", datasets=["dq_fix_examples"],
+        card=dict(id="Q5", datasets=["dq_fix_examples"], thumb=None, thumb_html=lambda d: render_fix_letter([r for r in d["dq_fix_examples"]["rows"] if r["example_no"] == 1]), open_slide=1,
+                  slides=[dict(title=f"Example {n}", key=f"EX{n}", html=(lambda n: lambda d: render_fix_letter([r for r in d["dq_fix_examples"]["rows"] if r["example_no"] == n]))(n)) for n in (1, 2, 3)]))
     return C
 
 

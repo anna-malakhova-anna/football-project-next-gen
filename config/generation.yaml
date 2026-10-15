@@ -271,6 +271,9 @@ phase5:
       missing_grade: 0.05
       name_variant: 0.06
   # Scorecard parameters (dbt reads them through the p5_params seed, exported by generator/phase5/export_seed.py; no model hard-codes them).
+  site:
+    size_band_small_below: 60            # a league with fewer scored registrations than this is "small" on the site (about the lowest quarter) ...
+    size_band_large_from: 140            # ... and one with at least this many is "large" (about the highest quarter); in between is "medium"
   dq:
     youth_min_age: 4                     # age at Dec 31 of the season year below which a DOB is implausible for a youth league
     youth_max_age: 17
