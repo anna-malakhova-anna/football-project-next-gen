@@ -12,7 +12,7 @@ APPROVED = {
     "quality.mart_uncertainty_decomposition", "quality.mart_missingness_bias",
 }
 EVAL = {"evaluation.eval_uncertainty_decomposition", "evaluation.eval_minimization_tradeoff", "demo_fix_list.scores", "demo_fix_list.nuance"}
-GOVERNANCE = {"reference.privacy_params"}
+GOVERNANCE = {"reference.privacy_params", "reference.dq_rule_registry", "reference.dq_purposes"}
 
 GRADES = ["A", "B", "C", "D"]
 GRADE_COLORS = ["#2166ac", "#92c5de", "#f4a582", "#b2182b"]          # blue to red: separable for the common colour-vision differences, and every cell also carries its letter
@@ -40,10 +40,24 @@ DATASETS = [
         where entity_type = 'SOURCE' and entity_id in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') and purpose in ('COUNT', 'SEGMENT', 'ACTIVATE')
         order by purpose, entity_id, season_year""", ["quality.dq_trend"], "approved_aggregate", "Source quality scores with control limits"),
     _D("dq_pareto", f"""
-        select purpose, rule_id, rank_in_purpose, impact_units, unit, cumulative_share
-        from quality.mart_dq_impact
-        where season_year = {LATEST_Q} and population = 'MODELLED' and purpose in ('COUNT', 'SEGMENT', 'RETAIN', 'ACTIVATE') and rank_in_purpose <= 6
-        order by purpose, rank_in_purpose""", ["quality.mart_dq_impact", "quality.dq_scorecard_source"], "approved_aggregate", "Rules ranked by the participants (or households) they cost, latest season"),
+        with k as (select cast(value as integer) as k_min from reference.privacy_params where param = 'k_min')
+        select i.purpose, p.plain_label as purpose_label, i.rank_in_purpose, r.plain_label as rule_label, r.plain_action,
+               case when i.impact_units >= k.k_min then round(i.impact_units, -1) end as impact_bar,
+               case when i.impact_units >= k.k_min then coalesce(round(i.impact_units, -1), 0) else 0 end as impact_text_x,
+               case when i.impact_units >= k.k_min then 'about ' || format('{{:,}}', cast(round(i.impact_units, -1) as bigint)) || case when i.unit = 'HOUSEHOLDS' then ' families' else ' players' end
+                    else 'fewer than ' || k.k_min end as impact_label,
+               case when i.impact_units >= k.k_min then format('{{:,}}', cast(round(i.impact_units, -1) as bigint)) else 'fewer than ' || k.k_min end as impact_short
+        from quality.mart_dq_impact i
+        join reference.dq_rule_registry r on r.rule_id = i.rule_id
+        join reference.dq_purposes p on p.purpose = i.purpose
+        cross join k
+        where i.season_year = {LATEST_Q} and i.population = 'MODELLED' and i.rank_in_purpose <= 10 and i.impact_units > 0
+        order by p.purpose, i.rank_in_purpose""", ["quality.mart_dq_impact", "quality.dq_scorecard_source", "reference.dq_rule_registry", "reference.dq_purposes", "reference.privacy_params"], "approved_aggregate",
+       "Problems ranked by the players (or families) they cost, latest season, rounded to the nearest 10"),
+    _D("chart_insights_club", "select chart_id, lens, field, value_display, value_raw, suppressed from share_club.share_club__chart_insights order by 1, 3", ["share_club.share_club__chart_insights"], "share_club",
+       "Numbers used inside headline sentences (club share)"),
+    _D("chart_insights_privacy", "select chart_id, lens, field, value_display, value_raw, suppressed from share_privacy.share_privacy__chart_insights order by 1, 3", ["share_privacy.share_privacy__chart_insights"], "share_privacy",
+       "Numbers used inside headline sentences (privacy share)"),
     _D("dq_org_scatter", f"""
         select channel, record_count, score, score_interval_low, score_interval_high, interval_applied, grade
         from quality.dq_scorecard_org
@@ -193,7 +207,7 @@ COLUMN_LABELS = {
     "consent_text_version": "Consent wording", "provenance_grade": "Provenance", "consent_events": "Consent events", "form": "Form", "purpose_label": "Purpose", "form_names_purpose": "Named on form",
     "separate_consent_required": "Needs its own consent", "coverage": "Coverage", "mark": "Named", "metric_label": "Figure", "scenario": "Scenario", "change": "Change", "survives": "Within tolerance",
     "participation_year": "Year", "participant_years": "Participant-years", "equivalence_classes": "Classes", "smallest_class": "Smallest class", "average_class_size": "Average class size",
-    "pct_rows_below_k_warn": "Below warning size (%)", "check_name": "Check", "violations": "Violations", "participants_allocated_label": "Participants",
+    "pct_rows_below_k_warn": "Below warning size (%)", "check_name": "Check", "violations": "Violations", "participants_allocated_label": "Participants", "plain_action": "What to do", "rule_label": "Problem", "impact_bar": "Affected (rounded)", "impact_text_x": "Label position", "impact_label": "Affected", "impact_short": "Label",
 }
 RATE_COLUMNS = {"cumulative_share", "change", "value_known_only", "bound_low", "bound_high", "precision", "recall", "f1", "fit_for_activate"}
 
@@ -240,19 +254,22 @@ def charts():
         shows="A source's score each season against the limits that its own earlier seasons imply (a P-chart); a diamond marks a season outside them, and the tooltip says which way.",
         doesnt="Why a score moved. A point outside the limits says the change is bigger than the season-to-season noise, not what caused it. The first season has no limits, and the limits are wide while a source has few seasons.",
         lens=dict(club="A move outside the limits is worth a question to the source; a move inside is noise.", privacy="Consent provenance moves slowly because forms change slowly; a sudden move means a form changed."))
+    def pareto_spec(use, top, height, thumb):
+        bar_x = {"field": "impact_bar", "type": "quantitative", "title": None if thumb else "Players or families affected (about)", "axis": {"tickMinStep": 1, "format": "d", "tickCount": 3 if thumb else 6}}
+        y = {"field": "rule_label", "type": "nominal", "sort": {"field": "rank_in_purpose", "op": "min"}, "title": None, "axis": {"labelLimit": 320, "labelFontSize": 12 if thumb else 14}}
+        return {"data": _src("dq_pareto"), "width": "container", "height": height, "autosize": {"type": "fit", "contains": "padding"}, "padding": {"left": 4, "right": 64, "top": 4, "bottom": 4},
+                "transform": [{"filter": f"datum.purpose === '{use}' && datum.rank_in_purpose <= {top}"}],
+                "layer": [
+                    {"mark": {"type": "bar", "clip": True, "color": "#3D7CC9", "height": {"band": 0.7}}, "encoding": {"x": bar_x, "y": y,
+                        "tooltip": [{"field": "rule_label", "title": "Problem"}, {"field": "plain_action", "title": "What to do"}, {"field": "impact_label", "title": "Affected"}]}},
+                    {"mark": {"type": "text", "align": "left", "dx": 4, "fontSize": 12 if thumb else 13}, "encoding": {"x": {"field": "impact_text_x", "type": "quantitative"}, "y": y,
+                        "text": {"field": "impact_short", "type": "nominal"}, "color": {"value": "#1B2733"}}}]}
+
+    uses = [("COUNT", "Counting players"), ("SEGMENT", "Breaking down by age and gender"), ("GEO", "Placing players on the map"), ("RETAIN", "Tracking who comes back"), ("ACTIVATE", "Contacting families")]
     C["q3_pareto"] = dict(
-        page="quality", title="Which few fixes matter most? (rules ranked by what they cost)", datasets=["dq_pareto"],
-        question="Which few fixes matter most? (clubs and the privacy lead)",
-        spec={"data": _src("dq_pareto"), "facet": {"field": "purpose", "type": "nominal", "sort": ["COUNT", "SEGMENT", "RETAIN", "ACTIVATE"], "columns": 2, "title": None},
-              "spec": {"width": 300, "height": 190, "layer": [
-                  {"mark": "bar", "encoding": {"x": {"field": "rule_id", "type": "nominal", "sort": {"field": "rank_in_purpose", "op": "min"}, "title": None, "axis": {"labelAngle": -50, "labelLimit": 220}},
-                      "y": {"field": "impact_units", "type": "quantitative", "title": "Participants (households for ACTIVATE)"}, "color": {"value": "#3D7CC9"}}},
-                  {"mark": {"type": "line", "point": True, "color": "#D9622B"}, "encoding": {"x": {"field": "rule_id", "type": "nominal", "sort": {"field": "rank_in_purpose", "op": "min"}},
-                      "y": {"field": "cumulative_share", "type": "quantitative", "axis": {"format": "%", "title": "Cumulative share"}, "scale": {"domain": [0, 1]}}}}]},
-              "resolve": {"scale": {"y": "independent"}}},
-        shows="For each purpose, the rules ranked by how many participants (or, for activation, households) their failures remove, with the cumulative share on the second axis. A handful of rules account for most of the cost.",
-        doesnt="Savings. The cost is what failing records remove from a count, not what a fix would recover; and the same participant can be hit by several rules, so the bars are not additive across rules.",
-        lens=dict(club="Fix the first bar of your purpose first.", privacy="For activation, the top rules are consent-provenance rules: fixing them means changing a form, not cleaning data."))
+        page="quality", title="Which few fixes matter most?", datasets=["dq_pareto"],
+        card=dict(id="Q3", datasets=["dq_pareto"], thumb=pareto_spec("ACTIVATE", 6, 230, True), open_slide=5,
+                  slides=[dict(title=label, key=use, spec=pareto_spec(use, 10, "container", False)) for use, label in uses]))
     C["q4_scatter"] = dict(
         page="quality", title="Is it small leagues, a channel, or everyone? (organization score against size)", datasets=["dq_org_scatter"],
         question="Is it small leagues, a channel, or everyone? (clubs)",

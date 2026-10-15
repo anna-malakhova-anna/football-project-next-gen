@@ -1,0 +1,25 @@
+# Plain-language copy for every chart card (Phase 5.1, section 3.6). Anna edits this file; the build fills {placeholders} from the insight export
+# (share_club__chart_insights, share_privacy__chart_insights) by string substitution and prints a warning while any entry is still `status: draft`.
+# Reading level: Flesch-Kincaid grade 9 or lower; sentences of 25 words or fewer; headline of 15 words or fewer; no rule codes outside analyst_md.
+charts:
+  Q3:
+    status: draft
+    headline_template: "Fixing the top {top_k_activate} problems would recover {cum_pct_activate} of the families we currently lose."
+    fallback_headline: "A few problems cause most of the loss."
+    slide_headline_templates:
+      COUNT: "Counting players is barely affected: the top problem touches {top_problem_size_count} players."
+      SEGMENT: "Fixing the top {top_k_segment} problems would recover {cum_pct_segment} of the players we lose when splitting by age and gender."
+      GEO: "Two ZIP code problems cost players their place on the map."
+      RETAIN: "Fixing the top {top_k_retain} problems would recover {cum_pct_retain} of the players we lose when following them year to year."
+      ACTIVATE: "Fixing the top {top_k_activate} problems would recover {cum_pct_activate} of the families we currently lose."
+    question: "Which few fixes matter most?"
+    means_club: "A few problems cause most of the loss. Fixing the longest bars first helps the most families and players."
+    means_privacy: "For contacting families, the biggest problems are about consent forms. Fixing them means changing a form, not cleaning data."
+    action_club: "Pick your use at the top of the chart, then start with its longest bar."
+    action_privacy: "Review the consent form wording and the recorded date first."
+    caution: "One person can be hit by several problems, so the bars do not add up."
+    analyst_md: |
+      Rules are ranked by the **participants (or households, for activation) their failures remove** from the use's population, latest season, modelled population.
+      The cumulative share in the headline is computed in SQL (`mart_dq_impact.cumulative_share`) at the smallest *k* that reaches 80%, capped at 6.
+      A rule that affects fewer than the small-cell limit is shown as "fewer than 10"; other estimates are rounded to the nearest 10.
+      The cost is what failing records remove from a count, not what a fix would recover.

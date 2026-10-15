@@ -52,6 +52,7 @@
       legend: { labelColor: muted, titleColor: text }, view: { stroke: null }
     };
   }
+  window.cffVegaConfig = vegaConfig;
   function embedAll() {
     specs.forEach(function (node) {
       var spec = JSON.parse(node.textContent);

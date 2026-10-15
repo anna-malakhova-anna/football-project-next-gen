@@ -24,7 +24,7 @@ from pathlib import Path
 
 import duckdb
 
-from scripts import site_phase5 as P5
+from scripts import site_cards, site_phase5 as P5
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "warehouse" / "flag.duckdb"
@@ -796,6 +796,8 @@ def table_html(ds: dict, limit: int = 60) -> str:
 
 
 def chart_block(cid: str, ch: dict, data: dict) -> str:
+    if ch.get("card"):
+        return site_cards.card_block(cid, ch, data, table_html)
     tag = '<span class="tag">Synthetic evaluation \u2014 not observable in production</span>' if ch.get("evaluation") else ""
     tables = "".join(f"<p class='note'><b>{esc(data[n]['title'])}</b> <code>{esc(data[n]['source'])}</code></p>{table_html(data[n])}" for n in ch["datasets"])
     plot = ch["render"](data) if ch.get("render") else f'<div id="{cid}" role="img" aria-label="{esc(ch["title"])}"></div>'
@@ -832,6 +834,9 @@ def copy_assets(out: Path) -> None:
     for name in ("tokens.css", "site.css"):
         shutil.copy(SRC / "styles" / name, out / "css" / name)
     shutil.copy(SRC / "site.js", out / "js" / "site.js")
+    (out / "assets").mkdir(exist_ok=True)
+    for name in ("viewer.js", "viewer.css"):
+        shutil.copy(SRC / "assets" / name, out / "assets" / name)
     (out / "favicon.svg").write_text(FAVICON, encoding="utf-8")
     if LOCAL_LOGO.exists():
         (out / "img").mkdir(exist_ok=True)
@@ -945,6 +950,20 @@ def lens_scope(inner: str, default: str, demo: str) -> str:
     return f'{path}{toggle}<div class="lens-scope" data-lens-active="{default}">{inner}</div>'
 
 
+def group_cards(blocks: list[str]) -> str:
+    """Consecutive chart cards go into one responsive grid (2 columns at 1100 px and wider); other blocks pass through."""
+    out, run = [], []
+    for b in blocks + [""]:
+        if b.startswith('<article class="vcard"'):
+            run.append(b)
+            continue
+        if run:
+            out.append('<div class="vgrid">' + "".join(run) + "</div>")
+            run = []
+        out.append(b)
+    return "".join(out)
+
+
 def phase5_pages(blocks: dict, data: dict) -> dict:
     out = {}
     intro = {
@@ -954,7 +973,7 @@ def phase5_pages(blocks: dict, data: dict) -> dict:
         "privacy": "<p class='note'><b>Collecting less is a measured choice, not an assertion.</b> The frontier shows what each field buys and what it costs; the other charts show what is on record about consent, which purposes each form names, and what survives deletion. No legal conclusion is drawn about any organization: where the law matters it is a question for counsel.</p>",
     }
     for slug in ("quality", "sure", "markets", "privacy"):
-        inner = "".join(blocks[slug])
+        inner = group_cards(blocks[slug])
         if slug == "markets":
             inner += ("<h2>The same market, two lenses</h2><p class='note'>The largest published market, seen through each lens. Both panels come from share_club; the toggle only chooses which to show.</p>"
                       "<section class='chart lens-panel lens-club'><h3>Club lens: participants, coverage and grades</h3>" + table_html(data["lens_club"])
@@ -998,6 +1017,10 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     known = {f"data/{n}.json" for n in data}
     problems = [p for cid, ch in chart_defs.items() if ch.get("spec") for p in check_spec(ch["spec"], known, cid)]
     for cid, ch in chart_defs.items():
+        if ch.get("card"):
+            for k, sp in [("thumb", ch["card"]["thumb"])] + [(f"slide {i}", s["spec"]) for i, s in enumerate(ch["card"]["slides"], 1)]:
+                problems += check_spec(sp, known, f"{cid} {k}")
+    for cid, ch in chart_defs.items():
         for n in ch["datasets"]:
             if n not in data:
                 problems.append(f"{cid}: dataset {n} is not defined")
@@ -1017,6 +1040,7 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
                   "audience_month": str(max(r["month"] for r in rows("audience_series")))[:7]})
     diag = {r["measure"]: r["value"] for r in rows("fan_diagnostics")}
     facts.update({"fandom_treated": diag["fandom_matched_treated"], "fandom_comparison": diag["fandom_matched_comparison"]})
+    site_cards.configure(data["chart_insights_club"]["rows"] + data["chart_insights_privacy"]["rows"])
     relabel(data)                       # plain labels for every code name, after the facts above have used the codes
     if out.exists():
         shutil.rmtree(out)

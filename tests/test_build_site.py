@@ -31,7 +31,13 @@ def test_phase5_datasets_may_read_the_club_and_privacy_shares_and_nothing_row_le
 
 def test_every_phase5_chart_names_the_question_it_answers_and_both_lens_notes():
     from scripts import site_phase5 as p5
+    from scripts import site_cards
+    copy = site_cards.load_copy()
     for cid, ch in p5.charts().items():
+        if ch.get("card"):                      # cards take question and lens notes from site_src/copy/charts.yml
+            c = copy[ch["card"]["id"]]
+            assert c["question"].strip().endswith("?") and all(c[k].strip() for k in ("means_club", "means_privacy", "action_club", "action_privacy", "caution")), cid
+            continue
         assert ch["question"].strip().endswith(")") or ch["question"].strip().endswith("?"), cid
         assert ch["lens"]["club"].strip() and ch["lens"]["privacy"].strip(), cid
 
@@ -64,8 +70,13 @@ def test_every_defined_chart_passes_the_checks_and_has_a_shows_and_a_does_not_sh
     known = {f"data/{n}.json" for n in names}
     for cid, ch in bs.charts().items():
         assert ch.get("spec") is None or bs.check_spec(ch["spec"], known, cid) == [], cid
-        assert ch.get("spec") or ch.get("render"), cid
+        assert ch.get("spec") or ch.get("render") or ch.get("card"), cid
         assert set(ch["datasets"]) <= names, cid
+        if ch.get("card"):
+            for sp in [ch["card"]["thumb"]] + [sl["spec"] for sl in ch["card"]["slides"]]:
+                assert bs.check_spec(sp, known, cid) == [], cid
+            assert ch["page"] in {p for p, _ in bs.PAGES + bs.APPENDIX}, cid
+            continue
         assert ch["shows"].strip().endswith(".") and ch["doesnt"].strip().endswith("."), cid
         assert ch["page"] in {p for p, _ in bs.PAGES + bs.APPENDIX}, cid
     assert all(bs.check_dataset(d) == [] for d in bs.DATASETS)
