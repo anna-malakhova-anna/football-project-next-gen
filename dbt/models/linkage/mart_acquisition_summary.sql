@@ -36,5 +36,9 @@ select
     n.net_new_linked_households                                             as naive_net_new_observed,
     round(n.net_new_linked_households * n.households * 1.0 / n.linked_households, 0) as naive_net_new_scaled,
     round(n.linked_households * 1.0 / n.households, 4)                      as link_rate,
+    n.households                                                            as participant_households,
+    round(100.0 * e.incremental_accounts / n.households, 2)                 as incremental_per_100_households,
+    round(100.0 * e.ci_low / n.households, 2)                               as incremental_per_100_households_ci_low,
+    round(100.0 * e.ci_high / n.households, 2)                              as incremental_per_100_households_ci_high,
     '{{ var("methodology_version") }}'                                      as methodology_version
 from est e cross join naive n

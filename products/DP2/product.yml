@@ -1,0 +1,89 @@
+# DP2 product spec (Phase 6): the product's machine-readable label. Validated by scripts/validate_products.py and rendered on the Data product tab.
+# Synthetic project; every role is fictional. quality_indicator is read from the scorecards at build time, never typed.
+id: DP2
+name: Flag Participant & Household Master
+version: 0.9.0
+type: master
+status: proposed
+description: 'One reliable person and one household behind many registrations, with every link carrying its reason and a review queue for uncertain cases. Internal
+  and restricted: it holds names, birth dates and contact details, and marketing never reads it.'
+goals:
+- G1
+- G2
+- G3
+value_proposition: enabler
+consumers:
+- role: Operations and data stewards
+  use_case: Resolve duplicates and review uncertain matches
+owner_role: Data Product Manager, NFL FLAG Insights (fictional)
+steward_role: Data steward, identity (fictional)
+support_contact: 'issues: <repo>/issues (label: dp2)'
+output_ports:
+- name: participant
+  model: share_ops__participant
+  audience: ops
+  grain: participant
+  refresh: per season close
+- name: registration
+  model: share_ops__registration
+  audience: ops
+  grain: registration
+  refresh: per season close
+- name: review_queue
+  model: share_ops__review_queue
+  audience: ops
+  grain: uncertain pair
+  refresh: per build
+input_products:
+- DP1
+sources_lineage:
+  share_ops__participant: dbt/models/shares/ops/share_ops__participant.sql
+  share_ops__registration: dbt/models/shares/ops/share_ops__registration.sql
+  share_ops__review_queue: dbt/models/shares/ops/share_ops__review_queue.sql
+quality_indicator:
+  from_model: mart_uncertainty_decomposition
+  component: IDENTITY
+  aggregate: identity_range_pct
+metrics:
+- identity_participants_low
+- identity_participants_point
+- identity_participants_high
+classification: 'restricted: direct identifiers (ops audience only)'
+privacy:
+  min_cell_size: not applicable (row-level, ops audience)
+  age_rules: dbt/seeds/age_consent_rules.csv
+  prohibited_uses:
+  - use: marketing access to the master
+    enforced_by:
+    - kind: dbt_test
+      name: share_marketing_only_consented_contacts
+    - kind: script
+      name: check_share_policy
+  - use: fuzzy household linkage
+    enforced_by:
+    - kind: dbt_test
+      name: linkage_is_one_to_one_and_explained
+    - kind: dbt_test
+      name: idr_twin_guard_holds
+terms_of_use: docs/product/terms/DP2.md
+geographic_coverage: all onboarded sources
+tags:
+- identity
+- households
+- restricted
+- master
+recommended_products:
+- DP1
+- DP3
+- DP4
+- DP5
+feedback: https://github.com/anna-malakhova-anna/flag-football-to-fan-project/issues/new?template=data-product-feedback.md
+shelf_life: long-term (rules reviewed when matching accuracy changes)
+decommission_plan: docs/product/decommission-example.md
+pricing: Internal. No chargeback.
+health_metrics:
+- quality
+- pipeline
+- trust
+- privacy
+- cost

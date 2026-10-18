@@ -88,3 +88,39 @@ models:
       - {name: feature_levels, meta: {pii: none}}
       - {name: weight_breakdown, meta: {pii: none}}
       - {name: reason, meta: {pii: none}}
+
+  - name: share_ops__league_scorecard
+    description: DP1 output port. Quality scorecard per league (an organization) x season x purpose. Aggregate per organization; no person-level field.
+    columns:
+      - {name: season_year, meta: {pii: none}}
+      - {name: source_system, meta: {pii: none}}
+      - {name: org_id, meta: {pii: none}}
+      - {name: org_name, meta: {pii: none}}
+      - {name: channel, meta: {pii: none}}
+      - {name: purpose, meta: {pii: none}}
+      - {name: score, meta: {pii: none}}
+      - {name: grade, meta: {pii: none}}
+      - {name: record_count, meta: {pii: none}}
+      - {name: reported, meta: {pii: none}}
+      - {name: limiting_dimension, meta: {pii: none}}
+      - {name: top_problems_plain, meta: {pii: none}}
+
+  - name: share_ops__league_fix_list
+    description: DP1 output port. Fix list per league x season in plain words, with a rounded estimate of what each fix affects; a count below the small-cell size is hidden.
+    columns:
+      - {name: season_year, meta: {pii: none}}
+      - {name: source_system, meta: {pii: none}}
+      - {name: org_id, meta: {pii: none}}
+      - {name: org_name, meta: {pii: none}}
+      - {name: fix_rank, meta: {pii: none}}
+      - {name: is_systemic, meta: {pii: none}}
+      - {name: rule_id, meta: {pii: none}}
+      - {name: problem_plain, meta: {pii: none}}
+      - {name: what_to_do_plain, meta: {pii: none}}
+      - {name: impact_unit, meta: {pii: none}}
+      - {name: estimated_impact, meta: {pii: none}}
+      - {name: impact_basis, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

@@ -46,7 +46,7 @@ did as (
 )
 
 select
-    'NAIVE' as estimator, estimate_pct, ci_low_pct, ci_high_pct, cast(null as double) as estimate_events_per_month, cast(null as double) as se_events_per_month,
+    estimator, estimate_pct, ci_low_pct, ci_high_pct, cast(null as double) as estimate_events_per_month, cast(null as double) as se_events_per_month,
     treated_households as treated_matched, cast(null as bigint) as comparison_pairs, comparison_units as comparison_units,
     cast(null as bigint) as eligible_treated, cast(null as double) as match_rate
 from {{ ref('mart_fan_naive') }}

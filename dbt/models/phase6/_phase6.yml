@@ -44,3 +44,41 @@ models:
       - name: suppressed
         data_tests:
           - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: int_age_out_carryover_check
+    description: >
+      RESTRICTED. One row per participant who was a minor, appears as an adult later, and sits in a household with children that is linked to a fan account: a youth-to-adult carry-over that fresh consent at 18
+      forbids. Required to be empty (test a_participant_turning_18_carries_no_fan_link); the unit test age_out_carryover_is_caught gives it a violating participant.
+
+unit_tests:
+  # Hand-built participants. P1 ages out of a household that has a fan link: the violation. P2 is the same but its household is adult-only. P3 stays a minor. P4 was never a minor. P5 ages out but has no link.
+  - name: age_out_carryover_is_caught
+    model: int_age_out_carryover_check
+    given:
+      - input: ref('int_participant_age_tier')
+        rows:
+          - {participant_id: P1, participation_year: 2022, age_tier: '13_15'}
+          - {participant_id: P1, participation_year: 2024, age_tier: ADULT}
+          - {participant_id: P2, participation_year: 2022, age_tier: '16_17'}
+          - {participant_id: P2, participation_year: 2025, age_tier: ADULT}
+          - {participant_id: P3, participation_year: 2022, age_tier: U13}
+          - {participant_id: P3, participation_year: 2024, age_tier: U13}
+          - {participant_id: P4, participation_year: 2024, age_tier: ADULT}
+          - {participant_id: P5, participation_year: 2022, age_tier: '16_17'}
+          - {participant_id: P5, participation_year: 2024, age_tier: ADULT}
+      - input: ref('int_household')
+        rows:
+          - {participant_id: P1, household_id: H1, is_adult_household: false}
+          - {participant_id: P2, household_id: H2, is_adult_household: true}
+          - {participant_id: P3, household_id: H3, is_adult_household: false}
+          - {participant_id: P4, household_id: H4, is_adult_household: true}
+          - {participant_id: P5, household_id: H5, is_adult_household: false}
+      - input: ref('link_household_fan_account')
+        rows:
+          - {household_id: H1, account_id: A1}
+          - {household_id: H2, account_id: A2}
+          - {household_id: H3, account_id: A3}
+          - {household_id: H4, account_id: A4}
+    expect:
+      rows:
+        - {participant_id: P1, household_id: H1, first_minor_year: 2022, first_adult_year: 2024}

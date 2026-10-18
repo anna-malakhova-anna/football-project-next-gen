@@ -1,0 +1,85 @@
+# DP1 product spec (Phase 6): the product's machine-readable label. Validated by scripts/validate_products.py and rendered on the Data product tab.
+# Synthetic project; every role is fictional. quality_indicator is read from the scorecards at build time, never typed.
+id: DP1
+name: League Registration Intake
+version: 1.0.0
+type: source-based
+status: mvp
+description: 'The front door for registration data: a contract per source, an onboarding record, the minimum data standard, and a scorecard and fix list per league.
+  It tells a league what to fix and tells the product team how fit each source is. It does not publish any person-level data.'
+goals:
+- G1
+- G2
+value_proposition: utility
+consumers:
+- role: Data steward and data engineering
+  use_case: Onboard a source once, then watch its quality each season
+- role: League operator (supplier)
+  use_case: See what to fix first, and why the minimum fields are asked for
+owner_role: Data Product Manager, NFL FLAG Insights (fictional)
+steward_role: Data steward, registration sources (fictional)
+support_contact: 'issues: <repo>/issues (label: dp1)'
+output_ports:
+- name: league_scorecard
+  model: share_ops__league_scorecard
+  audience: ops
+  grain: league x season x purpose
+  refresh: per season close
+- name: league_fix_list
+  model: share_ops__league_fix_list
+  audience: ops
+  grain: league x season x fix
+  refresh: per season close
+input_products: []
+sources_lineage:
+  share_ops__league_scorecard: dbt/models/shares/ops/share_ops__league_scorecard.sql
+  share_ops__league_fix_list: dbt/models/shares/ops/share_ops__league_fix_list.sql
+quality_indicator:
+  from_model: dq_scorecard_source
+  purpose: COUNT
+  filter:
+    source_system: US_LEAGUE
+  aggregate: grade
+metrics: []
+classification: aggregate per league (an organization, never a person); no direct or quasi identifier of a participant
+privacy:
+  min_cell_size: from privacy_params.k_min
+  age_rules: dbt/seeds/age_consent_rules.csv
+  prohibited_uses:
+  - use: re-identification of a child from an intake file
+    enforced_by:
+    - kind: dbt_test
+      name: share_club_obeys_suppression_rules
+    - kind: dbt_test
+      name: share_exec_obeys_suppression_rules
+    - kind: dbt_test
+      name: share_analyst_k_anonymity_warning
+    - kind: script
+      name: check_share_policy
+  - use: adding a field to the data standard without a named purpose
+    enforced_by:
+    - kind: dbt_test
+      name: minimization_variants_has_exactly_one_standard_choice
+    - kind: dbt_test
+      name: dq_standard_conformance_is_complete_and_consistent
+terms_of_use: docs/product/terms/DP1.md
+geographic_coverage: US, Canada and the international federations onboarded (see source_registry)
+tags:
+- intake
+- data-quality
+- contracts
+- suppliers
+recommended_products:
+- DP2
+- DP4
+feedback: https://github.com/anna-malakhova-anna/flag-football-to-fan-project/issues/new?template=data-product-feedback.md
+shelf_life: long-term (the standard is reviewed each season)
+decommission_plan: docs/product/decommission-example.md
+pricing: Internal. No chargeback. Cost tracked as warehouse compute (mart_product_health).
+health_metrics:
+- quality
+- freshness
+- contract_status
+- pipeline
+- privacy
+- cost

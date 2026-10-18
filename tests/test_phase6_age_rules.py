@@ -53,20 +53,31 @@ def test_every_mapped_jurisdiction_has_rules_and_a_default_exists():
     assert mapped <= have and "DEFAULT" in have
 
 
+# Zones that hold identifying data by design. Everything else must carry no contact, name or exact birth-date VALUE column.
+#   pipeline   raw, staging, intermediate: the sources as loaded and cleaned
+#   identity   identity, marts: the participant master (dim_participant)
+#   linkage    linkage (households, fan accounts, links), pii_store (the retention store)
+#   restricted phase5_restricted, phase6_restricted, quality_restricted: working tables of the Phase 5 and 6 models
+#   answer key eval: the synthetic ground truth, quarantined (CLAUDE.md); never read outside models/evaluation
+RESTRICTED_ZONES = {"raw", "staging", "intermediate", "identity", "marts", "linkage", "pii_store", "phase5_restricted", "phase6_restricted", "quality_restricted", "eval"}
+# Shares that carry identifiers on purpose, by audience policy (docs/access_policy.md): the guardian contact list (marketing), the cleared-photo roster (media), the ops audience.
+BY_DESIGN = {("share_marketing", "share_marketing__contact_list"), ("share_media", "share_media__roster"), ("share_ops", "share_ops__participant"), ("share_ops", "share_ops__registration")}
+IDENTIFYING = re.compile(r"email|phone|address|street|first_name|last_name|family_name|given_name|full_name|^dob$|birth_date|date_of_birth|^contact_")
+NOT_A_VALUE = re.compile(r"contactable|contact_fields_held|email_present|email_wellformed|contact_role|_key$|^dob_(consistent|status|in_youth|precision|raw)|has_contact|_level$|_treatment$")
+
+
 @pytest.mark.skipif(not WAREHOUSE.exists(), reason="needs a built warehouse (make all-phases)")
-def test_no_contact_field_sits_in_a_share_or_a_reporting_mart_except_the_guardian_contact_list():
+def test_no_identifying_value_column_sits_outside_the_restricted_zones_except_by_design():
     con = duckdb.connect(str(WAREHOUSE), read_only=True)
     try:
-        rows = con.execute("""select table_schema, table_name, column_name from information_schema.columns
-                              where table_schema like 'share\\_%' escape '\\' or table_schema in ('measurement', 'facts', 'retention', 'audit_share_policy', 'published')""").fetchall()
+        rows = con.execute("select table_schema, table_name, column_name from information_schema.columns where table_schema not in ('information_schema', 'pg_catalog', 'main')").fetchall()
     except duckdb.Error as e:
         pytest.skip(f"warehouse not fully built: {e}")
-    contact = re.compile(r"email|phone|address|street|^contact_")
-    bad = [f"{s}.{t}.{c}" for s, t, c in rows
-           if contact.search(c.lower()) and not re.search(r"contactable|contact_fields_held|email_present|email_wellformed|contact_role", c.lower())
-           and not (s == "share_marketing" and t == "share_marketing__contact_list")
-           and s != "share_ops"]
+    bad = sorted(f"{s}.{t}.{c}" for s, t, c in rows
+                 if s not in RESTRICTED_ZONES and (s, t) not in BY_DESIGN and IDENTIFYING.search(c.lower()) and not NOT_A_VALUE.search(c.lower()))
     assert bad == [], bad
     cols = {c for s, t, c in rows if (s, t) == ("share_marketing", "share_marketing__contact_list")}
     assert "contact_role" in cols, "the marketing list must say whose contact it is"
     assert not any(re.search(r"participant|child|person|dob|birth|last_name", c.lower()) for c in cols), cols
+    media = {c for s, t, c in rows if (s, t) == ("share_media", "share_media__roster")}
+    assert not any(re.search(r"email|phone|address|dob|birth", c.lower()) for c in media), media          # names of cleared participants only: no contact detail, no birth date

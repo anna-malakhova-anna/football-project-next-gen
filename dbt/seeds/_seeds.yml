@@ -556,10 +556,13 @@ seeds:
       Exit-criteria thresholds for the roadmap (Phase 6): the handover's X, Y, Z and N. Draft values set by Anna on 2026-10-18 and still to be confirmed; they are placeholders, not real targets.
     config:
       tags: [phase6]
-      column_types: {threshold_value: double}
+      column_types: {threshold_value: double, baseline_2025: double}
     columns:
       - name: target_id
         data_tests: [unique, not_null]
+      - name: kind
+        data_tests:
+          - accepted_values: {arguments: {values: [TARGET, GUARDRAIL]}}
       - name: status
         data_tests:
           - accepted_values: {arguments: {values: [PLACEHOLDER, DRAFT, SET]}}

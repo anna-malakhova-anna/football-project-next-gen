@@ -1,0 +1,97 @@
+# DP3 product spec (Phase 6): the product's machine-readable label. Validated by scripts/validate_products.py and rendered on the Data product tab.
+# Synthetic project; every role is fictional. quality_indicator is read from the scorecards at build time, never typed.
+id: DP3
+name: Global Participation Insights
+version: 0.9.0
+type: insights
+status: proposed
+description: How many people play flag football in each country, with the range that identity matching, the counting rules and missing leagues leave. It says how
+  many registered, not how many played, and it never gives one number without its range.
+goals:
+- G1
+value_proposition: driver
+consumers:
+- role: International growth lead
+  use_case: Decide which countries to invest in
+- role: Executive
+  use_case: Read the global count with its uncertainty
+owner_role: Data Product Manager, NFL FLAG Insights (fictional)
+steward_role: Data steward, federation returns (fictional)
+support_contact: 'issues: <repo>/issues (label: dp3)'
+output_ports:
+- name: participation_global
+  model: share_exec__participation_global
+  audience: exec
+  grain: year
+  refresh: per season close
+- name: participation_by_country
+  model: share_exec__participation_by_country
+  audience: exec
+  grain: country x year
+  refresh: per season close
+- name: participation_bounds
+  model: share_exec__participation_bounds
+  audience: exec
+  grain: year
+  refresh: per season close
+input_products:
+- DP2
+sources_lineage:
+  share_exec__participation_global: dbt/models/shares/exec/share_exec__participation_global.sql
+  share_exec__participation_by_country: dbt/models/shares/exec/share_exec__participation_by_country.sql
+  share_exec__participation_bounds: dbt/models/shares/exec/share_exec__participation_bounds.sql
+quality_indicator:
+  from_model: dq_scorecard_source
+  purpose: COUNT
+  filter:
+    source_system: INTL_FED
+  aggregate: grade
+metrics:
+- unique_participants
+- participants_attributed
+- identity_participants_low
+- identity_participants_point
+- identity_participants_high
+classification: aggregate, small cells suppressed; no direct or quasi identifier
+privacy:
+  min_cell_size: from privacy_params.k_min
+  age_rules: dbt/seeds/age_consent_rules.csv
+  prohibited_uses:
+  - use: publishing a country count below the small-cell size
+    enforced_by:
+    - kind: dbt_test
+      name: share_exec_obeys_suppression_rules
+    - kind: script
+      name: check_share_policy
+  - use: re-identification
+    enforced_by:
+    - kind: dbt_test
+      name: share_club_obeys_suppression_rules
+    - kind: dbt_test
+      name: share_exec_obeys_suppression_rules
+    - kind: dbt_test
+      name: share_analyst_k_anonymity_warning
+    - kind: script
+      name: check_share_policy
+terms_of_use: docs/product/terms/DP3.md
+geographic_coverage: countries with an onboarded source (US, Canada, and the federation returns)
+tags:
+- participation
+- global
+- uncertainty
+- exec
+recommended_products:
+- DP2
+- DP4
+feedback: https://github.com/anna-malakhova-anna/flag-football-to-fan-project/issues/new?template=data-product-feedback.md
+shelf_life: medium-term (reviewed each season; restated when the methodology changes, ADR-007)
+decommission_plan: docs/product/decommission-example.md
+pricing: Internal. No chargeback.
+health_metrics:
+- quality
+- freshness
+- contract_status
+- pipeline
+- trust
+- privacy
+- cost

@@ -10,13 +10,21 @@ with src as (
            cast(round(incremental_ci_high) as bigint)   as incremental_fan_accounts_ci_high,
            naive_net_new_observed                       as net_new_linked_households,
            cast(round(naive_net_new_scaled) as bigint)  as net_new_households_scaled,
-           market_years                                 as market_years_compared
+           market_years                                 as market_years_compared,
+           participant_households                       as participant_households_compared,
+           incremental_per_100_households               as incremental_fan_accounts_per_100_households,
+           incremental_per_100_households_ci_low        as incremental_fan_accounts_per_100_households_ci_low,
+           incremental_per_100_households_ci_high       as incremental_fan_accounts_per_100_households_ci_high
     from {{ ref('mart_acquisition_summary') }}
 
 )
 
 select methodology_version, incremental_fan_accounts, incremental_fan_accounts_ci_low, incremental_fan_accounts_ci_high, net_new_linked_households,
-       net_new_households_scaled, market_years_compared, suppressed,
+       net_new_households_scaled, market_years_compared, participant_households_compared, incremental_fan_accounts_per_100_households,
+       incremental_fan_accounts_per_100_households_ci_low, incremental_fan_accounts_per_100_households_ci_high, suppressed,
        'Incremental = accounts that would not exist without the programme, estimated from staggered market launches. Net-new = households with no account before registering: more than incremental, because some would have joined anyway. Synthetic data.' as caveat
 from {{ suppress_small_cells('src', ['methodology_version'],
-        ['net_new_linked_households', 'incremental_fan_accounts', 'incremental_fan_accounts_ci_low', 'incremental_fan_accounts_ci_high', 'net_new_households_scaled', 'market_years_compared']) }}
+        ['net_new_linked_households', 'incremental_fan_accounts', 'incremental_fan_accounts_ci_low', 'incremental_fan_accounts_ci_high', 'net_new_households_scaled', 'market_years_compared', 'participant_households_compared'],
+        rates={'incremental_fan_accounts_per_100_households': ['participant_households_compared', 'incremental_fan_accounts'],
+               'incremental_fan_accounts_per_100_households_ci_low': ['participant_households_compared', 'incremental_fan_accounts_ci_low'],
+               'incremental_fan_accounts_per_100_households_ci_high': ['participant_households_compared', 'incremental_fan_accounts_ci_high']}) }}

@@ -187,6 +187,10 @@ models:
       - {name: net_new_linked_households, meta: {pii: none}}
       - {name: net_new_households_scaled, meta: {pii: none}}
       - {name: market_years_compared, meta: {pii: none}}
+      - {name: participant_households_compared, meta: {pii: none}}
+      - {name: incremental_fan_accounts_per_100_households, meta: {pii: none}}
+      - {name: incremental_fan_accounts_per_100_households_ci_low, meta: {pii: none}}
+      - {name: incremental_fan_accounts_per_100_households_ci_high, meta: {pii: none}}
       - name: suppressed
         meta: {pii: none}
         data_tests:

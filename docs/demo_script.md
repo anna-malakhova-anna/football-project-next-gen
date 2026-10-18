@@ -9,15 +9,14 @@ Setup before either walkthrough: `make all-phases && make site`, then serve `sit
 
 ## The 5-minute walkthrough
 
-The story is one business question, in order: **acquisition, then value, then audience, then "and here is why you can trust these numbers"** (identity, governance).
+The story is one business question, in order: **acquisition, then audience, then "and here is why you can trust these numbers"** (identity, governance). The Value page stays in the repo as detailed evidence for the fan-uplift number (DP5) but is off the walkthrough: it profiles households of child participants, which is the wrong signal for the privacy audience (ADR-021).
 
 | # | Show | The one question it answers | Time |
 |---|---|---|---|
 | 1 | **Overview page**: the data is synthetic and why; the headline table (incremental fans, addressable audience, consent gap) | What is this, and what is the headline? | 0:45 |
 | 2 | **Fan acquisition page**: the first chart (incremental vs naive vs truth), then the funnel by fan status; UNLINKED means unknown | How many fans did flag football create, and why is the easy count wrong? | 1:30 |
-| 3 | **Fan value & activeness page**: fan survival, LTV ranges, value uplift for existing fans | How engaged and valuable are they? | 1:00 |
-| 4 | **Audience & consent page**: audience over time, the consent gap, capture by capture point, the market quadrants | How many can we actually contact, and where do we look next? | 1:00 |
-| 5 | **Data trust & governance page**: identity (threshold sweep, sibling merges), who sees what, restatement log | Why should I trust these numbers? | 0:45 |
+| 3 | **Audience & consent page**: audience over time, the consent gap, capture by capture point, the market quadrants | How many can we actually contact, and where do we look next? | 1:00 |
+| 4 | **Data trust & governance page**: identity (threshold sweep, sibling merges), who sees what, restatement log | Why should I trust these numbers? | 0:45 |
 
 <!-- Anna: talking points -->
 
@@ -45,11 +44,10 @@ Everything above, with these additions, in this order.
 | 1 | **Overview** and the architecture diagram in the README | What are the layers and where does the truth live? | 1:30 |
 | 2 | **Acquisition**: `mart_acquisition_incrementality` (the stacked cohort comparison in SQL) and the event-study chart | How do you measure what the programme caused when most households are invisible? | 3:00 |
 | 3 | **Funnel and fan status**: `fct_household_fan_status`, `mart_fan_funnel` | How is a household's fan status decided, and what is the denominator? | 2:00 |
-| 4 | **Value**: `mart_fan_ltv`, `mart_fan_survival`, the value uplift | What is a fan worth, and how sure are you? | 2:00 |
-| 5 | **Audience and consent**: the consent SCD2 (`fct_fan_consent_history`), `mart_addressable_audience`, the consent gap | How does governance set the size of the marketable audience? | 2:30 |
-| 6 | **Identity and the linkage decision**: ADR-009, then the identity page | May we link registrations to fan accounts at all, and what does a wrong merge cost? | 2:30 |
-| 7 | **Governance page**: audience matrix, suppression example, restatement log | Who sees what, and what happens when a published number changes? | 1:30 |
-| 8 | **Close**: README "If this were real" | What would you do differently in production? | 0:30 |
+| 4 | **Audience and consent**: the consent SCD2 (`fct_fan_consent_history`), `mart_addressable_audience`, the consent gap | How does governance set the size of the marketable audience? | 2:30 |
+| 5 | **Identity and the linkage decision**: ADR-009, then the identity page | May we link registrations to fan accounts at all, and what does a wrong merge cost? | 2:30 |
+| 6 | **Governance page**: audience matrix, suppression example, restatement log | Who sees what, and what happens when a published number changes? | 1:30 |
+| 7 | **Close**: README "If this were real" | What would you do differently in production? | 0:30 |
 
 <!-- Anna: talking points -->
 

@@ -1,3 +1,4 @@
+{{ config(schema='phase5_restricted') }}
 -- Phase 5 input to the Phase 2 identity machinery: the same columns as idr_input_records, so the shared macros (pair_attributes, pair_level_ctes,
 -- name_similarity, dob_agreement_level, idr_rules_rule_id, connected_components) run unchanged on the six Phase 5 feeds.
 --   * Pop Warner tackle rows are not flag registrations and never enter matching

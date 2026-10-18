@@ -39,11 +39,24 @@ naive_oracle as (
 
 ),
 
+-- NAIVE_EXISTING averages over the linked households that already had an account (every fan status except NET_NEW and UNLINKED): the same oracle over THAT population and window.
+naive_existing_oracle as (
+
+    select (sum(t.expected_events_observed) - sum(t.expected_events_no_programme)) / sum(t.expected_events_no_programme) as true_effect_naive_existing_pct
+    from {{ ref('int_participant_household_timeline') }} tl
+    join {{ ref('fct_household_fan_status') }} fs on fs.household_id = tl.household_id and fs.fan_status not in ('NET_NEW', 'UNLINKED')
+    join {{ source('ground_truth', 'fan_effect_truth') }} t
+      on t.account_id = tl.account_id
+     and t.month_idx >= date_diff('month', make_date((select y from y0), 1, 1), tl.first_registration_month)
+    where tl.is_linked
+
+),
+
 param as (select any_value(true_uplift) as true_uplift_parameter from {{ source('ground_truth', 'fan_truth') }} where is_participant_household),
 
 truth as (
 
-    select (observed - no_programme) / no_programme as true_effect_matched_pct, (select true_effect_naive_window_pct from naive_oracle) as true_effect_naive_window_pct,
+    select (observed - no_programme) / no_programme as true_effect_matched_pct, (select true_effect_naive_window_pct from naive_oracle) as true_effect_naive_window_pct, (select true_effect_naive_existing_pct from naive_existing_oracle) as true_effect_naive_existing_pct,
            (select true_uplift_parameter from param) as true_uplift_parameter from oracle
 
 )
@@ -54,9 +67,9 @@ select
     s.ci_low_pct,
     s.ci_high_pct,
     round(t.true_uplift_parameter, 5)                                       as true_uplift_parameter,
-    round(case when s.estimator = 'NAIVE' then t.true_effect_naive_window_pct else t.true_effect_matched_pct end, 5) as true_effect_pct,
-    round(s.estimate_pct - case when s.estimator = 'NAIVE' then t.true_effect_naive_window_pct else t.true_effect_matched_pct end, 5) as error_pct_points,
-    round(s.estimate_pct / case when s.estimator = 'NAIVE' then t.true_effect_naive_window_pct else t.true_effect_matched_pct end, 3) as estimate_over_truth,
-    case when s.estimator = 'NAIVE' then t.true_effect_naive_window_pct else t.true_effect_matched_pct end between s.ci_low_pct and s.ci_high_pct as truth_in_ci
+    round(case s.estimator when 'NAIVE' then t.true_effect_naive_window_pct when 'NAIVE_EXISTING' then t.true_effect_naive_existing_pct else t.true_effect_matched_pct end, 5) as true_effect_pct,
+    round(s.estimate_pct - case s.estimator when 'NAIVE' then t.true_effect_naive_window_pct when 'NAIVE_EXISTING' then t.true_effect_naive_existing_pct else t.true_effect_matched_pct end, 5) as error_pct_points,
+    round(s.estimate_pct / case s.estimator when 'NAIVE' then t.true_effect_naive_window_pct when 'NAIVE_EXISTING' then t.true_effect_naive_existing_pct else t.true_effect_matched_pct end, 3) as estimate_over_truth,
+    case s.estimator when 'NAIVE' then t.true_effect_naive_window_pct when 'NAIVE_EXISTING' then t.true_effect_naive_existing_pct else t.true_effect_matched_pct end between s.ci_low_pct and s.ci_high_pct as truth_in_ci
 from {{ ref('mart_fan_outcomes_summary') }} s cross join truth t
-order by case s.estimator when 'NAIVE' then 1 when 'DID_ADDITIVE' then 2 else 3 end
+order by case s.estimator when 'NAIVE_EXISTING' then 1 when 'NAIVE' then 2 when 'DID_ADDITIVE' then 3 else 4 end

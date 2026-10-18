@@ -284,6 +284,7 @@ all-phases: dbt/profiles.yml
 	$(PY) -m scripts.check_id_stability
 	$(PY) -m retention.job
 	$(PY) -m scripts.p5_demo > /dev/null
+	$(PY) -m scripts.validate_products
 	$(MAKE) site-check-ci
 
 # Phases 3 and 4 are built together (see all-phases)

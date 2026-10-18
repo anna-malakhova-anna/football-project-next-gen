@@ -11,13 +11,14 @@ with src as (
            treated_matched                     as fan_treated_households,
            match_rate                          as fan_match_rate
     from {{ ref('mart_fan_outcomes_summary') }}
-    where estimator in ('NAIVE', 'DID_ADDITIVE')
+    where estimator in ('NAIVE_EXISTING', 'NAIVE', 'DID_ADDITIVE')
 
 )
 
 select estimator, fan_uplift_pct, fan_uplift_ci_low_pct, fan_uplift_ci_high_pct, fan_treated_households, fan_match_rate, suppressed,
        case estimator
-           when 'NAIVE' then 'Not a valid estimate: compares households that chose to enroll with those that did not. Shown to be read against the matched estimate. Linked households only.'
+           when 'NAIVE_EXISTING' then 'The naive companion of the matched estimate: the same kind of household (one that already had a fan account), compared with unlinked accounts without matching. Not a valid estimate: households that enroll were already more engaged, so it overstates. Linked households only.'
+           when 'NAIVE' then 'Analyst detail only. Pools in accounts the programme itself created, whose households are less engaged than the average fan, which pulls the average down: its direction is not the direction of the selection bias. Not a valid estimate. Linked households only.'
            else 'Matched before/after comparison. Describes households linked to a fan account (mostly North American), not all participants. Synthetic data.'
        end as caveat
 from {{ suppress_small_cells('src', ['estimator'], ['fan_treated_households'],

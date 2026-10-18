@@ -26,12 +26,12 @@ Each product gets four scores from 1 to 5: **value to the goals**, **feasibility
 ## Now / next / later (no dates)
 | Horizon | Release | Content | Exit criteria (thresholds are placeholders) |
 |---|---|---|---|
-| **Now** | DP1 v1 + DP4 v1 (the MVP) | Data standard, contracts, scorecards, club market view (aggregates), fix lists | At least **X%** of US records fit for counting and for placing on the map; clubs can read their market tile; the privacy lead signs off on the club share |
-| **Next** | DP2 v1 formalized, DP3 v1 | The master and the review queue as a product; global participation with its uncertainty | Identity range at most **Y%**; at least **N** federations contracted |
-| **Next** | DP5 v0 (analytics only) | Household-level fan engagement uplift in the restricted schema; aggregate outputs | Fully known consent provenance for at least **Z%** of consent records; privacy approval of the household linkage (ADR-009) |
-| **Later** | DP5 v1 (activation) | Consent-gated club activation counts | A separate guardian consent for club marketing is captured at registration |
+| **Now** | DP1 v1 + DP4 v1 (the MVP) | Data standard, contracts, scorecards, club market view (aggregates), fix lists | US league purpose score of at least **85 (grade B)** for counting players (X_COUNT) and for placing them on the map (X_GEO), from 82.1 today; clubs can read their market tile; the privacy lead signs off on the club share |
+| **Next** | DP2 v1 formalized, DP3 v1 | The master and the review queue as a product; global participation with its uncertainty | At least **6 of 6** countries reporting with a counting grade of B or better (N; 1 today, approximate). **Guardrail Y:** identity range stays within 1% (0.43% today), with an alert on breach; it is not a target |
+| **Next** | DP5 v0 (analytics only) | Household-level fan engagement uplift in the restricted schema; aggregate outputs | **Z_ANALYTICS:** known consent provenance for at least 80% of households (80.2% today, met); privacy approval of the household linkage (ADR-009) |
+| **Later** | DP5 v1 (activation) | Consent-gated club activation counts | **Z_ACTIVATION:** at least 75% of marketing opt-ins have fully known provenance (28.5% today); a separate guardian consent for club marketing is captured at registration |
 
-X, Y, Z and N are config values in `product_targets.csv`; Anna sets them.
+The thresholds are config values in `dbt/seeds/product_targets.csv` (status `DRAFT`, set by Anna on 2026-10-18, still to be confirmed), with their 2025 baselines.
 
 ## What would change this order
 - If privacy approval for the household linkage comes early, DP5 v0 (analytics only) can move up. It still cannot reach activation without the guardian consent step.

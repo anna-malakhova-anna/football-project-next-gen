@@ -47,6 +47,10 @@ policies (design only; not implemented).
 | `market_years_compared` | AGGREGATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 | `caveat` | CAVEAT_LABEL |
+| `participant_households_compared` | AGGREGATE_SUPPRESSED |
+| `incremental_fan_accounts_per_100_households` | DERIVED_RATE_SUPPRESSED |
+| `incremental_fan_accounts_per_100_households_ci_low` | DERIVED_RATE_SUPPRESSED |
+| `incremental_fan_accounts_per_100_households_ci_high` | DERIVED_RATE_SUPPRESSED |
 
 **`share_exec__addressable_audience`**
 
@@ -390,6 +394,41 @@ Explicitly **not** available:
 
 ### ops
 
+**`share_ops__league_fix_list`**
+
+| Column | Treatment |
+|---|---|
+| `season_year` | AGGREGATE_BY_ORGANIZATION |
+| `source_system` | AGGREGATE_BY_ORGANIZATION |
+| `org_id` | AGGREGATE_BY_ORGANIZATION |
+| `org_name` | AGGREGATE_BY_ORGANIZATION |
+| `fix_rank` | AGGREGATE_BY_ORGANIZATION |
+| `is_systemic` | AGGREGATE_BY_ORGANIZATION |
+| `rule_id` | AGGREGATE_BY_ORGANIZATION |
+| `problem_plain` | AGGREGATE_BY_ORGANIZATION |
+| `what_to_do_plain` | AGGREGATE_BY_ORGANIZATION |
+| `impact_unit` | AGGREGATE_BY_ORGANIZATION |
+| `estimated_impact` | AGGREGATE_BY_ORGANIZATION |
+| `impact_basis` | AGGREGATE_BY_ORGANIZATION |
+| `suppressed` | AGGREGATE_BY_ORGANIZATION |
+
+**`share_ops__league_scorecard`**
+
+| Column | Treatment |
+|---|---|
+| `season_year` | AGGREGATE_BY_ORGANIZATION |
+| `source_system` | AGGREGATE_BY_ORGANIZATION |
+| `org_id` | AGGREGATE_BY_ORGANIZATION |
+| `org_name` | AGGREGATE_BY_ORGANIZATION |
+| `channel` | AGGREGATE_BY_ORGANIZATION |
+| `purpose` | AGGREGATE_BY_ORGANIZATION |
+| `score` | AGGREGATE_BY_ORGANIZATION |
+| `grade` | AGGREGATE_BY_ORGANIZATION |
+| `record_count` | AGGREGATE_BY_ORGANIZATION |
+| `reported` | AGGREGATE_BY_ORGANIZATION |
+| `limiting_dimension` | AGGREGATE_BY_ORGANIZATION |
+| `top_problems_plain` | AGGREGATE_BY_ORGANIZATION |
+
 **`share_ops__participant`**
 
 | Column | Treatment |
@@ -604,6 +643,18 @@ Explicitly **not** available:
 | `consent_text_version` | DIMENSION |
 | `provenance_grade` | DIMENSION |
 | `consent_events` | AGGREGATE_SUPPRESSED |
+| `suppressed` | SUPPRESSION_FLAG |
+
+**`share_privacy__conversion_funnel_by_tier`**
+
+| Column | Treatment |
+|---|---|
+| `age_tier` | DIMENSION |
+| `step_no` | DIMENSION |
+| `step` | DIMENSION |
+| `kind` | DIMENSION |
+| `tier_funnel_households` | AGGREGATE_SUPPRESSED |
+| `share_of_registered` | DERIVED_RATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
 **`share_privacy__minimization_frontier`**

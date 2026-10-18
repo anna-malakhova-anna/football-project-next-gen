@@ -1,3 +1,4 @@
+{{ config(schema='quality_restricted') }}
 -- depends_on: {{ ref('data_standard_fields') }}
 -- What every registration source looks like in the shape of the data standard (seed data_standard_fields): one column per standard field, one row per submitted record (exact duplicates
 -- excluded), plus grp_* grouping columns for the validation. A value a source cannot supply is NULL, never filled in: INTL returns carry no postal code, vendor_reg_b has no birth year,

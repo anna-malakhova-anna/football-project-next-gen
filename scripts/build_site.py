@@ -134,7 +134,7 @@ DATASETS = [
         union all select years_since_entry, 'naive (age-out counted as churn)', naive_survival from evaluation.eval_retention where segment_type = 'ALL'
         order by 2, 1""", ["evaluation.eval_retention"], "evaluation", "Retention of all entrants: truth, censored and naive"),
     _D("fan_vs_truth", "select estimator, estimate_pct, ci_low_pct, ci_high_pct, true_effect_pct, true_uplift_parameter, estimate_over_truth, truth_in_ci "
-       "from evaluation.eval_fan_effect where estimator in ('NAIVE', 'DID_ADDITIVE') order by estimator",
+       "from evaluation.eval_fan_effect where estimator in ('NAIVE_EXISTING', 'NAIVE', 'DID_ADDITIVE') order by estimator",
        ["evaluation.eval_fan_effect"], "evaluation", "Fan effect: naive and matched estimates against the true uplift"),
     _D("fan_diagnostics", "select measure, value from evaluation.eval_fan_matching_diagnostics order by 1",
        ["evaluation.eval_fan_matching_diagnostics"], "evaluation", "Why the matched estimate is where it is"),
@@ -208,6 +208,9 @@ DATASETS = [
                estimate, ci_low, ci_high, truth as true_incremental_accounts
         from evaluation.eval_acquisition where measure in ('incremental_accounts', 'naive_net_new_scaled_by_link_rate', 'naive_net_new_observed') order by 1""",
        ["evaluation.eval_acquisition"], "evaluation", "Fan accounts the programme added: incremental vs naive vs the synthetic truth"),
+    _D("acq_headline", "select incremental_fan_accounts, incremental_fan_accounts_ci_low, incremental_fan_accounts_ci_high, participant_households_compared, incremental_fan_accounts_per_100_households, "
+       "incremental_fan_accounts_per_100_households_ci_low, incremental_fan_accounts_per_100_households_ci_high from share_exec.share_exec__acquisition_incrementality",
+       ["share_exec.share_exec__acquisition_incrementality"], "share_exec", "Fans created by flag: the count and the rate per 100 participant households"),
     _D("acq_event_study", "select years_since_launch, estimate, ci_low, ci_high, truth, truth_in_ci from evaluation.eval_acquisition_event_study order by 1",
        ["evaluation.eval_acquisition_event_study"], "evaluation", "Acquisition event study against the synthetic truth"),
     # ---- governance metadata ----
@@ -331,7 +334,7 @@ def line_band(dataset, x, lo, hi, y, color=None, xt="", yt="", pct=True, y_min=0
 
 
 AGE_ORDER = ["0-7", "8-9", "10-11", "12-13", "14-17", "18-29", "30-44", "45+"]
-EST_ORDER = ["Naive comparison", "Matched before/after"]
+EST_ORDER = ["Naive comparison (existing fans)", "Matched before/after"]
 PALETTE = {"turf": "#2F6B4F", "sky": "#3D7CC9", "pylon": "#D9622B", "plum": "#7D4E8E", "sand": "#B8A06A"}
 
 
@@ -413,7 +416,7 @@ def charts():
                              "scale": {"domain": ["true (generator parameters)", "Kaplan-Meier (age-outs censored)", "naive (age-out counted as churn)"], "range": [[1, 0], [1, 0], [6, 4]]}}}})
     C["fan_estimates"] = dict(
         page="value", title="Does registering a child raise a household's fan engagement? Naive vs matched vs truth", datasets=["fan_vs_truth"], evaluation=True,
-        spec={"data": _src("fan_vs_truth"), "width": "container", "height": 300, "layer": [
+        spec={"data": _src("fan_vs_truth"), "width": "container", "height": 300, "transform": [{"filter": "datum.estimator !== 'Naive, all linked accounts (analyst detail)'"}], "layer": [
             {"mark": {"type": "bar", "opacity": 0.8}, "encoding": {"x": {"field": "estimator", "type": "nominal", "title": None, "sort": EST_ORDER},
              "y": {"field": "estimate_pct", "type": "quantitative", "axis": {"format": "%", "title": "Change in events per household-month"}}}},
             {"mark": {"type": "rule", "strokeWidth": 2}, "encoding": {"x": {"field": "estimator", "type": "nominal", "sort": EST_ORDER},
@@ -692,8 +695,8 @@ SOURCE_NAMES = {"US_LEAGUE": "US league", "CA_CLUB": "Canadian club", "INTL_FED"
 VALUE_LABELS = {
     "fan_status_mix": {"fan_status": FAN_STATUS}, "funnel_rates": {"fan_status": FAN_STATUS},
     "fan_rfm_latest": {"fan_group": FAN_GROUP}, "fan_survival": {"fan_group": FAN_GROUP}, "fan_ltv": {"fan_group": FAN_GROUP}, "audience_latest": {"household_group": FAN_GROUP},
-    "fan_vs_truth": {"estimator": {"NAIVE": "Naive comparison", "DID_ADDITIVE": "Matched before/after"}},
-    "fan_effect": {"estimator": {"NAIVE": "Naive comparison", "DID_ADDITIVE": "Matched before/after"}},
+    "fan_vs_truth": {"estimator": {"NAIVE_EXISTING": "Naive comparison (existing fans)", "NAIVE": "Naive, all linked accounts (analyst detail)", "DID_ADDITIVE": "Matched before/after"}},
+    "fan_effect": {"estimator": {"NAIVE_EXISTING": "Naive comparison (existing fans)", "NAIVE": "Naive, all linked accounts (analyst detail)", "DID_ADDITIVE": "Matched before/after"}},
     "uplift_events": {"uplift_status_group": {"ALL": "All linked households", "EXISTING": "Existing fans", "LAPSED": "Lapsed fans"}},
     "uplift_spend": {"uplift_status_group": {"ALL": "All linked households", "EXISTING": "Existing fans", "LAPSED": "Lapsed fans"}},
     "consent_by_capture_point": {"capture_point": {"checkout": "Checkout", "flag_registration": "Flag registration", "preference_center": "Preference center", "signup": "Sign-up"},
@@ -817,7 +820,7 @@ def chart_block(cid: str, ch: dict, data: dict) -> str:
 
 
 NAV_GROUPS = [
-    ("Results", [("participation.html", "Participation", "participation"), ("sure.html", "How sure", "sure"), ("acquisition.html", "Acquisition", "acquisition"), ("value.html", "Value", "value"), ("audience.html", "Audience", "audience")]),
+    ("Results", [("participation.html", "Participation", "participation"), ("sure.html", "How sure", "sure"), ("acquisition.html", "Acquisition", "acquisition"), ("audience.html", "Audience", "audience")]),
     ("Data quality", [("quality.html", "Data quality", "quality"), ("markets.html", "Club markets", "markets")]),
     ("Privacy", [("privacy.html", "Privacy by design", "privacy"), ("trust.html", "Trust and governance", "trust")]),
     ("About", [("index.html", "Overview", "index"), ("trust.html#documents", "Methodology", "methodology"), ("glossary.html", "Glossary", "glossary")]),
@@ -865,17 +868,24 @@ def kv(data: dict, name: str) -> dict:
 
 
 def value_explanation(f: dict) -> str:
-    """One plain paragraph on how the estimates sit against the synthetic truth. Direction-aware, so it stays honest if the numbers move."""
-    naive, did, truth = f["naive_pct"], f["did_pct"], f["truth_pct"]
-    parts = [f"The naive comparison says {naive:+.1%}, the matched estimate {did:+.1%}, and the uplift built into the data is {truth:+.1%}."]
-    if naive < truth:
-        parts.append("Unlike the acquisition and retention charts, the naive number does not overstate here: it comes in below the truth.")
+    """Plain paragraphs on how the estimates sit against the synthetic truth, direction-aware so they stay honest if the numbers move. The matched estimate (fan_uplift_pct, DID_ADDITIVE) is the canonical one;
+    its naive companion is the same kind of household without matching; the pooled naive (every linked account) is analyst detail and is explained by its composition."""
+    did, truth = f["did_pct"], f["truth_pct"]
+    ne, ne_truth, pooled, pooled_truth = f["naive_pct"], f["naive_existing_truth_pct"], f["naive_pooled_pct"], f["naive_pooled_truth_pct"]
+    p1 = (f"Households that already followed the NFL: the matched estimate is {did:+.1%} (the uplift they actually got is {truth:+.1%}). Its naive companion, the same kind of household compared without matching, "
+          f"says {ne:+.1%} against a truth of {ne_truth:+.1%} for those households.")
+    if ne > ne_truth:
+        p1 += " It overstates, as designed: households that enroll a child were already more engaged before they enrolled (selection), and a naive comparison cannot see that."
+    p2 = (f"Pooling every linked account, including accounts the programme itself created, gives {pooled:+.1%} (truth {pooled_truth:+.1%} for that mix). That number is analyst detail: the accounts the programme created "
+          "belong to households that engage less than the average fan, so they pull the pooled average down, and it hides the second effect of flag (new fan accounts; see Acquisition). The direction of a pooled "
+          "average is not the direction of the selection bias, which is why it is not the number to quote.")
+    parts = [p1, p2]
     if did > truth:
-        parts.append("The matched estimate overshoots the truth. The table below points to why: "
+        parts.append("The matched estimate overshoots its truth slightly. The table below points to why: "
                      f"matching on observed engagement did not balance the underlying fan inclination, which averages {f['fandom_treated']:.2f} for the matched participating households "
                      f"against {f['fandom_comparison']:.2f} for their matched comparisons, so the before/after change still leans high. "
                      "Read the matched figure as an upper-leaning estimate, not a correction.")
-    return "<p class='note'>" + esc(" ".join(parts)) + "</p>"
+    return "".join("<p class='note'>" + esc(x) + "</p>" for x in parts)
 
 
 RESTATEMENT_EXAMPLES = """<p class="note">The restatement log is empty because the latest published snapshots match the rebuilt numbers. That is the good case. Four recorded runs show what it looks like when it is not empty
@@ -886,6 +896,15 @@ RESTATEMENT_EXAMPLES = """<p class="note">The restatement log is empty because t
 <tr><td>A methodology bump that only adds KPIs</td><td>New KPI</td><td>Four school and recreation KPIs added for five years. Every existing KPI was identical to its published value.</td><td>No: additions are listed, never restated</td></tr>
 <tr><td>The generator changed upstream (more people, staggered market launches)</td><td>New source data</td><td>88 changed KPI rows; 59 required a restatement. 2025 unique participants went from 2,837 to 8,959 (+215.8%).</td><td>Yes: methodology v2.0 published new baselines</td></tr>
 </tbody></table>"""
+
+
+G3_FRAME = ("Flag does two things: families already following the NFL engage about {uplift} more, and flag creates about {fans} new fan accounts among families who weren't fans "
+            "(about {per100} per 100 participant households). A pooled average hides the second effect.")
+
+
+def g3_frame(facts: dict) -> str:
+    r10 = lambda x: f"{int(round(x, -1)):,}"  # noqa: E731  estimates are rounded to the nearest 10 and prefixed "about"
+    return esc(G3_FRAME.format(uplift=f"{round(facts['did_pct'] * 100):.0f}%", fans=r10(facts["incremental"]), per100=f"{facts['per100']:.0f}"))
 
 
 def build_pages(data: dict, chart_defs: dict, facts: dict) -> dict[str, tuple[str, str]]:
@@ -908,20 +927,19 @@ linked to fan accounts under a restricted-zone policy, shared by audience with s
 <tr><td>Addressable audience, {facts['audience_month']} (households a guardian has opted in)</td><td>{fmt_cell(facts['contactable'])} of {fmt_cell(facts['registered'])} registered households</td></tr>
 <tr><td>Consent gap (active households with no opt-in)</td><td>{fmt_cell(facts['gap'])}, about {facts['gap_share']:.0%} of active households</td></tr>
 <tr><td>Unique registered participants, {latest}</td><td>{fmt_cell(facts['participants'])} (identity range {fmt_cell(facts['low'])} to {fmt_cell(facts['high'])})</td></tr>
-<tr><td>Matched fan-engagement uplift after a first registration (linked households)</td><td>{facts['did_pct']:+.1%} (naive says {facts['naive_pct']:+.1%}; truth {facts['truth_pct']:+.1%})</td></tr>
+<tr><td>Fan engagement uplift after a first registration (matched, households that already followed the NFL)</td><td>{facts['did_pct']:+.1%} (naive companion {facts['naive_pct']:+.1%}; truth {facts['truth_pct']:+.1%})</td></tr>
 </tbody></table>
 <h2>A five-minute tour</h2>
 <ol class="tour">
 <li><a href="acquisition.html">Fan acquisition</a>: how many fans flag football created, and why the naive count is too big.</li>
-<li><a href="value.html">Fan value &amp; activeness</a>: who is engaged, how long fans stay, what a fan is worth, and what registering a child changes.</li>
 <li><a href="audience.html">Audience &amp; consent</a>: how many fans can be contacted, where consent is captured, and the gap. Governance sets the size of the marketable audience.</li>
 <li><a href="participation.html">Participation</a>: the original question, how many people play, and who stays.</li>
 <li><a href="trust.html">Data trust &amp; governance</a>: identity resolution (why the household count is right), contracts, who sees what, what changed after publishing.</li>
 </ol>
 <p class="note">Decisions and their reasons are in the ADRs; the counting rules are in the methodology memos. Both are linked from <a href="trust.html">Data trust &amp; governance</a>.</p>""")
-    built["acquisition"] = ("Fan acquisition", f"<p class='note'><b>The programme created about {fmt_cell(facts['incremental'])} fan accounts. Counting every new sign-up and scaling it up for unseen families says {fmt_cell(facts['naive_scaled'])}, about {facts['naive_scaled'] / facts['incremental']:.1f} times too many, because many of those families would have become fans anyway.</b> The first chart is the answer; the rest show where it comes from. Funnel and status describe households linked to a fan account; "
+    built["acquisition"] = ("Fan acquisition", f"<p class='note'><b>{g3_frame(facts)}</b></p><p class='note'><b>Fans created by flag: about {fmt_cell(facts['incremental'])} fan accounts. Counting every new sign-up and scaling it up for unseen families says {fmt_cell(facts['naive_scaled'])}, about {facts['naive_scaled'] / facts['incremental']:.1f} times too many, because many of those families would have become fans anyway.</b> The first chart is the answer; the rest show where it comes from. Funnel and status describe households linked to a fan account; "
                             "identity resolution is why the denominator is right (a child in several leagues is one household member, not several).</p>" + "".join(blocks["acquisition"]))
-    built["value"] = ("Fan value & activeness", "<p class='note'><b>Registering a child raises a linked family's fan engagement by about a fifth, and the effect follows the NFL season. New fans from flag football are worth nearly as much as other new fans, but stay active for less time.</b> Estimates describe households linked to a fan account, under a restricted-zone policy (ADR-009). Nothing household-level is shown; money is synthetic currency.</p>"
+    built["value"] = ("Fan value & activeness", f"<p class='note'><b>{g3_frame(facts)}</b></p><p class='note'><b>Registering a child raises a linked family's fan engagement by about a fifth, and the effect follows the NFL season. New fans from flag football are worth nearly as much as other new fans, but stay active for less time.</b> Estimates describe households linked to a fan account, under a restricted-zone policy (ADR-009). Nothing household-level is shown; money is synthetic currency.</p>"
                       + "".join(blocks["value"]) + "<h2>Why the matched engagement estimate is where it is</h2>" + value_explanation(facts) + table_html(data["fan_diagnostics"]))
     built["audience"] = ("Audience & consent", f"<p class='note'><b>Only {fmt_cell(facts['contactable'])} of {fmt_cell(facts['registered'])} registered households can be contacted. The bigger constraint is linking families to fan accounts, not consent: once linked, most families say yes.</b> Governance determines the size of the marketable audience: only a guardian's recorded opt-in makes a household contactable. "
                          "Counts only; nobody here is a list, and no linked household reaches marketing or media (ADR-009).</p>"
@@ -1053,7 +1071,8 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     fan = {r["estimator"]: r for r in rows("fan_vs_truth")}
     first = min(rows("participation_bounds"), key=lambda r: r["participation_year"])
     facts = {"first_year": first["participation_year"], "first_participants": first["identity_participants_point"], "latest_year": latest, "participants": bounds["identity_participants_point"], "low": bounds["identity_participants_low"], "high": bounds["identity_participants_high"],
-             "did_pct": fan["DID_ADDITIVE"]["estimate_pct"], "naive_pct": fan["NAIVE"]["estimate_pct"], "truth_pct": fan["DID_ADDITIVE"]["true_effect_pct"],
+             "did_pct": fan["DID_ADDITIVE"]["estimate_pct"], "naive_pct": fan["NAIVE_EXISTING"]["estimate_pct"], "truth_pct": fan["DID_ADDITIVE"]["true_effect_pct"],
+             "naive_existing_truth_pct": fan["NAIVE_EXISTING"]["true_effect_pct"], "naive_pooled_pct": fan["NAIVE"]["estimate_pct"], "per100": rows("acq_headline")[0]["incremental_fan_accounts_per_100_households"], "naive_pooled_truth_pct": fan["NAIVE"]["true_effect_pct"],
              "km1": next(r["km_survival"] for r in rows("retention_km_all") if r["years_since_entry"] == 1)}
     acq = {r["method"][0]: r for r in rows("acq_estimates")}
     aud = next(r for r in rows("audience_latest") if r["household_group"] == "ALL")

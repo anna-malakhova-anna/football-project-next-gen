@@ -1,0 +1,143 @@
+# DP5 product spec (Phase 6): the product's machine-readable label. Validated by scripts/validate_products.py and rendered on the Data product tab.
+# Synthetic project; every role is fictional. quality_indicator is read from the scorecards at build time, never typed.
+id: DP5
+name: Flag-to-Fan Conversion Insights
+version: 0.1.0
+type: insights
+status: proposed
+description: 'Whether flag turns families into fans, and how many families a club may contact. It reports two separate effects: how much more engaged families who
+  already followed the NFL become, and how many new fan accounts flag creates among families who were not fans. Counts only, by the age tier of the youngest child;
+  analytics is never activation.'
+goals:
+- G3
+value_proposition: driver
+consumers:
+- role: Fan and club marketing analyst
+  use_case: Show that flag creates fans, and see how many families agreed to be reached
+- role: Privacy and compliance lead
+  use_case: Approve club access and check the age rules hold
+owner_role: Data Product Manager, NFL FLAG Insights (fictional)
+steward_role: Data steward, consent and linkage (fictional)
+support_contact: 'issues: <repo>/issues (label: dp5)'
+output_ports:
+- name: fan_engagement_uplift
+  model: share_exec__fan_engagement_effect
+  audience: exec
+  grain: estimator
+  refresh: per season close
+- name: fans_created_by_flag
+  model: share_exec__acquisition_incrementality
+  audience: exec
+  grain: programme
+  refresh: per season close
+- name: conversion_funnel_by_age_tier
+  model: share_privacy__conversion_funnel_by_tier
+  audience: privacy
+  grain: age tier x step
+  refresh: per season close
+- name: consent_provenance
+  model: share_privacy__consent_provenance
+  audience: privacy
+  grain: source x consent form x provenance
+  refresh: per season close
+- name: activation_funnel
+  model: share_club__activation_funnel
+  audience: club
+  grain: club market x year x step
+  refresh: per season close
+input_products:
+- DP1
+- DP2
+sources_lineage:
+  share_exec__fan_engagement_effect: dbt/models/shares/exec/share_exec__fan_engagement_effect.sql
+  share_exec__acquisition_incrementality: dbt/models/shares/exec/share_exec__acquisition_incrementality.sql
+  share_privacy__conversion_funnel_by_tier: dbt/models/shares/privacy/share_privacy__conversion_funnel_by_tier.sql
+  share_privacy__consent_provenance: dbt/models/shares/privacy/share_privacy__consent_provenance.sql
+  share_club__activation_funnel: dbt/models/shares/club/share_club__activation_funnel.sql
+quality_indicator:
+  from_model: dq_scorecard_source
+  purpose: ACTIVATE
+  filter:
+    source_system:
+    - US_LEAGUE
+    - CA_CLUB
+    - INTL_FED
+  aggregate: worst_grade
+metrics:
+- fan_uplift_pct
+- fan_uplift_ci_low_pct
+- fan_uplift_ci_high_pct
+- incremental_fan_accounts
+- incremental_fan_accounts_per_100_households
+- activatable_households
+- youth_to_adult_fan_transition
+- funnel_count
+classification: aggregate and restricted analytics; counts only, no direct or quasi identifier outside the restricted linkage and phase6 zones
+privacy:
+  min_cell_size: from privacy_params.k_min
+  age_rules: dbt/seeds/age_consent_rules.csv
+  prohibited_uses:
+  - use: child-level targeting
+    enforced_by:
+    - kind: dbt_test
+      name: share_club_obeys_suppression_rules
+    - kind: dbt_test
+      name: p5_activation_chain_never_touches_the_child
+    - kind: dbt_test
+      name: activation_counts_only_guardian_consented_households
+    - kind: script
+      name: check_share_policy
+  - use: child-level marketing
+    enforced_by:
+    - kind: dbt_test
+      name: consent_permissions_never_grant_from_a_blank
+    - kind: dbt_test
+      name: activation_counts_only_guardian_consented_households
+    - kind: dbt_test
+      name: share_marketing_only_consented_contacts
+    - kind: dbt_test
+      name: marts_consent_never_derived_from_null
+  - use: fuzzy household linkage
+    enforced_by:
+    - kind: dbt_test
+      name: linkage_is_one_to_one_and_explained
+    - kind: dbt_test
+      name: idr_twin_guard_holds
+  - use: carrying a youth profile over to the adult
+    enforced_by:
+    - kind: dbt_test
+      name: a_participant_turning_18_carries_no_fan_link
+    - kind: pytest
+      name: test_every_minor_row_is_guardian_only_and_forbids_profiling_and_disclosure
+  - use: re-identification
+    enforced_by:
+    - kind: dbt_test
+      name: share_club_obeys_suppression_rules
+    - kind: dbt_test
+      name: share_exec_obeys_suppression_rules
+    - kind: dbt_test
+      name: share_analyst_k_anonymity_warning
+    - kind: script
+      name: check_share_policy
+terms_of_use: docs/product/terms/DP5.md
+geographic_coverage: linked households, mostly North American (the fan feed); club markets are a project approximation (ADR-016)
+tags:
+- conversion
+- fans
+- consent
+- restricted
+- g3
+recommended_products:
+- DP1
+- DP4
+feedback: https://github.com/anna-malakhova-anna/flag-football-to-fan-project/issues/new?template=data-product-feedback.md
+shelf_life: short-to-medium (reviewed each season and on any change in the consent rules)
+decommission_plan: docs/product/decommission-example.md
+pricing: Internal. No chargeback.
+health_metrics:
+- quality
+- contract_status
+- pipeline
+- trust
+- privacy
+- cost

@@ -1,3 +1,4 @@
+{{ config(schema='linkage') }}
 -- One row per fan account AFTER duplicate households are collapsed (int_fan_account_xref). Guardians only: every holder is an adult when the account is opened
 -- (the contract makes anything else an ERROR, and a test checks it again here). Holds contact details, so it is not a share: nothing here reaches an audience.
 with x as (select * from {{ ref('int_fan_account_xref') }}),

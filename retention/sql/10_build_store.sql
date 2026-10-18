@@ -5,7 +5,7 @@ select
     s.first_name, s.last_name, s.birth_year, s.sex, s.postal_code as zip5, rp.contact_email as parent_email,
     coalesce(c.market_id, 'UNKNOWN') as market_id, coalesce(c.age_band, 'UNKNOWN') as age_band, rp.season_year, rp.registered_at
 from phase5_restricted.p5_record_person rp
-join phase5.stg_p5_registrations s on s.feed = rp.feed and s.source_record_id = rp.source_record_id
+join phase5_restricted.stg_p5_registrations s on s.feed = rp.feed and s.source_record_id = rp.source_record_id
 left join phase5_restricted.p5_household h on h.contact_email = rp.contact_email
 left join phase5_restricted.p5_child c on c.p5_person_id = rp.p5_person_id;
 create or replace table pii_store.household_contact as
