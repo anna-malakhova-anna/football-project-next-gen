@@ -29,7 +29,7 @@ def link(path: str, label: str | None = None) -> str:
     if p.startswith("http"):
         return f'<a href="{e(path)}">{e(label or path)}</a>'
     target = (ROOT / p)
-    href = REPO + path if target.exists() else None
+    href = (REPO + path if not target.is_dir() else REPO.replace("/blob/", "/tree/") + path) if target.exists() else None
     return f'<a href="{e(href)}"><code>{e(label or path)}</code></a>' if href else f"<code>{e(label or path)}</code>"
 
 
@@ -43,7 +43,8 @@ def md_inline(text: str, base: str = "docs/product") -> str:
             return f'<a href="{tgt}">{label}</a>'
         resolved = (Path(base) / tgt).as_posix()
         norm = str((ROOT / resolved).resolve().relative_to(ROOT)) if (ROOT / resolved).resolve().exists() else None
-        return f'<a href="{e(REPO + norm)}">{label}</a>' if norm else label
+        repo_base = REPO.replace("/blob/", "/tree/") if (norm and (ROOT / norm).is_dir()) else REPO
+        return f'<a href="{e(repo_base + norm)}">{label}</a>' if norm else label
     out = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", sub, out)
     out = re.sub(r"`([^`]+)`", r"<code>\1</code>", out)
     out = re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", out)
