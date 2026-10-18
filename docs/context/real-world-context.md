@@ -24,6 +24,20 @@ Is a club a "third party" for the purposes of the COPPA rule, given the joint ow
 | Parent email is not a marketing opt-in | Purpose limitation in the consent model; a consent email never counts as `CLUB_MARKETING` (ADR-019) | Design constraint |
 | Retention policy required, no indefinite retention | The age-out job and the retention-versus-deletion experiment (ADR-017) | **Assumption:** every period (age-out age, grace, record cap) is a configurable placeholder; the actual period is an open question |
 
+## Participation context for goal G2 and the LA 2028 Games (Phase 6) <!-- Anna to verify -->
+
+These facts frame the business goals on the Data product tab. They are stated as the sources state them, and nothing else is added. **Anna to verify every line below before the tab is published.**
+
+- High school football participation declined for years before the pandemic (its tenth drop in eleven years) and has risen in three of the last four years. It is **not** presented here as a current crisis. Source: Athletic Business, reporting NFHS figures, 18 September 2025.
+- Girls' high school flag football reached 68,847 participants in 2024-25, up 388% since the first post-pandemic survey. It is sanctioned in 16 states, and 22 other states run independent or pilot programs. Sources: Athletic Business (above) and NFHS.
+- Safety concerns are one reason families may choose flag football. This project treats that as a stated reason, not a measured decline.
+- Flag football was approved by the IOC Session as one of five additional sports for the Los Angeles 2028 Games (relevant to goal G1). <!-- Anna to verify -->
+
+Sources (these four lines, added in Phase 6):
+- https://www.athleticbusiness.com/operations/governing-bodies/article/15755722/high-school-football-continues-to-rebound-from-prepandemic-decline
+- https://nfhs.org/stories/high-school-football-continues-to-rebound-from-pre-pandemic-decline
+- https://www.olympics.com/ioc/news/ioc-session-approves-la28-s-proposal-for-five-additional-sports
+
 ## Sources
 
 - https://nflflag.com/policy
