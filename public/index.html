@@ -27,18 +27,18 @@
     <a class="wordmark" href="index.html"><svg class="wordmark-mark" data-mark="project" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Counting Flag Football mark"><rect width="32" height="32" fill="#2F6B4F"/><rect x="4" y="14" width="24" height="4" fill="#F2C230"/></svg>Counting Flag Football</a>
     <button type="button" class="icon-btn menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav">Menu</button>
     <nav class="nav" id="site-nav" aria-label="Pages">
-      <div class="nav-group">
-        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-1">Results<span aria-hidden="true" class="caret"></span></button>
-        <div class="nav-menu" id="menu-1"><a href="participation.html">Participation</a><a href="sure.html">How sure</a><a href="acquisition.html">Acquisition</a><a href="value.html">Value</a><a href="audience.html">Audience</a></div>
+      <div class="nav-group nav-single"><a class="nav-trigger nav-link" href="product.html">Data product</a></div><div class="nav-group">
+        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-2">Results<span aria-hidden="true" class="caret"></span></button>
+        <div class="nav-menu" id="menu-2"><a href="participation.html">Participation</a><a href="sure.html">How sure</a><a href="acquisition.html">Acquisition</a><a href="audience.html">Audience</a></div>
       </div><div class="nav-group">
-        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-2">Data quality<span aria-hidden="true" class="caret"></span></button>
-        <div class="nav-menu" id="menu-2"><a href="quality.html">Data quality</a><a href="markets.html">Club markets</a></div>
+        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-3">Data quality<span aria-hidden="true" class="caret"></span></button>
+        <div class="nav-menu" id="menu-3"><a href="quality.html">Data quality</a><a href="markets.html">Club markets</a></div>
       </div><div class="nav-group">
-        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-3">Privacy<span aria-hidden="true" class="caret"></span></button>
-        <div class="nav-menu" id="menu-3"><a href="privacy.html">Privacy by design</a><a href="trust.html">Trust and governance</a></div>
+        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-4">Privacy<span aria-hidden="true" class="caret"></span></button>
+        <div class="nav-menu" id="menu-4"><a href="privacy.html">Privacy by design</a><a href="trust.html">Trust and governance</a></div>
       </div><div class="nav-group is-current">
-        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-4" data-current="true">About<span aria-hidden="true" class="caret"></span></button>
-        <div class="nav-menu" id="menu-4"><a href="index.html" aria-current="page">Overview</a><a href="trust.html#documents">Methodology</a><a href="glossary.html">Glossary</a></div>
+        <button type="button" class="nav-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="menu-5" data-current="true">About<span aria-hidden="true" class="caret"></span></button>
+        <div class="nav-menu" id="menu-5"><a href="index.html" aria-current="page">Overview</a><a href="trust.html#documents">Methodology</a><a href="glossary.html">Glossary</a></div>
       </div>
     </nav>
     <div class="nav-secondary">
@@ -66,12 +66,11 @@ linked to fan accounts under a restricted-zone policy, shared by audience with s
 <tr><td>Addressable audience, 2025-12 (households a guardian has opted in)</td><td>3,182 of 11,787 registered households</td></tr>
 <tr><td>Consent gap (active households with no opt-in)</td><td>725, about 25% of active households</td></tr>
 <tr><td>Unique registered participants, 2025</td><td>7,430 (identity range 7,405 to 7,437)</td></tr>
-<tr><td>Matched fan-engagement uplift after a first registration (linked households)</td><td>+20.0% (naive says +16.5%; truth +20.5%)</td></tr>
+<tr><td>Fan engagement uplift after a first registration (matched, households that already followed the NFL)</td><td>+20.0% (naive companion +21.3%; truth +20.5%)</td></tr>
 </tbody></table>
 <h2>A five-minute tour</h2>
 <ol class="tour">
 <li><a href="acquisition.html">Fan acquisition</a>: how many fans flag football created, and why the naive count is too big.</li>
-<li><a href="value.html">Fan value &amp; activeness</a>: who is engaged, how long fans stay, what a fan is worth, and what registering a child changes.</li>
 <li><a href="audience.html">Audience &amp; consent</a>: how many fans can be contacted, where consent is captured, and the gap. Governance sets the size of the marketable audience.</li>
 <li><a href="participation.html">Participation</a>: the original question, how many people play, and who stays.</li>
 <li><a href="trust.html">Data trust &amp; governance</a>: identity resolution (why the household count is right), contracts, who sees what, what changed after publishing.</li>
@@ -81,7 +80,7 @@ linked to fan accounts under a restricted-zone policy, shared by audience with s
 <footer class="site-footer">
   <div class="footer-inner">
     <p class="footer-disclaimer">Independent portfolio project using synthetic data. Not affiliated with or endorsed by any league or team.</p>
-    <p>Scorecard methodology 2.0 · methodology memo 1.2 · built 2026-10-15 by scripts/build_site.py · <a href="glossary.html">Glossary</a> · <a href="appendix.html">Appendix: school and recreation programs (a stretch source)</a></p>
+    <p>Scorecard methodology 2.0 · methodology memo 1.2 · built 2026-10-18 by scripts/build_site.py · <a href="glossary.html">Glossary</a> · <a href="appendix.html">Appendix: school and recreation programs (a stretch source)</a></p>
     <p>No number on this site is computed in the browser.</p>
   </div>
 </footer>

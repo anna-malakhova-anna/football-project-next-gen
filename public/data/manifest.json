@@ -58,7 +58,7 @@
    "name": "fan_effect",
    "source": "share_exec.share_exec__fan_engagement_effect",
    "kind": "share_exec",
-   "rows": 2
+   "rows": 3
   },
   {
    "name": "link_rate",
@@ -124,7 +124,7 @@
    "name": "fan_vs_truth",
    "source": "evaluation.eval_fan_effect",
    "kind": "evaluation",
-   "rows": 2
+   "rows": 3
   },
   {
    "name": "fan_diagnostics",
@@ -229,6 +229,12 @@
    "rows": 3
   },
   {
+   "name": "acq_headline",
+   "source": "share_exec.share_exec__acquisition_incrementality",
+   "kind": "share_exec",
+   "rows": 1
+  },
+  {
    "name": "acq_event_study",
    "source": "evaluation.eval_acquisition_event_study",
    "kind": "evaluation",
@@ -274,7 +280,7 @@
    "name": "chart_insights_privacy",
    "source": "share_privacy.share_privacy__chart_insights",
    "kind": "share_privacy",
-   "rows": 10
+   "rows": 24
   },
   {
    "name": "dq_grid",
@@ -437,6 +443,54 @@
    "source": "share_privacy.share_privacy__policy_checks",
    "kind": "share_privacy",
    "rows": 14
+  },
+  {
+   "name": "product_prioritization",
+   "source": "reference.product_prioritization",
+   "kind": "governance",
+   "rows": 5
+  },
+  {
+   "name": "product_targets",
+   "source": "reference.product_targets",
+   "kind": "governance",
+   "rows": 6
+  },
+  {
+   "name": "age_rules",
+   "source": "reference.age_consent_rules",
+   "kind": "governance",
+   "rows": 28
+  },
+  {
+   "name": "conv_tier",
+   "source": "share_privacy.share_privacy__conversion_funnel_by_tier",
+   "kind": "share_privacy",
+   "rows": 25
+  },
+  {
+   "name": "goal_scorecard",
+   "source": "phase6.mart_goal_scorecard",
+   "kind": "approved_aggregate",
+   "rows": 19
+  },
+  {
+   "name": "product_health",
+   "source": "phase6.mart_product_health",
+   "kind": "approved_aggregate",
+   "rows": 47
+  },
+  {
+   "name": "product_adoption",
+   "source": "phase6.mart_product_adoption",
+   "kind": "approved_aggregate",
+   "rows": 25
+  },
+  {
+   "name": "product_specs",
+   "source": "products/*/product.yml, quality scorecards",
+   "kind": "governance",
+   "rows": 5
   }
  ]
 }
