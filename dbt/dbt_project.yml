@@ -46,6 +46,9 @@ vars:
   # INTL sheets whose "Full Name" column gives the family name first (Japan).
   intl_family_name_first_countries: ["JP"]
 
+on-run-end:
+  - "{{ store_run_results(results) }}"
+
 models:
   counting_flag_football:
     staging:

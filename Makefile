@@ -1,4 +1,4 @@
-.PHONY: public site-check site-check-ci phase5 phase5-experiments minimize retention-vs-deletion fix-list-demo markets consent nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: product public site-check site-check-ci phase5 phase5-experiments minimize retention-vs-deletion fix-list-demo markets consent nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -174,6 +174,14 @@ site:
 public:
 	$(PY) -m scripts.build_site --public --out public
 
+# Phase 6: the product portfolio. Seeds and the Phase 6 models, the specs validated against the manifest and the warehouse, the health and adoption tables. The Data product tab is built by `make site`.
+product: dbt/profiles.yml
+	$(DBT) seed --profiles-dir . --select product_prioritization product_targets age_consent_rules age_consent_jurisdiction_map funnel_step_display
+	$(DBT) run --profiles-dir . --select tag:phase6
+	$(DBT) test --profiles-dir . --select tag:phase6
+	$(PY) -m scripts.validate_products
+	$(PY) -m scripts.build_product_health
+
 # Phase 5.1: layout, content and viewer checks on the built site (Playwright drives the installed Chrome). `site-check` runs the four Phase 5 pages; `site-check-ci` two pages, to keep CI short.
 site-check: site
 	$(PY) -m scripts.site_check
@@ -285,6 +293,7 @@ all-phases: dbt/profiles.yml
 	$(PY) -m retention.job
 	$(PY) -m scripts.p5_demo > /dev/null
 	$(PY) -m scripts.validate_products
+	$(PY) -m scripts.build_product_health
 	$(MAKE) site-check-ci
 
 # Phases 3 and 4 are built together (see all-phases)

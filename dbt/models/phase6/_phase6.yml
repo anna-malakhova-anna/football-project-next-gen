@@ -50,6 +50,22 @@ models:
       RESTRICTED. One row per participant who was a minor, appears as an adult later, and sits in a household with children that is linked to a fan account: a youth-to-adult carry-over that fresh consent at 18
       forbids. Required to be empty (test a_participant_turning_18_carries_no_fan_link); the unit test age_out_carryover_is_caught gives it a violating participant.
 
+  - name: mart_goal_scorecard
+    description: >
+      The outside view of monitoring: goal x KPI x year for G1 to G3, from existing marts and shares only (no new counting logic, no answer-key number), each KPI with its delivering product and its data-trust
+      companion. A KPI the data cannot answer by design says NOT_MEASURABLE_BY_DESIGN. Adoption is instrumented separately (ops_product_usage_log) and has no real users.
+    columns:
+      - name: goal_id
+        data_tests:
+          - accepted_values: {arguments: {values: [G1, G2, G3]}}
+      - {name: kpi_id, data_tests: [not_null]}
+      - name: product_id
+        data_tests:
+          - accepted_values: {arguments: {values: [DP1, DP2, DP3, DP4, DP5]}}
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: [MEASURED, SUPPRESSED, NOT_MEASURABLE_BY_DESIGN]}}
+
 unit_tests:
   # Hand-built participants. P1 ages out of a household that has a fan link: the violation. P2 is the same but its household is adult-only. P3 stays a minor. P4 was never a minor. P5 ages out but has no link.
   - name: age_out_carryover_is_caught

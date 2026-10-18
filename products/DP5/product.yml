@@ -1,6 +1,11 @@
 # DP5 product spec (Phase 6): the product's machine-readable label. Validated by scripts/validate_products.py and rendered on the Data product tab.
 # Synthetic project; every role is fictional. quality_indicator is read from the scorecards at build time, never typed.
 id: DP5
+input_sources:
+- US_LEAGUE
+- CA_CLUB
+- INTL_FED
+- FAN_ENGAGEMENT
 name: Flag-to-Fan Conversion Insights
 version: 0.1.0
 type: insights

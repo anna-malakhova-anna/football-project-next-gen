@@ -100,6 +100,8 @@ def validate(products: dict[str, dict], con=None) -> list[str]:
         if p.get("status") not in STATUS: w(f"status {p.get('status')!r}")
         if p.get("value_proposition") not in VALUE: w(f"value_proposition {p.get('value_proposition')!r}")
         if not p.get("goals") or not set(p["goals"]) <= GOALS: w(f"goals {p.get('goals')}")
+        for src in p.get("input_sources") or []:
+            if not list((ROOT / "contracts").glob(f"{src}*.yml")): w(f"input source {src} has no contract")
         for i in p.get("input_products") or []:
             if i not in products: w(f"input product {i} does not exist")
         for fld in ("terms_of_use", "decommission_plan"):
