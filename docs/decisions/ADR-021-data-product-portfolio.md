@@ -1,6 +1,6 @@
 # ADR-021: The data product portfolio, the MVP choice and the existing v1 pages (Phase 6)
 
-- **Status:** pre-flight only (2026-10-18). The proposals below are Anna's to accept; nothing has been changed on the site. The MVP choice and the prioritization scores are added when she sets them (build step 4).
+- **Status:** pre-flight decisions taken (2026-10-18); the MVP choice and the prioritization scores are added when Anna sets them (build step 4). Nothing on the site has changed yet.
 - **Numbering (a deviation from the Phase 6 handover).** The handover calls this ADR-018 and the age-tier ADR "ADR-019". Those numbers are taken (ADR-018 minimization and the data standard, ADR-019 consent provenance and the activation funnel, ADR-020 the site viewer). This ADR is **ADR-021**; the age-tier ADR will be **ADR-022**.
 - **Synthetic data.** There are no real users and no real consumers of anything described here. Personas, targets and usage are assumptions or placeholders, and are labelled so.
 
@@ -31,11 +31,34 @@ Phase 6 adds a **Data product** tab: three business goals (G1 grow NFL presence 
 | 6 | "Youth-to-adult fan transition" as a G3 KPI | The synthetic data has no child who plays on as an adult inside the window (the baseline figure is 0, ADR-017); the retention policy anonymizes at age-out, so linking a returning adult to their youth history is a loss by design | Define the metric in the catalog and the scorecard; it will read "not measurable in this data" rather than show a number |
 | 7 | Quality grades and the fix-list demo as evidence for "GEO fitness at grade C for spreadsheet leagues" (feedback-loop example) | The Phase 5 outputs are real, but the example must cite what they actually say (Q4 on the site: small leagues and spreadsheet senders have the weakest grades; the fix-list demo is a simulation on a copy) | The worked example will quote the actual outputs and label the simulation |
 
-## Decisions still needed from Anna (pause 1 of the handover)
-1. For Acquisition, Value and Audience: accept the proposals above, or change them. Nothing on the site changes until she does.
-2. Confirm ADR-021 and ADR-022 as the numbers.
-3. The tab's nav placement (a top-level "Data product" item by default; or under About).
+## Decisions taken (Anna, 2026-10-18)
+1. **v1 pages: no whole-page merges.** Only the charts the tab needs become cards: the fan-uplift evidence (DP5), the consent gap (DP5) and the markets chart (DP4). **Acquisition, Value and Audience stay in the repo and are linked from the DP4 and DP5 product cards as "detailed evidence".**
+2. **The Value page leaves the main navigation and the demo path** (it stays built and linked from the DP5 card). Reason: it profiles households of child participants (RFM segments, survival, lifetime value), which is the wrong signal for the privacy audience and serves none of the three goals. The data and models stay; only the placement changes.
+3. **ADR-021 and ADR-022** are confirmed as the numbers; ADR-016 for club markets; the real `share_club` models for DP4; `share_ops` for DP2; a new aggregate port for DP1; the COPPA row is handled as proposed (paraphrase, `verified = N`, no conclusion about clubs as third parties).
+4. **Navigation:** a top-level "Data product" item, placed first.
+5. **Youth-to-adult transition:** shown as **"not measurable by design"** (fresh consent at 18, no carry-over, age-out deletion). A **proposed** DP1 data-standard field, a self-reported "played as a youth?" question at adult registration, counted in aggregate only, is recorded in `docs/data-standard.md` (proposed additions) and is not yet in the standard.
+6. **The full `make all-phases` runs before the step 6 commits.**
+
+## Findings reported to Anna (before reconciling anything)
+
+### One uplift metric? Three numbers, two different questions
+| What | Where | Unit and question | Design | Value (latest build) |
+|---|---|---|---|---|
+| **Incremental fan accounts** vs naive | Acquisition page; `evaluation.eval_acquisition`, ADR-011 | A **count of fan accounts** that would not exist without the programme | Stacked cohort comparison of launching markets with not-yet-launched markets (market level) | 1,264 (95% range 897 to 1,630); naive net-new observed 743, scaled by link rate 2,019; synthetic truth 1,111 |
+| **Fan engagement uplift**, matched vs naive | Value page; `share_exec__fan_engagement_effect`, `mart_fan_outcomes_summary`; catalog `fan_uplift_pct`, ADR-010 | A **percent change in events per household-month** after a household's first registration | Matched (coarsened exact matching) before/after comparison on 2,697 treated linked households | Matched (`DID_ADDITIVE`) **20.0%** (17.6 to 22.4); naive 16.5% (13.6 to 19.5); truth 20.5% |
+| **`mart_fan_did`** | Restricted `linkage`; feeds the event-study charts | The **same effect month by month** around the first registration | The **same matched sample** (2,697 households), ratio of weighted means at each month | Pre-period flat (average -0.5%); post average 18.8% over months 0 to 11 and 18.4% over 0 to 18 |
+
+- **They are not the same estimate.** Incremental accounts (a count, by market) answers "how many fans did flag create?". Uplift (a percentage, by household) answers "does registering a child make a linked family more engaged?". They must not be presented as one metric.
+- **`mart_fan_did` and `DID_ADDITIVE` share a sample and a design but are built differently.** The summary is one additive difference-in-differences relative to the counterfactual level (20.0%); the event study is a month-by-month ratio of means (18 to 19% on average after registration). Both are consistent with the truth (20.5%) and with each other within the interval, but they are not identical numbers.
+- **The handover's "household fan conversion rate" matches none of them.** It is defined as "the share of linked households whose engagement rose after first registration". That is a share of households; the DiD gives a percent change in events. No existing metric is a share of households whose engagement rose.
+- **Direction conflict with the handover.** It asks the page to explain "why the naive rate overstates the effect". In this data the naive uplift (16.5%) is **below** the matched one (20.0%): it understates here (the Value page already says so). The tab will say what the numbers show, not what the handover expects.
+- **Proposal (not yet applied; Anna decides):** one canonical DP5 uplift metric, `fan_uplift_pct` with estimator `DID_ADDITIVE` (already in the catalog, ADR-010), shown beside its naive companion and its interval, and cited by the tab, the Value page and the DP5 spec. `incremental_fan_accounts` stays a separate, differently named metric (accounts, not uplift) with its own label. The event study is cited as the **time profile** of that same estimate, never as a second headline. The handover's "household fan conversion rate" is renamed "fan engagement uplift" (or dropped). The catalog would also gain a one-line pointer from `incremental_fan_accounts` and from the event-study note to the canonical metric.
+
+### Youth to adult: does the generator model it, and does Phase 4 have values?
+- **The generator does not model any youth-to-adult continuation.** In `generator/population.py` (`_plan_person`) a minor's active years stop as soon as their age exceeds the youth maximum (`if p["is_minor"] and y - by > ymax: break`). Adults are separate individuals whose first season is as an adult (the adult churn band of 35% applies only to them). So no child plays on as an adult in the window, by construction.
+- **Phase 4 has no youth-to-adult transition metric.** `metric_catalog.csv` has none, and `mart_kpi_scorecard` has no such KPI. The only related figure is `youth_then_adult_participants` in the Phase 5 retention-versus-deletion check: **0 in the baseline** and in both scenarios (the note on it says the data cannot measure it). There is no fan-side transition either.
+- **Consequence:** "Youth-to-adult fan transition" is defined in the catalog and shown on the tab as "not measurable by design", with the proposed self-reported field as the only route to an aggregate figure.
 
 ## Consequences
 - The Data product tab can start from the existing marts and shares; the new modelling is the age-tier layer (build step 5) and the two monitoring marts (step 7).
-- Whatever Anna decides about the v1 pages sets how much page conversion Phase 6 contains.
+- Page conversion in Phase 6 is limited to three evidence charts (fan uplift, consent gap, markets). The Value page is removed from the navigation and demo path only.
