@@ -1,0 +1,41 @@
+# ADR-021: The data product portfolio, the MVP choice and the existing v1 pages (Phase 6)
+
+- **Status:** pre-flight only (2026-10-18). The proposals below are Anna's to accept; nothing has been changed on the site. The MVP choice and the prioritization scores are added when she sets them (build step 4).
+- **Numbering (a deviation from the Phase 6 handover).** The handover calls this ADR-018 and the age-tier ADR "ADR-019". Those numbers are taken (ADR-018 minimization and the data standard, ADR-019 consent provenance and the activation funnel, ADR-020 the site viewer). This ADR is **ADR-021**; the age-tier ADR will be **ADR-022**.
+- **Synthetic data.** There are no real users and no real consumers of anything described here. Personas, targets and usage are assumptions or placeholders, and are labelled so.
+
+## Context
+Phase 6 adds a **Data product** tab: three business goals (G1 grow NFL presence globally through flag; G2 grow flag in the US; G3 track conversion of participants and families to fans while protecting children) turned into five data products (DP1 Intake, DP2 Participant & Household Master, DP3 Global Participation Insights, DP4 US Flag Growth & Club Market Insights, DP5 Flag-to-Fan Conversion Insights), built from what Phases 1 to 5.1 already produced. The method is the project's own wording of a published framework (cited once, in `docs/product/README.md`); no third-party text, figure or checklist is reproduced.
+
+## Pre-flight findings
+1. **Phase 5.1 is finished.** The last full `make all-phases` (2026-10-15, after 5.1) passed: dbt 450 passed with 2 expected warnings, pytest 205, `site-check-ci` OK. Since then only the deploy files (`public/`, `render.yaml`) changed, so the baseline for this phase is that run. The 5.1 copy is still `status: draft` (Anna has not reviewed it); the product tab will reuse the same copy pipeline.
+2. **The three v1 pages were built outside the phase specs** and are **not** yet cards, so they have no plain-language copy, no viewer and no insight exports (5.1 left them out of scope). What they contain, and the proposal for each:
+
+| Page | Content | Which product or goal it evidences | Proposal |
+|---|---|---|---|
+| **Acquisition** | Incremental vs naive fan accounts vs the truth (`acq_estimates`); the drive chart from registered household to active fan; fan status of registered households; the fan, active, contactable, paying funnel; an event study by years since a market launched | DP5 (G3): how many fans flag creates, and why the naive count overstates it | **MERGE INTO product tab.** The incremental-vs-naive headline becomes the DP5 "household fan conversion" evidence (the handover requires both numbers on the page). Keep the page itself as the detailed evidence, linked from the DP5 card. |
+| **Value** | Matched before/after engagement uplift vs naive vs truth; two event studies; RFM segments; fan survival (Kaplan-Meier); modelled lifetime value; existing fans' events and spend after registering a child | The DiD uplift and fan-outcome marts are DP5 (G3). RFM, survival and lifetime value serve none of the three stated goals | **KEEP** (as evidence for DP5), but **MERGE only the DiD vs naive estimate** into the tab. Propose **RETIRE FROM THE TAB** (not from the data) for RFM, survival and lifetime value: they are fan-value analysis beyond G1 to G3. Anna decides whether the charts stay on the Value page or go. |
+| **Audience** | The addressable audience and the consent gap over time; where consent is captured (opt-in by capture point and channel); markets where flag and the fan base are each strong | Addressable audience and consent: DP5 (G3), and it is the "activatable households" input. The market quadrants serve G2 (DP4) | **MERGE INTO product tab** (consent gap and activatable households into DP5 and the age-tier funnel; market quadrants into DP4). Keep the page as evidence. |
+
+   None of the three would be deleted in the first pass: each is the detailed page behind a product card. The cost of "MERGE" is converting these charts to cards with plain copy and insight exports (about 16 charts). The "Never cut" list in the handover does not include them; if time is short, link to the existing pages instead of converting.
+3. **Repo artifacts the specs must reference, not restate** (checked to exist): `docs/playbook/onboard-a-source.md` and six onboarding logs, 16 contract files in `contracts/`, `docs/access_policy.md`, `docs/identity_resolution.md`, `docs/data-standard.md`, `docs/retention.md`, ADR-001 to ADR-020, `metric_catalog.csv`, `audience_column_policy.csv`.
+
+## Conflicts between the handover and the repo (the repo wins; Anna to confirm)
+| # | Handover says | Repo says | What I will do |
+|---|---|---|---|
+| 1 | ADR-018 and ADR-019 for this phase | Both numbers are taken | ADR-021 and ADR-022 |
+| 2 | Club market approximation is "ADR-014" | It is ADR-016 (ADR-014 is the DQ rule registry) | Cite ADR-016 |
+| 3 | DP4 output port `share_club__market_summary` | No such model; the share models are `share_club__market_year`, `__activation_funnel`, `__market_missingness`, `__chart_insights` | Bind DP4's ports to the real models; I will not create a model just to match a name |
+| 4 | DP1 and DP2 "output ports" must be in `share_*` schemas (DP2: a restricted schema with `audience: ops`) | DP1's natural outputs (`dq_rule_results`, `dq_fix_list`, contracts, the data standard) live in `quality`, not a `share_*` schema | Propose a small `share_ops` port for DP1 (the fix list and scorecards by league are already an ops share: check `share_ops` before adding anything) |
+| 5 | The COPPA row says that since 22 Apr 2026 a separate parental consent is needed before disclosing to third parties | The build deliberately does **not** resolve whether a club is a "third party" (CLAUDE.md, ADR-019, questions to stakeholders) | The row is seeded as a paraphrase with `verified = N`, labelled "project policy informed by, not legal advice". No model or page will conclude that a club is, or is not, a third party. Anna checks the wording and supplies the URL |
+| 6 | "Youth-to-adult fan transition" as a G3 KPI | The synthetic data has no child who plays on as an adult inside the window (the baseline figure is 0, ADR-017); the retention policy anonymizes at age-out, so linking a returning adult to their youth history is a loss by design | Define the metric in the catalog and the scorecard; it will read "not measurable in this data" rather than show a number |
+| 7 | Quality grades and the fix-list demo as evidence for "GEO fitness at grade C for spreadsheet leagues" (feedback-loop example) | The Phase 5 outputs are real, but the example must cite what they actually say (Q4 on the site: small leagues and spreadsheet senders have the weakest grades; the fix-list demo is a simulation on a copy) | The worked example will quote the actual outputs and label the simulation |
+
+## Decisions still needed from Anna (pause 1 of the handover)
+1. For Acquisition, Value and Audience: accept the proposals above, or change them. Nothing on the site changes until she does.
+2. Confirm ADR-021 and ADR-022 as the numbers.
+3. The tab's nav placement (a top-level "Data product" item by default; or under About).
+
+## Consequences
+- The Data product tab can start from the existing marts and shares; the new modelling is the age-tier layer (build step 5) and the two monitoring marts (step 7).
+- Whatever Anna decides about the v1 pages sets how much page conversion Phase 6 contains.
