@@ -553,7 +553,7 @@ seeds:
 
   - name: product_targets
     description: >-
-      Exit-criteria thresholds for the roadmap (Phase 6): the handover's X, Y, Z and N. Values are blank placeholders until Anna sets them; nothing here is a real target.
+      Exit-criteria thresholds for the roadmap (Phase 6): the handover's X, Y, Z and N. Draft values set by Anna on 2026-10-18 and still to be confirmed; they are placeholders, not real targets.
     config:
       tags: [phase6]
       column_types: {threshold_value: double}
@@ -562,4 +562,4 @@ seeds:
         data_tests: [unique, not_null]
       - name: status
         data_tests:
-          - accepted_values: {arguments: {values: [PLACEHOLDER, SET]}}
+          - accepted_values: {arguments: {values: [PLACEHOLDER, DRAFT, SET]}}
