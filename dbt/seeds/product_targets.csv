@@ -1,0 +1,5 @@
+target_id,product_id,release,metric,comparison,threshold_value,unit,current_value_source,status,note
+X,DP4,DP1 v1 + DP4 v1 (MVP),Share of US records fit for counting and for placing on the map,at least,,percent,quality.dq_scorecard_source (purpose COUNT and GEO),PLACEHOLDER,"Anna sets the threshold. Not invented."
+Y,DP2,DP2 v1 formalized + DP3 v1,Width of the identity range for the participant count,at most,,percent,quality.mart_uncertainty_decomposition (component IDENTITY),PLACEHOLDER,"Anna sets the threshold. Not invented."
+N,DP3,DP2 v1 formalized + DP3 v1,International federations contracted,at least,,count,contracts/INTL_FED.yml and the organization registry,PLACEHOLDER,"Anna sets the threshold. Not invented."
+Z,DP5,DP5 v0 (analytics only),Share of consent records whose provenance is fully known,at least,,percent,share_privacy.share_privacy__chart_insights (P1 pct_provenance_full),PLACEHOLDER,"Anna sets the threshold. Not invented."

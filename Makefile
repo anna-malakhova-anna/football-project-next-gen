@@ -3,9 +3,9 @@
 PY  := uv run python
 DBT := cd dbt && uv run dbt
 # Phase 1 builds and tests everything except the Phase 2 and Phase 3 models and their tests (dbt tags).
-P1  := --exclude tag:phase2 tag:phase3 tag:phase4 tag:phase5
-P2  := --exclude tag:phase3 tag:phase4 tag:phase5
-P3  := --exclude tag:phase4 tag:phase5
+P1  := --exclude tag:phase2 tag:phase3 tag:phase4 tag:phase5 tag:phase6
+P2  := --exclude tag:phase3 tag:phase4 tag:phase5 tag:phase6
+P3  := --exclude tag:phase4 tag:phase5 tag:phase6
 
 setup: dbt/profiles.yml
 	uv sync

@@ -536,3 +536,30 @@ seeds:
         data_tests: [unique, not_null]
       - name: plain_name
         data_tests: [not_null]
+
+  - name: product_prioritization
+    description: >-
+      Draft prioritization of the five data products (Phase 6). Scores 1 to 5 (for privacy_risk, 5 is riskiest). Proposed by Claude Code from the Phase 5 grades;
+      Anna sets the final scores. Priority = value + feasibility + readiness - privacy risk.
+    config:
+      tags: [phase6]
+      column_types: {value_to_goals: integer, feasibility_today: integer, data_readiness: integer, privacy_risk: integer}
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: [DRAFT, CONFIRMED]}}
+
+  - name: product_targets
+    description: >-
+      Exit-criteria thresholds for the roadmap (Phase 6): the handover's X, Y, Z and N. Values are blank placeholders until Anna sets them; nothing here is a real target.
+    config:
+      tags: [phase6]
+      column_types: {threshold_value: double}
+    columns:
+      - name: target_id
+        data_tests: [unique, not_null]
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: [PLACEHOLDER, SET]}}
