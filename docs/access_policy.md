@@ -296,6 +296,32 @@ policies (design only; not implemented).
 | `km_survival_ci_high` | DERIVED_RATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
+**`share_exec__roadmap_gates`**
+
+| Column | Treatment |
+|---|---|
+| `gate_id` | DIMENSION |
+| `product_id` | DIMENSION |
+| `kind` | DIMENSION |
+| `definition` | DIMENSION |
+| `plain_name` | DIMENSION |
+| `comparison` | DIMENSION |
+| `target` | DIMENSION |
+| `unit` | DIMENSION |
+| `baseline_2025` | DIMENSION |
+| `gate_for` | DIMENSION |
+| `source_model` | DIMENSION |
+| `source_field` | DIMENSION |
+| `current_value` | DERIVED |
+| `status` | DIMENSION |
+| `bar_fill_pct` | DERIVED |
+| `target_marker_pct` | DIMENSION |
+| `n_gates` | DERIVED |
+| `n_met` | DERIVED |
+| `blocking_gate_plain` | DIMENSION |
+| `status_text` | DIMENSION |
+| `value_text` | DIMENSION |
+
 Explicitly **not** available:
 
 | Column | Why |

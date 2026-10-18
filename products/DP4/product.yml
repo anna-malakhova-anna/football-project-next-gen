@@ -26,11 +26,6 @@ output_ports:
   audience: club
   grain: club market x year
   refresh: per season close
-- name: activation_funnel
-  model: share_club__activation_funnel
-  audience: club
-  grain: club market x year x step
-  refresh: per season close
 - name: market_missingness
   model: share_club__market_missingness
   audience: club
@@ -39,9 +34,9 @@ output_ports:
 input_products:
 - DP1
 - DP2
+- DP5
 sources_lineage:
   share_club__market_year: dbt/models/shares/club/share_club__market_year.sql
-  share_club__activation_funnel: dbt/models/shares/club/share_club__activation_funnel.sql
   share_club__market_missingness: dbt/models/shares/club/share_club__market_missingness.sql
 quality_indicator:
   from_model: dq_scorecard_market
@@ -112,3 +107,20 @@ health_metrics:
 - trust
 - privacy
 - cost
+
+# --- Where this product is formed (Phase 6 addendum, section 1).
+internal_models:
+- mart_retention_cohorts
+- mart_retention_survival
+- retention_spells
+- mart_market_coverage
+gate: DP2's ports and DP1's aggregate port (the market and league scorecards)
+share_models:
+- share_club__market_year
+- share_club__market_missingness
+- share_club__chart_insights
+- share_exec__market_quadrants
+- share_exec__retention_*
+aggregate_ports:
+- mart_market_coverage
+- mart_retention_survival

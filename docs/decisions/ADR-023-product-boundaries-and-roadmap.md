@@ -1,0 +1,17 @@
+# ADR-023: Product boundaries and the visual roadmap
+
+Status: proposed (Phase 6 addendum; Anna confirms). Synthetic project; every role is fictional.
+
+## Boundaries
+- A data product is an output port, not a layer. Each `product.yml` now lists `internal_models`, `share_models`, `output_ports`, `aggregate_ports` and `restricted_ports` (with named consumers). `products/shared_reference.yml` holds models that belong to no product (the answer-key harness `eval_*`, the goal scorecard, three governance share models, the roadmap gates).
+- `scripts/check_product_boundaries.py` (in `make product`, `tests/test_product_boundaries.py`): one owner per model; a model reads another product only through its ports; no port reads `raw`; nothing reads `evaluation`.
+- **Result:** 213 models, each owned once. 23 cross-product reads are not through a port. They are recorded in `products/boundary_debt.csv`, each with a candidate fix; none was refactored here. The main groups: DP1's record-level quality models read the DP2 master (to cost defects in participants); DP3's uncertainty and missingness marts read DP1's record fitness and DP2's clustering internals; the DP2 household timeline reads the DP5 fan link (a backwards read). Decision for Anna: widen the ports (fastest, wider restricted access) or move the logic (cleaner, a refactor).
+- Ownership choices to review: the person-grain facts and the household/consent models are DP2's (restricted ports for DP3 to DP5); the fan feed's staging belongs to DP1 (it is validated there) with DP5 as the only consumer; `share_club__activation_funnel` is DP5's port (it was listed under DP4 as well; DP4 now consumes it); `share_marketing` and `share_media` are DP2 internals (no product reads them).
+- The `p5_*` tables are assigned to DP1 (staging) or DP2 (identity chain) or DP5 (funnels). The duplicate `p5_idr_input_records` was reported in ADR-021 and is not removed.
+
+## Roadmap
+- Seeds `product_roadmap` (14 draft cards) and `product_targets` (gates; key renamed `target_id` to `gate_id`; new columns `plain_name`, `source_model`, `source_field`; `Z_ANALYTICS` is now kind PASS). Model `share_exec__roadmap_gates` computes value, status (MET, NOT_YET, PENDING), bar fill and wording in SQL; the site renders them. Six gate metrics are in `metric_catalog.csv` and the policy.
+- Current values (2025): X_COUNT and X_GEO 82.1 (target 85), Y 0.43% (limit 1%), N 1 country at counting grade B (target 6, approximate), Z_ANALYTICS 80.2% (met), Z_ACTIVATION 28.5% (target 75). 2 of 6 gates are met.
+- **Baseline conflict:** the addendum gives Z_ACTIVATION a baseline of 50.2%; that is the share of consent EVENTS with fully known provenance. The gate is defined on households with a marketing opt-in (544 of 1,912 = 28.5%), the definition already in `product_targets.csv`. The gate shows 28.5%. Anna decides which definition the gate uses.
+- Delivered mapping checked against the history: Phase 1 `fd9ec6a`, Phase 2 `b0719cd`, contracts and playbook Phase 4 steps 1 to 6 `734eac7`, fan-lift prototype Phase 4 `e401da2`, club markets Phase 5 `eca1e9d`. One addition: DP1 v0.5 also covers Phase 5 step 15 (six channel feeds onboarded, `57af908`).
+- The attached `roadmap-mockup.html` was not in the repository, so the layout follows the written description. When the file is supplied, compare and adjust.

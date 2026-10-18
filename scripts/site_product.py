@@ -11,6 +11,7 @@ from pathlib import Path
 
 import yaml
 
+from scripts import site_cards as sc
 from scripts import validate_products as vp
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -141,30 +142,66 @@ def prioritization_html(rows: list[dict]) -> str:
             f"<tbody>{body}</tbody></table><p class='note'>Scores 1 to 5 and DRAFT: proposed from the data quality grades, set by the program owner. Total = value + feasibility + readiness - privacy risk.</p></div>")
 
 
-def roadmap_html(targets: list[dict]) -> str:
-    rows = md_table(ROOT / "docs/product/roadmap.md")
-    # the Now / Next / Later table is the one whose header starts with Horizon
-    lines = (ROOT / "docs/product/roadmap.md").read_text(encoding="utf-8").splitlines()
-    i = next(n for n, l in enumerate(lines) if l.startswith("| Horizon"))
-    table = []
-    for l in lines[i:]:
-        if not l.startswith("|"):
-            break
-        cells = [c.strip() for c in l.strip().strip("|").split("|")]
-        if all(set(c) <= set("-: ") for c in cells):
-            continue
-        table.append(cells)
-    cols = {"Now": [], "Next": [], "Later": []}
-    for horizon, release, content, _exit in table[1:]:
-        key = re.sub(r"\*", "", horizon)
-        norm = lambda x: re.sub(r"[^a-z0-9,]", "", re.sub(r"\(the mvp\)|\(mvp\)", "", x.lower().replace("+", ",").replace("*", "")))  # noqa: E731
-        crit = [t for t in targets if norm(t["release"]) == norm(release)]
-        items = "".join(f"<li>{e(t['metric'])}: {e(t['comparison'])} <b>{t['threshold_value']:g}</b> {e(t['unit'])}"
-                        f"{' (guardrail, alert on breach)' if t['kind'] == 'GUARDRAIL' else ''}<span class='note'> from {t['baseline_2025']:g} today ({e(t['status'].lower())})</span></li>" for t in crit)
-        cols[key].append(f"<div class='vrelease'><h5>{md_inline(release)}</h5><p>{md_inline(content)}</p><ul>{items}</ul></div>")
-    board = "".join(f"<div class='vcol'><h4>{k}</h4>{''.join(v)}</div>" for k, v in cols.items())
-    return (f"<div class='vproduct'><div class='vboard'>{board}</div><p class='note'>No dates: now, next, later. The thresholds are draft values from the program owner, with the 2025 baseline beside each; "
-            "the exit rows with no threshold have none yet.</p></div>")
+HORIZONS = [("DELIVERED", "Delivered"), ("NOW", "Now"), ("NEXT", "Next"), ("LATER", "Later")]
+LANE_KIND = {"DP1": ("source", "Source-based"), "DP2": ("master", "Master"), "DP3": ("insights", "Insights"), "DP4": ("insights", "Insights"), "DP5": ("restricted", "Insights, restricted")}
+
+
+def _gate_html(r: dict) -> str:
+    """The gate of a roadmap card: bar with a target marker, status text and the value line. Every value is a column of share_exec__roadmap_gates; nothing is computed here."""
+    if not r["gate_id"]:
+        return ""
+    cls = {"MET": "met", "NOT_YET": "not", "PENDING": "pending"}[r["gate_status"]]
+    mark = {"MET": "", "PENDING": "… ", "NOT_YET": "○ "}[r["gate_status"]]  # the Met text already carries its tick
+    fill = "" if r["bar_fill_pct"] is None else f"<i style='width:{r['bar_fill_pct']}%'></i>"
+    return (f"<div class='vgate vg-{cls}'><div class='vgbar' role='img' aria-label='{e(r['gate_id'])}: {e(r['status_text'])}, {e(r['value_text'])}'>{fill}<b style='left:{r['target_marker_pct']}%'></b></div>"
+            f"<p class='vgtext'><span class='vgstat'>{mark}{e(r['status_text'])}</span> <span class='vgval'>{e(r['value_text'])}</span></p></div>")
+
+
+def _decision_html(r: dict) -> str:
+    if not r["decision_owner_role"]:
+        return ""
+    return f"<p class='vdec'><span class='vdia' aria-hidden='true'>◆</span> <b>{e(r['decision_owner_role'])}:</b> {e(r['decision_text'])}</p>"
+
+
+def roadmap_board_html(rows: list[dict], ps: dict, copy: dict, slide_of: dict) -> str:
+    """Swimlanes (one per product) by columns Delivered | Now | Next | Later. Cards open the full-screen viewer on their own slide."""
+    head = "".join(f"<div class='vr-colhead'>{label}</div>" for _k, label in HORIZONS)
+    lanes = ""
+    for pid, p in ps.items():
+        key, word = LANE_KIND[pid]
+        cells = ""
+        for hz, label in HORIZONS:
+            cards = ""
+            if pid == "DP4" and hz == "DELIVERED":
+                cards += f"<div class='vrpivot'><b>What we learned.</b> {e(copy['pivot'])}</div>"
+            for r in (x for x in rows if x["product_id"] == pid and x["horizon"] == hz):
+                chip = f"{e(r['version'])}" + (f" · {e(r['phase_ref'])}" if r["phase_ref"] else "")
+                cards += (f"<button type='button' class='vrcard' data-open='D10-{slide_of[id(r)]}' aria-label='Open details: {e(r['title'])}'><span class='vrhead'><span class='vrtitle'>{e(r['title'])}</span>"
+                          f"<span class='vrchip'>{chip}</span></span>{_gate_html(r)}{_decision_html(r)}</button>")
+            cells += f"<div class='vr-cell' data-col='{label}'>{cards}</div>"
+        lanes += (f"<div class='vr-lane vl-{key}'><div class='vr-label' title='{e(', '.join(SHORT_GOALS[g] for g in p['goals']))}'><span class='vr-type'>{e(word)}</span><b>{e(pid)} {e(p['name'])}</b>"
+                  f"<span class='vr-goal'>{e(', '.join(SHORT_GOALS[g] for g in p['goals']))}</span></div>{cells}</div>")
+    strip = "".join(f"<span class='vr-no'>{e(t)}</span>" for t in copy["not_doing"])
+    return (f"<div class='vroad' data-roadmap><div class='vr-head'><div class='vr-colhead vr-corner'></div>{head}</div>{lanes}"
+            f"<div class='vr-notdoing'><span class='vr-nlabel'>Not doing</span>{strip}</div>"
+            "<p class='note'>No dates: products move when their data is good enough and the right person has signed off. Bars show where a gate stands; the tick is the target. "
+            "◆ marks a decision. Targets are draft and set for a synthetic dataset.</p></div>")
+
+
+def roadmap_detail_html(r: dict, ps: dict) -> str:
+    p = ps[r["product_id"]]
+    rows = [("Product", f"{r['product_id']} {p['name']}"), ("Horizon", r["horizon"].title()), ("Version", r["version"])]
+    if r["phase_ref"]:
+        rows.append(("Delivered in", r["phase_ref"]))
+    if r["gate_id"]:
+        rows += [("Gate", f"{r['gate_id']} ({r['kind'].lower()})"), ("Definition", r["definition"]), ("Now", r["value_text"]), ("Status", r["status_text"]),
+                 ("2025 baseline", "pending" if r["baseline_2025"] is None else f"{r['baseline_2025']:g}"), ("Value comes from", f"{r['source_model']} ({r['source_field']})")]
+    if r["decision_owner_role"]:
+        rows.append(("Decision", f"{r['decision_owner_role']}: {r['decision_text']}"))
+    rows.append(("Card status", r["card_status"]))
+    body = "".join(f"<tr><th scope='row'>{e(k)}</th><td>{e(str(v))}</td></tr>" for k, v in rows)
+    return (f"<div class='vproduct'><h4>{e(r['title'])}</h4><table class='vtable vdetail'><tbody>{body}</tbody></table>"
+            "<p class='note'>Draft. The value is computed in SQL (share_exec__roadmap_gates); a missing value shows as baseline pending, never as 0.</p></div>")
 
 
 # ---------------------------------------------------------------- D5 product labels
@@ -359,7 +396,17 @@ def charts() -> dict:
         card=dict(id="D3", datasets=["product_prioritization"], thumb_html=lambda d: personas_html(True), open_slide=1, slides=lambda d: [dict(title="Six personas and what we would ask", key="PERSONAS", html=lambda dd: personas_html(False))]))
     C["d4_mvp"] = dict(page="product", title="The MVP and the roadmap", datasets=["product_prioritization", "product_targets"],
         card=dict(id="D4", datasets=["product_prioritization", "product_targets"], thumb_html=lambda d: prioritization_html(d["product_prioritization"]["rows"]), open_slide=1,
-                  slides=lambda d: [dict(title="Priorities", key="PRIO", html=lambda dd: prioritization_html(dd["product_prioritization"]["rows"])), dict(title="Now, next, later", key="ROADMAP", html=lambda dd: roadmap_html(dd["product_targets"]["rows"]))]))
+                  slides=lambda d: [dict(title="Priorities", key="PRIO", html=lambda dd: prioritization_html(dd["product_prioritization"]["rows"]))]))
+    def road_slides(d):
+        rows = d["roadmap"]["rows"]
+        return [dict(title=r["title"], key="CARD", html=(lambda r: lambda dd: roadmap_detail_html(r, ps))(r)) for r in rows]
+
+    def road_board(d):
+        rows = d["roadmap"]["rows"]
+        return roadmap_board_html(rows, ps, sc._state["copy"]["D10"], {id(r): i for i, r in enumerate(rows, 1)})
+
+    C["d10_roadmap"] = dict(page="product", title="The roadmap", datasets=["roadmap"],
+        card=dict(id="D10", datasets=["roadmap"], no_thumb=True, pre_html=road_board, open_slide=1, slides=road_slides))
     C["d5_labels"] = dict(page="product", title="The five products", datasets=["product_specs"],
         card=dict(id="D5", datasets=["product_specs"], thumb_html=lambda d: "<div class='vlabels'>" + "".join(label_html(pid, p, spec(d, pid), False) for pid, p in ps.items()) + "</div>", open_slide=1,
                   slides=lambda d: [dict(title=f"{pid} {p['name']}", key="LABEL", html=(lambda pid, p: lambda dd: label_html(pid, p, spec(dd, pid), True))(pid, p)) for pid, p in ps.items()]))

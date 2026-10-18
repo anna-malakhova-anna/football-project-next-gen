@@ -91,3 +91,77 @@ health_metrics:
 - trust
 - privacy
 - cost
+
+# --- Where this product is formed (Phase 6 addendum, section 1).
+internal_models:
+- idr_*
+- dim_participant
+- bridge_registration_participant
+- participant_identifiers
+- fct_participant_year
+- fct_participant_us_season
+- fct_registration
+- fct_reported_headcount
+- p5_blocking_keys
+- p5_candidate_pairs
+- p5_clusters
+- p5_clusters_probable
+- p5_idr_input_records
+- p5_pair_scores
+- p5_record_quality
+- p5_child
+- p5_consent_event
+- p5_household
+- p5_household_child
+- p5_record_person
+- int_household
+- int_household_profile
+- int_household_guarded_contacts
+- int_participant_household_timeline
+- int_consent_event
+- int_household_year_consent
+- int_participant_year_market
+- mart_retention_vs_deletion
+gate: DP1's restricted port (int_registrations_unioned)
+share_models:
+- share_ops__participant
+- share_ops__registration
+- share_ops__review_queue
+- share_marketing__*
+- share_media__*
+- share_privacy__retention_vs_deletion
+restricted_ports:
+- model: p5_record_quality
+  consumers: [DP1]
+- model: fct_reported_headcount
+  consumers: [DP3]
+- model: p5_household
+  consumers: [DP5]
+- model: p5_household_child
+  consumers: [DP5]
+- model: p5_consent_event
+  consumers: [DP5]
+- model: p5_record_person
+  consumers: [DP5]
+- model: dim_participant
+  consumers: [DP3, DP4, DP5]
+- model: bridge_registration_participant
+  consumers: [DP3, DP4, DP5]
+- model: fct_participant_year
+  consumers: [DP3, DP4, DP5]
+- model: fct_participant_us_season
+  consumers: [DP3, DP4, DP5]
+- model: fct_registration
+  consumers: [DP3, DP4, DP5]
+- model: int_household
+  consumers: [DP5]
+- model: int_household_profile
+  consumers: [DP5]
+- model: int_participant_household_timeline
+  consumers: [DP5]
+- model: int_consent_event
+  consumers: [DP5]
+- model: int_household_year_consent
+  consumers: [DP5, shared_reference]  # shared_reference: share_exec__roadmap_gates reads counts only
+- model: int_participant_year_market
+  consumers: [DP4, DP5]

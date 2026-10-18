@@ -146,3 +146,52 @@ health_metrics:
 - trust
 - privacy
 - cost
+
+# --- Where this product is formed (Phase 6 addendum, section 1). The linkage schema is restricted; only aggregates leave.
+internal_models:
+- dim_fan_account
+- fct_fan_*
+- int_fan_*
+- int_market_year_accounts
+- mart_acquisition_*
+- fct_household_*
+- int_household_audience_month
+- int_household_funnel_base
+- link_household_fan_account
+- linkage_*
+- mart_addressable_audience
+- mart_consent_capture
+- mart_fan_*
+- mart_household_shape_profile
+- mart_market_profile
+- mart_opt_out_after_contact
+- mart_activation_funnel
+- mart_activation_funnel_loss
+- mart_conversion_funnel_by_tier
+- int_age_out_carryover_check
+- int_consent_permissions
+- int_participant_age_tier
+- p5_consent_funnel
+- p5_consent_provenance_by_feed
+- p5_household_activation
+- p5_household_purpose_status
+- p5_purpose_limitation
+gate: DP2's ports (participant, household, consent events) and the fan feed
+share_models:
+- share_exec__acquisition_incrementality
+- share_exec__addressable_audience
+- share_exec__consent_capture
+- share_exec__fan_*
+- share_exec__household_link_rate
+- share_analyst__fan_*
+- share_club__activation_funnel
+- share_privacy__consent_provenance
+- share_privacy__conversion_funnel_by_tier
+- share_privacy__purpose_coverage
+aggregate_ports:
+- mart_conversion_funnel_by_tier
+- mart_activation_funnel
+- mart_market_profile
+- mart_acquisition_incrementality
+- mart_addressable_audience
+- mart_fan_funnel

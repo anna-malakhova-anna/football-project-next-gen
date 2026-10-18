@@ -322,7 +322,6 @@ charts:
     fallback_headline: "Start with US growth and intake. Conversion waits."
     slide_headline_templates:
       PRIO: "Intake scores {priority_dp1} and US growth {priority_dp4}. Conversion scores {priority_dp5}: sequenced, not dropped."
-      ROADMAP: "Now: intake and US growth. Next: the master and global. Later: contacting families."
     question: "What do we build first, and why?"
     means_club: "The real pain is thin, uneven data from US leagues. US growth with intake fixes that directly, and the fix list improves the supply while the product is in use."
     means_privacy: "Conversion needs reliable counts, households and consent first. Building it first would give confident numbers on weak ground."
@@ -331,7 +330,28 @@ charts:
     caution: "These scores and targets are drafts. The program owner sets the final ones."
     analyst_md: |
       Scores 1 to 5 from `dbt/seeds/product_prioritization.csv` (status DRAFT): value to the goals, feasibility today, data readiness (from the Phase 5 grades) and privacy risk. Total = value + feasibility + readiness - privacy risk.
-      Exit rows from `dbt/seeds/product_targets.csv` (DRAFT thresholds set by the program owner, with 2025 baselines). The identity range is a guardrail, not a target.
+      Gates and the roadmap are on the next card (`dbt/seeds/product_targets.csv`, `product_roadmap.csv`). The identity range is a guardrail, not a target.
+  D10:
+    status: draft
+    headline_template: "{n_met} of {n_gates} release gates are met. The MVP is waiting on {blocking_gate_plain}."
+    fallback_headline: "Release gates decide when each product moves. The MVP waits on the US league grades."
+    slide_headline_templates: {}
+    question: "What has to be true before each product moves forward?"
+    means_club: "Products move forward when their data is good enough and the right person has signed off, not on a date."
+    means_privacy: "Each step that reaches families waits for a privacy sign-off and, for contact by clubs, a separate guardian consent."
+    action_club: "Clear the counting and geography grade gap with the leagues first; it unblocks the MVP."
+    action_privacy: "Hold contact by clubs until the separate guardian consent for club contact is captured at registration."
+    caution: "Targets are draft and set for a synthetic dataset."
+    pivot: "We learned the real pain point was thin, poor-quality data, not consent to contact. Intake and data quality moved first."
+    not_doing:
+      - "marketing to anyone under 18"
+      - "fuzzy matching of families to fan accounts"
+      - "buying outside data about kids"
+      - "scoring the value of flag families"
+      - "carrying a youth record past 18"
+    analyst_md: |
+      Cards come from `dbt/seeds/product_roadmap.csv` (one row per card, status draft). Gates come from `dbt/seeds/product_targets.csv`; their current value, status and bar are computed in SQL by `share_exec__roadmap_gates` and only rendered here.
+      A gate is MET when its comparison holds, NOT_YET when it does not, and PENDING (shown as baseline pending, never 0) when its source value is missing. Open a card to see the gate's definition, its source model and field.
   D5:
     status: draft
     headline_template: "Each product has a label: owner, version, live quality grade and rules for use."

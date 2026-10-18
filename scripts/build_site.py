@@ -46,7 +46,7 @@ APPROVED_AGGREGATES |= P5.APPROVED
 APPROVED_AGGREGATES |= {"phase6.mart_goal_scorecard", "phase6.mart_product_health", "phase6.mart_product_adoption"}
 EVAL_WHITELIST |= P5.EVAL
 GOVERNANCE_WHITELIST |= P5.GOVERNANCE
-GOVERNANCE_WHITELIST |= {"reference.product_prioritization", "reference.product_targets", "reference.age_consent_rules"}
+GOVERNANCE_WHITELIST |= {"reference.product_prioritization", "reference.product_targets", "reference.age_consent_rules", "reference.product_roadmap"}
 FORBIDDEN_TRANSFORMS = {"calculate", "aggregate", "joinaggregate", "window", "bin", "fold", "pivot", "regression", "loess", "density", "timeUnit", "stack"}
 LIBS = ["https://cdn.jsdelivr.net/npm/vega@5", "https://cdn.jsdelivr.net/npm/vega-lite@5", "https://cdn.jsdelivr.net/npm/vega-embed@6"]
 
@@ -237,8 +237,15 @@ DATASETS += [
                case when value_to_goals >= 4 and data_readiness <= 2 then 'High value, low readiness: sequenced, not deprioritized'
                     when rank() over (order by value_to_goals + feasibility_today + data_readiness - privacy_risk desc) <= 2 then 'Build first' else 'Next' end as reading, rationale, status
         from reference.product_prioritization order by total desc, product_id""", ["reference.product_prioritization"], "governance", "Draft priority of the five data products"),
-    _D("product_targets", "select target_id, product_id, release, kind, metric, comparison, threshold_value, unit, baseline_2025, status from reference.product_targets order by target_id",
+    _D("product_targets", "select gate_id, product_id, release, kind, metric, comparison, threshold_value, unit, baseline_2025, status from reference.product_targets order by gate_id",
        ["reference.product_targets"], "governance", "Draft exit criteria and guardrails with their 2025 baselines"),
+    _D("roadmap", """
+        select r.product_id, r.horizon, case r.horizon when 'DELIVERED' then 1 when 'NOW' then 2 when 'NEXT' then 3 else 4 end as horizon_order, r.version, r.title, r.phase_ref, r.gate_id,
+               r.decision_owner_role, r.decision_text, r.status as card_status,
+               g.kind, g.definition, g.comparison, g.target, g.unit, g.baseline_2025, g.source_model, g.source_field, g.current_value, g.status as gate_status, g.status_text, g.value_text,
+               g.bar_fill_pct, g.target_marker_pct, g.n_met, g.n_gates, g.blocking_gate_plain
+        from reference.product_roadmap r left join share_exec.share_exec__roadmap_gates g using (gate_id) order by r.product_id, horizon_order, r.version""",
+       ["reference.product_roadmap", "share_exec.share_exec__roadmap_gates"], "governance", "Roadmap cards with their release gates (values computed in SQL)"),
     _D("age_rules", "select jurisdiction, age_min, age_max, who_consents, allowed_purposes, prohibited_purposes, verified, project_policy from reference.age_consent_rules order by jurisdiction, age_min",
        ["reference.age_consent_rules"], "governance", "Age-tier consent rules (project policy; every row unverified)"),
     _D("conv_tier", """

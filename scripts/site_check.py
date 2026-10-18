@@ -70,6 +70,8 @@ def check_page(page, base: str, slug: str, insights: set[str]) -> list[str]:
         for t in page.locator(".vthumb svg text").all():
             if (t.text_content() or "").rstrip().endswith("…"):
                 bad(f"{slug}@{width}: truncated label in a thumbnail: {t.text_content()!r}")
+    if slug == "product":
+        fails += check_roadmap(page, base)
     # ---- print page count
     page.set_viewport_size({"width": 1440, "height": 900})
     page.goto(f"{base}/{slug}.html")
@@ -181,6 +183,45 @@ def check_page(page, base: str, slug: str, insights: set[str]) -> list[str]:
         club, priv = html.count("Club lens \\u00b7"), html.count("Privacy lens \\u00b7")
         if not club == priv >= 6:
             bad(f"markets: the two-lenses panels are not paired (club {club}, privacy {priv})")
+    return fails
+
+
+def check_roadmap(page, base: str) -> list[str]:
+    """Phase 6 addendum, section 3: the roadmap fits 1440x900, nothing overflows, lanes stack at 390, a PENDING gate never renders as 0 or an empty bar, and values come only from the gates model."""
+    fails: list[str] = []
+    page.set_viewport_size({"width": 1440, "height": 900})
+    page.goto(f"{base}/product.html")
+    page.wait_for_load_state("networkidle")
+    road = page.locator("[data-roadmap]")
+    if road.count() != 1:
+        return ["product: the roadmap section is missing"]
+    box = road.bounding_box()
+    if box["height"] > 780:     # the card headline and the roadmap must fit one 900px viewport
+        fails.append(f"product: the roadmap is {box['height']:.0f}px tall at 1440x900 (limit 780)")
+    if road.evaluate("e => e.scrollWidth - e.clientWidth") > 1:
+        fails.append("product: the roadmap overflows sideways at 1440")
+    lanes = page.locator(".vr-lane").count()
+    if lanes != 5:
+        fails.append(f"product: {lanes} roadmap lanes, expected 5")
+    for g in page.locator(".vgate").all():
+        text = g.inner_text()
+        pending = "vg-pending" in (g.get_attribute("class") or "")
+        if pending and (g.locator(".vgbar i").count() or "baseline pending" not in text.lower() or re.search(r"now 0\b", text)):
+            fails.append(f"product: a PENDING gate is drawn as a value or a filled bar: {text!r}")
+        if not pending and not g.locator(".vgbar i").count():
+            fails.append(f"product: a gate with a value has an empty bar: {text!r}")
+        if not re.search(r"Met|Not yet|pending", text):
+            fails.append(f"product: a gate shows no status text (colour alone): {text!r}")
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(f"{base}/product.html")
+    page.wait_for_load_state("networkidle")
+    cols = page.locator(".vr-lane").first.evaluate("e => getComputedStyle(e).gridTemplateColumns.split(' ').length")
+    if cols != 1:
+        fails.append(f"product: roadmap lanes do not stack at 390px ({cols} columns)")
+    if page.evaluate("document.documentElement.scrollWidth - window.innerWidth") > 1:
+        fails.append("product: the roadmap makes the page wider than the window at 390")
+    if page.locator(".vr-head").first.is_visible():
+        fails.append("product: the roadmap column header row still shows at 390 (each cell should carry its own column name)")
     return fails
 
 

@@ -558,14 +558,35 @@ seeds:
       tags: [phase6]
       column_types: {threshold_value: double, baseline_2025: double}
     columns:
-      - name: target_id
+      - name: gate_id
         data_tests: [unique, not_null]
       - name: kind
         data_tests:
-          - accepted_values: {arguments: {values: [TARGET, GUARDRAIL]}}
+          - accepted_values: {arguments: {values: [TARGET, GUARDRAIL, PASS]}}
       - name: status
         data_tests:
           - accepted_values: {arguments: {values: [PLACEHOLDER, DRAFT, SET]}}
+
+  - name: product_roadmap
+    description: >-
+      The visual roadmap (Phase 6 addendum): one row per card, by product and horizon (DELIVERED, NOW, NEXT, LATER; no dates). A card may point at a release gate (product_targets.gate_id) and/or
+      carry a decision with an owner role. Rows are DRAFT until Anna confirms them. Delivered rows cite the phase that delivered them (checked against the repo history).
+    config:
+      tags: [phase6]
+    columns:
+      - name: product_id
+        data_tests:
+          - not_null
+          - accepted_values: {arguments: {values: [DP1, DP2, DP3, DP4, DP5]}}
+      - name: horizon
+        data_tests:
+          - accepted_values: {arguments: {values: [DELIVERED, NOW, NEXT, LATER]}}
+      - name: gate_id
+        data_tests:
+          - relationships: {arguments: {to: ref('product_targets'), field: gate_id}, config: {where: "gate_id is not null"}}
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: [draft, confirmed]}}
 
   - name: age_consent_rules
     description: >-

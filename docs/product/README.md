@@ -37,6 +37,19 @@ Five stages. Each is implemented by artifacts already in the repo or added in Ph
 4. **Package and deliver.** One consistent label per product (name, version, quality indicator, type, owner, consumers, terms, coverage, support), a delivery channel, release management and a retirement plan. Artifacts: `products/DPn/product.yml`, `terms/`, `products/CHANGELOG.md`.
 5. **Monitor and observe.** Two separate views: inside (is the product healthy: quality, freshness, contracts, pipeline, trust, privacy, cost) and outside (is anyone using it, and is it moving the goal). Artifacts: `mart_product_health`, `mart_goal_scorecard`, `feedback-loop.md`.
 
+## Where each product is formed
+A data product is not a layer. It is a governed **output port** (an owner, a contract, a version) on top of internal models. Each product forms at the point where its data first becomes fit and safe for a named reader. `raw` is never a product: it is unchanged, unchecked and full of children's personal data. In the medallion picture, DP1 and DP2 are source-aligned (silver) and DP3 to DP5 are consumer-aligned (gold). The `share_*` schemas are the ports.
+
+| Product | Formed where (the gate) | Kept inside (not for others to read) | What others may read |
+|---|---|---|---|
+| DP1 League Registration Intake | At `raw`: each file is checked against its contract and the data standard | Staging, the DQ rules and their results | **Restricted:** the checked registrations, for DP2 only. **Aggregate:** quality scorecards, fix lists and contract status |
+| DP2 Participant and Household Master | On DP1's restricted port | Matching, clustering, the review queue | `share_ops`; the participant, household and consent tables as restricted ports for DP3 to DP5 only |
+| DP3 Global Participation | On DP2's ports | Facts and measurement tables | `share_exec` |
+| DP4 US Growth and Club Markets | On DP2's ports and DP1's aggregate port | Market models | `share_club` (and `share_exec`) |
+| DP5 Flag-to-Fan Conversion | On DP2's ports and the fan feed | The `linkage` schema (restricted) | Aggregates only, in `share_exec`, `share_club` and `share_privacy` |
+
+`scripts/check_product_boundaries.py` enforces it (part of `make product`): every model has one owner, a model reads another product only through a declared port, and no port reads `raw` directly. Cross-product reads that exist today are listed with a reason in `products/boundary_debt.csv`; a new one fails the check, and a row that stops applying must be removed.
+
 ## Reference
 Structure informed by Gartner's data product guidance framework (2024).
 

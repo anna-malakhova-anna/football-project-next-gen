@@ -21,7 +21,7 @@ from scripts import validate_products as vp
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = vp.DB
-GUARDRAIL_IDENTITY_PCT = "Y"      # product_targets.target_id of the identity guardrail (read from the seed)
+GUARDRAIL_IDENTITY_PCT = "Y"      # product_targets.gate_id of the identity guardrail (read from the seed)
 
 USAGE_DDL = """create table if not exists phase6_ops.ops_product_usage_log (
     event_id varchar, event_ts timestamp, product_id varchar, output_port varchar, consumer_role varchar,
@@ -76,7 +76,7 @@ def build(con) -> list[tuple]:
     inv = con.execute("select invocation_id from phase6_ops.ops_dbt_run_results order by run_at desc limit 1").fetchone()
     build_id = inv[0] if inv else "no-run-recorded"
     unverified = con.execute("select count(*) from reference.age_consent_rules where verified <> 'Y'").fetchone()[0]
-    guard = con.execute("select threshold_value from reference.product_targets where target_id = ?", [GUARDRAIL_IDENTITY_PCT]).fetchone()
+    guard = con.execute("select threshold_value from reference.product_targets where gate_id = ?", [GUARDRAIL_IDENTITY_PCT]).fetchone()
     policy = con.execute("select coalesce(sum(violations), 0) from share_privacy.share_privacy__policy_checks").fetchone()[0]
     review = con.execute("select count(*) from share_ops.share_ops__review_queue").fetchone()[0]
     restate = con.execute("select count(*) from measurement.mart_restatement_log").fetchone()[0]

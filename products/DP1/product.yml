@@ -94,3 +94,51 @@ health_metrics:
 - pipeline
 - privacy
 - cost
+
+# --- Where this product is formed (Phase 6 addendum, section 1). Internal models are owned and not consumable; only the ports are.
+internal_models:
+- stg_us_registrations
+- stg_ca_registrations
+- stg_intl_registrations
+- stg_school_headcounts
+- stg_fan_*
+- stg_p5_registrations
+- int_registrations_unioned
+- int_registration_market
+- dq_*
+- int_dark_org_coverage
+- mart_dq_impact
+- mart_minimization_fitness
+- mart_reidentification_risk
+share_models:
+- share_ops__league_*
+- share_privacy__minimization_frontier
+gate: contract validation against the landing tables (raw), then the data standard and the DQ rules
+aggregate_ports:
+- dq_scorecard_source
+- dq_scorecard_org
+- dq_scorecard_market
+- dq_trend
+- dq_fix_list
+- dq_summary
+- dq_org_season_base
+- int_dark_org_coverage
+- mart_dq_impact
+restricted_ports:
+- model: int_registrations_unioned
+  consumers: [DP2]
+- model: int_registration_market
+  consumers: [DP2]
+- model: stg_school_headcounts
+  consumers: [DP2]
+- model: stg_p5_registrations
+  consumers: [DP2]
+# the fan feed: DP1 takes it in and validates it; DP5 is its only consumer
+- model: stg_fan_accounts
+  consumers: [DP5]
+- model: stg_fan_consent_events
+  consumers: [DP5]
+- model: stg_fan_events
+  consumers: [DP5]
+- model: stg_fan_transactions
+  consumers: [DP5]

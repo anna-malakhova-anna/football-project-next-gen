@@ -37,3 +37,6 @@ Reading it
 - **Dotted line:** DP1 gives something back to the supplier, the fix list and the data standard. That is why a volunteer league has a reason to send the data.
 - **Restricted zones** (identity, household, linkage) are never an output port. Only aggregates leave them, through the share schemas.
 - **The age gate and the consent gate sit in front of DP5** and anything that activates a household (section 4 of the handover, ADR-022). Analytics on linked households is allowed under the project's household linkage policy (ADR-009); activation is allowed only with the guardian's permission for the purpose.
+
+## Where each product is formed
+See the table in [README.md](README.md#where-each-product-formed). A product is an output port with an owner, a contract and a version; its internal models are not for others to read. The ports are declared in each `products/DPn/product.yml` (`output_ports`, `aggregate_ports`, `restricted_ports`; models listed under `internal_models` and `share_models`).

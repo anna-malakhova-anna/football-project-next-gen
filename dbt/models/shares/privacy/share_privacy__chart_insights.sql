@@ -1,6 +1,6 @@
 {{ config(tags=['phase6']) }}
 -- PRIVACY share: the numbers inside headline sentences on the privacy page (Phase 5.1, section 5.2), computed and rounded here. Long format as share_club__chart_insights.
--- Reads other share_privacy models only (already aggregated and suppressed); shares are whole percents.
+-- Reads other share_privacy models and share_exec__roadmap_gates (all already aggregated); shares are whole percents.
 with
 prov as (
     select sum(consent_events) as total, sum(consent_events) filter (where provenance_grade = 'KNOWN_FULL') as full_known
@@ -59,6 +59,9 @@ rows_ as (
     union all select 'D4', 'both', 'priority_dp4', cast(total as varchar), total * 1.0 from prio where product_id = 'DP4'
     union all select 'D4', 'both', 'priority_dp5', cast(total as varchar), total * 1.0 from prio where product_id = 'DP5'
     union all select 'D4', 'both', 'priority_max', cast(max(total) as varchar), max(total) * 1.0 from prio
+    union all select 'D10', 'both', 'n_met', cast(n_met as varchar), n_met * 1.0 from (select distinct n_met from {{ ref('share_exec__roadmap_gates') }})
+    union all select 'D10', 'both', 'n_gates', cast(n_gates as varchar), n_gates * 1.0 from (select distinct n_gates from {{ ref('share_exec__roadmap_gates') }})
+    union all select 'D10', 'both', 'blocking_gate_plain', blocking_gate_plain, cast(null as double) from (select distinct blocking_gate_plain from {{ ref('share_exec__roadmap_gates') }})
     union all select 'D6', 'privacy', 'n_minor_rows', cast(n_minor_rows as varchar), n_minor_rows * 1.0 from rules
     union all select 'D6', 'privacy', 'n_minor_guardian_rows', cast(n_minor_guardian_rows as varchar), n_minor_guardian_rows * 1.0 from rules
     union all select 'D6', 'privacy', 'n_unverified_rules', cast(n_unverified as varchar), n_unverified * 1.0 from rules

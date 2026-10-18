@@ -1,0 +1,10 @@
+# Models that belong to no single product (Phase 6 addendum, section 1.1). They may be read by anyone; they may read product models only through declared ports.
+# Seeds (reference tables such as division_map) are not models and are shared_reference by nature.
+# evaluation/* is the answer-key harness: it reads ground truth, and NOTHING reads it (the checker fails on any reader). It is not a product.
+models:
+- eval_*
+- mart_goal_scorecard
+- share_privacy__policy_checks
+- share_privacy__analyst_k_anonymity
+- share_privacy__chart_insights
+- share_exec__roadmap_gates

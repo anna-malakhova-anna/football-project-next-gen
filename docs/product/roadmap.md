@@ -1,5 +1,7 @@
 # Roadmap: vision, MVP, now / next / later
 
+> **The tab shows a visual, gate-driven roadmap** built from `dbt/seeds/product_roadmap.csv` and the gates in `dbt/seeds/product_targets.csv`, computed by `share_exec__roadmap_gates` (all rows draft). The table below is the earlier text version.
+>
 > **Draft for Anna.** The scores are proposals (`dbt/seeds/product_prioritization.csv`, status `DRAFT`), the MVP is a recommendation she confirms, and every target is a blank placeholder in `dbt/seeds/product_targets.csv`. Nothing here is a real target. Synthetic data.
 
 ## Vision

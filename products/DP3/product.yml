@@ -99,3 +99,22 @@ health_metrics:
 - trust
 - privacy
 - cost
+
+# --- Where this product is formed (Phase 6 addendum, section 1).
+internal_models:
+- mart_identity_uncertainty
+- mart_kpi_scorecard
+- mart_participation_*
+- mart_reported_headcount
+- mart_restatement_log
+- mart_uncertainty_decomposition
+- mart_missingness_bias
+- mart_missingness_tests
+gate: DP2's ports (participant master and person-grain facts)
+share_models:
+- share_exec__participation_*
+- share_exec__reported_headcount
+- share_analyst__participant_year
+aggregate_ports:
+- mart_uncertainty_decomposition
+- mart_missingness_bias

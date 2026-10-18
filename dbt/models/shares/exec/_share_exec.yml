@@ -321,3 +321,38 @@ models:
         meta: {pii: none}
         data_tests:
           - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}
+
+  - name: share_exec__roadmap_gates
+    description: >
+      Release gates of the roadmap (Phase 6 addendum): one row per gate with its current value, status (MET, NOT_YET, PENDING) and bar geometry, computed in SQL from existing exports.
+      Aggregate scores and percents only. Draft targets on a synthetic dataset. PENDING is shown as "baseline pending", never as 0.
+    columns:
+      - {name: product_id, meta: {pii: none}}
+      - {name: definition, meta: {pii: none}}
+      - {name: plain_name, meta: {pii: none}}
+      - {name: comparison, meta: {pii: none}}
+      - {name: target, meta: {pii: none}}
+      - {name: unit, meta: {pii: none}}
+      - {name: baseline_2025, meta: {pii: none}}
+      - {name: gate_for, meta: {pii: none}}
+      - {name: source_model, meta: {pii: none}}
+      - {name: source_field, meta: {pii: none}}
+      - {name: current_value, meta: {pii: none}}
+      - {name: bar_fill_pct, meta: {pii: none}}
+      - {name: target_marker_pct, meta: {pii: none}}
+      - {name: status_text, meta: {pii: none}}
+      - {name: value_text, meta: {pii: none}}
+      - {name: n_gates, meta: {pii: none}}
+      - {name: n_met, meta: {pii: none}}
+      - {name: blocking_gate_plain, meta: {pii: none}}
+      - name: gate_id
+        meta: {pii: none}
+        data_tests: [unique, not_null]
+      - name: kind
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [TARGET, GUARDRAIL, PASS]}}
+      - name: status
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [MET, NOT_YET, PENDING]}}
