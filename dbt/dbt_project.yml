@@ -11,6 +11,10 @@ target-path: target
 clean-targets: ["target", "dbt_packages"]
 
 vars:
+  # Age tiers (Phase 6, ADR-022): the first age of each tier, as of the Dec 31 cutoff. U13 is below the first; ADULT is the last.
+  age_tier_13_15_from: 13
+  age_tier_16_17_from: 16
+  age_tier_adult_from: 18
   # Age convention (ADR-002): age is computed as of this month-day of the season year.
   age_cutoff_month_day: "12-31"
   # Gmail dot/plus-address folding is OFF: it can merge distinct people (see normalize_email).
@@ -94,6 +98,13 @@ models:
       consent:
         # household and consent models: restricted zone. Nothing in them reaches a club except through the aggregate funnel (phase5 schema).
         +schema: phase5_restricted
+    phase6:
+      +materialized: table
+      +schema: phase6
+      +tags: ['phase6']
+      restricted:
+        # participant- and household-keyed policy models: restricted zone. Only counts leave it (mart_conversion_funnel_by_tier).
+        +schema: phase6_restricted
     shares:
       +materialized: table
       +tags: ['phase3']

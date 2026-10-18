@@ -1,0 +1,46 @@
+version: 2
+
+# Phase 6 (ADR-022): the age-tier and guardian-consent layer for G3. Participant- and household-keyed models live in the restricted schema phase6_restricted; only counts leave it.
+
+models:
+  - name: int_participant_age_tier
+    description: >
+      RESTRICTED. Participant x participation year: age tier (U13, 13_15, 16_17, ADULT, UNKNOWN) from the Dec 31 age convention (ADR-002), and the age-rule jurisdiction from the participant's country and region.
+    columns:
+      - {name: participant_id, data_tests: [not_null]}
+      - {name: participation_year, data_tests: [not_null]}
+      - name: age_tier
+        data_tests:
+          - accepted_values: {arguments: {values: [U13, '13_15', '16_17', ADULT, UNKNOWN]}}
+      - {name: jurisdiction, data_tests: [not_null]}
+
+  - name: int_consent_permissions
+    description: >
+      RESTRICTED. Household (guardian side) x purpose as of the household's last participation year: is the contact permitted, and why. The most restrictive child governs. Keyed by household only; no participant column.
+      Permitted is Y only when the rules allow the purpose and it is covered (league operations by the registration; every other purpose by a guardian consent with full provenance). A blank is never a yes.
+    columns:
+      - {name: household_id, data_tests: [not_null]}
+      - name: permitted
+        data_tests:
+          - accepted_values: {arguments: {values: ['Y', 'N']}}
+      - name: consent_status
+        data_tests:
+          - accepted_values: {arguments: {values: [GRANTED_FULL, GRANTED_INCOMPLETE, DECLINED, REVOKED, NOT_CAPTURED]}}
+      - name: basis
+        data_tests:
+          - accepted_values: {arguments: {values: [REGISTRATION, GUARDIAN_CONSENT, NONE]}}
+
+  - name: mart_conversion_funnel_by_tier
+    description: >
+      DP5. Households by the age tier of the youngest child: registered, linked to a fan account, engaged, purchased (analytics only) and consented to club marketing (activation). Counts only; a step is hidden
+      when it or the step it follows is below k_min.
+    columns:
+      - name: age_tier
+        data_tests:
+          - accepted_values: {arguments: {values: [U13, '13_15', '16_17', ADULT, UNKNOWN]}}
+      - name: kind
+        data_tests:
+          - accepted_values: {arguments: {values: [ANALYTICS_ONLY, ACTIVATION]}}
+      - name: suppressed
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY, SECONDARY]}}

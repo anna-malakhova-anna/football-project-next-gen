@@ -563,3 +563,35 @@ seeds:
       - name: status
         data_tests:
           - accepted_values: {arguments: {values: [PLACEHOLDER, DRAFT, SET]}}
+
+  - name: age_consent_rules
+    description: >-
+      Age-tier consent policy by jurisdiction and age band (Phase 6, ADR-022). One row per jurisdiction and band. Rule text is a paraphrase and project policy informed by public rules, not legal advice;
+      source_url is left for Anna. Every row carries verified Y or N; all rows are N until Anna checks them. Where a rule is unknown or unverified the strictest row applies (guardian-only for all minors).
+      Purpose ids follow the linkage consent events (LEAGUE_OPS, LEAGUE_COMMS, PHOTO_MEDIA, CLUB_MARKETING, PARTNER_DISCLOSURE, PROFILING).
+    config:
+      tags: [phase6]
+      column_types: {age_min: integer, age_max: integer}
+    columns:
+      - name: jurisdiction
+        data_tests: [not_null]
+      - name: who_consents
+        data_tests:
+          - accepted_values: {arguments: {values: [GUARDIAN, SELF, SELF_AND_GUARDIAN]}}
+      - name: verified
+        data_tests:
+          - not_null
+          - accepted_values: {arguments: {values: ['Y', 'N']}}
+      - name: project_policy
+        data_tests:
+          - accepted_values: {arguments: {values: ['Y', 'N']}}
+
+  - name: age_consent_jurisdiction_map
+    description: Which age-rule jurisdiction applies to a participant's country and region (Phase 6). A blank region matches every region of the country; a country not listed falls back to DEFAULT, the strictest rows.
+    config:
+      tags: [phase6]
+    columns:
+      - name: country_code
+        data_tests: [not_null]
+      - name: jurisdiction
+        data_tests: [not_null]

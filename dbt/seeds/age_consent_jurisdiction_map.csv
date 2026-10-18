@@ -1,0 +1,11 @@
+country_code,region_code,jurisdiction
+US,CA,US_CA
+US,,US_FED
+CA,QC,CA_QC
+CA,,CA_OTHER
+AT,,EU
+DE,,EU
+GB,,GB
+MX,,DEFAULT
+JP,,DEFAULT
+PA,,DEFAULT

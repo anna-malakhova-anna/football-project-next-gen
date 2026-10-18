@@ -294,6 +294,7 @@ docs:
 	$(PY) -m scripts.build_data_dictionary
 	$(PY) -m scripts.build_metrics_doc
 	$(PY) -m scripts.build_access_policy
+	$(PY) -m scripts.build_age_rules_doc
 
 clean:
 	rm -rf data/raw/* data/ground_truth/* warehouse/* dbt/target dbt/logs dbt/dbt_packages

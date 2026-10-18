@@ -94,3 +94,12 @@ The numbers come from the current synthetic build and change if the generator ra
 
 ## Sources
 NFL FLAG Privacy Policy (https://nflflag.com/policy) and FAQ (https://nflflag.com/faq); Finnegan on the amended COPPA Rule (https://www.finnegan.com/en/insights/articles/coppas-amended-rule-is-now-in-full-effect-what-operators-need-to-know.html). Whether a club is a "third party" for COPPA purposes, given joint ownership, is an open question for the privacy lead and is not resolved here.
+
+## Proposed additions (not in the standard)
+
+These are proposals from Phase 6. They are **not** part of the minimum data standard until the program owner accepts them (and the standard's seed, tests and the contracts are updated together).
+
+| Proposed field | Where asked | Why | Handling |
+|---|---|---|---|
+| `played_youth_flag`: a self-reported yes or no answer to "Did you play flag football as a child?" | At **adult** registration only, optional | The only way to measure the youth-to-adult transition without breaking the project's own rules (fresh consent at 18, no carry-over of the youth profile, age-out deletion). Without it that transition is "not measurable by design" (ADR-022) | Aggregate only: counted, never linked to any youth record, never used to find a person, and not stored with a youth identifier. Optional; blank means not answered, never no. A purpose of its own in the consent taxonomy would need the privacy lead's approval |
+
