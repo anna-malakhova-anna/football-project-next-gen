@@ -1,6 +1,6 @@
 # ADR-021: The data product portfolio, the MVP choice and the existing v1 pages (Phase 6)
 
-- **Status:** pre-flight decisions taken (2026-10-18); the MVP choice and the prioritization scores are added when Anna sets them (build step 4). Nothing on the site has changed yet.
+- **Status:** accepted for the build (2026-10-18). **MVP confirmed by Anna: DP4 (US growth and club markets) with DP1 (intake) as its foundation.** The prioritization scores and the exit targets are DRAFT; Anna sets the final values in `product_prioritization.csv` and `product_targets.csv`.
 - **Numbering (a deviation from the Phase 6 handover).** The handover calls this ADR-018 and the age-tier ADR "ADR-019". Those numbers are taken (ADR-018 minimization and the data standard, ADR-019 consent provenance and the activation funnel, ADR-020 the site viewer). This ADR is **ADR-021**; the age-tier ADR will be **ADR-022**.
 - **Synthetic data.** There are no real users and no real consumers of anything described here. Personas, targets and usage are assumptions or placeholders, and are labelled so.
 

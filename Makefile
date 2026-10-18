@@ -182,7 +182,7 @@ product: dbt/profiles.yml
 	$(PY) -m scripts.validate_products
 	$(PY) -m scripts.build_product_health
 
-# Phase 5.1: layout, content and viewer checks on the built site (Playwright drives the installed Chrome). `site-check` runs the four Phase 5 pages; `site-check-ci` two pages, to keep CI short.
+# Phase 5.1: layout, content and viewer checks on the built site (Playwright drives the installed Chrome). `site-check` runs the four Phase 5 pages; `site-check-ci` three pages (Data quality, Club markets, Data product), to keep CI short.
 site-check: site
 	$(PY) -m scripts.site_check
 

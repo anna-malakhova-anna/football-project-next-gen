@@ -33,6 +33,7 @@
   var groups = document.querySelectorAll(".nav-group");
   function closeGroups(except) { groups.forEach(function (g) { if (g !== except) { g.classList.remove("open"); g.querySelector(".nav-trigger").setAttribute("aria-expanded", "false"); } }); }
   groups.forEach(function (g) {
+    if (!g.querySelector(".nav-menu")) { return; }
     var t = g.querySelector(".nav-trigger");
     t.addEventListener("click", function (ev) { ev.stopPropagation(); var open = !g.classList.contains("open"); closeGroups(g); g.classList.toggle("open", open); t.setAttribute("aria-expanded", open ? "true" : "false"); });
   });

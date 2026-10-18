@@ -1,7 +1,7 @@
 """Layout, content and viewer checks on the built site (Phase 5.1, section 7). Playwright drives the installed Chrome against the locally served site/.
 
   uv run python -m scripts.site_check              # the four Phase 5 pages
-  uv run python -m scripts.site_check --ci         # two pages (Data quality and Club markets): the same checks, kept short for CI
+  uv run python -m scripts.site_check --ci         # three pages (Data quality, Club markets and Data product): the same checks, kept short for CI
   uv run python -m scripts.site_check --pages quality
 
 Exit code 1 and one line per failure. Nothing here computes a number for the site; it only reads what the build produced.
@@ -19,8 +19,8 @@ from playwright.sync_api import sync_playwright
 
 from scripts.site_shots import ROOT, SITE, pdf_pages, serve
 
-PAGES = ["quality", "sure", "markets", "privacy"]
-CI_PAGES = ["quality", "markets"]
+PAGES = ["product", "quality", "sure", "markets", "privacy"]
+CI_PAGES = ["quality", "markets", "product"]
 MAX_PRINT_PAGES = 12
 MAX_THUMB_PX = 320
 BANNED = ["interval", "lower bound", "upper bound", "p-chart", "control limit", "sigma", "dimension", "registry", "cumulative share", "additive", "allocated", "attribution", "imputation",

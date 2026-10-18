@@ -24,7 +24,7 @@ from pathlib import Path
 
 import duckdb
 
-from scripts import site_cards, site_phase5 as P5
+from scripts import site_cards, site_phase5 as P5, site_product
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "warehouse" / "flag.duckdb"
@@ -43,8 +43,10 @@ GOVERNANCE_WHITELIST = {
 }
 # Phase 5 (spec 12): share_club and share_privacy, aggregate quality marts, label-free uncertainty marts, whitelisted evaluation summaries (see scripts/site_phase5.py)
 APPROVED_AGGREGATES |= P5.APPROVED
+APPROVED_AGGREGATES |= {"phase6.mart_goal_scorecard", "phase6.mart_product_health", "phase6.mart_product_adoption"}
 EVAL_WHITELIST |= P5.EVAL
 GOVERNANCE_WHITELIST |= P5.GOVERNANCE
+GOVERNANCE_WHITELIST |= {"reference.product_prioritization", "reference.product_targets", "reference.age_consent_rules"}
 FORBIDDEN_TRANSFORMS = {"calculate", "aggregate", "joinaggregate", "window", "bin", "fold", "pivot", "regression", "loess", "density", "timeUnit", "stack"}
 LIBS = ["https://cdn.jsdelivr.net/npm/vega@5", "https://cdn.jsdelivr.net/npm/vega-lite@5", "https://cdn.jsdelivr.net/npm/vega-embed@6"]
 
@@ -229,6 +231,30 @@ DATASETS = [
 ]
 
 DATASETS += P5.DATASETS
+DATASETS += [
+    _D("product_prioritization", """
+        select product_id, product_name, value_to_goals, feasibility_today, data_readiness, privacy_risk, value_to_goals + feasibility_today + data_readiness - privacy_risk as total,
+               case when value_to_goals >= 4 and data_readiness <= 2 then 'High value, low readiness: sequenced, not deprioritized'
+                    when rank() over (order by value_to_goals + feasibility_today + data_readiness - privacy_risk desc) <= 2 then 'Build first' else 'Next' end as reading, rationale, status
+        from reference.product_prioritization order by total desc, product_id""", ["reference.product_prioritization"], "governance", "Draft priority of the five data products"),
+    _D("product_targets", "select target_id, product_id, release, kind, metric, comparison, threshold_value, unit, baseline_2025, status from reference.product_targets order by target_id",
+       ["reference.product_targets"], "governance", "Draft exit criteria and guardrails with their 2025 baselines"),
+    _D("age_rules", "select jurisdiction, age_min, age_max, who_consents, allowed_purposes, prohibited_purposes, verified, project_policy from reference.age_consent_rules order by jurisdiction, age_min",
+       ["reference.age_consent_rules"], "governance", "Age-tier consent rules (project policy; every row unverified)"),
+    _D("conv_tier", """
+        select age_tier, case age_tier when 'U13' then 'Under 13' when '13_15' then '13 to 15' when '16_17' then '16 to 17' when 'ADULT' then '18 and over' else 'Age not known' end as tier_label,
+               case age_tier when 'U13' then 1 when '13_15' then 2 when '16_17' then 3 when 'ADULT' then 4 else 5 end as tier_order,
+               step_no, step, kind, case kind when 'ACTIVATION' then 'Activation (needs guardian consent)' else 'Analytics only' end as kind_text, tier_funnel_households,
+               case when tier_funnel_households is null then 'fewer than 10' else format('{:,}', tier_funnel_households) end as households_text, share_of_registered, suppressed
+        from share_privacy.share_privacy__conversion_funnel_by_tier order by tier_order, step_no""", ["share_privacy.share_privacy__conversion_funnel_by_tier"], "share_privacy",
+       "Households by the age tier of the youngest child at each step of the conversion funnel"),
+    _D("goal_scorecard", "select goal_id, kpi_id, kpi_label, segment, year, value, value_low, value_high, unit, product_id, trust_label, trust_value, trust_unit, status from phase6.mart_goal_scorecard where year = (select max(year) from phase6.mart_goal_scorecard) order by goal_id, kpi_id, segment nulls first",
+       ["phase6.mart_goal_scorecard"], "approved_aggregate", "Goal scorecard: each goal's KPIs with the data-trust companion (latest year)"),
+    _D("product_health", "select product_id, area, measure, value_text, value_num, status, note from phase6.mart_product_health order by product_id, area, measure",
+       ["phase6.mart_product_health"], "approved_aggregate", "Product health (inside): quality, freshness, contracts, pipeline, trust, privacy, cost proxy"),
+    _D("product_adoption", "select product_id, stage, definition, real_events, simulated_events, status from phase6.mart_product_adoption order by product_id, stage",
+       ["phase6.mart_product_adoption"], "approved_aggregate", "Adoption (outside): instrumented, awaiting real users"),
+]
 
 
 # ------------------------------------------------------------------ checks
@@ -281,7 +307,7 @@ def check_spec(spec: dict, known: set[str], chart: str) -> list[str]:
 
 def check_brand_boundary(out: Path, local_logo: bool = False) -> list[str]:
     """The site must not carry anyone else's mark. Text is easy to review; images are not, so refuse them outright:
-    no image files, no <img>/<image>/url(...) references, and every inline SVG must be the project's own mark or a decorative icon.
+    no image files, no <img>/<image>/url(...) references, and every inline SVG must be the project's own mark, the drive chart, the Data product dependency diagram (text and boxes only, drawn here) or a decorative icon.
     The one exception is the git-ignored local logo (local_logo=True, a local build only): exactly img/logo.webp, shown only as the wordmark image."""
     import re
     problems = []
@@ -302,7 +328,7 @@ def check_brand_boundary(out: Path, local_logo: bool = False) -> list[str]:
         if re.search(r"<img\b|<image\b|<picture\b|<object\b|<embed\b", text, re.I):
             problems.append(f"{f.name}: contains an image element")
         for m in re.finditer(r"<svg\b([^>]*)>", text):
-            if 'aria-hidden="true"' not in m.group(1) and 'data-mark="project"' not in m.group(1) and 'class="drive"' not in m.group(1):
+            if 'aria-hidden="true"' not in m.group(1) and 'data-mark="project"' not in m.group(1) and 'class="drive"' not in m.group(1) and not re.search(r"data-diagram=.{0,2}dependencies", m.group(1)):
                 problems.append(f"{f.name}: an inline SVG is neither the project mark, the drive chart nor a decorative icon")
         if re.search(r"\b(?:rel=\"(?:icon|apple-touch-icon|shortcut icon)\"[^>]*href=\"(?!favicon\.svg)|og:image)", text, re.I):
             problems.append(f"{f.name}: an icon or social image other than favicon.svg")
@@ -613,6 +639,7 @@ def charts():
                                               "A flat pre-period therefore rests on a single point.")
     C["market_quadrants"]["note"] = note_market_quadrants
     C.update(P5.charts())
+    C.update(site_product.charts())
     return C
 
 
@@ -667,7 +694,7 @@ def render_drive(d: dict) -> str:
 
 
 # ------------------------------------------------------------------ pages
-PAGES = [("index", "Overview"), ("acquisition", "Acquisition"), ("value", "Value"), ("audience", "Audience"), ("participation", "Participation"), *P5.PAGES, ("trust", "Trust")]
+PAGES = [("product", "Data product"), ("index", "Overview"), ("acquisition", "Acquisition"), ("value", "Value"), ("audience", "Audience"), ("participation", "Participation"), *P5.PAGES, ("trust", "Trust")]
 # page title (display type) and the one-sentence question under it (ui-spec section 5)
 PAGE_HEAD = {
     "index": ("Counting flag football's fans", "What this project is and how to read it."),
@@ -676,6 +703,7 @@ PAGE_HEAD = {
     "audience": ("Audience and consent", "How many can we reach, and what are we missing?"),
     "participation": ("Participation", "How many play, and how sure are we?"),
     "trust": ("Data trust and governance", "Why can these numbers be trusted?"),
+    "product": ("Data product", "Given these business goals, what data products would you build, in what order, for whom, under what privacy rules, and how would you know they are working?"),
     **P5.PAGE_HEAD,
     "glossary": ("Glossary", "What each plain term on this site means, and what analysts call it."),
     "appendix": ("Appendix: school and recreation programs", "A stretch source: how many children do schools and recreation departments report?"),
@@ -820,6 +848,7 @@ def chart_block(cid: str, ch: dict, data: dict) -> str:
 
 
 NAV_GROUPS = [
+    ("Data product", [("product.html", "Data product", "product")]),
     ("Results", [("participation.html", "Participation", "participation"), ("sure.html", "How sure", "sure"), ("acquisition.html", "Acquisition", "acquisition"), ("audience.html", "Audience", "audience")]),
     ("Data quality", [("quality.html", "Data quality", "quality"), ("markets.html", "Club markets", "markets")]),
     ("Privacy", [("privacy.html", "Privacy by design", "privacy"), ("trust.html", "Trust and governance", "trust")]),
@@ -1016,12 +1045,12 @@ def group_cards(blocks: list[str]) -> str:
 def phase5_pages(blocks: dict, data: dict) -> dict:
     out = {}
     pages = site_cards.load_pages()
-    for slug in ("quality", "sure", "markets", "privacy"):
-        inner = group_cards(blocks[slug])
+    for slug in ("product", "quality", "sure", "markets", "privacy"):
+        inner = ("<ul class='vgoals'>" + "".join(f"<li><b>{g}</b> {esc(t)}</li>" for g, t in site_product.GOALS.items()) + "</ul>" if slug == "product" else "") + group_cards(blocks[slug])
         if slug == "privacy":
             inner += ("<h2>Share-policy check</h2>" + table_html(data["policy_results"])
                       + "<p class='note'>Violations found on the last run of the check that guards every share (no direct or quasi identifier in the club or privacy shares, only approved aggregate marts upstream, every metric in the catalog). Zero is the expected result.</p>")
-        default = "privacy" if slug == "privacy" else "club"
+        default = "privacy" if slug in ("privacy",) else "club"
         title = PAGE_HEAD[slug][0]
         pg = pages[slug]
         intro = f"<p class='note intro'><b>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</b></p>"
@@ -1040,7 +1069,26 @@ def export(con: duckdb.DuckDBPyConnection) -> dict:
         cols = [d[0] for d in cur.description]
         rows = [dict(zip(cols, r)) for r in cur.fetchall()]
         data[ds["name"]] = {"name": ds["name"], "title": ds["title"], "source": ", ".join(sorted(ds["relations"])), "kind": ds["kind"], "columns": cols, "rows": rows}
+    data["product_specs"] = product_specs(con)
     return data
+
+
+def product_specs(con) -> dict:
+    """The five product specs with their live quality indicator, read from products/*/product.yml and the scorecards at build time."""
+    from scripts import validate_products as vp
+    rows = []
+    for pid, p in vp.load().items():
+        q = vp.resolve_quality(p["quality_indicator"], con)
+        if q["kind"] == "grade_distribution":
+            text = ", ".join(f"{g} {n}" for g, n in q["value"].items() if n) + f" ({q['detail']})"
+        elif q["kind"] == "identity_range_pct":
+            text = f"identity range {q['value']}% of the count ({q['detail']})"
+        else:
+            text = f"grade {q['value']} ({q['detail']})"
+        rows.append({"id": pid, "name": p["name"], "version": p["version"], "type": p["type"], "status": p["status"], "goals": ", ".join(p["goals"]), "value_proposition": p["value_proposition"],
+                     "owner_role": p["owner_role"], "quality_text": text, "output_ports": ", ".join(pt["model"] for pt in p["output_ports"]), "terms_of_use": p["terms_of_use"]})
+    return {"name": "product_specs", "title": "The five product specs with their live quality grade", "source": "products/*/product.yml, quality scorecards", "kind": "governance",
+            "columns": list(rows[0]), "rows": rows}
 
 
 def build(db: Path = DB, out: Path = OUT) -> dict:

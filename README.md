@@ -76,6 +76,8 @@ Governance sets the size of the marketable audience: nothing linked reaches mark
 | [018 Minimization and the data standard](docs/decisions/ADR-018-minimization-and-data-standard.md) | The measured frontier of five variants; the data standard cites V2 (birth year, ZIP3), chosen by Anna |
 | [019 Consent provenance and the activation funnel](docs/decisions/ADR-019-consent-provenance-and-activation-funnel.md) | Household-keyed consent events, provenance grades, losses split into data quality and privacy |
 | [020 Site viewer and plain-language copy](docs/decisions/ADR-020-site-viewer-and-copy.md) | Cards and a full-screen viewer, copy rules and checks, a league belongs to one market, the open control-limit and market-name choices |
+| [021 Data product portfolio](docs/decisions/ADR-021-data-product-portfolio.md) | Three goals become five data products; the MVP (US growth with intake first); the one canonical uplift metric; what happens to the older Acquisition, Value and Audience pages |
+| [022 Age tiers and guardian consent](docs/decisions/ADR-022-age-tiers-and-guardian-consent.md) | Four age tiers, guardian-only for every minor, the strictest-standard default, and the youth-to-adult step that is not measurable by design |
 
 ## Phase 5: data quality under privacy constraints
 
@@ -87,7 +89,7 @@ not the bottleneck. Phase 5 tells one story through two lenses, built around **o
 | **Privacy / compliance lead** | What do we collect and why; what is a consent worth; what never leaves the league; when is it deleted? | [data standard](docs/data-standard.md), [consent provenance and the activation funnel](docs/decisions/ADR-019-consent-provenance-and-activation-funnel.md), [minimization frontier](docs/decisions/ADR-018-minimization-and-data-standard.md), [retention versus deletion](docs/decisions/ADR-017-retention-vs-deletion.md) |
 | **Clubs / analytics lead** | What can I see and act on in my market, and how far can I trust it? | [data quality explained](docs/data-quality.md), the purpose scorecards and fix lists (`make dq`), the club-market view ([ADR-016](docs/decisions/ADR-016-club-market-mapping.md)), `share_club` |
 
-All data is **synthetic**, and every claim about NFL, RCX, vendor or club systems is an **assumption**, labelled where it is made ([real-world context](docs/context/real-world-context.md)); legal points are open questions ([`docs/questions-for-stakeholders.md`](docs/questions-for-stakeholders.md)), never findings. The decisions are ADR-013 to ADR-020; ADR-013 records how the first build (v1, from the handover) was reconciled with the larger spec.
+All data is **synthetic**, and every claim about NFL, RCX, vendor or club systems is an **assumption**, labelled where it is made ([real-world context](docs/context/real-world-context.md)); legal points are open questions ([`docs/questions-for-stakeholders.md`](docs/questions-for-stakeholders.md)), never findings. The decisions are ADR-013 to ADR-022; ADR-013 records how the first build (v1, from the handover) was reconciled with the larger spec.
 
 ### What was built
 - **Structured defects.** Organizations get latent quality profiles (35% disciplined, 45% typical, 15% struggling, 5% manual), fields go missing for reasons that depend on who registers (not at random), 15 to 25% of known organizations send no file in a season, and consent wording comes in four versions. Counting rules and KPI definitions are unchanged.
@@ -107,6 +109,10 @@ All data is **synthetic**, and every claim about NFL, RCX, vendor or club system
 - **A defect found on the way.** Stale API pages from an earlier generator run were being loaded with the current ones; the generator now clears each source folder first, and the evaluation notes were refreshed.
 
 **Commands.** `make dq | nuance | consent | markets | minimize | retention-vs-deletion | fix-list-demo | p5-demo`, and `make all-phases` for everything. Known limits and open decisions: [`docs/questions-for-stakeholders.md`](docs/questions-for-stakeholders.md) (19 questions) and the pending data-standard point.
+
+## Phase 6: a data product portfolio
+
+**Given three business goals (grow flag globally, grow it in the US, and track conversion to fans while protecting children), what data products would you build, in what order, for whom, under what privacy rules, and how would you know they are working?** The site's first tab, **[Data product](site/product.html)** (`make site`), shows the answer using this project's own build: goals to five products (intake, participant and household master, global insights, US growth and club markets, flag-to-fan conversion), the method in five stages, assumption-based personas, the MVP and a now, next, later roadmap, a product label for each (`products/DP*/product.yml`, validated against the dbt manifest and the live quality grades), children's privacy by age tier, product health and a goal scorecard, and the governance gaps stated honestly. Product, not project: each product has an owner, versions, health measures and a retirement plan. Start at [`docs/product/README.md`](docs/product/README.md); `make product` builds and validates it. Decisions: [ADR-021](docs/decisions/ADR-021-data-product-portfolio.md), [ADR-022](docs/decisions/ADR-022-age-tiers-and-guardian-consent.md). Scores, targets, age rules and the tab's copy are drafts for the program owner.
 
 ## If this were real
 
@@ -169,4 +175,4 @@ select * from share_exec.share_exec__addressable_audience;       -- audience and
 [Participation memo](docs/methodology/counting-a-participant.md) · [Fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) · [Changelog](docs/methodology/CHANGELOG.md) · [Metric catalog](docs/metrics.md) · [Access policy](docs/access_policy.md) ·
 [Data dictionary](docs/data_dictionary.md) · [Source inventory](docs/source_inventory.md) · [Onboarding playbook](docs/playbook/onboard-a-source.md) ·
 [Restatement examples](docs/reports/restatement_demo.md) · [Earlier build notes (phases 1 to 3)](docs/build_notes_phases_1_to_3.md) ·
-[Phase 5: data quality explained](docs/data-quality.md) · [data standard](docs/data-standard.md) · [real-world context](docs/context/real-world-context.md) · [retention](docs/retention.md) · [demo script](docs/demo_script.md) · [questions for stakeholders](docs/questions-for-stakeholders.md)
+[Data products](docs/product/README.md) · [Phase 5: data quality explained](docs/data-quality.md) · [data standard](docs/data-standard.md) · [real-world context](docs/context/real-world-context.md) · [retention](docs/retention.md) · [demo script](docs/demo_script.md) · [questions for stakeholders](docs/questions-for-stakeholders.md)

@@ -62,6 +62,9 @@ models:
       - name: product_id
         data_tests:
           - accepted_values: {arguments: {values: [DP1, DP2, DP3, DP4, DP5]}}
+      - name: trust_unit
+        data_tests:
+          - accepted_values: {arguments: {values: [count, percent, ratio, none]}}
       - name: status
         data_tests:
           - accepted_values: {arguments: {values: [MEASURED, SUPPRESSED, NOT_MEASURABLE_BY_DESIGN]}}

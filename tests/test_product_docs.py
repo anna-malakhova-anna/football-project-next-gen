@@ -27,3 +27,25 @@ def test_every_canvas_has_the_same_headings_in_the_same_order():
     for dp in ("DP1", "DP2", "DP3", "DP4", "DP5"):
         heads = re.findall(r"^## (.+)$", ROOT.joinpath("products", dp, "canvas.md").read_text(encoding="utf-8"), flags=re.M)
         assert heads == HEADINGS, dp
+
+
+def test_the_framework_name_appears_nowhere_else_in_the_repo_docs_or_the_site():
+    """Only the single citation line in docs/product/README.md may name the framework (handover section 0.1)."""
+    scan = [*DOCS, *ROOT.joinpath("docs", "decisions").glob("ADR-02*.md"), ROOT / "README.md", *ROOT.joinpath("site_src").rglob("*.yml"), *ROOT.joinpath("scripts").glob("site_product.py"), *ROOT.joinpath("site").glob("*.html")]
+    hits = [f.relative_to(ROOT) for f in scan if f.exists() and "gartner" in f.read_text(encoding="utf-8").lower() and f.relative_to(ROOT) != Path("docs/product/README.md")]
+    assert hits == [], hits
+
+
+def test_no_sentence_of_the_product_docs_or_the_page_is_copied_from_a_local_private_copy_of_the_framework():
+    """Runs only if the program owner places an UNCOMMITTED copy of the framework text at ~/.private/gartner.txt; skipped otherwise."""
+    private = Path.home() / ".private" / "gartner.txt"
+    if not private.exists():
+        import pytest
+        pytest.skip("no local copy of the framework at ~/.private/gartner.txt")
+    ref = re.sub(r"\s+", " ", private.read_text(encoding="utf-8", errors="ignore").lower())
+    page = ROOT / "site" / "product.html"
+    texts = [f.read_text(encoding="utf-8") for f in DOCS] + ([re.sub(r"<[^>]+>", " ", page.read_text(encoding="utf-8"))] if page.exists() else [])
+    for t in texts:
+        for sent in re.split(r"(?<=[.!?])\s+", re.sub(r"\s+", " ", t)):
+            if len(sent.split()) >= 8:
+                assert sent.strip().lower() not in ref, sent

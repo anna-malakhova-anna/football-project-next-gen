@@ -274,6 +274,140 @@ charts:
     caution: "Pseudonymized is not anonymous."
     analyst_md: |
       Share of participant-years that are unique or in a small class on the quasi-identifiers birth year, ZIP3, sex and country (`share_privacy__analyst_k_anonymity`). See ADR-006.
+  D1:
+    status: draft
+    headline_template: "{n_goals} goals become {n_products} data products. Every goal has a product that drives it."
+    fallback_headline: "The goals become a small set of data products. Every goal has a product that drives it."
+    slide_headline_templates:
+      MATRIX: "Each goal has one product that moves it directly."
+      DEPS: "Intake feeds the master, and the master feeds the three insight products."
+    question: "What would you build for these goals?"
+    means_club: "Each goal has one product that moves it directly. Two more products keep the data clean and join the records so the others can be trusted."
+    means_privacy: "The two foundation products hold identifying data and stay restricted. The three insight products only publish counts."
+    action_club: "Read across a row to find the product that serves your goal."
+    action_privacy: "Check that no restricted product is ever an output for marketing."
+    caution: "The goals are the brief's own words. The products are a design for this made-up project, not a real plan."
+    analyst_md: |
+      Goals G1 to G3 as stated; products DP1 to DP5 (ADR-021). Value proposition types: utility (keeps things running), enabler (makes other things possible), driver (directly moves a goal). Product types: source-based (DP1), master (DP2), insights (DP3 to DP5).
+      DP5 also depends on the fan engagement source and on consent capture in DP1.
+  D2:
+    status: draft
+    headline_template: "Five stages turn a goal into a product that someone owns and watches."
+    fallback_headline: "Five stages turn a goal into a product that someone owns and watches."
+    slide_headline_templates: {}
+    question: "How do you turn a goal into a data product?"
+    means_club: "Before anything is built, we say who it is for and who owns it. After it ships, we watch whether it is healthy and whether anyone uses it."
+    means_privacy: "Privacy is a stage of the work, not a step at the end: the rules are written before the pipelines and checked after."
+    action_club: "Follow a product through the five stages using the files linked on each card."
+    action_privacy: "Read the engineer stage first: it lists the privacy rules and their tests."
+    caution: "A project ends at delivery. A product keeps an owner, users, versions, health measures and a retirement plan."
+    analyst_md: |
+      The method is described in this project's own words in `docs/product/README.md`. Structure informed by a published data-product guidance framework (cited once there); none of its text or figures is reproduced.
+  D3:
+    status: draft
+    headline_template: "Six made-up personas show who each product serves and what we would ask them."
+    fallback_headline: "Six made-up personas show who each product serves."
+    slide_headline_templates: {}
+    question: "Who are the products for?"
+    means_club: "Each persona has a job to do and a pain we assume. The questions are what we would ask in real interviews before building more."
+    means_privacy: "The league operator is a supplier, not a customer. Their pain is why the data standard asks for so few fields."
+    action_club: "Pick the persona closest to you and read what we assumed."
+    action_privacy: "Check the privacy lead's questions: they decide what a club may see."
+    caution: "There are no real users. Skipping the interviews is a gap, and we say so."
+    analyst_md: |
+      From `docs/product/discovery.md`. Roles are fictional. The validation questions are the next step before any real build.
+  D4:
+    status: draft
+    headline_template: "Start with US growth and intake. Conversion waits: high value, data not ready."
+    fallback_headline: "Start with US growth and intake. Conversion waits."
+    slide_headline_templates:
+      PRIO: "Intake scores {priority_dp1} and US growth {priority_dp4}. Conversion scores {priority_dp5}: sequenced, not dropped."
+      ROADMAP: "Now: intake and US growth. Next: the master and global. Later: contacting families."
+    question: "What do we build first, and why?"
+    means_club: "The real pain is thin, uneven data from US leagues. US growth with intake fixes that directly, and the fix list improves the supply while the product is in use."
+    means_privacy: "Conversion needs reliable counts, households and consent first. Building it first would give confident numbers on weak ground."
+    action_club: "Use the exit rows to see what has to be true before each step."
+    action_privacy: "Hold conversion until guardian consent for club marketing is captured at registration."
+    caution: "These scores and targets are drafts. The program owner sets the final ones."
+    analyst_md: |
+      Scores 1 to 5 from `dbt/seeds/product_prioritization.csv` (status DRAFT): value to the goals, feasibility today, data readiness (from the Phase 5 grades) and privacy risk. Total = value + feasibility + readiness - privacy risk.
+      Exit rows from `dbt/seeds/product_targets.csv` (DRAFT thresholds set by the program owner, with 2025 baselines). The identity range is a guardrail, not a target.
+  D5:
+    status: draft
+    headline_template: "Each product has a label: owner, version, live quality grade and rules for use."
+    fallback_headline: "Each product has a label with its owner, version, quality grade and rules for use."
+    slide_headline_templates: {}
+    question: "What does each product promise?"
+    means_club: "The label says what the product is for, who owns it, which tables it publishes, and how good the data is today. The grade is read from the scorecards, not typed."
+    means_privacy: "The label lists what is prohibited and the test that enforces each rule."
+    action_club: "Open a label to see the tables you may read and the terms of use."
+    action_privacy: "Check that each prohibited use names a test that exists."
+    caution: "Roles are made up. The detailed pages behind the labels are older and less polished."
+    analyst_md: |
+      Specs are `products/DP*/product.yml`, validated by `scripts/validate_products.py` against the dbt manifest (every output port is a share model), the metric catalog and the tests. Terms in `docs/product/terms/`.
+  D6:
+    status: draft
+    headline_template: "Minors are guardian-only. {pct_activatable_u13} of families with a child under thirteen agreed to club marketing."
+    fallback_headline: "Every minor is guardian-only. Few households have agreed to club marketing."
+    slide_headline_templates:
+      TIERS: "Four age tiers. Every minor is guardian-only, and no minor is a marketing target."
+      RULES: "A guardian decides, never the child. Counting is not the same as contacting."
+      FUNNEL: "{pct_activatable_u13} of under-13 households and {pct_activatable_adult} of adult households agreed to club marketing."
+      OPEN: "{n_unverified_rules} of {n_rule_rows} age rules are still to be verified."
+    question: "How are children protected, by age?"
+    means_club: "A club can only reach a family whose guardian agreed, with a record that shows what they agreed to. Counting linked households does not put anyone on a contact list."
+    means_privacy: "Every minor row is guardian-only, stricter than the laws we read. The youngest child in a household decides."
+    action_club: "Ask guardians for club marketing consent at registration."
+    action_privacy: "Verify the rules still marked unverified and add their sources."
+    caution: "This is project policy, not legal advice. Whether a club is a third party is a question for counsel."
+    analyst_md: |
+      Tier boundaries (ages on Dec 31): under 13, 13 to 15, 16 to 17, 18 and over. Rules in `dbt/seeds/age_consent_rules.csv` (28 rows, all unverified), documented in `docs/product/age-consent-rules.md`; decisions in ADR-022.
+      The funnel is `share_privacy__conversion_funnel_by_tier`: registered, linked to a fan account, engaged, purchased (analytics only) and consented to club marketing (activation). A step is hidden when it or the step before it is under the small-cell size.
+  D7:
+    status: draft
+    headline_template: "{n_kpis} measures track the three goals. {n_not_measurable} cannot be measured, by design."
+    fallback_headline: "The measures track the three goals. One cannot be measured, by design."
+    slide_headline_templates:
+      HEALTH: "Inside: each product's quality, trust and privacy checks, read after the latest build."
+      SCORE: "Outside: how the three goals are moving, each with its trust measure beside it."
+      ADOPT: "Nobody uses these products yet, so adoption is set up but empty."
+    question: "Is the portfolio working?"
+    means_club: "Left: is each product healthy. Right: are the goals moving. Flag does two things: families already following the NFL engage about 20% more, and flag creates new fan accounts among families who were not fans. A pooled average hides the second effect."
+    means_privacy: "The youth-to-adult step cannot be measured because a youth record is never linked to the adult. That is the policy working."
+    action_club: "Read each number with the trust measure beside it."
+    action_privacy: "Treat any alert on the health panel as a stop for club access."
+    caution: "No real users exist, so no adoption number is shown. The cost is a proxy, not money."
+    analyst_md: |
+      Inside: `phase6.mart_product_health` (built by `scripts/build_product_health.py` after the tests). Outside: `phase6.mart_goal_scorecard`, from existing marts only. Adoption: `phase6_ops.ops_product_usage_log` (schema only; simulation is not approved).
+      The canonical engagement-lift metric is `fan_uplift_pct` (matched estimate) with its naive companion; "Fans created by flag" is `incremental_fan_accounts` (ADR-021).
+  D8:
+    status: draft
+    headline_template: "Every product has a policy cover. The gaps are listed, not hidden."
+    fallback_headline: "Every product has a policy cover. The gaps are listed."
+    slide_headline_templates: {}
+    question: "Which rules cover each product?"
+    means_club: "For each product and each policy area the table links to the file that covers it, or says GAP."
+    means_privacy: "The gaps are what a real organization would still have to build, such as a legal review."
+    action_club: "Follow a link to read the rule that covers your product."
+    action_privacy: "Pick the gaps to close first and add them to the roadmap."
+    caution: "A gap is not a failure. It is an honest list of what is missing."
+    analyst_md: |
+      From `docs/product/governance-coverage.md`: products by definitions and models, ethics, lifecycle, data quality, security and privacy.
+  D9:
+    status: draft
+    headline_template: "Monitoring found a gap, a fix list targeted it, and the roadmap changed."
+    fallback_headline: "Monitoring found a gap and the roadmap changed."
+    slide_headline_templates:
+      LOOP: "Leagues that send no file hold the score down. A fix list targets them."
+      LOG: "Every product version is recorded, with the reason."
+    question: "How does watching a product change what we build?"
+    means_club: "The example follows one gap from the health view to a fix, a simulated result and a proposal for the next version."
+    means_privacy: "No step uses a person's data. Every number is a count or a score."
+    action_club: "Send each league its fix list before the season starts."
+    action_privacy: "Review any proposed change to a product before it is built."
+    caution: "The fourth step is a simulation on a copy, and the last step is only a proposal."
+    analyst_md: |
+      From `docs/product/feedback-loop.md` and `products/CHANGELOG.md`. The simulation is `make fix-list-demo`.
 pages:
   quality:
     status: draft
@@ -299,3 +433,9 @@ pages:
     fallback_intro: "Asking for less data protects children. No legal conclusion is drawn about any organization."
     demo_text: "See what each field costs, then what is on record about consent."
     demo_slide: "P3-1"
+  product:
+    status: draft
+    intro_template: "Three goals become five data products, and each has an owner, a label, health measures and a retirement plan. The first to build is US growth, with intake as its foundation. This tab shows the method using this project's own build, on made-up data."
+    fallback_intro: "Three goals become five data products. This tab shows the method using this project's own build, on made-up data."
+    demo_text: "Goals to products, the method, the first build, children's privacy, and whether it works."
+    demo_slide: "D1-1"

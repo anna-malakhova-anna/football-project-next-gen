@@ -66,7 +66,7 @@ def test_every_chart_reads_a_registered_dataset_and_never_inline_numbers():
 
 
 def test_every_defined_chart_passes_the_checks_and_has_a_shows_and_a_does_not_show_sentence():
-    names = {d["name"] for d in bs.DATASETS}
+    names = {d["name"] for d in bs.DATASETS} | {"product_specs"}            # product_specs is built in Python from products/*/product.yml
     known = {f"data/{n}.json" for n in names}
     for cid, ch in bs.charts().items():
         assert ch.get("spec") is None or bs.check_spec(ch["spec"], known, cid) == [], cid
@@ -134,7 +134,7 @@ def test_fan_acquisition_comes_first_and_the_first_chart_is_the_incremental_esti
         bs.build(WAREHOUSE, tmp_path / "site")
     except duckdb.Error as e:
         pytest.skip(f"warehouse not fully built: {e}")
-    assert [slug for slug, _ in bs.PAGES][:4] == ["index", "acquisition", "value", "audience"]
+    assert [slug for slug, _ in bs.PAGES if slug != "product"][:4] == ["index", "acquisition", "value", "audience"]
     page = (tmp_path / "site" / "acquisition.html").read_text()
     assert page.index('id="sec-acq_estimates"') < page.index('id="sec-funnel_status"')
     index = (tmp_path / "site" / "index.html").read_text()

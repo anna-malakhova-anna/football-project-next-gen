@@ -87,7 +87,7 @@ rows_ as (
            'Market-years compared', cast(i.market_years_compared as double), 'MEASURED'
     from inc i
     union all
-    select 'G3', 'fans_created_per_100_households', 'Fans created by flag, per 100 participant households', null, (select y from y), i.incremental_fan_accounts_per_100_households, i.incremental_fan_accounts_per_100_households_ci_low, i.incremental_fan_accounts_per_100_households_ci_high, 'ratio', 'DP5',
+    select 'G3', 'fans_created_per_100_households', 'Fans created by flag, per 100 participant households', null, (select y from y), i.incremental_fan_accounts_per_100_households, i.incremental_fan_accounts_per_100_households_ci_low, i.incremental_fan_accounts_per_100_households_ci_high, 'per_100', 'DP5',
            'Participant households compared', cast(i.participant_households_compared as double), 'MEASURED'
     from inc i
     union all
@@ -104,6 +104,10 @@ rows_ as (
 
 )
 
-select goal_id, kpi_id, kpi_label, segment, year, value, value_low, value_high, unit, product_id, trust_label, trust_value, status
-from rows_
+select r.goal_id, r.kpi_id, r.kpi_label, r.segment, r.year, r.value, r.value_low, r.value_high, r.unit, r.product_id, r.trust_label, r.trust_value, u.trust_unit, r.status
+from rows_ r
+join (values ('countries_with_participants', 'count'), ('international_participants', 'percent'), ('global_participants', 'percent'), ('federation_clubs_reporting', 'percent'), ('us_participants', 'percent'),
+             ('girls_share_of_youth', 'ratio'), ('retention_one_year', 'count'), ('leagues_reporting_share', 'count'), ('market_participants_with_coverage', 'count'), ('fan_engagement_uplift', 'ratio'),
+             ('fans_created_by_flag', 'count'), ('fans_created_per_100_households', 'count'), ('linked_household_rate', 'ratio'), ('activatable_households', 'ratio'), ('youth_to_adult_fan_transition', 'none')) u(kpi_id, trust_unit)
+  on u.kpi_id = r.kpi_id
 order by goal_id, kpi_id, segment nulls first, year
