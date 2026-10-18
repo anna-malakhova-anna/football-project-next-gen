@@ -50,7 +50,7 @@ def lay_text(card) -> dict:
 def check_page(page, base: str, slug: str, insights: set[str]) -> list[str]:
     fails: list[str] = []
     bad = fails.append
-    for width, height in ((1440, 900), (390, 844)):
+    for width, height in ((1440, 900), (1024, 768), (768, 1024), (390, 844)):     # desktop, small laptop window, tablet, phone
         page.set_viewport_size({"width": width, "height": height})
         page.goto(f"{base}/{slug}.html")
         page.wait_for_load_state("networkidle")

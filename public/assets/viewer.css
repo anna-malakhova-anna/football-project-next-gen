@@ -165,3 +165,14 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 .vloop { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
 @media (max-width: 1100px) { .vtiers, .vstepper, .vrules { grid-template-columns: repeat(2, minmax(0, 1fr)); } .vpersonas, .vboard { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 800px) { .vtiers, .vstepper, .vrules, .vhealths, .vpersonas, .vboard, .vpair, .vlabels { grid-template-columns: minmax(0, 1fr); } .vmatrix { font-size: .75rem; } }
+
+/* Chrome and other engines leave a few pixels under an inline svg: make the chart a block so the thumbnail box is exactly filled */
+.vthumb-box svg, .vthumb-box .vega-embed, .vslide-chart svg, .vslide-chart .vega-embed, .vmulti-chart svg { display: block; }
+.vthumb-box .vega-embed { width: 100%; height: 100%; }
+.vega-embed summary, .vega-embed .vega-actions { display: none; }
+
+/* Data product tab: tables wrap inside a card (the global table rule keeps cells on one line and scrolls), and coloured cells keep dark text in dark mode */
+.vproduct table { display: table; overflow: visible; }
+.vproduct th, .vproduct td { white-space: normal; }
+.vm-driver, .vm-enabler, .vm-utility, .vstat { color: #1B2733; }
+.vstage h4 { overflow-wrap: anywhere; hyphens: auto; }

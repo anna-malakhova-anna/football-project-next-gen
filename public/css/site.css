@@ -77,6 +77,10 @@ ol.tour li { margin: 8px 0; }
 
 @media (max-width: 719px) {
   .page-head h1 { font-size: 2.25rem; }
+  h2 { font-size: 1.75rem; }
+}
+/* the top bar needs about 1000 px for four menus, a link and the theme button; below that it collapses into the Menu button (tablets, small laptop windows) */
+@media (max-width: 1020px) {
   .menu-btn { display: inline-flex; }
   .topbar-inner { flex-wrap: wrap; gap: 0 12px; }
   .wordmark { min-height: 56px; }
@@ -85,7 +89,6 @@ ol.tour li { margin: 8px 0; }
   .topbar.open .nav a { min-height: 44px; border-bottom: 0; border-left: 3px solid transparent; padding-left: 8px; }
   .topbar.open .nav a[aria-current="page"] { border-left-color: #4C9A73; }
   .topbar.open .nav-secondary { display: flex; padding: 0 0 12px 11px; margin: 0; }
-  h2 { font-size: 1.75rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
@@ -114,7 +117,7 @@ ol.tour li { margin: 8px 0; }
 .nav-menu a { display: block !important; padding: 8px 16px; border-bottom: 0 !important; white-space: nowrap; opacity: .9; }
 .nav-menu a:hover { background: rgba(255, 255, 255, .08); opacity: 1; }
 .nav-menu a[aria-current="page"] { font-weight: 500; opacity: 1; box-shadow: inset 3px 0 0 var(--series-turf); }
-@media (max-width: 800px) {
+@media (max-width: 1020px) {
   .topbar.open .nav { gap: 0; }
   .topbar.open .nav-group { display: block; }
   .topbar.open .nav-trigger { width: 100%; padding: 10px 8px 4px; cursor: default; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; opacity: .7; border-bottom: 0; }
@@ -128,4 +131,4 @@ ol.tour li { margin: 8px 0; }
 .glossary dd { margin: 2px 0 0; }
 .glossary .tech { color: var(--text-muted); font-size: .875rem; }
 .nav-single .nav-link { text-decoration: none; }
-@media (max-width: 800px) { .topbar.open .nav-single .nav-link { text-transform: none; letter-spacing: 0; font-size: 1rem; padding: 10px 8px; opacity: .95; cursor: pointer; } }
+@media (max-width: 1020px) { .topbar.open .nav-single .nav-link { text-transform: none; letter-spacing: 0; font-size: 1rem; padding: 10px 8px; opacity: .95; cursor: pointer; } }
