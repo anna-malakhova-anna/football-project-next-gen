@@ -13,7 +13,7 @@
 .vnote { margin: 0; }
 .vcaution { border-left: 3px solid var(--pylon); padding-left: 8px; }
 .vanalyst summary { cursor: pointer; color: var(--text-muted); }
-.vanalyst-body { margin-top: 8px; overflow-x: auto; }
+.vanalyst-body { margin-top: 8px; }
 .lens-scope[data-lens-active="club"] .vnote.lens-privacy, .lens-scope[data-lens-active="privacy"] .vnote.lens-club { display: none; }
 
 /* viewer */
@@ -146,10 +146,10 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 .vpersona { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-chip); padding: 10px; font-size: .875rem; } .vpersona h4 { margin: 0 0 2px; }
 .vpersonas.vcompact { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; } .vcompact .vpersona { padding: 4px 6px; font-size: .6875rem; } .vcompact .vpersona p:not(.note):nth-of-type(2) { display: none; }
 .vtable { width: 100%; border-collapse: collapse; font-size: .875rem; } .vtable th, .vtable td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: left; vertical-align: top; }
-.vtable thead th { background: var(--bg); } .vtable-tight th, .vtable-tight td { padding: 3px 6px; font-size: .8125rem; font-weight: 400; } .vtable-tight th { color: var(--text-muted); width: 5.5em; } .vtable-tight td:nth-child(3) { min-width: 8em; }
+.vtable thead th { background: var(--bg); } .vtable-tight th, .vtable-tight td { padding: 3px 6px; font-size: .8125rem; font-weight: 400; } .vtable-tight th { color: var(--text-muted); width: 5.5em; } .vtable-tight td:nth-child(3) { min-width: 6em; }
 .vthumb-html .vtable { font-size: .6875rem; } .vthumb-html .vtable th, .vthumb-html .vtable td { padding: 2px 4px; }
 .vgoal th { background: var(--bg); font-weight: 600; }
-.vscrollx { overflow-x: auto; } .vgov td, .vgov th { font-size: .8125rem; min-width: 150px; }
+.vscrollx { overflow-x: visible; } .vgov td, .vgov th { font-size: .8125rem; }
 .vboard { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } .vcol h4 { text-transform: uppercase; letter-spacing: .04em; font-size: .8125rem; color: var(--text-muted); }
 .vrelease { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-chip); padding: 8px 10px; margin-bottom: 8px; font-size: .8125rem; } .vrelease h5 { margin: 0 0 4px; }
 .vlabels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; }

@@ -59,8 +59,8 @@ code { background: var(--surface); border: 1px solid var(--border); border-radiu
 .tag { display: inline-block; font-size: .75rem; font-family: var(--font-body); font-weight: 500; border: 1px solid var(--series-pylon); color: var(--series-pylon); border-radius: var(--r-chip); padding: 0 8px; margin-left: 8px; vertical-align: middle; }
 details { margin-top: 8px; }
 summary { cursor: pointer; color: var(--link); font-size: .875rem; }
-table { border-collapse: collapse; width: 100%; font-size: .875rem; margin: 8px 0; display: block; overflow-x: auto; font-variant-numeric: tabular-nums lining-nums; }
-th, td { border-bottom: 1px solid var(--border); padding: 4px 12px; text-align: right; white-space: nowrap; }
+table { border-collapse: collapse; width: 100%; max-width: 100%; font-size: .875rem; margin: 8px 0; display: table; table-layout: auto; font-variant-numeric: tabular-nums lining-nums; }
+th, td { border-bottom: 1px solid var(--border); padding: 4px 12px; text-align: right; white-space: normal; overflow-wrap: anywhere; vertical-align: top; }
 th:first-child, td:first-child { text-align: left; }
 th { color: var(--text-muted); font-weight: 500; }
 .flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 16px 0; }
@@ -132,3 +132,11 @@ ol.tour li { margin: 8px 0; }
 .glossary .tech { color: var(--text-muted); font-size: .875rem; }
 .nav-single .nav-link { text-decoration: none; }
 @media (max-width: 1020px) { .topbar.open .nav-single .nav-link { text-transform: none; letter-spacing: 0; font-size: 1rem; padding: 10px 8px; opacity: .95; cursor: pointer; } }
+
+/* phones: tables never scroll sideways; columns share the width and cells wrap */
+@media (max-width: 600px) {
+  table { table-layout: fixed; font-size: .75rem; }
+  th, td { padding: 3px 4px; hyphens: auto; }
+  .vmatrix, .vtable { table-layout: fixed; }
+}
+code, .note, main p, main li { overflow-wrap: anywhere; }
