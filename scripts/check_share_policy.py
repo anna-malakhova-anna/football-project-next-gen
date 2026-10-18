@@ -47,7 +47,7 @@ APPROVED_CLUB_MARTS = {"mart_market_coverage", "mart_activation_funnel", "mart_m
 # Aggregated, small-cell-suppressed share models that may be built from `linkage` models (ADR-009). Everything else may not.
 APPROVED_LINKAGE_AGGREGATES = {
     "share_exec__fan_engagement_effect", "share_exec__household_link_rate", "share_exec__fan_funnel", "share_exec__acquisition_incrementality", "share_exec__fan_value",
-    "share_exec__addressable_audience", "share_exec__market_quadrants",
+    "share_exec__addressable_audience", "share_exec__market_quadrants", "share_exec__roadmap_gates",
     "share_club__market_year", "share_club__market_missingness", "share_club__activation_funnel", "share_club__chart_insights", "share_ops__league_scorecard", "share_ops__league_fix_list", "share_privacy__chart_insights", "share_privacy__conversion_funnel_by_tier", "share_privacy__consent_provenance", "share_privacy__minimization_frontier",
     "share_exec__fan_rfm", "share_exec__fan_survival", "share_exec__fan_value_uplift", "share_exec__consent_capture", "share_analyst__fan_event_study", "share_analyst__fan_acquisition_event_study", "share_analyst__fan_market_year",
 }

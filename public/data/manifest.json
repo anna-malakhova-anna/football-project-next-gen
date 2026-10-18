@@ -280,7 +280,7 @@
    "name": "chart_insights_privacy",
    "source": "share_privacy.share_privacy__chart_insights",
    "kind": "share_privacy",
-   "rows": 24
+   "rows": 27
   },
   {
    "name": "dq_grid",
@@ -455,6 +455,12 @@
    "source": "reference.product_targets",
    "kind": "governance",
    "rows": 6
+  },
+  {
+   "name": "roadmap",
+   "source": "reference.product_roadmap, share_exec.share_exec__roadmap_gates",
+   "kind": "governance",
+   "rows": 14
   },
   {
    "name": "age_rules",

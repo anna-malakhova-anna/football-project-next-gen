@@ -176,3 +176,40 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 .vproduct th, .vproduct td { white-space: normal; }
 .vm-driver, .vm-enabler, .vm-utility, .vstat { color: #1B2733; }
 .vstage h4 { overflow-wrap: anywhere; hyphens: auto; }
+
+/* Roadmap (Phase 6 addendum): swimlanes by product, columns Delivered | Now | Next | Later. Colour is never the only signal: every gate shows status text and a tick. */
+.vexpand-only { display: flex; justify-content: flex-end; }
+.vexpand-only .vexpand { position: static; }
+.vroad { --lane-source: #f3ecd3; --lane-master: #e0e9f6; --lane-insights: #d6ead9; --lane-restricted: #e8dcee; display: grid; gap: 6px; font-size: .75rem; color: var(--text); }
+.vr-head, .vr-lane { display: grid; grid-template-columns: 200px repeat(4, minmax(0, 1fr)); gap: 6px; }
+.vr-colhead { text-transform: uppercase; letter-spacing: .04em; font-size: .6875rem; color: var(--text-muted); font-weight: 600; padding: 0 2px; }
+.vr-label { border-radius: var(--r-chip); padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; color: #1B2733; min-width: 0; overflow-wrap: anywhere; }
+.vl-source .vr-label { background: var(--lane-source); } .vl-master .vr-label { background: var(--lane-master); } .vl-insights .vr-label { background: var(--lane-insights); } .vl-restricted .vr-label { background: var(--lane-restricted); border: 1px dashed #7D4E8E; }
+.vr-type { font-size: .625rem; text-transform: uppercase; letter-spacing: .05em; opacity: .8; } .vr-goal { font-size: .625rem; line-height: 1.25; opacity: .85; }
+.vr-cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; border-radius: var(--r-chip); background: var(--bg); padding: 3px; border: 1px solid var(--border); }
+.vrcard { all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 3px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-chip); padding: 5px 7px; cursor: pointer; min-width: 0; overflow-wrap: anywhere; }
+.vrcard:hover, .vrcard:focus-visible { border-color: var(--series-turf, #2F6B4F); outline: 2px solid var(--series-turf, #2F6B4F); outline-offset: 0; }
+.vrtitle { font-weight: 600; line-height: 1.25; } .vrchip { align-self: flex-start; border: 1px solid var(--border); border-radius: 999px; padding: 0 6px; font-size: .625rem; color: var(--text-muted); }
+.vgate { display: flex; flex-direction: column; gap: 2px; }
+.vgbar { position: relative; height: 7px; background: var(--border); border-radius: 4px; overflow: visible; }
+.vgbar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: #D9622B; } .vg-met .vgbar i { background: #2F6B4F; }
+.vgbar b { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text); margin-left: -1px; }
+.vg-pending .vgbar { background: repeating-linear-gradient(45deg, var(--border), var(--border) 3px, transparent 3px, transparent 6px); border: 1px dashed var(--text-muted); }
+.vgtext { margin: 0; line-height: 1.25; } .vgstat { font-weight: 600; } .vg-met .vgstat { color: #2F6B4F; } .vg-not .vgstat { color: #B04A1C; } .vgval { color: var(--text-muted); }
+.vdec { margin: 0; line-height: 1.25; } .vdia { color: #7D4E8E; }
+.vrpivot { border: 2px dashed #C0392B; border-radius: var(--r-chip); padding: 5px 7px; line-height: 1.3; background: var(--surface); }
+.vr-notdoing { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding-top: 2px; } .vr-nlabel { text-transform: uppercase; letter-spacing: .04em; font-size: .6875rem; color: var(--text-muted); font-weight: 600; }
+.vr-no { text-decoration: line-through; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; color: var(--text-muted); background: var(--surface); }
+.vdetail th { text-align: left; width: 11rem; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .vl-restricted .vr-label { border-color: #B08BC0; } :root:not([data-theme="light"]) .vdia { color: #C9A4D8; } :root:not([data-theme="light"]) .vg-not .vgstat { color: #F0A070; } :root:not([data-theme="light"]) .vg-met .vgstat { color: #7CC9A0; } }
+:root[data-theme="dark"] .vl-restricted .vr-label { border-color: #B08BC0; } :root[data-theme="dark"] .vdia { color: #C9A4D8; } :root[data-theme="dark"] .vg-not .vgstat { color: #F0A070; } :root[data-theme="dark"] .vg-met .vgstat { color: #7CC9A0; }
+@media (max-width: 900px) {
+  .vr-head { display: none; }
+  .vr-lane { grid-template-columns: minmax(0, 1fr); }
+  .vr-cell:empty, .vr-cell:not(:has(*)) { display: none; }
+  .vr-cell::before { content: attr(data-col); text-transform: uppercase; letter-spacing: .04em; font-size: .625rem; font-weight: 600; color: var(--text-muted); }
+}
+@media print { .vrcard { break-inside: avoid; } }
+
+.vcard[data-card="D10"] { grid-column: 1 / -1; }
+.vrhead { display: flex; gap: 6px; align-items: flex-start; justify-content: space-between; } .vrhead .vrchip { white-space: nowrap; flex: none; }

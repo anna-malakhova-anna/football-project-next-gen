@@ -76,7 +76,7 @@ g as (
 
 scored as (
 
-    select g.*,
+    select g.gate_id, g.product_id, g.kind, g.definition, g.plain_name, g.comparison, g.target, g.unit, g.baseline_2025, g.gate_for, g.source_model, g.source_field, g.current_value,
            case when current_value is null then 'PENDING'
                 when comparison = 'at least' and current_value >= target then 'MET'
                 when comparison = 'at most' and current_value <= target then 'MET'
@@ -98,7 +98,8 @@ final as (
 
 )
 
-select f.* exclude (sfx, tail),
+select f.gate_id, f.product_id, f.kind, f.definition, f.plain_name, f.comparison, f.target, f.unit, f.baseline_2025, f.gate_for, f.source_model, f.source_field, f.current_value, f.status,
+       f.bar_fill_pct, f.target_marker_pct,
        case status when 'MET' then 'Met ✓' when 'NOT_YET' then 'Not yet' else 'Baseline pending' end as status_text,
        case when current_value is null then 'baseline pending'
             when comparison = 'at least' then 'now ' || regexp_replace(cast(round(current_value, 1) as varchar), '\.0$', '') || sfx || ', needs ' || regexp_replace(cast(round(target, 1) as varchar), '\.0$', '') || sfx || ' or more' || tail
