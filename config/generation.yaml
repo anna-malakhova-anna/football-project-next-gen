@@ -1,4 +1,4 @@
-# Counting Flag Football: generation config (ALL DATA IS SYNTHETIC)
+# Flag Football Project: generation config (ALL DATA IS SYNTHETIC)
 # Everything the generator needs lives here: seed, sizes, behaviour, defect rates.
 # Defect rates are fractions (0.04 = 4%). Keys under `defects` are the stable
 # defect ids that dq_summary compares observed rates against (see spec 7.5).

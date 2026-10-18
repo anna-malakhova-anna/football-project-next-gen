@@ -1,4 +1,4 @@
-# Counting Flag Football
+# Flag Football Project
 
 Governed participation data platform built on **synthetic** flag football data (the real equivalent would be minors' PII).
 

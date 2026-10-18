@@ -1,7 +1,7 @@
 > **Archived.** This was the project README through Phase 3. It is kept for the per-phase detail; the current README is [../README.md](../README.md), and the supported
 > full build is now `make all-phases` (see ADR-008).
 
-# Counting Flag Football
+# Flag Football Project
 
 A governed participation data platform for a **synthetic** global flag football program: messy partner data in,
 a clean common schema, data-quality profiling and governance artifacts out. Built with Python (data generation

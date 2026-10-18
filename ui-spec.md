@@ -1,4 +1,4 @@
-# Counting Flag Football — Results Site UI Spec
+# Flag Football Project — Results Site UI Spec
 
 **Goal:** Give the results site a confident, game-day broadcast feel, so it reads as built by someone who understands football media, while staying an **original design**.
 
@@ -76,7 +76,7 @@ Scale (rem): 3.0 page title · 2.0 section title · 1.5 card title · 1.0 body �
 ┌──────────────────────────────────────────────────────────────────────┐
 │ Synthetic data notice (thin chalk-on-slate strip, dismissible)       │
 ├──────────────────────────────────────────────────────────────────────┤
-│ Counting Flag Football   Acquisition  Value  Audience  Participation  Trust     Methodology  GitHub  ◐ │  ← night-field top bar
+│ Flag Football Project   Acquisition  Value  Audience  Participation  Trust     Methodology  GitHub  ◐ │  ← night-field top bar
 ├──────────────────────────────────────────────────────────────────────┤
 │ Page title (display)                        Season  [2022][2023][2024][2025] │
 │ One-sentence question this page answers                                │
