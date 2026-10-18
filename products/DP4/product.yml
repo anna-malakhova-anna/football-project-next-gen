@@ -100,7 +100,7 @@ tags:
 recommended_products:
 - DP1
 - DP5
-feedback: https://github.com/anna-malakhova-anna/flag-football-to-fan-project/issues/new?template=data-product-feedback.md
+feedback: https://github.com/anna-malakhova-anna/football-project-next-gen/issues/new?template=data-product-feedback.md
 shelf_life: long-term (reviewed annually)
 decommission_plan: docs/product/decommission-example.md
 pricing: Internal. No chargeback. Cost tracked as warehouse compute (mart_product_health).

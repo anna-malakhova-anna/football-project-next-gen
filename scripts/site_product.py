@@ -14,7 +14,7 @@ import yaml
 from scripts import validate_products as vp
 
 ROOT = Path(__file__).resolve().parent.parent
-REPO = "https://github.com/anna-malakhova-anna/flag-football-to-fan-project/blob/main/"
+REPO = "https://github.com/anna-malakhova-anna/football-project-next-gen/blob/main/"
 GOALS = {"G1": "Grow NFL presence globally through flag football",
          "G2": "Grow flag football popularity in the US as a safe, accessible way into the sport, alongside tackle football",
          "G3": "Track conversion of flag participants (and their families) to NFL fans, while protecting children: no direct marketing to kids, age-specific consent rules, and guardian consent"}
