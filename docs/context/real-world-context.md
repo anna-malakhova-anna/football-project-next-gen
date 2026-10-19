@@ -26,14 +26,14 @@ Is a club a "third party" for the purposes of the COPPA rule, given the joint ow
 
 ## Participation context for goal G2 and the LA 2028 Games (Phase 6)
 
-These facts frame the business goals on the Data product tab. They are stated as the sources state them, and nothing else is added. **Verified by Anna on 2026-10-19:** the NFHS figures and the IOC decision, against the sources listed below. The safety line is a stated reason with no figure behind it.
+These facts frame the business goals on the Data product tab. They are stated as the sources state them, and nothing else is added. **Sources checked 2026-10-19:** the NFHS figures and the IOC decision, against the sources listed below. The safety line is a stated reason with no figure behind it.
 
 - High school football participation declined for years before the pandemic (its tenth drop in eleven years) and has risen in three of the last four years. It is **not** presented here as a current crisis. Source: Athletic Business, reporting NFHS figures, 18 September 2025 (original: NFHS).
 - Girls' high school flag football reached 68,847 participants in 2024-25, up 388% since the first post-pandemic survey. It is sanctioned in 16 states, and 22 other states run independent or pilot programs. Sources: Athletic Business (above) and NFHS.
 - Safety concerns are one reason families may choose flag football. This project treats that as a stated reason, not a measured decline.
 - Flag football was approved by the IOC Session as one of five additional sports for the Los Angeles 2028 Games (relevant to goal G1). Source: IOC, "IOC Session approves LA28's proposal for five additional sports", 16 October 2023.
 
-Sources (verified):
+Sources (checked 2026-10-19):
 - Source for the NFHS figures: Athletic Business, https://www.athleticbusiness.com/operations/governing-bodies/article/15755722/high-school-football-continues-to-rebound-from-prepandemic-decline
 - Original of the NFHS figures: https://nfhs.org/stories/high-school-football-continues-to-rebound-from-pre-pandemic-decline
 - IOC, "IOC Session approves LA28's proposal for five additional sports", 16 October 2023: https://newsroom.olympics.com/record/1285
