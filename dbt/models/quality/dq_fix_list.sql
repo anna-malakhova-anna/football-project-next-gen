@@ -6,8 +6,8 @@
 -- The top five overall plus the top three of the organization's own (non-systemic) issues, ranked by records_affected, then the rule's severity weight, then rule_id. What an operator is asked to do is the registry's
 -- plain-language fix_guidance, with the records affected (a count only, never a record id).
 --   records_affected  the registrations of this organization-season that fail the rule. For the no-file rule (DQ-TIME-ORG-REPORTED), which has no registrations of its own, it is an ESTIMATE of
---                     what the dark season is missing, stated in records_basis: PRIOR_SEASON (the league's registrations in its most recent reported season), else REGION_MEDIAN (the median
---                     registrations of the reporting leagues of the same source and region in that season, for a league that has never reported), else NOT_ESTIMABLE (NULL: nothing to estimate from).
+--                     what the dark season is missing, stated in records_basis: PRIOR_SEASON (the league's registrations in its most recent reported season BEFORE the dark one; never a later season), else REGION_MEDIAN (the median
+--                     registrations of the reporting leagues of the same source and region in the same season, for a league with no earlier reported season), else NOT_ESTIMABLE (NULL: nothing to estimate from).
 --                     Never 0 by default. Both estimates are DP1's own (the organization base); nothing from DP3 or DP4. The no-file issue always ranks FIRST for a dark organization-season:
 --                     it is the reason nothing else can be measured.
 --   is_systemic       the rule is breached by at least systemic_share (p5_params, 80%) of the source's organizations that season: a platform or process problem, not this organization's.
@@ -39,16 +39,20 @@ breached as (
 
 ),
 
-expected as (
+prior as (
 
-    -- what a dark season is missing, first choice: the organization's registrations in its most recent reported season
-    select source_system, org_id, arg_max(n_records, season_year) filter (where reported) as last_reported_records from {{ ref('dq_org_season_base') }} group by 1, 2
+    -- what a dark season is missing, first choice: the organization's registrations in its most recent reported season BEFORE the dark season (never a later one: that would be look-ahead)
+    select d.source_system, d.org_id, d.season_year, arg_max(o.n_records, o.season_year) as prior_records
+    from {{ ref('dq_org_season_base') }} d
+    join {{ ref('dq_org_season_base') }} o on o.source_system = d.source_system and o.org_id = d.org_id and o.reported and o.season_year < d.season_year
+    where not d.reported
+    group by 1, 2, 3
 
 ),
 
 region_peers as (
 
-    -- fallback for an organization that never reported: the median registrations of the reporting organizations of the same source and region in the season
+    -- fallback for an organization with no earlier reported season: the median registrations of the reporting organizations of the same source and region in the SAME season
     select source_system, region_code, season_year, median(n_records) filter (where reported) as region_median from {{ ref('dq_org_season_base') }} group by 1, 2, 3
 
 ),
@@ -57,13 +61,13 @@ issues as (
 
     select
         b.source_system, b.org_id, b.season_year, b.rule_id, b.dimension, b.severity, b.purposes_breached, b.fix_guidance, b.owner_role,
-        case when b.rule_grain = 'ORG_SEASON' then round(coalesce(e.last_reported_records, p.region_median))::bigint else b.records_affected end as records_affected,
+        case when b.rule_grain = 'ORG_SEASON' then round(coalesce(e.prior_records, p.region_median))::bigint else b.records_affected end as records_affected,
         case when b.rule_grain <> 'ORG_SEASON' then 'COUNTED'
-             when e.last_reported_records is not null then 'PRIOR_SEASON'
+             when e.prior_records is not null then 'PRIOR_SEASON'
              when p.region_median is not null then 'REGION_MEDIAN'
              else 'NOT_ESTIMABLE' end                                                                                      as records_basis
     from breached b
-    left join expected e on e.source_system = b.source_system and e.org_id = b.org_id
+    left join prior e on e.source_system = b.source_system and e.org_id = b.org_id and e.season_year = b.season_year
     left join (select o.source_system, o.org_id, o.season_year, rp.region_median
                from {{ ref('dq_org_season_base') }} o join region_peers rp on rp.source_system = o.source_system and rp.region_code = o.region_code and rp.season_year = o.season_year) p
            on p.source_system = b.source_system and p.org_id = b.org_id and p.season_year = b.season_year

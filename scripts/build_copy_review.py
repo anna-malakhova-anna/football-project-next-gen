@@ -143,9 +143,7 @@ def main() -> int:
     for slug, title in PAGES:
         p = pages_copy.get(slug, {})
         out.append(f"| {title} | {intros[slug].replace('|', '/')} | `pages.{slug}.intro_template` | {p.get('demo_text', '').replace('|', '/')} | `{p.get('status', '?')}` | [ ] approve &nbsp; [ ] edit: |")
-    out += ["", "Note: `scripts/site_phase5.py` also holds a `DEMO_PATH` table that no code reads and that says something different for the \"How sure are we?\" page (it ends with the fix-list payoff, U4; the page's `demo_text` "
-            "ends with the check that the methods work, U3). The page text is what visitors see, so U3 is treated as the demo step above. Say which you want and I will remove the other.", "",
-            "## 4. Roadmap rows", "",
+    out += ["", "## 4. Roadmap rows", "",
             "The 14 rows of `dbt/seeds/product_roadmap.csv` (the cards on the roadmap board, grouped by product). Gate values come from the gates model at build time, not from this text. The roadmap card itself (D10) is in section 1 or 2. A card title is a few words, so its reading-level score is unreliable (a short fragment of technical nouns scores high); read it as a prompt to check the wording, not as a failure.", "",
             roadmap_rows(), ""]
     OUT.parent.mkdir(parents=True, exist_ok=True)

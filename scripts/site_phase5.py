@@ -789,9 +789,3 @@ PAGE_HEAD = {
     "privacy": ("Privacy by design", "What do we collect, why, and what does that cost?"),
 }
 PAGES = [("quality", "Data quality"), ("sure", "How sure"), ("markets", "Club markets"), ("privacy", "Privacy by design")]
-DEMO_PATH = {
-    "quality": "The purpose heatmap (the same data earns different grades), then the Pareto (which few fixes matter).",
-    "sure": "The three separate bars (why there is no single number), then the fix-list payoff.",
-    "markets": "The tile map (find a market), then the funnel (why families are not reached), then the two lenses.",
-    "privacy": "The minimization frontier, then consent provenance.",
-}

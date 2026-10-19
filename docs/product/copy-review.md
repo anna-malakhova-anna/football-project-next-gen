@@ -462,8 +462,6 @@ Page: **Data product** · Chart ID: **D9** · Demo path: **no** (not on the demo
 | Privacy by design | Asking for birth year instead of full birth date cuts unique records from 99% to 57%. 67% of consent records show exactly what the family agreed to. No legal conclusion is drawn about any organization. | `pages.privacy.intro_template` | See what each field costs, then what is on record about consent. | `draft` | [ ] approve &nbsp; [ ] edit: |
 | Data product | Three goals become five data products, and each has an owner, a label, health measures and a retirement plan. The first to build is US growth, with intake as its foundation. This tab shows the method using this project's own build, on made-up data. | `pages.product.intro_template` | Goals to products, the method, the first build, children's privacy, and whether it works. | `draft` | [ ] approve &nbsp; [ ] edit: |
 
-Note: `scripts/site_phase5.py` also holds a `DEMO_PATH` table that no code reads and that says something different for the "How sure are we?" page (it ends with the fix-list payoff, U4; the page's `demo_text` ends with the check that the methods work, U3). The page text is what visitors see, so U3 is treated as the demo step above. Say which you want and I will remove the other.
-
 ## 4. Roadmap rows
 
 The 14 rows of `dbt/seeds/product_roadmap.csv` (the cards on the roadmap board, grouped by product). Gate values come from the gates model at build time, not from this text. The roadmap card itself (D10) is in section 1 or 2. A card title is a few words, so its reading-level score is unreliable (a short fragment of technical nouns scores high); read it as a prompt to check the wording, not as a failure.
@@ -475,7 +473,7 @@ The 14 rows of `dbt/seeds/product_roadmap.csv` (the cards on the roadmap board, 
 | DP1 | Now | v1.0 | Data standard, league fix lists (by records affected), quality port | X_COUNT: US league grades, at least 85 score (baseline 82.1) |  | `draft` | 8.4 | [ ] approve &nbsp; [ ] edit: |
 | DP1 | Later | v1.2 | "Played youth flag?" question at adult sign-up |  |  | `draft` | 0.9 | [ ] approve &nbsp; [ ] edit: |
 | DP2 | Delivered | v1.0 | Identity resolution + review queue |  |  | `draft` | **18.4 (over 9)** | [ ] approve &nbsp; [ ] edit: |
-| DP2 | Next | v1.1 | Restricted zones; consumers use product ports only | Y: the width of the identity range, at most 1 percent (baseline 0.43) |  | `draft` | **9.1 (over 9)** | [ ] approve &nbsp; [ ] edit: |
+| DP2 | Next | v1.1 | Restricted zones; consumers use product ports only. One identity chain: route Phase 5 feeds through DP1 intake into Phase 2 resolution; retire the p5 chain | Y: the width of the identity range, at most 1 percent (baseline 0.43) |  | `draft` | 8.2 | [ ] approve &nbsp; [ ] edit: |
 | DP3 | Delivered | v0.9 | Counting method, scorecard, ranges |  |  | `draft` | **9.6 (over 9)** | [ ] approve &nbsp; [ ] edit: |
 | DP3 | Next | v1.0 | Country view for growth decisions | N: how many countries report at counting grade B, at least 6 count (baseline 1) |  | `draft` | 5.2 | [ ] approve &nbsp; [ ] edit: |
 | DP4 | Delivered | v0.5 | Retention + club market prototype |  |  | `draft` | **12.5 (over 9)** | [ ] approve &nbsp; [ ] edit: |
