@@ -2,7 +2,7 @@
 -- Why there is no single number (phase-5-spec 6.1, ADR-015): the participant count is uncertain for three DIFFERENT reasons, and they are shown SIDE BY SIDE, never added.
 --   IDENTITY       Phase 3 low / point / high: how many people the records are, depending on which uncertain links are real. (label-free)
 --   DQ_EXCLUSIONS  strict vs lenient handling of records that fail a COUNT rule of the registry: lenient is the Phase 3 count; strict counts only participants who have at least one record
---                  fit for COUNT (dq_record_fitness). (label-free)
+--                  fit for COUNT (dq_count_fit_by_year, from dq_record_fitness). (label-free)
 --   COVERAGE       participants of KNOWN organizations that sent no file that season: for each dark organization the median (and 25th / 75th percentiles) of the unique participants of reporting
 --                  organizations of the same source, season, size band and region, where the size band comes from the organization's own other seasons. Falls back to the same size band in any
 --                  region, then to any organization, when fewer than three peers exist. An ESTIMATE with an interval, not a bound, and not independent of the other components. (label-free)
@@ -23,8 +23,8 @@ lenient as (
 
 strict as (
 
-    select season_year as participation_year, count(distinct person_id) as participants
-    from {{ ref('dq_record_fitness') }} where fit_for_count and source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') group by 1
+    select season_year as participation_year, participants_fit_for_count as participants
+    from {{ ref('dq_count_fit_by_year') }}
 
 ),
 

@@ -66,6 +66,14 @@ models:
     description: One row per registration, fit_for_<purpose> and the registry rules it fails per purpose.
     config:
       tags: [phase5]
+  - name: dq_count_fit_by_year
+    description: DP1 aggregate port. Per season, distinct participants with at least one registration fit for the COUNT purpose. Counts only.
+    config:
+      tags: [phase5]
+  - name: dq_geo_fit_person_year
+    description: DP1 restricted port (consumer DP4). Per participant and season, registrations and registrations fit for GEO. Person key and counts only.
+    config:
+      tags: [phase5]
   - name: dq_scorecard_org
     description: >
       Organization x season x purpose x dimension scores (0 to 100) and grades. The PURPOSE_SCORE row is the minimum of the purpose's dimension scores (ADR-014); an organization-season

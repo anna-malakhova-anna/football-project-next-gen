@@ -67,9 +67,9 @@ cov as (
 
 geo as (
 
-    select m.club_market_id, f.season_year as participation_year, sum(m.weight) filter (where f.fit_for_geo) / nullif(sum(m.weight), 0) as pct_records_geo_fit
-    from {{ ref('dq_record_fitness') }} f join w m on m.participant_id = f.person_id and m.participation_year = f.season_year
-    where f.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') group by all
+    select m.club_market_id, f.participation_year, sum(m.weight * f.records_fit_for_geo) / nullif(sum(m.weight * f.records), 0) as pct_records_geo_fit
+    from {{ ref('dq_geo_fit_person_year') }} f join w m on m.participant_id = f.participant_id and m.participation_year = f.participation_year
+    group by all
 
 ),
 

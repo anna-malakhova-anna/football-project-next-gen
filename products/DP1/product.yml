@@ -114,6 +114,7 @@ share_models:
 - share_privacy__minimization_frontier
 gate: contract validation against the landing tables (raw), then the data standard and the DQ rules
 aggregate_ports:
+- dq_count_fit_by_year
 - dq_scorecard_source
 - dq_scorecard_org
 - dq_scorecard_market
@@ -124,6 +125,8 @@ aggregate_ports:
 - int_dark_org_coverage
 - mart_dq_impact
 restricted_ports:
+- model: dq_geo_fit_person_year
+  consumers: [DP4]
 - model: int_registrations_unioned
   consumers: [DP2]
 - model: int_registration_market
