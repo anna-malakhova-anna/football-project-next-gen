@@ -6,7 +6,7 @@ input_sources:
 - CA_CLUB
 - INTL_FED
 name: Flag Participant & Household Master
-version: 0.9.0
+version: 0.10.0
 type: master
 status: proposed
 description: 'One reliable person and one household behind many registrations, with every link carrying its reason and a review queue for uncertain cases. Internal
@@ -38,12 +38,18 @@ output_ports:
   audience: ops
   grain: uncertain pair
   refresh: per build
+- name: participant_year
+  model: share_analyst__participant_year
+  audience: analyst
+  grain: pseudonymized participant x year
+  refresh: per season close
 input_products:
 - DP1
 sources_lineage:
   share_ops__participant: dbt/models/shares/ops/share_ops__participant.sql
   share_ops__registration: dbt/models/shares/ops/share_ops__registration.sql
   share_ops__review_queue: dbt/models/shares/ops/share_ops__review_queue.sql
+  share_analyst__participant_year: dbt/models/shares/analyst/share_analyst__participant_year.sql
 quality_indicator:
   from_model: mart_uncertainty_decomposition
   component: IDENTITY
@@ -121,10 +127,20 @@ internal_models:
 - int_household_year_consent
 - int_participant_year_market
 - mart_retention_vs_deletion
+- p5_record_identity
+- dq_identity_facts
+- dq_record_resolved
+- dq_identity_rule_results
+- dq_record_fitness
+- dq_count_fit_by_year
+- dq_geo_fit_person_year
+- mart_minimization_fitness
 - mart_identity_uncertainty
 - mart_reidentification_risk
 gate: DP1's restricted port (int_registrations_unioned)
 share_models:
+- share_privacy__minimization_frontier
+- share_analyst__participant_year
 - share_ops__participant
 - share_ops__registration
 - share_ops__review_queue
@@ -132,8 +148,12 @@ share_models:
 - share_media__*
 - share_privacy__retention_vs_deletion
 restricted_ports:
-- model: p5_record_quality
-  consumers: [DP1]
+- model: dq_record_resolved
+  consumers: [DP4]
+- model: dq_geo_fit_person_year
+  consumers: [DP4]
+- model: idr_probable_merges
+  consumers: [DP4]
 - model: fct_reported_headcount
   consumers: [DP3]
 - model: p5_household
@@ -155,7 +175,7 @@ restricted_ports:
 - model: fct_registration
   consumers: [DP3, DP4, DP5]
 - model: int_household
-  consumers: [DP5]
+  consumers: [DP5, DP4]
 - model: int_household_profile
   consumers: [DP5]
 - model: int_consent_event
@@ -165,5 +185,7 @@ restricted_ports:
 - model: int_participant_year_market
   consumers: [DP3, DP4, DP5]
 aggregate_ports:
+- dq_identity_rule_results
+- dq_count_fit_by_year
 - mart_identity_uncertainty
 - mart_reidentification_risk

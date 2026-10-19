@@ -1,7 +1,7 @@
 -- One row per KNOWN organization and season, reporting or not (rules at ORG_SEASON grain read this). The modelled sources come from the organization registry
 -- (raw.org_registry: what the program knows, including organizations that sent no file); the Phase 5 channel feeds' organizations are the leagues of their catalog,
 -- which reported a season when any record of it arrived. `reported` is the whole point: a dark organization has no rows in dq_record_base, so only this table can say so.
-with seasons as (select distinct season_year from {{ ref('p5_record_quality') }}),
+with seasons as (select distinct season_year from {{ ref('p5_record_facts') }}),
 
 registry as (
 
@@ -13,7 +13,7 @@ registry as (
 channel_orgs as (
 
     select l.league_id as org_id, l.source_feed as source_system, l.league_name as org_name, l.state as region_code, cast(null as varchar) as zip3, 'CHANNEL_FEED' as channel, s.season_year,
-           exists (select 1 from {{ ref('p5_record_quality') }} q where q.league_id = l.league_id and q.season_year = s.season_year) as reported
+           exists (select 1 from {{ ref('p5_record_facts') }} q where q.league_id = l.league_id and q.season_year = s.season_year) as reported
     from {{ source('raw_p5', 'p5_league_catalog') }} l cross join seasons s
 
 ),

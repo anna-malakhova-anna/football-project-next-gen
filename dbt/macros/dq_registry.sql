@@ -2,8 +2,9 @@
   The rule registry (seed dq_rule_registry) is the one place a data quality rule is defined. These macros turn its rows into queries.
   Every call reads the registry with run_query at compile time (the seed must be loaded first: dbt seed / dbt build) and callers add `-- depends_on:` lines for the seeds they use.
 
-  dq_record_rule_results()   one SELECT per RECORD-grain rule over dq_record_base: rule_id, source_system, org_id, season_year, n_evaluated, n_pass
-                             (check_sql TRUE passes, FALSE fails, NULL is not applicable)
+  dq_record_rule_results()   one SELECT per RECORD-grain rule over a record base: rule_id, source_system, org_id, season_year, n_evaluated, n_pass
+                             (check_sql TRUE passes, FALSE fails, NULL is not applicable). `only` splits the registry by what a rule needs: 'plain' = rules that need no resolved person
+                             (evaluated by DP1 over dq_record_base), 'identity' = rules that read a resolved-person column (DP2, over dq_record_resolved), 'all'.
   dq_org_rule_results()      the same for ORG_SEASON-grain rules over dq_org_season_base
   dq_fitness_columns()       per purpose: the list of failing rules a record has (rules of severity ERROR or WARN that list the purpose), as failing_rules_<PURPOSE>
   dq_threshold_for(p)        the registry threshold column for a purpose name
@@ -13,9 +14,17 @@ case {{ purpose_col }} when 'COUNT' then threshold_count when 'SEGMENT' then thr
                        when 'RETAIN' then threshold_retain when 'ACTIVATE' then threshold_activate end
 {%- endmacro %}
 
-{% macro dq_record_rule_results(grain='RECORD', base='dq_record_base', keys='source_system, org_id, season_year') -%}
+{#- the columns only DP2 can supply, because they need the resolved person -#}
+{% macro dq_identity_pattern() -%}\b(person_id|is_first_of_person_season|dob_consistent|sex_consistent|zip3_consistent|age_group_consistent)\b{%- endmacro %}
+
+{% macro dq_record_rule_results(grain='RECORD', base='dq_record_base', keys='source_system, org_id, season_year', only='all') -%}
 {%- if execute -%}
-{%- set rules = run_query("select rule_id, check_sql from " ~ ref('dq_rule_registry') ~ " where grain = '" ~ grain ~ "' and nullif(trim(check_sql), '') is not null order by rule_id") -%}
+{%- set all_rules = run_query("select rule_id, check_sql from " ~ ref('dq_rule_registry') ~ " where grain = '" ~ grain ~ "' and nullif(trim(check_sql), '') is not null order by rule_id") -%}
+{%- set rules = {'rows': []} -%}
+{%- for r in all_rules.rows -%}
+{%- set needs = modules.re.search(dq_identity_pattern(), r[1]) is not none -%}
+{%- if only == 'all' or (only == 'identity' and needs) or (only == 'plain' and not needs) -%}{%- do rules.rows.append(r) -%}{%- endif -%}
+{%- endfor -%}
 {%- for r in rules.rows %}
 select '{{ r[0] }}' as rule_id, {{ keys }},
        count(*) filter (where ({{ r[1] }}) is not null) as n_evaluated,
@@ -94,7 +103,7 @@ select {% for k in keys %}cast(null as varchar) as {{ k }}, {% endfor %}cast(nul
 
 {#-
   dq_impact_person_rows()
-  For every record-level rule that can judge a record (severity ERROR or WARN), one SELECT over dq_record_base: per person and season, how many of the person's records fail the rule and
+  For every record-level rule that can judge a record (severity ERROR or WARN), one SELECT over dq_record_resolved: per person and season, how many of the person's records fail the rule and
   whether ALL of the records the rule could evaluate fail it (all_fail). A person whose every evaluable record fails a rule is the one a rule can cost a count, a segment or a place.
   Only persons with at least one failing record are returned.
 
@@ -109,7 +118,7 @@ select {% for k in keys %}cast(null as varchar) as {{ k }}, {% endfor %}cast(nul
 select '{{ r[0] }}' as rule_id, person_id, season_year, any_value(source_system) as source_system,
        count(*) filter (where not coalesce(({{ r[1] }}), true)) as records_failing,
        bool_and(not ({{ r[1] }})) filter (where ({{ r[1] }}) is not null) as all_fail
-from {{ ref('dq_record_base') }}
+from {{ ref('dq_record_resolved') }}
 where person_id is not null and season_year between {{ first_observed_year() }} and (select last_observed_year from {{ ref('observation_window') }})
 group by person_id, season_year
 having count(*) filter (where not coalesce(({{ r[1] }}), true)) > 0
@@ -126,9 +135,9 @@ select cast(null as varchar) as rule_id, cast(null as varchar) as person_id, cas
 {%- for r in rules.rows %}
 select '{{ r[0] }}' as rule_id, ba.season_year, count(*) as merges_touched
 from merges m
-join {{ ref('dq_record_base') }} ba on ba.record_key = m.record_a
-where m.record_a in (select record_key from {{ ref('dq_record_base') }} where not coalesce(({{ r[1] }}), true))
-   or m.record_b in (select record_key from {{ ref('dq_record_base') }} where not coalesce(({{ r[1] }}), true))
+join {{ ref('dq_record_resolved') }} ba on ba.record_key = m.record_a
+where m.record_a in (select record_key from {{ ref('dq_record_resolved') }} where not coalesce(({{ r[1] }}), true))
+   or m.record_b in (select record_key from {{ ref('dq_record_resolved') }} where not coalesce(({{ r[1] }}), true))
 group by ba.season_year
 {% if not loop.last %}union all{% endif %}
 {%- endfor %}
@@ -151,7 +160,7 @@ select cast(null as varchar) as rule_id, cast(null as integer) as season_year, 0
 select '{{ r[0] }}' as rule_id, m.club_market_id, b.season_year,
        sum(m.weight) filter (where ({{ r[1] }}) is not null) as n_evaluated,
        coalesce(sum(m.weight) filter (where ({{ r[1] }})), 0) as n_pass
-from {{ ref('dq_record_base') }} b
+from {{ ref('dq_record_resolved') }} b
 join {{ ref('int_participant_year_market') }} m on m.participant_id = b.person_id and m.participation_year = b.season_year
 where b.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED')
 group by m.club_market_id, b.season_year

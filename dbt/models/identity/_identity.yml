@@ -1,6 +1,8 @@
 version: 2
 
 models:
+  - name: idr_probable_merges
+    description: "DP2 restricted port (consumer DP4). Record pairs of PROBABLE links (after review) that would merge two different AUTO clusters."
   - name: idr_input_records
     description: >
       One row per registration the matcher sees: exact duplicates collapsed (all keys carried in

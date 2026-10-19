@@ -78,6 +78,22 @@ models:
     description: DP1 aggregate port. Per season and KPI, counts of records with a missing value by organization and by division. Counts only.
     config:
       tags: [phase5]
+  - name: dq_rule_measures
+    description: "DP1 aggregate port. What DP1 measures without a resolved person, per rule and grain key: n_evaluated, n_pass, pass_rate. Counts only."
+    config:
+      tags: [phase5]
+  - name: dq_identity_facts
+    description: "DP2. The quality facts that need the resolved person (person_id, uniqueness, agreement across a person's records), keyed by record_key."
+    config:
+      tags: [phase5]
+  - name: dq_record_resolved
+    description: "DP2 restricted port (consumer DP4). dq_record_base with the resolved-person facts joined back; the same columns the single record stream had before the split."
+    config:
+      tags: [phase5]
+  - name: dq_identity_rule_results
+    description: "DP2 aggregate port. The rules that need the resolved person, evaluated and aggregated like dq_rule_measures. Counts only."
+    config:
+      tags: [phase5]
   - name: dq_scorecard_org
     description: >
       Organization x season x purpose x dimension scores (0 to 100) and grades. The PURPOSE_SCORE row is the minimum of the purpose's dimension scores (ADR-014); an organization-season

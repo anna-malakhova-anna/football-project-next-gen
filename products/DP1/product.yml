@@ -13,11 +13,11 @@ input_sources:
 - pal_chapter_csv
 - school_program
 name: League Registration Intake
-version: 1.0.0
+version: 2.0.0
 type: source-based
 status: mvp
-description: 'The front door for registration data: a contract per source, an onboarding record, the minimum data standard, and a scorecard and fix list per league.
-  It tells a league what to fix and tells the product team how fit each source is. It does not publish any person-level data.'
+description: 'The front door for registration data: a contract per source, an onboarding record, the minimum data standard, and the checks that need no resolved person.
+  The scorecard and fix list per league are assembled in DP4, where these checks meet the identity checks of DP2. It does not publish any person-level data.'
 goals:
 - G1
 - G2
@@ -30,21 +30,9 @@ consumers:
 owner_role: Data Product Manager, NFL FLAG Insights (fictional)
 steward_role: Data steward, registration sources (fictional)
 support_contact: 'issues: <repo>/issues (label: dp1)'
-output_ports:
-- name: league_scorecard
-  model: share_ops__league_scorecard
-  audience: ops
-  grain: league x season x purpose
-  refresh: per season close
-- name: league_fix_list
-  model: share_ops__league_fix_list
-  audience: ops
-  grain: league x season x fix
-  refresh: per season close
+output_ports: []   # a source-aligned product: its consumers are other products, through the aggregate and restricted ports below
 input_products: []
-sources_lineage:
-  share_ops__league_scorecard: dbt/models/shares/ops/share_ops__league_scorecard.sql
-  share_ops__league_fix_list: dbt/models/shares/ops/share_ops__league_fix_list.sql
+sources_lineage: {}
 quality_indicator:
   from_model: dq_scorecard_source
   purpose: COUNT
@@ -105,31 +93,34 @@ internal_models:
 - stg_p5_registrations
 - int_registrations_unioned
 - int_registration_market
-- dq_*
-- int_dark_org_coverage
-- mart_dq_impact
-- mart_minimization_fitness
-- mart_missingness_tests
-share_models:
-- share_ops__league_*
-- share_privacy__minimization_frontier
-gate: contract validation against the landing tables (raw), then the data standard and the DQ rules
-aggregate_ports:
-- dq_count_fit_by_year
+- p5_record_facts
+- int_fan_account_xref
+- dq_record_base
+- dq_org_season_base
+- dq_rule_measures
+- dq_defect_log
+- dq_summary
+- dq_source_profile
+- dq_headcount_profile
+- dq_standardized_records
+- dq_standard_conformance
+- dq_standard_summary
 - dq_missing_concentration
 - mart_missingness_tests
-- dq_scorecard_source
-- dq_scorecard_org
-- dq_scorecard_market
-- dq_trend
-- dq_fix_list
-- dq_summary
+gate: contract validation against the landing tables (raw), then the data standard and the DQ rules
+aggregate_ports:
+- dq_rule_measures
 - dq_org_season_base
-- int_dark_org_coverage
-- mart_dq_impact
+- dq_missing_concentration
+- mart_missingness_tests
+- dq_summary
 restricted_ports:
-- model: dq_geo_fit_person_year
-  consumers: [DP4]
+- model: dq_record_base
+  consumers: [DP2]
+- model: p5_record_facts
+  consumers: [DP2]
+- model: int_fan_account_xref
+  consumers: [DP5]
 - model: int_registrations_unioned
   consumers: [DP2]
 - model: int_registration_market

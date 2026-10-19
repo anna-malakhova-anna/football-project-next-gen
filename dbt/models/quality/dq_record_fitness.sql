@@ -1,5 +1,5 @@
 -- depends_on: {{ ref('dq_rule_registry') }}
--- One row per registration (the three modelled sources and the six Phase 5 channel feeds): is this record fit for each purpose, and which rules does it fail?
+-- DP2 (the fitness of a record needs the resolved person: uniqueness, agreement, RETAIN). One row per registration (the three modelled sources and the six Phase 5 channel feeds): is this record fit for each purpose, and which rules does it fail?
 -- A record is fit for a purpose when it fails NO record-level rule of severity ERROR or WARN that lists the purpose (INFO rules never judge a record). Whether a chain of
 -- records is fit is the scorecards' question; this is the record's own. failing_rules_<purpose> names the registry rules, so a fix can be traced to a rule and its guidance.
 with f as (
@@ -7,7 +7,7 @@ with f as (
     select
         source_system, source_record_id, record_key, org_id, season_year, season_term, person_id,
         {{ dq_fitness_columns() }}
-    from {{ ref('dq_record_base') }}
+    from {{ ref('dq_record_resolved') }}
     where person_id is not null
 
 ),

@@ -1,7 +1,7 @@
 -- depends_on: {{ ref('dq_rule_registry') }}
--- depends_on: {{ ref('dq_record_base') }}
+-- depends_on: {{ ref('dq_record_resolved') }}
 -- depends_on: {{ ref('observation_window') }}
--- What each rule COSTS, in the units a KPI is counted in (phase-5-spec 6.3): not "8% null DOB" but "this many participants". One row per rule x population x season x purpose.
+-- DP4 (it joins DP1's rule results to DP2's persons, households and uncertain merges). What each rule COSTS, in the units a KPI is counted in (phase-5-spec 6.3): not "8% null DOB" but "this many participants". One row per rule x population x season x purpose.
 --   participants_lost   persons whose EVERY evaluable record in the season fails the rule: for COUNT they drop out of a strict count, for SEGMENT / GEO / RETAIN they cannot be placed in a
 --                       segment, a place or a cohort. Bounds, not estimates: it is exactly what would be lost if the rule's failures were excluded.
 --   households_lost     (modelled sources, where the Phase 4 household linkage exists) households whose every active member is lost this way: the ACTIVATE unit.
@@ -29,7 +29,7 @@ persons as (
 active as (
 
     select h.household_id, b.season_year, count(distinct b.person_id) as members
-    from {{ ref('dq_record_base') }} b join {{ ref('int_household') }} h on h.participant_id = b.person_id
+    from {{ ref('dq_record_resolved') }} b join {{ ref('int_household') }} h on h.participant_id = b.person_id
     where b.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') group by all
 
 ),
@@ -48,15 +48,7 @@ hh as (
 
 ),
 
-merges as (
-
-    select e.record_a, e.record_b
-    from {{ ref('idr_match_edges') }} e
-    join {{ ref('idr_clusters') }} ca on ca.matcher = e.matcher and ca.stage = e.stage and ca.scope = 'AUTO' and ca.match_record_id = e.record_a
-    join {{ ref('idr_clusters') }} cb on cb.matcher = e.matcher and cb.stage = e.stage and cb.scope = 'AUTO' and cb.match_record_id = e.record_b
-    where e.matcher = '{{ var("matcher") }}' and e.stage = 'POST_REVIEW' and e.tier = 'PROBABLE' and ca.cluster_id <> cb.cluster_id
-
-),
+merges as (select record_a, record_b from {{ ref('idr_probable_merges') }}),
 
 merge_rows as (
 

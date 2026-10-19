@@ -108,11 +108,12 @@ internal_models:
 - mart_restatement_log
 - mart_uncertainty_decomposition
 - mart_missingness_bias
+- int_dark_org_coverage
 gate: DP2's ports (participant master and person-grain facts)
 share_models:
 - share_exec__participation_*
 - share_exec__reported_headcount
-- share_analyst__participant_year
 aggregate_ports:
+- int_dark_org_coverage
 - mart_uncertainty_decomposition
 - mart_missingness_bias

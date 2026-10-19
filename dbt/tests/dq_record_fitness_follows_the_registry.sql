@@ -3,7 +3,7 @@
 -- A record that fails a rule listing a purpose is never fit for it (re-derived here from the registry for the exact-duplicate rule, an ERROR rule for COUNT).
 select 'row count differs from the registrations' as problem
 where (select count(*) from {{ ref('dq_record_fitness') }}) <>
-      (select count(*) from {{ ref('dq_record_base') }} where person_id is not null)
+      (select count(*) from {{ ref('dq_record_resolved') }} where person_id is not null)
 union all
 select distinct 'fit_for_count disagrees with its failing rules' from {{ ref('dq_record_fitness') }} where fit_for_count <> (len(failing_rules_count) = 0)
 union all

@@ -109,7 +109,7 @@ def validate(products: dict[str, dict], con=None) -> list[str]:
         if p.get("privacy", {}).get("age_rules") and not (ROOT / p["privacy"]["age_rules"]).exists(): w("privacy.age_rules file missing")
         for m, path in (p.get("sources_lineage") or {}).items():
             if not (ROOT / path).exists(): w(f"lineage file for {m} missing: {path}")
-        if not (p.get("output_ports") or []): w("no output ports")
+        if not (p.get("output_ports") or []) and not (p.get("aggregate_ports") or []): w("no output ports and no aggregate ports")
         for port in p.get("output_ports") or []:
             node = models.get(port["model"])
             if manifest and node is None:

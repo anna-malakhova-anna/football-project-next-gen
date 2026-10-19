@@ -152,7 +152,13 @@ internal_models:
 - int_participant_household_timeline
 - dim_fan_account
 - fct_fan_*
-- int_fan_*
+- int_fan_outcome_month
+- int_fan_cem_matched
+- int_fan_cem_candidates
+- int_fan_lapse_spells
+- int_fan_account_month_state
+- int_fan_rfm_scores
+- int_fan_account_group
 - int_market_year_accounts
 - mart_acquisition_*
 - fct_household_*

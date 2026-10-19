@@ -1,5 +1,5 @@
 -- depends_on: {{ ref('dq_rule_registry') }}
--- depends_on: {{ ref('dq_record_base') }}
+-- depends_on: {{ ref('dq_record_resolved') }}
 -- depends_on: {{ ref('dq_org_season_base') }}
 -- depends_on: {{ ref('int_participant_year_market') }}
 -- depends_on: {{ ref('club_market_map') }}

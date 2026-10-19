@@ -1,10 +1,1 @@
 reader,read,reason
-dq_defect_log,int_fan_account_xref,"Record-level data quality needs the person-level master (to cost a defect in participants). Candidate fix: a DP2 restricted port for DP1, or move the costing to DP2."
-dq_market_rule_results,int_participant_year_market,"Record-level data quality needs the person-level master (to cost a defect in participants). Candidate fix: a DP2 restricted port for DP1, or move the costing to DP2."
-dq_record_base,bridge_registration_participant,"Record-level data quality needs the person-level master (to cost a defect in participants). Candidate fix: a DP2 restricted port for DP1, or move the costing to DP2."
-dq_record_fitness,int_consent_event,"Record-level data quality needs the person-level master (to cost a defect in participants). Candidate fix: a DP2 restricted port for DP1, or move the costing to DP2."
-dq_scorecard_market,int_participant_year_market,"Record-level data quality needs the person-level master (to cost a defect in participants). Candidate fix: a DP2 restricted port for DP1, or move the costing to DP2."
-mart_dq_impact,idr_clusters,The cost of a rule in participants and households reads identity and household internals. Candidate fix: DP2 restricted port for DP1.
-mart_dq_impact,idr_match_edges,The cost of a rule in participants and households reads identity and household internals. Candidate fix: DP2 restricted port for DP1.
-mart_dq_impact,int_household,The cost of a rule in participants and households reads identity and household internals. Candidate fix: DP2 restricted port for DP1.
-share_analyst__participant_year,idr_input_records,Analyst export reads the identity input records. Candidate fix: read dim_participant (a DP2 restricted port).

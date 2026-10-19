@@ -1,8 +1,7 @@
 -- depends_on: {{ ref('dq_rule_registry') }}
--- depends_on: {{ ref('dq_record_base') }}
--- depends_on: {{ ref('dq_org_season_base') }}
--- depends_on: {{ ref('dq_standard_conformance') }}
--- The long-form fact everything in the data quality layer reads: one row per rule x grain key x purpose.
+-- depends_on: {{ ref('dq_rule_measures') }}
+-- depends_on: {{ ref('dq_identity_rule_results') }}
+-- DP4 (assembled from DP1's dq_rule_measures and DP2's dq_identity_rule_results, the two halves of the registry). The long-form fact everything in the data quality layer reads: one row per rule x grain key x purpose.
 --   RECORD rules (origin PHASE1, PHASE5)  are evaluated over dq_record_base and aggregated to (source, organization, season); an organization-less stream (fan, school) is keyed by source and season
 --   ORG_SEASON rules                      are evaluated over dq_org_season_base (dark organizations included)
 --   STANDARD rules                        are the data standard's field conformance (dq_standard_conformance, from validate_against_standard), INFO, never scored
@@ -12,45 +11,11 @@
 -- when nothing was evaluable. A rule listing several purposes yields one row per purpose, so a purpose is judged against its own bar.
 with registry as (select * from {{ ref('dq_rule_registry') }}),
 
-measured as (
-
-    {{ dq_record_rule_results() }}
-    union all
-    {{ dq_record_rule_results('ORG_SEASON', 'dq_org_season_base') }}
-
-),
-
-contract as (
-
-    select
-        r.rule_id, c.source_system, cast(null as varchar) as org_id, cast(null as integer) as season_year,
-        1 as n_evaluated, case when c.observed <= c.threshold then 1 else 0 end as n_pass, 1 - c.observed as pass_rate_override
-    from {{ source('contracts', 'dq_contract_results') }} c
-    join registry r
-      on r.origin = 'CONTRACT'
-     and split_part(split_part(r.contract_ref, '@', 1), '|', 1) = c.source_system
-     and split_part(split_part(r.contract_ref, '@', 1), '|', 2) = coalesce(c.component, '')
-     and split_part(split_part(r.contract_ref, '#', 2), ':', 1) = c.rule
-     and replace(substr(r.contract_ref, instr(r.contract_ref, ':') + 1), ' ', '') = replace(c.column_name, ' ', '')
-
-),
-
-standard as (
-
-    -- conformance to the data standard: measured by validate_against_standard, one registry rule per field (origin STANDARD, INFO)
-    select 'DQ-STD-' || upper(replace(field_name, '_', '-')) as rule_id, source_system, org_id, season_year,
-           n_rows as n_evaluated, n_rows - n_missing - n_invalid as n_pass, conformance as pass_rate_override
-    from {{ ref('dq_standard_conformance') }}
-
-),
-
 unioned as (
 
-    select rule_id, source_system, org_id, season_year, n_evaluated, n_pass, n_pass::double / nullif(n_evaluated, 0) as pass_rate from measured
+    select rule_id, source_system, org_id, season_year, n_evaluated, n_pass, pass_rate from {{ ref('dq_rule_measures') }}
     union all
-    select rule_id, source_system, org_id, season_year, n_evaluated, n_pass, pass_rate_override from contract
-    union all
-    select rule_id, source_system, org_id, season_year, n_evaluated, n_pass, pass_rate_override from standard
+    select rule_id, source_system, org_id, season_year, n_evaluated, n_pass, n_pass::double / nullif(n_evaluated, 0) from {{ ref('dq_identity_rule_results') }}
 
 ),
 

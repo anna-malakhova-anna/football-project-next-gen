@@ -10,6 +10,7 @@ Why a script and not a dbt model: the pipeline pass rate and the run time exist 
 """
 from __future__ import annotations
 
+import csv
 import json
 import sys
 from pathlib import Path
@@ -17,6 +18,7 @@ from pathlib import Path
 import duckdb
 import yaml
 
+from scripts import check_product_boundaries as cb
 from scripts import validate_products as vp
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -82,6 +84,10 @@ def build(con) -> list[tuple]:
     restate = con.execute("select count(*) from measurement.mart_restatement_log").fetchone()[0]
     link = con.execute("select household_link_rate from share_exec.share_exec__household_link_rate where country_code is null").fetchone()
     prov = con.execute("select count(*) filter (where has_known_full), count(*) from linkage.int_household_year_consent where participation_year = (select max(participation_year) from linkage.int_household_year_consent)").fetchone()
+    owner = cb.analyse()[2]["owner"]
+    debt = cb.read_debt()
+    series = [int(r["debt_rows"]) for r in csv.DictReader((ROOT / "products" / "boundary_debt_history.csv").open(encoding="utf-8"))]
+    trend = " to ".join(str(n) for n in series)
     out: list[tuple] = []
     for pid, p in products.items():
         def add(area, measure, text, num=None, status="INFO", note=""):
@@ -152,6 +158,9 @@ def build(con) -> list[tuple]:
                 pass
         if supp_total:
             add("privacy", "Rows with a hidden count (suppression rate)", f"{100.0 * supp_cells / supp_total:.1f}% of {supp_total}", 100.0 * supp_cells / supp_total, "INFO", "ports that carry a suppressed flag; a hidden count is the rule working")
+        mine = sum(1 for (reader, _) in debt if owner.get(reader) == pid)
+        add("boundaries", "Reads of another product's internals", mine, mine, "WATCH" if mine else "OK",
+            f"accepted boundary debt; the whole project went {trend} (products/boundary_debt_history.csv), now {len(debt)}")
         add("privacy", "Age-rule rows still unverified", int(unverified), unverified, "WATCH" if unverified else "OK", "docs/product/age-consent-rules.md lists them; the program owner verifies")
     return out
 

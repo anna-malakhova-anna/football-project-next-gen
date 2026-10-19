@@ -43,7 +43,7 @@ combined as (
 size as (
 
     select m.club_market_id, b.season_year, sum(m.weight) as n_records
-    from {{ ref('dq_record_base') }} b join {{ ref('int_participant_year_market') }} m on m.participant_id = b.person_id and m.participation_year = b.season_year
+    from {{ ref('dq_record_resolved') }} b join {{ ref('int_participant_year_market') }} m on m.participant_id = b.person_id and m.participation_year = b.season_year
     where b.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') group by 1, 2
 
 ),

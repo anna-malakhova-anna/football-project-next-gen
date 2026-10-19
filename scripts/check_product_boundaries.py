@@ -105,8 +105,50 @@ def analyse() -> tuple[list[str], list[tuple[str, str]], dict]:
                     violations.append((r, models[d]["name"]))
             elif d.startswith("source.") and d.split(".")[-2] in ("raw", "raw_p5") and (v["original_file_path"].startswith("models/shares/") or r in {p for s in out_ports.values() for p in s}):
                 problems.append(f"{r}: a consumer-facing port reads {d.split('.')[-2]} directly")
-    info = dict(owner=owner, n_models=len(models), specs=specs)
+    # --- the product dependency graph: an edge A -> B when a model of A reads a model of B (port or not; shared_reference and the answer-key harness are outside the graph)
+    edges: dict[tuple[str, str], set[tuple[str, str]]] = {}
+    for k, v in models.items():
+        a = owner.get(v["name"])
+        if a not in specs or v["original_file_path"].startswith("models/evaluation/"):
+            continue
+        for d in v["depends_on"]["nodes"]:
+            if d in models:
+                b = owner.get(models[d]["name"])
+                if b in specs and a != b:
+                    edges.setdefault((a, b), set()).add((v["name"], models[d]["name"]))
+    cycle = find_cycle({e for e in edges})
+    if cycle:
+        hops = "; ".join(f"{a} reads {b} ({', '.join(f'{r}->{d}' for r, d in sorted(edges[(a, b)])[:3])}{', ...' if len(edges[(a, b)]) > 3 else ''})" for a, b in zip(cycle, cycle[1:]))
+        problems.append(f"product dependency cycle {' -> '.join(cycle)}: {hops}")
+    info = dict(owner=owner, n_models=len(models), specs=specs, edges=edges)
     return problems, sorted(set(violations)), info
+
+
+def find_cycle(edges: set[tuple[str, str]]) -> list[str] | None:
+    """The first cycle of the directed graph (as a node list that starts and ends on the same node), or None."""
+    graph: dict[str, list[str]] = {}
+    for a, b in sorted(edges):
+        graph.setdefault(a, []).append(b)
+        graph.setdefault(b, [])
+    state: dict[str, int] = {}
+    stack: list[str] = []
+
+    def visit(n: str) -> list[str] | None:
+        state[n] = 1
+        stack.append(n)
+        for m in graph[n]:
+            if state.get(m, 0) == 1:
+                return stack[stack.index(m):] + [m]
+            if state.get(m, 0) == 0 and (c := visit(m)):
+                return c
+        stack.pop()
+        state[n] = 2
+        return None
+
+    for n in graph:
+        if state.get(n, 0) == 0 and (c := visit(n)):
+            return c
+    return None
 
 
 def read_debt() -> dict[tuple[str, str], str]:
@@ -124,6 +166,13 @@ def main() -> int:
             print(f"{info['owner'][r]},{r},{info['owner'][d]},{d}")
         return 0
     found = set(violations)
+    hist = PRODUCTS / "boundary_debt_history.csv"
+    if not hist.exists():
+        problems.append("products/boundary_debt_history.csv is missing; run: uv run python -m scripts.build_debt_history")
+    else:
+        last = list(csv.DictReader(hist.open(encoding="utf-8")))[-1]
+        if int(last["debt_rows"]) != len(debt):
+            problems.append(f"products/boundary_debt_history.csv ends at {last['debt_rows']} rows but the debt file has {len(debt)}; run: uv run python -m scripts.build_debt_history")
     for r, d in sorted(found - set(debt)):
         problems.append(f"NEW boundary violation: {r} ({info['owner'][r]}) reads {d} ({info['owner'][d]}), which is not a declared port")
     for r, d in sorted(set(debt) - found):

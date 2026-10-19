@@ -1,13 +1,13 @@
 -- depends_on: {{ ref('dq_org_season_base') }}
--- For every KNOWN organization that sent no file in a season, the number of unique participants it probably had: the median (and 25th / 75th percentile) of the unique participants of REPORTING
+-- DP3 (it counts participants, so it reads DP2's person-grain registrations and DP1's organization base). For every KNOWN organization that sent no file in a season, the number of unique participants it probably had: the median (and 25th / 75th percentile) of the unique participants of REPORTING
 -- peers of the same source, season, size band and region. The size band comes from the organization's own other seasons (terciles of its mean record count; UNKNOWN if it never reported).
 -- Falls back to the same size band in any region, then to any peer, when fewer than three peers exist (peer_level says which). An ESTIMATE with an interval, not a bound; gross of participants who
 -- also played at a reporting organization that year. Label-free: no answer key. Read by mart_uncertainty_decomposition (summed per year) and by the club-market coverage (spread over markets).
 with org_year as (
 
-    select b.source_system, b.org_id, b.season_year, count(distinct b.person_id) as participants, o.region_code
-    from {{ ref('dq_record_base') }} b join {{ ref('dq_org_season_base') }} o on o.source_system = b.source_system and o.org_id = b.org_id and o.season_year = b.season_year
-    where b.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') and b.person_id is not null group by all
+    select b.source_system, b.organization_id as org_id, b.participation_year as season_year, count(distinct b.participant_id) as participants, o.region_code
+    from {{ ref('fct_registration') }} b join {{ ref('dq_org_season_base') }} o on o.source_system = b.source_system and o.org_id = b.organization_id and o.season_year = b.participation_year
+    where b.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') and b.participant_id is not null group by all
 
 ),
 

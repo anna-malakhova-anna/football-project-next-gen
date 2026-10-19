@@ -74,7 +74,7 @@ combined as (
 
 size as (
 
-    select source_system, season_year, count(*) as n_records from {{ ref('dq_record_base') }} where season_year is not null group by 1, 2
+    select source_system, season_year, count(*) as n_records from {{ ref('dq_record_resolved') }} where season_year is not null group by 1, 2
 
 ),
 

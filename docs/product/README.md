@@ -42,13 +42,13 @@ A data product is not a layer. It is a governed **output port** (an owner, a con
 
 | Product | Formed where (the gate) | Kept inside (not for others to read) | What others may read |
 |---|---|---|---|
-| DP1 League Registration Intake | At `raw`: each file is checked against its contract and the data standard | Staging, the DQ rules and their results | **Restricted:** the checked registrations, for DP2 only. **Aggregate:** quality scorecards, fix lists and contract status |
-| DP2 Participant and Household Master | On DP1's restricted port | Matching, clustering, the review queue | `share_ops`; the participant, household and consent tables as restricted ports for DP3 to DP5 only |
+| DP1 League Registration Intake | At `raw`: each file is checked against its contract and the data standard | Staging, the checks that need no resolved person | **Restricted:** the checked registrations and record facts, for DP2 only. **Aggregate:** what each rule measured (counts), the organization base, contract status |
+| DP2 Participant and Household Master | On DP1's restricted port | Matching, clustering, the review queue, the checks that need a resolved person | `share_ops`; the pseudonymized participant-year (analyst); the participant, household and consent tables as restricted ports for DP3 to DP5 only; identity-check counts as an aggregate port |
 | DP3 Global Participation | On DP2's ports | Facts and measurement tables | `share_exec` |
-| DP4 US Growth and Club Markets | On DP2's ports and DP1's aggregate port | Market models | `share_club` (and `share_exec`) |
+| DP4 US Growth and Club Markets | On DP2's ports and DP1's aggregate port | Market models, and the data-quality scorecards, trend, fix list and cost of a rule, assembled from DP1's and DP2's ports | `share_club` (and `share_exec`); the league scorecard and fix list in `share_ops` |
 | DP5 Flag-to-Fan Conversion | On DP2's ports and the fan feed | The `linkage` schema (restricted) | Aggregates only, in `share_exec`, `share_club` and `share_privacy` |
 
-`scripts/check_product_boundaries.py` enforces it (part of `make product`): every model has one owner, a model reads another product only through a declared port, and no port reads `raw` directly. Cross-product reads that exist today are listed with a reason in `products/boundary_debt.csv`; a new one fails the check, and a row that stops applying must be removed.
+`scripts/check_product_boundaries.py` enforces it (part of `make product`): every model has one owner, a model reads another product only through a declared port, and no port reads `raw` directly. Cross-product reads that are not through a port would be listed with a reason in `products/boundary_debt.csv` (it is empty now; its history is `products/boundary_debt_history.csv`, 23 rows at the start); a new one fails the check, and a row that stops applying must be removed. The check also fails on any cycle in the product dependency graph: the order is DP1, DP2, DP5, DP3, DP4, and no product reads one after it.
 
 ## Reference
 Structure informed by Gartner's data product guidance framework (2024).
