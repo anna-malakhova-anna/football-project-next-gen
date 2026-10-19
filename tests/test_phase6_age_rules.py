@@ -81,3 +81,12 @@ def test_no_identifying_value_column_sits_outside_the_restricted_zones_except_by
     assert not any(re.search(r"participant|child|person|dob|birth|last_name", c.lower()) for c in cols), cols
     media = {c for s, t, c in rows if (s, t) == ("share_media", "share_media__roster")}
     assert not any(re.search(r"email|phone|address|dob|birth", c.lower()) for c in media), media          # names of cleared participants only: no contact detail, no birth date
+
+
+def test_every_verified_row_carries_a_source_link_and_the_anchors_are_the_only_verified_rows():
+    rs = _rules()
+    for r in rs:
+        if r["verified"] == "Y":
+            assert r["source_url"].startswith("https://"), f"{r['jurisdiction']} {r['age_min']}-{r['age_max']}: a verified row needs a source link"
+    anchors = {(r["jurisdiction"], r["age_min"], r["age_max"]) for r in rs if r["verified"] == "Y"}
+    assert anchors == {("US_FED", "0", "12"), ("US_CA", "13", "15"), ("CA_QC", "0", "13"), ("EU", "0", "12"), ("EU", "13", "15")}

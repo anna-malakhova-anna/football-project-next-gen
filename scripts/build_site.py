@@ -247,7 +247,7 @@ DATASETS += [
         from reference.product_roadmap r left join share_exec.share_exec__roadmap_gates g using (gate_id) order by r.product_id, horizon_order, r.version""",
        ["reference.product_roadmap", "share_exec.share_exec__roadmap_gates"], "governance", "Roadmap cards with their release gates (values computed in SQL)"),
     _D("age_rules", "select jurisdiction, age_min, age_max, who_consents, allowed_purposes, prohibited_purposes, verified, project_policy from reference.age_consent_rules order by jurisdiction, age_min",
-       ["reference.age_consent_rules"], "governance", "Age-tier consent rules (project policy; every row unverified)"),
+       ["reference.age_consent_rules"], "governance", "Age-tier consent rules (project policy; the anchor rows are verified, the rest unverified)"),
     _D("conv_tier", """
         select age_tier, case age_tier when 'U13' then 'Under 13' when '13_15' then '13 to 15' when '16_17' then '16 to 17' when 'ADULT' then '18 and over' else 'Age not known' end as tier_label,
                case age_tier when 'U13' then 1 when '13_15' then 2 when '16_17' then 3 when 'ADULT' then 4 else 5 end as tier_order,

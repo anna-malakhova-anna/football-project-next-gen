@@ -257,9 +257,10 @@ def unverified_html(rules: list[dict]) -> str:
         if r["verified"] != "Y":
             by.setdefault(r["jurisdiction"], []).append(f"{r['age_min']} to {r['age_max']}")
     names = {"US_FED": "United States (federal)", "US_CA": "California", "CA_QC": "Quebec", "CA_OTHER": "Canada (other)", "EU": "EU countries (Austria, Germany)", "GB": "United Kingdom", "DEFAULT": "Everywhere else (Mexico, Japan, Panama)"}
-    items = "".join(f"<li><b>{e(names.get(j, j))}:</b> not yet verified for ages {e(', '.join(a))}</li>" for j, a in by.items())
+    items = "".join(f"<li><b>{e(names.get(j, j))}:</b> unverified \u2014 strictest rule applies (ages {e(', '.join(a))})</li>" for j, a in by.items())
+    n_yes = sum(1 for r in rules if r["verified"] == "Y")
     return ("<div class='vproduct'><h4>Open items: rules not yet verified</h4>"
-            f"<ul>{items}</ul><p class='note'>Every row is still unverified and has no source link yet. The strictest row applies where unsure, so these gaps make the rules stricter, not looser. {link('docs/product/age-consent-rules.md', 'The full table')}.</p></div>")
+            f"<ul>{items}</ul><p class='note'>{n_yes} of {len(rules)} rows are verified and carry a source link (US federal under 13, California 13 to 15, Quebec under 14, the EU under 16). Every other row is unverified and has no source link yet. The strictest row applies where unsure, so these gaps make the rules stricter, not looser. {link('docs/product/age-consent-rules.md', 'The full table')}.</p></div>")
 
 
 def funnel_spec(thumb: bool) -> dict:

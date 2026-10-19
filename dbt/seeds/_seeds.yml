@@ -591,11 +591,11 @@ seeds:
   - name: age_consent_rules
     description: >-
       Age-tier consent policy by jurisdiction and age band (Phase 6, ADR-022). One row per jurisdiction and band. Rule text is a paraphrase and project policy informed by public rules, not legal advice;
-      source_url is left for Anna. Every row carries verified Y or N; all rows are N until Anna checks them. Where a rule is unknown or unverified the strictest row applies (guardian-only for all minors).
+      source_url carries the public source of a verified row (the anchor rows, checked by Anna 2026-10-19); the other rows have none. Every row carries verified Y or N; a row is N until Anna checks it. Where a rule is unknown or unverified the strictest row applies (guardian-only for all minors).
       Purpose ids follow the linkage consent events (LEAGUE_OPS, LEAGUE_COMMS, PHOTO_MEDIA, CLUB_MARKETING, PARTNER_DISCLOSURE, PROFILING).
     config:
       tags: [phase6]
-      column_types: {age_min: integer, age_max: integer}
+      column_types: {age_min: integer, age_max: integer, source_url: varchar}
     columns:
       - name: jurisdiction
         data_tests: [not_null]

@@ -381,7 +381,7 @@ charts:
     action_privacy: "Verify the rules still marked unverified and add their sources."
     caution: "This is project policy, not legal advice. Whether a club is a third party is a question for counsel."
     analyst_md: |
-      Tier boundaries (ages on Dec 31): under 13, 13 to 15, 16 to 17, 18 and over. Rules in `dbt/seeds/age_consent_rules.csv` (28 rows, all unverified), documented in `docs/product/age-consent-rules.md`; decisions in ADR-022.
+      Tier boundaries (ages on Dec 31): under 13, 13 to 15, 16 to 17, 18 and over. Rules in `dbt/seeds/age_consent_rules.csv` (28 rows: the anchor rows are verified with a source link, every other row is unverified and the strictest rule applies), documented in `docs/product/age-consent-rules.md`; decisions in ADR-022.
       The funnel is `share_privacy__conversion_funnel_by_tier`: registered, linked to a fan account, engaged, purchased (analytics only) and consented to club marketing (activation). A step is hidden when it or the step before it is under the small-cell size.
   D7:
     status: draft
