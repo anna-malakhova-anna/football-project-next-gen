@@ -433,9 +433,8 @@ Explicitly **not** available:
 | `rule_id` | AGGREGATE_BY_ORGANIZATION |
 | `problem_plain` | AGGREGATE_BY_ORGANIZATION |
 | `what_to_do_plain` | AGGREGATE_BY_ORGANIZATION |
-| `impact_unit` | AGGREGATE_BY_ORGANIZATION |
-| `estimated_impact` | AGGREGATE_BY_ORGANIZATION |
-| `impact_basis` | AGGREGATE_BY_ORGANIZATION |
+| `records_affected` | AGGREGATE_BY_ORGANIZATION |
+| `records_basis` | AGGREGATE_BY_ORGANIZATION |
 | `suppressed` | AGGREGATE_BY_ORGANIZATION |
 
 **`share_ops__league_scorecard`**

@@ -128,8 +128,17 @@ models:
       tags: [phase5]
   - name: dq_fix_list
     description: >
-      The top five issues for each organization and season, ranked by impact (mart_dq_impact) and phrased as an action (the registry's fix_guidance), with the records affected as a count only.
-      A dark organization's top issue is that it sent no file, with the records it should have sent estimated from its other seasons.
+      DP1. The top five issues for each organization and season, ranked by records affected (then severity weight, then rule id) and phrased as an action (the registry's fix_guidance), with the
+      records affected as a count only. Reads only what DP1 measures, so it carries no check that needs a resolved person. A dark organization's top issue is that it sent no file.
+    config:
+      tags: [phase5]
+    columns:
+      - name: fix_guidance
+        data_tests: [not_null]
+  - name: dq_fix_ranking
+    description: >
+      DP4. The same issues ranked by impact in participants (mart_dq_impact), which needs DP2's persons: a rule whose failures remove participants outranks a cosmetic one that fails more often.
+      Includes the checks that need a resolved person.
     config:
       tags: [phase5]
     columns:

@@ -19,32 +19,6 @@ unioned as (
 
 ),
 
-expanded as (
+{{ dq_expanded_cte() }}
 
-    select
-        u.*, r.dimension, r.origin, r.severity, r.grain as rule_grain, r.owner_role,
-        unnest(case when coalesce(r.purposes, '') = '' then [cast(null as varchar)] else string_split(r.purposes, '|') end) as purpose,
-        r.threshold_count, r.threshold_segment, r.threshold_geo, r.threshold_retain, r.threshold_activate
-    from unioned u join registry r using (rule_id)
-
-)
-
-select
-    rule_id,
-    dimension,
-    origin,
-    case when org_id is not null then 'ORG_SEASON' else 'SOURCE_SEASON' end                                  as grain,
-    source_system,
-    org_id,
-    season_year,
-    purpose,
-    n_evaluated,
-    n_pass,
-    round(pass_rate, 6)                                                                                       as observed_value,
-    {{ dq_threshold_for('purpose') }}                                                                         as threshold,
-    case when n_evaluated = 0 or pass_rate is null or ({{ dq_threshold_for('purpose') }}) is null then null
-         else pass_rate >= ({{ dq_threshold_for('purpose') }}) end                                            as pass,
-    severity,
-    owner_role,
-    current_timestamp                                                                                         as run_at
-from expanded
+{{ dq_results_select() }}

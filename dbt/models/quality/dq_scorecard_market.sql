@@ -13,20 +13,20 @@ with scored as (
 
 ),
 
-dim as (select club_market_id, season_year, purpose, dimension, 100 * sum(weight * pass_rate) / sum(weight) as score, count(*) as rules_scored from scored group by all),
+dim as (select club_market_id, season_year, purpose, dimension, (100 * sum(weight::decimal(18, 6) * pass_rate::decimal(18, 9)) / sum(weight::decimal(18, 6)))::double as score, count(*) as rules_scored from scored group by all),
 
 failing as (
 
     select club_market_id, season_year, purpose, dimension,
-           list(rule_id order by weight * (1 - pass_rate) * n_evaluated desc, rule_id) filter (where pass is false) as failing_rules
+           list(rule_id order by round(weight * (1 - pass_rate) * n_evaluated, 6) desc, round(n_evaluated * (1 - pass_rate), 6) desc, rule_id) filter (where pass is false) as failing_rules
     from scored group by all
 
 ),
 
 purpose_score as (
 
-    select club_market_id, season_year, purpose, 'PURPOSE_SCORE' as dimension, min(score) as score, sum(rules_scored) as rules_scored, arg_min(dimension, score) as limiting_dimension
-    from dim group by 1, 2, 3
+    select club_market_id, season_year, purpose, 'PURPOSE_SCORE' as dimension, min(score) as score, sum(rules_scored) as rules_scored, arg_min(dim.dimension, (round(dim.score, 6), pri.tie_priority)) as limiting_dimension
+    from dim join {{ ref('dq_dimensions') }} pri on pri.dimension = dim.dimension group by 1, 2, 3
 
 ),
 

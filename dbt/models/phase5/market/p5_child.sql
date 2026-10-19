@@ -29,19 +29,29 @@ market_votes as (
 
 ),
 
+birth_votes as (
+
+    -- the child's birth year: the most frequent one among their records. On a tie the LATER year wins (the younger band): protective, and consistent with "the youngest child governs".
+    select p5_person_id, birth_year,
+           row_number() over (partition by p5_person_id order by count(*) desc, birth_year desc) as rn
+    from recs where birth_year is not null
+    group by 1, 2
+
+),
+
 per_child as (
 
     select
         p5_person_id,
         min(league_group)                                                   as league_group,
         min(league_id)                                                      as league_id,
-        mode(birth_year)                                                    as birth_year,
+        any_value(bv.birth_year)                                            as birth_year,
         min(age_group_raw)                                                  as age_group_raw,
         min(grade_raw)                                                      as grade_raw,
         min(low_id)                                                         as low_person_id,
         -- weakly identified: no record of the child in the latest season has a parent email or a birth year (school rosters), so nothing could have matched it to another registration
-        bool_and(contact_email is null and birth_year is null)              as is_weakly_identified
-    from recs group by 1
+        bool_and(contact_email is null and r.birth_year is null)            as is_weakly_identified
+    from recs r left join (select p5_person_id, birth_year from birth_votes where rn = 1) bv using (p5_person_id) group by 1
 
 )
 

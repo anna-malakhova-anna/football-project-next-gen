@@ -8,7 +8,7 @@ from __future__ import annotations
 
 SHARE_PREFIXES = ("share_exec.", "share_club.", "share_privacy.")
 APPROVED = {
-    "quality.dq_scorecard_source", "quality.dq_scorecard_org", "quality.dq_trend", "quality.mart_dq_impact", "quality.dq_fix_list",
+    "quality.dq_scorecard_source", "quality.dq_scorecard_org", "quality.dq_trend", "quality.mart_dq_impact", "quality.dq_fix_ranking",
     "quality.mart_uncertainty_decomposition", "quality.mart_missingness_bias",
 }
 EVAL = {"evaluation.eval_chart_insights", "evaluation.eval_uncertainty_decomposition", "evaluation.eval_minimization_tradeoff", "demo_fix_list.scores", "demo_fix_list.nuance"}
@@ -113,7 +113,7 @@ DATASETS = [
     _D("dq_fix_examples", f"""
         with f as (
             select f.org_id, f.rule_id, f.rank_in_scope, f.impact_estimate, f.impact_unit, f.impact_basis, f.purposes_breached
-            from quality.dq_fix_list f where f.season_year = {LATEST_Q} and not f.is_systemic and f.rank_in_scope <= 3),
+            from quality.dq_fix_ranking f where f.season_year = {LATEST_Q} and not f.is_systemic and f.rank_in_scope <= 3),
         chan as (select distinct org_id, channel from quality.dq_scorecard_org),
         per_org as (select org_id, count(*) as n_fixes, sum(impact_estimate) as total from f group by 1),
         a as (select f.org_id from f join chan using (org_id) join per_org using (org_id) where chan.channel = 'SPREADSHEET' group by f.org_id, per_org.n_fixes, per_org.total order by per_org.n_fixes desc, per_org.total desc, f.org_id limit 1),
@@ -132,7 +132,7 @@ DATASETS = [
                || (case when f.impact_basis = 'MEASURED' then '' else ' (estimated)' end) as scale_text,
                f.rule_id = 'DQ-TIME-ORG-REPORTED' as is_no_file
         from picked pk join f using (org_id) join reference.dq_rule_registry r on r.rule_id = f.rule_id join why w on w.org_id = f.org_id and w.rule_id = f.rule_id
-        order by pk.example_no, f.rank_in_scope""", ["quality.dq_fix_list", "quality.dq_scorecard_org", "quality.dq_scorecard_source", "reference.dq_rule_registry", "reference.dq_purposes", "reference.privacy_params"], "approved_aggregate",
+        order by pk.example_no, f.rank_in_scope""", ["quality.dq_fix_ranking", "quality.dq_scorecard_org", "quality.dq_scorecard_source", "reference.dq_rule_registry", "reference.dq_purposes", "reference.privacy_params"], "approved_aggregate",
        "Example fix lists for three made-up leagues, one per quality profile"),
     _D("unc_decomp", """
         select participation_year, component,

@@ -85,7 +85,7 @@ charts:
     caution: "These leagues are made up. The numbers are estimates and are rounded."
     analyst_md: |
       Examples are chosen by rule from the latest fix list, one per profile: the league with the most spreadsheet fixes, the league whose first fix is "no file sent", and the league with the largest consent-provenance cost.
-      Fixes come from `dq_fix_list` (rank within the league, not systemic). Numbers below the small-cell limit read "fewer than 10"; others are rounded to the nearest 10. A number from other seasons is labelled estimated.
+      Fixes come from `dq_fix_ranking` (ranked by players affected, within the league, not systemic). Numbers below the small-cell limit read "fewer than 10"; others are rounded to the nearest 10. A number from other seasons is labelled estimated.
   M1:
     status: draft
     headline_template: "{n_markets_ready} of {n_markets} markets can be counted reliably. {n_markets_dark} have leagues that send no data."

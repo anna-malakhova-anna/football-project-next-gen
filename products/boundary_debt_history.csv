@@ -3,4 +3,4 @@ step,commit,date,debt_rows,change,what
 1,c1b9cc5,2026-10-18,15,-8,"Boundary debt 23 to 15: identity uncertainty and re-identification risk move to DP2 (aggregate ports), househo"
 2,95e2cba,2026-10-18,13,-2,DP1 ports: aggregate dq_count_fit_by_year and restricted dq_geo_fit_person_year (DP4); boundary debt 15 to 13
 3,53ba002,2026-10-18,9,-4,"Missingness marts through ports: mart_missingness_tests moves to DP1, new DP1 aggregate dq_missing_concentrati"
-4,current,,0,-9,"working file, not yet committed"
+4,99e097f,2026-10-18,0,-9,"Product boundaries: no cross-product reads outside ports, no cycles. DQ split by what needs a resolved person "

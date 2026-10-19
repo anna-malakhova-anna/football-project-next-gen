@@ -27,7 +27,7 @@ from scripts import validate_contracts
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "warehouse" / "flag.duckdb"
 OUT = ROOT / "docs" / "reports" / "fix_list_demo.md"
-SELECT = ["+dq_scorecard_org", "+dq_fix_list", "+mart_uncertainty_decomposition", "+mart_missingness_bias"]
+SELECT = ["+dq_scorecard_org", "+dq_fix_list", "+dq_fix_ranking", "+mart_uncertainty_decomposition", "+mart_missingness_bias"]
 PURPOSES = ("COUNT", "SEGMENT", "GEO", "RETAIN", "ACTIVATE")
 
 

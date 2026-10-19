@@ -36,11 +36,6 @@ output_ports:
   audience: ops
   grain: league x season x purpose
   refresh: per season close
-- name: league_fix_list
-  model: share_ops__league_fix_list
-  audience: ops
-  grain: league x season x fix
-  refresh: per season close
 input_products:
 - DP1
 - DP2
@@ -49,7 +44,6 @@ sources_lineage:
   share_club__market_year: dbt/models/shares/club/share_club__market_year.sql
   share_club__market_missingness: dbt/models/shares/club/share_club__market_missingness.sql
   share_ops__league_scorecard: dbt/models/shares/ops/share_ops__league_scorecard.sql
-  share_ops__league_fix_list: dbt/models/shares/ops/share_ops__league_fix_list.sql
 quality_indicator:
   from_model: dq_scorecard_market
   purpose: GEO
@@ -131,13 +125,12 @@ internal_models:
 - dq_scorecard_org
 - dq_scorecard_market
 - dq_trend
-- dq_fix_list
+- dq_fix_ranking
 - dq_market_rule_results
 - mart_dq_impact
 gate: DP2's ports and DP1's aggregate port (the market and league scorecards)
 share_models:
 - share_ops__league_scorecard
-- share_ops__league_fix_list
 - share_club__market_year
 - share_club__market_missingness
 - share_club__chart_insights
@@ -149,6 +142,6 @@ aggregate_ports:
 - dq_scorecard_org
 - dq_scorecard_market
 - dq_trend
-- dq_fix_list
+- dq_fix_ranking
 - mart_dq_impact
 - mart_retention_survival
