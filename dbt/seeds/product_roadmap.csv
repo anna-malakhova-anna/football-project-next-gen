@@ -1,15 +1,15 @@
 product_id,horizon,version,title,phase_ref,gate_id,decision_owner_role,decision_text,status
-DP1,DELIVERED,v0.1,Raw + staging and quality profile,Phase 1,,,,draft
-DP1,DELIVERED,v0.5,Contracts + onboarding playbook,Phase 4,,,,draft
+DP1,DELIVERED,v0.1,Raw + staging and quality profile,Phase 1,,,,confirmed
+DP1,DELIVERED,v0.5,Contracts + onboarding playbook,Phase 4,,,,confirmed
 DP1,NOW,v1.0,"Data standard, league fix lists (by records affected), quality port",,X_COUNT,,,draft
 DP1,LATER,v1.2,"""Played youth flag?"" question at adult sign-up",,,,,draft
-DP2,DELIVERED,v1.0,Identity resolution + review queue,Phase 2,,,,draft
-DP2,NEXT,v1.1,"Restricted zones; consumers use product ports only. One identity chain: route Phase 5 feeds through DP1 intake into Phase 2 resolution; retire the p5 chain",,Y,,,draft
-DP3,DELIVERED,v0.9,"Counting method, scorecard, ranges",Phases 3 + 5,,,,draft
+DP2,DELIVERED,v1.0,Identity resolution + review queue,Phase 2,,,,confirmed
+DP2,NEXT,v1.1,Restricted zones; consumers use product ports only. One identity chain: merge the Phase 5 feeds into Phase 2 resolution (known debt),,Y,,,draft
+DP3,DELIVERED,v0.9,"Counting method, scorecard, ranges",Phases 3 + 5,,,,confirmed
 DP3,NEXT,v1.0,Country view for growth decisions,,N,,,draft
-DP4,DELIVERED,v0.5,Retention + club market prototype,Phases 4 + 5,,,,draft
+DP4,DELIVERED,v0.5,Retention + club market prototype,Phases 4 + 5,,,,confirmed
 DP4,NOW,v1.0,MVP: market view for clubs and the fix ranking by participants,,X_GEO,Privacy lead,Signs off the club share,draft
 DP4,LATER,v1.1,Girls' share by market,,,Clubs,Confirm market boundaries (ADR-016 approximation),draft
-DP5,DELIVERED,v0.1,Fan-lift analysis prototype (restricted zone),Phase 4,,,,draft
+DP5,DELIVERED,v0.1,Fan-lift analysis prototype (restricted zone),Phase 4,,,,confirmed
 DP5,NEXT,v0.5,Fans created by flag (aggregates only),,Z_ANALYTICS,Privacy lead,Approves the analytics linkage (ADR-009),draft
 DP5,LATER,v1.0,Families clubs may contact,,Z_ACTIVATION,Product + legal,Add a separate guardian club-contact consent at registration,draft

@@ -468,17 +468,17 @@ The 14 rows of `dbt/seeds/product_roadmap.csv` (the cards on the roadmap board, 
 
 | Product | Horizon | Version | Card title | Gate | Decision (owner: text) | Status | Reading level | Approve / edit |
 |---|---|---|---|---|---|---|---|---|
-| DP1 | Delivered | v0.1 | Raw + staging and quality profile |  |  | `draft` | 7.6 | [ ] approve &nbsp; [ ] edit: |
-| DP1 | Delivered | v0.5 | Contracts + onboarding playbook |  |  | `draft` | **13.1 (over 9)** | [ ] approve &nbsp; [ ] edit: |
+| DP1 | Delivered | v0.1 | Raw + staging and quality profile |  |  | `confirmed` | 7.6 | [ ] approve &nbsp; [ ] edit: |
+| DP1 | Delivered | v0.5 | Contracts + onboarding playbook |  |  | `confirmed` | **13.1 (over 9)** | [ ] approve &nbsp; [ ] edit: |
 | DP1 | Now | v1.0 | Data standard, league fix lists (by records affected), quality port | X_COUNT: US league grades, at least 85 score (baseline 82.1) |  | `draft` | 8.4 | [ ] approve &nbsp; [ ] edit: |
 | DP1 | Later | v1.2 | "Played youth flag?" question at adult sign-up |  |  | `draft` | 0.9 | [ ] approve &nbsp; [ ] edit: |
-| DP2 | Delivered | v1.0 | Identity resolution + review queue |  |  | `draft` | **18.4 (over 9)** | [ ] approve &nbsp; [ ] edit: |
-| DP2 | Next | v1.1 | Restricted zones; consumers use product ports only. One identity chain: route Phase 5 feeds through DP1 intake into Phase 2 resolution; retire the p5 chain | Y: the width of the identity range, at most 1 percent (baseline 0.43) |  | `draft` | 8.2 | [ ] approve &nbsp; [ ] edit: |
-| DP3 | Delivered | v0.9 | Counting method, scorecard, ranges |  |  | `draft` | **9.6 (over 9)** | [ ] approve &nbsp; [ ] edit: |
+| DP2 | Delivered | v1.0 | Identity resolution + review queue |  |  | `confirmed` | **18.4 (over 9)** | [ ] approve &nbsp; [ ] edit: |
+| DP2 | Next | v1.1 | Restricted zones; consumers use product ports only. One identity chain: merge the Phase 5 feeds into Phase 2 resolution (known debt) | Y: the width of the identity range, at most 1 percent (baseline 0.43) |  | `draft` | 7.6 | [ ] approve &nbsp; [ ] edit: |
+| DP3 | Delivered | v0.9 | Counting method, scorecard, ranges |  |  | `confirmed` | **9.6 (over 9)** | [ ] approve &nbsp; [ ] edit: |
 | DP3 | Next | v1.0 | Country view for growth decisions | N: how many countries report at counting grade B, at least 6 count (baseline 1) |  | `draft` | 5.2 | [ ] approve &nbsp; [ ] edit: |
-| DP4 | Delivered | v0.5 | Retention + club market prototype |  |  | `draft` | **12.5 (over 9)** | [ ] approve &nbsp; [ ] edit: |
+| DP4 | Delivered | v0.5 | Retention + club market prototype |  |  | `confirmed` | **12.5 (over 9)** | [ ] approve &nbsp; [ ] edit: |
 | DP4 | Now | v1.0 | MVP: market view for clubs and the fix ranking by participants | X_GEO: US league grades, at least 85 score (baseline 82.1) | Privacy lead: Signs off the club share | `draft` | 7.8 | [ ] approve &nbsp; [ ] edit: |
 | DP4 | Later | v1.1 | Girls' share by market |  | Clubs: Confirm market boundaries (ADR-016 approximation) | `draft` | **10.7 (over 9)** | [ ] approve &nbsp; [ ] edit: |
-| DP5 | Delivered | v0.1 | Fan-lift analysis prototype (restricted zone) |  |  | `draft` | **17.0 (over 9)** | [ ] approve &nbsp; [ ] edit: |
+| DP5 | Delivered | v0.1 | Fan-lift analysis prototype (restricted zone) |  |  | `confirmed` | **17.0 (over 9)** | [ ] approve &nbsp; [ ] edit: |
 | DP5 | Next | v0.5 | Fans created by flag (aggregates only) | Z_ANALYTICS: known consent provenance for households, at least 80 percent (baseline 80.2) | Privacy lead: Approves the analytics linkage (ADR-009) | `draft` | **12.2 (over 9)** | [ ] approve &nbsp; [ ] edit: |
 | DP5 | Later | v1.0 | Families clubs may contact | Z_ACTIVATION: fully known provenance on marketing opt-ins, at least 75 percent (baseline 28.5) | Product + legal: Add a separate guardian club-contact consent at registration | `draft` | **14.3 (over 9)** | [ ] approve &nbsp; [ ] edit: |
