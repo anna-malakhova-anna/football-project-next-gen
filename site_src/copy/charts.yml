@@ -459,3 +459,87 @@ pages:
     fallback_intro: "Three goals become five data products. This tab shows the method using this project's own build, on made-up data."
     demo_text: "Goals to products, the method, the first build, children's privacy, and whether it works."
     demo_slide: "D1-1"
+
+# The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf). DRAFT: Anna approves each string, then sets `status: final`.
+# {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py); the build fails if one has no value. Plain words, grade 8 or lower, about 250 words in all.
+summary:
+  status: draft
+  title: "Counting Flag Football: a data product, end to end"
+  pitch: "Three goals, five data products: owned, measured, safe for kids."
+  why_heading: "Why"
+  goals:
+    G1: "Grow the NFL globally"
+    G2: "Grow US flag, safely and cheaply"
+    G3: "Turn families into fans, never by marketing to kids"
+  what_heading: "What"
+  product_names:
+    DP1: "Intake"
+    DP2: "Participant master"
+    DP3: "Global view"
+    DP4: "US growth"
+    DP5: "Fan conversion"
+  what_line: "US growth and intake first; conversion waits."
+  who_heading: "For whom"
+  supplier_tag: "supplier"
+  personas:
+    - {role: "Growth lead", need: "where to invest"}
+    - {role: "Ops lead", need: "league health"}
+    - {role: "Club manager", need: "grow flag locally"}
+    - {role: "Fan analyst", need: "proof of fans"}
+    - {role: "Privacy lead", need: "kids' data safe"}
+    - {role: "League volunteer", need: "send data, simply", supplier: true}
+  how_heading: "How"
+  stages:
+    - {label: "Discover", proof: "{n_personas} users"}
+    - {label: "Plan", proof: "MVP chosen"}
+    - {label: "Build", proof: "{n_boundary} breaks"}
+    - {label: "Package", proof: "labels, owners"}
+    - {label: "Monitor", proof: "{pct_tests}% of tests pass"}
+  privacy_heading: "Privacy by design"
+  tier_note: "Stricter than the law, by choice."
+  tiers:
+    U13: "Under 13"
+    "13_15": "13–15"
+    "16_17": "16–17"
+    ADULT: "18+"
+  consents:
+    GUARDIAN: "Guardian"
+    SELF: "Self"
+  not_doing:
+    - "Marketing to minors"
+    - "Buying kids' data"
+    - "Fuzzy matching"
+    - "Scoring families"
+    - "Records past 18"
+  privacy_line: "{pct_u13_club_consent}% of under-13 families agreed to club contact; we count families."
+  roadmap_heading: "Roadmap"
+  roadmap_line: "{n_met} of {n_gates} gates met. MVP waits on data score ({current}→{target})."
+  lanes: {DELIVERED: "Delivered", NOW: "Now", NEXT: "Next", LATER: "Later"}
+  gate_met: ""
+  gate_not_yet: "not yet"
+  working_heading: "Working?"
+  kpis_goals:
+    - tag: G1
+      parts:
+        - {value: "about {global_participants}", label: "players, {n_countries} countries"}
+    - tag: G2
+      parts:
+        - {value: "{girls_share}%", label: "girls' share"}
+        - {value: "{retention}%", label: "play again"}
+    - tag: G3
+      parts:
+        - {value: "about {fans_created}", label: "new fans ({fans_lo}–{fans_hi})"}
+  kpis_health:
+    - {label: "tests pass", value: "{pct_tests}%"}
+    - {label: "boundary breaks", value: "{n_boundary}"}
+    - {label: "leagues no file", value: "{dark_leagues} of {known_leagues}"}
+  learned_heading: "Learned, next"
+  pivot_label: "Pivot"
+  pivot: "Thin data, not consent, was the problem. Intake and quality first."
+  debt_label: "Debt"
+  debt: "Second identity chain found; merge planned (DP2 v1.1)."
+  next_label: "Next"
+  next: "Privacy lead approves fan analysis; guardian consent at registration."
+  footer: "Synthetic data, built to test the method."
+  footer_link: "Full detail: Data product tab"
+  methodology: "Methodology {version}"

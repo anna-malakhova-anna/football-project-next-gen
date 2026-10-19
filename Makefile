@@ -1,4 +1,4 @@
-.PHONY: product public site-check site-check-ci phase5 phase5-experiments minimize retention-vs-deletion fix-list-demo markets consent nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: product one-pager public site-check site-check-ci phase5 phase5-experiments minimize retention-vs-deletion fix-list-demo markets consent nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -183,6 +183,11 @@ product: dbt/profiles.yml
 	$(PY) -m scripts.build_debt_history
 	$(PY) -m scripts.check_product_boundaries
 	$(PY) -m scripts.build_product_health
+	$(PY) -m scripts.check_one_pager
+
+# The one-page summary of the Data product tab, printed to docs/product/one-pager.pdf (one Letter landscape page) with its copy list for approval. Reads the built `public/`; the PDF is committed, not rebuilt by `make product`.
+one-pager: public
+	$(PY) -m scripts.build_one_pager
 
 # Copy review for Anna (every card and roadmap row, demo path first, reading level, approve/edit): docs/product/copy-review.md. Reads the built pages, so run `make public` first.
 copy-review:

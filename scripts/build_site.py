@@ -24,7 +24,7 @@ from pathlib import Path
 
 import duckdb
 
-from scripts import site_cards, site_phase5 as P5, site_product, site_tables
+from scripts import site_cards, site_phase5 as P5, site_product, site_summary, site_tables
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "warehouse" / "flag.duckdb"
@@ -824,12 +824,27 @@ def fmt_cell(v, col: str = "") -> str:
     return str(v)
 
 
+PRODUCT_TABLES = {"conv_tier", "goal_scorecard", "product_health", "product_targets", "roadmap"}
+RATIO_COLUMNS = {"value", "value_low", "value_high", "trust_value"}
+
+
+def fmt_cell_product(v, col: str, row: dict) -> str:
+    """Data product tab tables: no long decimals. A share of registered households and a ratio-unit KPI show as whole percents; any other fraction below 10 shows two decimals."""
+    if isinstance(v, float) and not isinstance(v, bool):
+        if col == "share_of_registered" or (col in RATIO_COLUMNS and row.get("trust_unit" if col == "trust_value" else "unit") == "ratio"):
+            return f"{v:.0%}"
+        if abs(v) < 10:
+            return f"{v:.2f}"
+    return fmt_cell(v, col)
+
+
 def table_html(ds: dict, limit: int = 60) -> str:
     cols, rows = ds["columns"], ds["rows"][:limit]
+    cell = (lambda r, c: fmt_cell_product(r[c], c, r)) if ds["name"] in PRODUCT_TABLES else (lambda r, c: fmt_cell(r[c], c))
     if not rows:
         return f"<p class='note'><b>No rows.</b> The query returned nothing, which is the expected result when {esc(ds['title'].lower())} has nothing to report.</p>"
     head = "".join(f"<th>{esc(COLUMN_LABELS.get(c, c))}</th>" for c in cols)
-    body = "".join("<tr>" + "".join(f"<td>{esc(fmt_cell(r[c], c))}</td>" for c in cols) + "</tr>" for r in rows)
+    body = "".join("<tr>" + "".join(f"<td>{esc(cell(r, c))}</td>" for c in cols) + "</tr>" for r in rows)
     more = f"<p class='note'>First {limit} of {len(ds['rows'])} rows; the full file is data/{ds['name']}.json.</p>" if len(ds["rows"]) > limit else ""
     return f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>{more}"
 
@@ -1062,6 +1077,8 @@ def phase5_pages(blocks: dict, data: dict) -> dict:
         title = PAGE_HEAD[slug][0]
         pg = pages[slug]
         intro = f"<p class='note intro'><b>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</b></p>"
+        if slug == "product":
+            intro += f"<p class='note'><a class='summary-link' href='{site_summary.SLUG}.html'>One-page summary &rarr;</a></p>"
         out[slug] = (title, intro + lens_scope(inner, default, pg["demo_text"], pg["demo_slide"]))
     return out
 
@@ -1150,6 +1167,7 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     copy_assets(out)
     for slug, (_title, body) in build_pages(data, chart_defs, facts).items():
         (out / f"{slug}.html").write_text(render_page(slug, body, stamp, version), encoding="utf-8")
+    (out / f"{site_summary.SLUG}.html").write_text(site_summary.render(data, version)[0], encoding="utf-8")      # the one-page summary of the Data product tab
     problems = check_brand_boundary(out, local_logo=LOCAL_LOGO.exists())
     if problems:
         shutil.rmtree(out)

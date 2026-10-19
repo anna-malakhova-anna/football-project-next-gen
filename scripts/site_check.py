@@ -29,6 +29,8 @@ BANNED = ["interval", "lower bound", "upper bound", "p-chart", "control limit", 
 BANNED_PREFIXES = ["share_", "mart_", "dq_", "eval_"]
 CODE_PATTERNS = [re.compile(r"\b(?:DQ|CM)-[A-Z0-9-]+\b"), re.compile(r"\b[a-z]+_[a-z_]+\b"), re.compile(r"\b(?:COUNT|SEGMENT|GEO|RETAIN|ACTIVATE)\b")]
 LONG_DECIMAL = re.compile(r"\d+\.\d{3,}")
+SMALL_DECIMAL = re.compile(r"\b0\.\d{3,}")   # Phase 6 one-pager: no visible value like 0.0906 on the product pages
+PRODUCT_PAGES = {"product", "product-summary"}
 PLACEHOLDER = re.compile(r"\{[A-Za-z0-9_.]+\}")
 NUMBER = re.compile(r"\d[\d,]*(?:\.\d+)?%?")
 
@@ -227,6 +229,8 @@ def lint_table_cells(slug: str) -> list[str]:
         if not text:
             continue
         low = text.lower()
+        if slug in PRODUCT_PAGES and SMALL_DECIMAL.search(text):
+            fails.append(f"{slug}: a table cell shows a raw decimal ({SMALL_DECIMAL.search(text).group(0)!r}): {text[:50]!r}")
         for b in BANNED_PREFIXES:
             if b in low:
                 fails.append(f"{slug}: a table cell shows a model name ({b!r}): {text[:50]!r}")
