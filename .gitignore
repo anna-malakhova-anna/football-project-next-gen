@@ -25,3 +25,11 @@ site/
 
 # Local-only logo (a third-party mark): never committed, so it never reaches CI or the published site
 local_assets/
+
+# Working briefs and handover notes (local only; never committed)
+phase-*-spec.md
+phase-*-handover.md
+phase-*-addendum*.md
+NOTES-*.md
+*.zip
+Counting Flag Football a plain-language*.pdf
