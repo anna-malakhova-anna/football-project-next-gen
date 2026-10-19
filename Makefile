@@ -184,6 +184,10 @@ product: dbt/profiles.yml
 	$(PY) -m scripts.check_product_boundaries
 	$(PY) -m scripts.build_product_health
 
+# Copy review for Anna (every card and roadmap row, demo path first, reading level, approve/edit): docs/product/copy-review.md. Reads the built pages, so run `make public` first.
+copy-review:
+	$(PY) -m scripts.build_copy_review
+
 # Phase 5.1: layout, content and viewer checks on the built site (Playwright drives the installed Chrome). `site-check` runs the four Phase 5 pages; `site-check-ci` three pages (Data quality, Club markets, Data product), to keep CI short.
 site-check: site
 	$(PY) -m scripts.site_check
