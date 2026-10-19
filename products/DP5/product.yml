@@ -149,6 +149,7 @@ health_metrics:
 
 # --- Where this product is formed (Phase 6 addendum, section 1). The linkage schema is restricted; only aggregates leave.
 internal_models:
+- int_participant_household_timeline
 - dim_fan_account
 - fct_fan_*
 - int_fan_*

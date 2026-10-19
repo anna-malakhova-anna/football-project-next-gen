@@ -102,7 +102,6 @@ health_metrics:
 
 # --- Where this product is formed (Phase 6 addendum, section 1).
 internal_models:
-- mart_identity_uncertainty
 - mart_kpi_scorecard
 - mart_participation_*
 - mart_reported_headcount

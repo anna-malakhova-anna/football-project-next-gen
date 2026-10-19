@@ -6,10 +6,9 @@
 {% set months = var('enrollment_month_by_term') %}
 with reg as (
 
-    select h.household_id, u.season_year, u.season_term
+    select h.household_id, f.participation_year as season_year, f.season_term
     from {{ ref('int_household') }} h
     join {{ ref('bridge_registration_participant') }} b on b.participant_id = h.participant_id
-    join {{ ref('int_registrations_unioned') }} u on u.registration_key = b.registration_key
     join {{ ref('fct_registration') }} f on f.registration_key = b.registration_key
     where f.is_valid_registration
 

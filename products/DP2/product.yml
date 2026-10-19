@@ -117,11 +117,12 @@ internal_models:
 - int_household
 - int_household_profile
 - int_household_guarded_contacts
-- int_participant_household_timeline
 - int_consent_event
 - int_household_year_consent
 - int_participant_year_market
 - mart_retention_vs_deletion
+- mart_identity_uncertainty
+- mart_reidentification_risk
 gate: DP1's restricted port (int_registrations_unioned)
 share_models:
 - share_ops__participant
@@ -157,11 +158,12 @@ restricted_ports:
   consumers: [DP5]
 - model: int_household_profile
   consumers: [DP5]
-- model: int_participant_household_timeline
-  consumers: [DP5]
 - model: int_consent_event
   consumers: [DP5]
 - model: int_household_year_consent
   consumers: [DP5, shared_reference]  # shared_reference: share_exec__roadmap_gates reads counts only
 - model: int_participant_year_market
   consumers: [DP4, DP5]
+aggregate_ports:
+- mart_identity_uncertainty
+- mart_reidentification_risk
