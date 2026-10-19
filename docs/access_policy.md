@@ -435,6 +435,7 @@ Explicitly **not** available:
 | `what_to_do_plain` | AGGREGATE_BY_ORGANIZATION |
 | `records_affected` | AGGREGATE_BY_ORGANIZATION |
 | `records_basis` | AGGREGATE_BY_ORGANIZATION |
+| `scale_plain` | AGGREGATE_BY_ORGANIZATION |
 | `suppressed` | AGGREGATE_BY_ORGANIZATION |
 
 **`share_ops__league_scorecard`**

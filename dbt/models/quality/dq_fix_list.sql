@@ -5,8 +5,10 @@
    the checks that do (one record per child per season, records that agree) are not in it. The participant-weighted ranking, which does need DP2's persons, is DP4's dq_fix_ranking. #}
 -- The top five overall plus the top three of the organization's own (non-systemic) issues, ranked by records_affected, then the rule's severity weight, then rule_id. What an operator is asked to do is the registry's
 -- plain-language fix_guidance, with the records affected (a count only, never a record id).
---   records_affected  the records of this organization-season that fail the rule. For the organization-reported rule, which has no records of its own, it is the number of records the
---                     organization sent in its other seasons on average (records_basis EXPECTED_FROM_OTHER_SEASONS): what a dark season is missing, estimated without the answer key.
+--   records_affected  the registrations of this organization-season that fail the rule. For the no-file rule (DQ-TIME-ORG-REPORTED), which has no registrations of its own, it is an ESTIMATE of
+--                     what the dark season is missing, stated in records_basis: EXPECTED_FROM_OTHER_SEASONS (the average the organization sent in the seasons it did report), else
+--                     EXPECTED_FROM_PEERS (the median of the reporting organizations of the same source and season), else NOT_ESTIMABLE (NULL: nothing to estimate from). Never 0 by default.
+--                     The no-file issue always ranks FIRST for a dark organization-season: it is the reason nothing else can be measured.
 --   is_systemic       the rule is breached by at least systemic_share (p5_params, 80%) of the source's organizations that season: a platform or process problem, not this organization's.
 --                     rank_in_scope ranks the organization's own issues without it, so the list stays informative when one platform gap tops every list.
 -- A rule appears only if the organization breaches the registry threshold of at least one purpose it serves. INFO rules never appear.
@@ -38,8 +40,15 @@ breached as (
 
 expected as (
 
-    -- what a dark season is missing: the organization's mean record count in the seasons it did report
+    -- what a dark season is missing: the organization's mean registration count in the seasons it did report
     select source_system, org_id, avg(n_records) filter (where reported) as mean_records from {{ ref('dq_org_season_base') }} group by 1, 2
+
+),
+
+peers as (
+
+    -- fallback for an organization that never reported: the median of the reporting organizations of the same source and season
+    select source_system, season_year, median(n_records) filter (where reported) as peer_median from {{ ref('dq_org_season_base') }} group by 1, 2
 
 ),
 
@@ -47,10 +56,14 @@ issues as (
 
     select
         b.source_system, b.org_id, b.season_year, b.rule_id, b.dimension, b.severity, b.purposes_breached, b.fix_guidance, b.owner_role,
-        case when b.rule_grain = 'ORG_SEASON' then round(coalesce(e.mean_records, 0))::bigint else b.records_affected end as records_affected,
-        case when b.rule_grain = 'ORG_SEASON' then 'EXPECTED_FROM_OTHER_SEASONS' else 'COUNTED' end                        as records_basis
+        case when b.rule_grain = 'ORG_SEASON' then round(coalesce(e.mean_records, p.peer_median))::bigint else b.records_affected end as records_affected,
+        case when b.rule_grain <> 'ORG_SEASON' then 'COUNTED'
+             when e.mean_records is not null then 'EXPECTED_FROM_OTHER_SEASONS'
+             when p.peer_median is not null then 'EXPECTED_FROM_PEERS'
+             else 'NOT_ESTIMABLE' end                                                                                      as records_basis
     from breached b
     left join expected e on e.source_system = b.source_system and e.org_id = b.org_id
+    left join peers p on p.source_system = b.source_system and p.season_year = b.season_year
 
 ),
 
@@ -67,7 +80,7 @@ ranked as (
     select issues.*,
            coalesce(br.share_of_orgs_breaching >= (select value::double from {{ ref('p5_params') }} where param = 'systemic_share'), false) as is_systemic,
            row_number() over (partition by source_system, org_id, season_year
-                              order by records_affected desc, (select weight from {{ ref('dq_severity_weights') }} w where w.severity = issues.severity) desc, rule_id) as fix_rank
+                              order by (rule_id = 'DQ-TIME-ORG-REPORTED') desc, records_affected desc nulls last, (select weight from {{ ref('dq_severity_weights') }} w where w.severity = issues.severity) desc, rule_id) as fix_rank
     from issues left join breadth br using (source_system, season_year, rule_id)
 
 ),

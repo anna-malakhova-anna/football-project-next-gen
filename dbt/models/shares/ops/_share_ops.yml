@@ -106,7 +106,7 @@ models:
       - {name: top_problems_plain, meta: {pii: none}}
 
   - name: share_ops__league_fix_list
-    description: DP1 output port. Fix list per league x season in plain words, ranked by records affected, with a rounded count of the records each fix affects; a count below the small-cell size is hidden.
+    description: DP1 output port. Fix list per league x season in plain words, ranked by records affected, with a rounded count of the registrations each fix affects (an estimate, and labelled so, for a league that sent no file); a count below the small-cell size is hidden.
     columns:
       - {name: season_year, meta: {pii: none}}
       - {name: source_system, meta: {pii: none}}
@@ -119,6 +119,7 @@ models:
       - {name: what_to_do_plain, meta: {pii: none}}
       - {name: records_affected, meta: {pii: none}}
       - {name: records_basis, meta: {pii: none}}
+      - {name: scale_plain, meta: {pii: none}}
       - name: suppressed
         meta: {pii: none}
         data_tests:
