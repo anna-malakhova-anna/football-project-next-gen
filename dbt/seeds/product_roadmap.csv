@@ -8,7 +8,7 @@ DP2,NEXT,v1.1,Restricted zones; consumers use product ports only,,Y,,,draft
 DP3,DELIVERED,v0.9,"Counting method, scorecard, ranges",Phases 3 + 5,,,,draft
 DP3,NEXT,v1.0,Country view for growth decisions,,N,,,draft
 DP4,DELIVERED,v0.5,Retention + club market prototype,Phases 4 + 5,,,,draft
-DP4,NOW,v1.0,MVP: market view for clubs,,X_GEO,Privacy lead,Signs off the club share (share_club),draft
+DP4,NOW,v1.0,MVP: market view for clubs,,X_GEO,Privacy lead,Signs off the club share,draft
 DP4,LATER,v1.1,Girls' share by market,,,Clubs,Confirm market boundaries (ADR-016 approximation),draft
 DP5,DELIVERED,v0.1,Fan-lift analysis prototype (restricted zone),Phase 4,,,,draft
 DP5,NEXT,v0.5,Fans created by flag (aggregates only),,Z_ANALYTICS,Privacy lead,Approves the analytics linkage (ADR-009),draft

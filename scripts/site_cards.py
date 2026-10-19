@@ -14,6 +14,8 @@ from pathlib import Path
 
 import yaml
 
+from scripts import site_tables
+
 COPY_PATH = Path(__file__).resolve().parent.parent / "site_src" / "copy" / "charts.yml"
 PLACEHOLDER = re.compile(r"\{(?:([A-Z][0-9])\.)?([a-z0-9_]+)\}")
 _state: dict = {"copy": {}, "insights": {}}
@@ -94,7 +96,7 @@ def card_block(cid: str, ch: dict, data: dict, table_html) -> str:
         return json.dumps(o).replace("</", "<\\/")
 
     def slide_script(i, s) -> str:
-        html = s["html"](data) if s.get("html") else None
+        html = site_tables.enhance(s["html"](data)) if s.get("html") else None
         if html is not None:
             body, kind = dump({"html": html}), "html"
         elif s.get("multi") is not None:

@@ -72,6 +72,7 @@ def check_page(page, base: str, slug: str, insights: set[str]) -> list[str]:
                 bad(f"{slug}@{width}: truncated label in a thumbnail: {t.text_content()!r}")
     if slug == "product":
         fails += check_roadmap(page, base)
+    fails += check_tables(page, base, slug)
     # ---- print page count
     page.set_viewport_size({"width": 1440, "height": 900})
     page.goto(f"{base}/{slug}.html")
@@ -184,6 +185,74 @@ def check_page(page, base: str, slug: str, insights: set[str]) -> list[str]:
         if not club == priv >= 6:
             bad(f"markets: the two-lenses panels are not paired (club {club}, privacy {priv})")
     return fails
+
+
+TABLE_JS = r"""(sel) => {
+  const out = [];
+  const vis = (el) => { if (!(el.offsetParent || el.getClientRects().length)) return false; const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < window.innerHeight && r.right > 0 && r.left < window.innerWidth; };
+  const tw = (cs, str) => { const c = document.createElement('canvas').getContext('2d'); c.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily; return c.measureText(str).width; };
+  const measure = (cs) => { const c = document.createElement('canvas').getContext('2d'); c.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily; return c.measureText('0').width; };
+  const root = sel ? document.getElementById(sel) : document;
+  root.querySelectorAll('table').forEach((t) => {
+    if (!vis(t) || t.closest('.vanalyst:not([open])')) return;
+    const name = (t.closest('.vcard, dialog, section, main') || document.body).id || 'table';
+    if (t.scrollWidth > t.clientWidth + 1 || (t.parentElement && t.getBoundingClientRect().right > window.innerWidth + 1)) out.push(name + ': a table is wider than the window');
+    t.querySelectorAll('td, th').forEach((c) => {
+      if (!vis(c)) return;
+      const hd = c.closest('thead'); if (hd && hd.getBoundingClientRect().width <= 2) return;   // the header row of a stacked table is hidden on purpose
+      const text = (c.innerText || '').replace(/\s+/g, ' ').trim();
+      if (!text) return;
+      const cs = getComputedStyle(c);
+      const inner = c.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      if (text.length >= 4 && inner < 4 * measure(cs) - 0.5 && (c.scrollWidth > c.clientWidth + 1 || text.split(' ').some((w) => w.length > 1 && tw(cs, w) > inner + 1))) out.push(name + ': a cell is narrower than 4 characters (' + Math.round(inner) + 'px): ' + text.slice(0, 30));
+      if (c.querySelector('details, ul, ol, p, div, table, h4, h5')) return;
+      const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25;
+      const rg = document.createRange(); rg.selectNodeContents(c); const h = rg.getBoundingClientRect().height;
+      const lines = Math.round(h / lh), nwords = text.split(' ').length;
+      if (cs.display !== 'block' && lines > nwords) out.push(name + ': a word is broken across lines in a cell (' + lines + ' lines, ' + nwords + ' words): ' + text.slice(0, 30));
+      if (cs.display === 'block' && text.length < 20 && lines > 1 && !/\s/.test(text)) out.push(name + ': a short value wraps: ' + text);
+    });
+  });
+  return out;
+}"""
+
+
+def lint_table_cells(slug: str) -> list[str]:
+    """The code-pattern lint of 5.1 applied to table cells: visible cell text (outside the analyst sections) holds no model name or code."""
+    src = (SITE / f"{slug}.html").read_text(encoding="utf-8").replace("<\\/", "</")
+    src = re.sub(r"<details class=[\"']v(?:analyst|row-detail)[\"'].*?</details>", "", src, flags=re.S)
+    fails = []
+    for cell in re.findall(r"<t[dh]\b[^>]*>(.*?)</t[dh]>", src, flags=re.S):
+        text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", cell)).strip()
+        if not text:
+            continue
+        low = text.lower()
+        for b in BANNED_PREFIXES:
+            if b in low:
+                fails.append(f"{slug}: a table cell shows a model name ({b!r}): {text[:50]!r}")
+        for pat in CODE_PATTERNS[:2]:
+            m = pat.search(text)
+            if m:
+                fails.append(f"{slug}: a table cell shows a code ({m.group(0)!r}): {text[:50]!r}")
+    return fails
+
+
+def check_tables(page, base: str, slug: str) -> list[str]:
+    """Phase 6 addendum: no cell under about four characters wide, no word broken across lines, no sideways overflow at 1440 or 390, on the page and in every viewer slide."""
+    fails: list[str] = []
+    for width, height in ((1440, 900), (390, 844)):
+        page.set_viewport_size({"width": width, "height": height})
+        page.goto(f"{base}/{slug}.html")
+        page.wait_for_load_state("networkidle")
+        page.wait_for_timeout(800)
+        fails += [f"{slug}@{width}: {m}" for m in page.evaluate(TABLE_JS, None)]
+        ids = page.evaluate("[...document.querySelectorAll('script.vspec[data-kind=html]')].map(e => e.dataset.id)")
+        for sid in ids:
+            page.evaluate(f"location.hash = '#view={sid}'")
+            page.wait_for_timeout(500)
+            fails += [f"{slug}@{width} slide {sid}: {m}" for m in page.evaluate(TABLE_JS, 'slide-' + sid)]
+        page.evaluate("location.hash = ''")
+    return fails + lint_table_cells(slug)
 
 
 def check_roadmap(page, base: str) -> list[str]:

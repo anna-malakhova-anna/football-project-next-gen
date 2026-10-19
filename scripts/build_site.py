@@ -24,7 +24,7 @@ from pathlib import Path
 
 import duckdb
 
-from scripts import site_cards, site_phase5 as P5, site_product
+from scripts import site_cards, site_phase5 as P5, site_product, site_tables
 
 ROOT = Path(__file__).resolve().parent.parent
 DB = ROOT / "warehouse" / "flag.duckdb"
@@ -875,6 +875,7 @@ def render_page(slug: str, body: str, built: str, version: str) -> str:
     from jinja2 import Environment, FileSystemLoader, StrictUndefined
     env = Environment(loader=FileSystemLoader(str(SRC / "templates")), autoescape=True, undefined=StrictUndefined)
     title, question = PAGE_HEAD[slug]
+    body = site_tables.enhance(body)
     return env.get_template("base.html").render(title=title, question=question, body=body, built=built, version=version, libs=LIBS,
                                                 nav_groups=[{"label": g, "items": items, "current": any(sl == slug for _h, _l, sl in items)} for g, items in NAV_GROUPS], current=slug, appendix=True,
                                                 logo=LOCAL_LOGO.exists(), memo_version=memo_version())

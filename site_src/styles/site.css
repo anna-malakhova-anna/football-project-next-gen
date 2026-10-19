@@ -60,7 +60,7 @@ code { background: var(--surface); border: 1px solid var(--border); border-radiu
 details { margin-top: 8px; }
 summary { cursor: pointer; color: var(--link); font-size: .875rem; }
 table { border-collapse: collapse; width: 100%; max-width: 100%; font-size: .875rem; margin: 8px 0; display: table; table-layout: auto; font-variant-numeric: tabular-nums lining-nums; }
-th, td { border-bottom: 1px solid var(--border); padding: 4px 12px; text-align: right; white-space: normal; overflow-wrap: anywhere; vertical-align: top; }
+th, td { border-bottom: 1px solid var(--border); padding: 4px 12px; text-align: right; white-space: normal; overflow-wrap: normal; word-break: normal; vertical-align: top; }
 th:first-child, td:first-child { text-align: left; }
 th { color: var(--text-muted); font-weight: 500; }
 .flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 16px 0; }
@@ -133,10 +133,35 @@ ol.tour li { margin: 8px 0; }
 .nav-single .nav-link { text-decoration: none; }
 @media (max-width: 1020px) { .topbar.open .nav-single .nav-link { text-transform: none; letter-spacing: 0; font-size: 1rem; padding: 10px 8px; opacity: .95; cursor: pointer; } }
 
-/* phones: tables never scroll sideways; columns share the width and cells wrap */
-@media (max-width: 600px) {
-  table { table-layout: fixed; font-size: .75rem; }
-  th, td { padding: 3px 4px; hyphens: auto; }
-  .vmatrix, .vtable { table-layout: fixed; }
+/* Tables: no rule here breaks a short value inside a word. Column roles come from the HTML (scripts/site_tables.py): short columns size to their content, name columns have a
+   minimum width, exactly one column is flexible, and only long code tokens in that column may break. Below 700px a row is a stacked card (label: value). */
+table col.c-short, th.c-short, td.c-short { width: 1%; white-space: nowrap; } th.c-short { white-space: normal; } th.c-short, td.c-short { min-width: 4.5em; }
+th.c-name, td.c-name { min-width: 12rem; } th.c-narrow, td.c-narrow { min-width: 8rem; }
+th.c-link, td.c-link { width: 1%; }
+.adr { display: inline-block; white-space: nowrap; border: 1px solid var(--border); border-radius: 999px; padding: 0 8px; font-size: .8125rem; margin: 0 4px 2px 0; background: var(--surface); }
+td.c-link .adr { display: block; width: max-content; }
+th.c-flex, td.c-flex { width: auto; } td.c-flex code, td.c-flex .vrow-detail { overflow-wrap: anywhere; }
+.vrow-detail { margin-top: 4px; font-size: .8125rem; color: var(--text-muted); } .vrow-detail summary { cursor: pointer; }
+table[data-wide] col.c-short, table[data-wide] th.c-short, table[data-wide] td.c-short { width: auto; white-space: normal; min-width: 0; } table[data-wide] th.c-name, table[data-wide] td.c-name { min-width: 0; }
+code { overflow-wrap: break-word; } .note, main p, main li { overflow-wrap: break-word; }
+@media (max-width: 700px) {
+  table[data-stack] { display: block; } table[data-stack] colgroup { display: none; }
+  table[data-stack] thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  table[data-stack] tbody, table[data-stack] tr { display: block; }
+  table[data-stack] tr { border: 1px solid var(--border); border-radius: var(--r-chip); margin: 0 0 8px; padding: 4px 8px; background: var(--surface); }
+  table[data-stack] td, table[data-stack] th { display: block; border: 0; text-align: left; padding: 3px 0; width: auto; min-width: 0; white-space: normal; }
+  table[data-stack] td::before { content: attr(data-label); display: block; color: var(--text-muted); font-size: .75rem; font-weight: 500; text-transform: uppercase; letter-spacing: .03em; }
+  table[data-stack] td.c-short { white-space: normal; }
+  table[data-stack] th[scope='row'] { display: block; font-weight: 600; color: var(--text); }
 }
-code, .note, main p, main li { overflow-wrap: anywhere; }
+.vanalyst-body { container-type: inline-size; container-name: analyst; }
+@container analyst (max-width: 720px) {
+  table[data-stack] { display: block; } table[data-stack] colgroup { display: none; }
+  table[data-stack] thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  table[data-stack] tbody, table[data-stack] tr { display: block; }
+  table[data-stack] tr { border: 1px solid var(--border); border-radius: var(--r-chip); margin: 0 0 8px; padding: 4px 8px; background: var(--surface); }
+  table[data-stack] td, table[data-stack] th { display: block; border: 0; text-align: left; padding: 3px 0; width: auto; min-width: 0; white-space: normal; }
+  table[data-stack] td::before { content: attr(data-label); display: block; color: var(--text-muted); font-size: .75rem; font-weight: 500; text-transform: uppercase; letter-spacing: .03em; }
+  table[data-stack] td.c-short { white-space: normal; }
+  table[data-stack] th[scope='row'] { display: block; font-weight: 600; color: var(--text); }
+}

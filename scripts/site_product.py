@@ -195,12 +195,14 @@ def roadmap_detail_html(r: dict, ps: dict) -> str:
         rows.append(("Delivered in", r["phase_ref"]))
     if r["gate_id"]:
         rows += [("Gate", f"{r['gate_id']} ({r['kind'].lower()})"), ("Definition", r["definition"]), ("Now", r["value_text"]), ("Status", r["status_text"]),
-                 ("2025 baseline", "pending" if r["baseline_2025"] is None else f"{r['baseline_2025']:g}"), ("Value comes from", f"{r['source_model']} ({r['source_field']})")]
+                 ("2025 baseline", "pending" if r["baseline_2025"] is None else f"{r['baseline_2025']:g}")]
     if r["decision_owner_role"]:
         rows.append(("Decision", f"{r['decision_owner_role']}: {r['decision_text']}"))
     rows.append(("Card status", r["card_status"]))
     body = "".join(f"<tr><th scope='row'>{e(k)}</th><td>{e(str(v))}</td></tr>" for k, v in rows)
-    return (f"<div class='vproduct'><h4>{e(r['title'])}</h4><table class='vtable vdetail'><tbody>{body}</tbody></table>"
+    src = (f"<details class='vrow-detail' open><summary>For analysts</summary><p>The value comes from <code>{e(r['source_model'])}</code> (field <code>{e(r['source_field'])}</code>); "
+           f"the gate is <code>{e(r['gate_id'])}</code>.</p></details>") if r["gate_id"] else ""
+    return (f"<div class='vproduct'><h4>{e(r['title'])}</h4><table class='vtable vdetail'><tbody>{body}</tbody></table>{src}"
             "<p class='note'>Draft. The value is computed in SQL (share_exec__roadmap_gates); a missing value shows as baseline pending, never as 0.</p></div>")
 
 
@@ -374,11 +376,22 @@ def loop_html() -> str:
     return f"<div class='vproduct'><ol class='vloop'>{items}</ol><p class='note'>The first four links are real outputs of this build (the fourth is a labelled simulation); the last is a proposal.</p></div>"
 
 
+def adr_chip(ref: str) -> str:
+    hit = sorted((ROOT / "docs/decisions").glob(f"{ref}-*.md"))
+    return f"<a class='adr' href='{e(REPO + hit[0].relative_to(ROOT).as_posix())}'>{e(ref)}</a>" if hit else f"<span class='adr'>{e(ref)}</span>"
+
+
 def changelog_html() -> str:
+    """Product, version, a plain-language change, ADR chips. Model names live in the row's analyst detail, never in the visible change text."""
     rows = md_table(ROOT / "products/CHANGELOG.md")
-    head = "".join(f"<th>{e(c)}</th>" for c in rows[0])
-    body = "".join("<tr>" + "".join(f"<td>{md_inline(c, 'products')}</td>" for c in r) + "</tr>" for r in rows[1:])
-    return f"<div class='vproduct'><div class='vscrollx'><table class='vtable'><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div><p class='note'>Methodology version stays 2.0: no counting rule and no published KPI changed.</p></div>"
+    head = "".join(f"<th>{e(c)}</th>" for c in rows[0][:4])
+    body = ""
+    for product, version, change, links, detail in (r[:5] for r in rows[1:]):
+        chips = " ".join(adr_chip(x.strip()) for x in links.split(",") if x.strip())
+        body += (f"<tr><td>{e(product)}</td><td>{md_inline(version, 'products')}</td>"
+                 f"<td>{md_inline(change, 'products')}<details class='vrow-detail'><summary>For analysts</summary><p>{md_inline(detail, 'products')}</p></details></td><td>{chips}</td></tr>")
+    return (f"<div class='vproduct'><table class='vtable'><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
+            "<p class='note'>Methodology version stays 2.0: no counting rule and no published KPI changed.</p></div>")
 
 
 # ---------------------------------------------------------------- the cards

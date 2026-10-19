@@ -127,11 +127,11 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 .vproduct h4 { margin: 0 0 4px; font-size: 1rem; }
 .vproduct h5 { margin: 10px 0 2px; font-size: .9rem; }
 .vproduct ul { margin: 2px 0 6px; padding-left: 1.2em; }
-.vmatrix { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.vmatrix { width: 100%; border-collapse: collapse; }
 .vmatrix th:first-child { width: 30%; }
 .vmatrix th, .vmatrix td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; font-weight: 400; }
 .vmatrix thead th { background: var(--bg); font-weight: 500; }
-.vmatrix th, .vmatrix td { overflow-wrap: anywhere; }
+.vmatrix th, .vmatrix td { overflow-wrap: normal; }
 .vm-driver { background: #d6ead9; font-weight: 600; } .vm-enabler { background: #e0e9f6; } .vm-utility { background: #f3ecd3; }
 .vthumb-html .vmatrix { font-size: .6875rem; } .vthumb-html .vmatrix th, .vthumb-html .vmatrix td { padding: 3px 5px; }
 .vdep { width: 100%; height: auto; max-height: 520px; font-family: var(--font-body); }
@@ -183,7 +183,7 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 .vroad { --lane-source: #f3ecd3; --lane-master: #e0e9f6; --lane-insights: #d6ead9; --lane-restricted: #e8dcee; display: grid; gap: 6px; font-size: .75rem; color: var(--text); }
 .vr-head, .vr-lane { display: grid; grid-template-columns: 200px repeat(4, minmax(0, 1fr)); gap: 6px; }
 .vr-colhead { text-transform: uppercase; letter-spacing: .04em; font-size: .6875rem; color: var(--text-muted); font-weight: 600; padding: 0 2px; }
-.vr-label { border-radius: var(--r-chip); padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; color: #1B2733; min-width: 0; overflow-wrap: anywhere; }
+.vr-label { border-radius: var(--r-chip); padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; color: #1B2733; min-width: 0; overflow-wrap: break-word; }
 .vl-source .vr-label { background: var(--lane-source); } .vl-master .vr-label { background: var(--lane-master); } .vl-insights .vr-label { background: var(--lane-insights); } .vl-restricted .vr-label { background: var(--lane-restricted); border: 1px dashed #7D4E8E; }
 .vr-type { font-size: .625rem; text-transform: uppercase; letter-spacing: .05em; opacity: .8; } .vr-goal { font-size: .625rem; line-height: 1.25; opacity: .85; }
 .vr-cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; border-radius: var(--r-chip); background: var(--bg); padding: 3px; border: 1px solid var(--border); }
