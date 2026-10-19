@@ -74,6 +74,10 @@ models:
     description: DP1 restricted port (consumer DP4). Per participant and season, registrations and registrations fit for GEO. Person key and counts only.
     config:
       tags: [phase5]
+  - name: dq_missing_concentration
+    description: DP1 aggregate port. Per season and KPI, counts of records with a missing value by organization and by division. Counts only.
+    config:
+      tags: [phase5]
   - name: dq_scorecard_org
     description: >
       Organization x season x purpose x dimension scores (0 to 100) and grades. The PURPOSE_SCORE row is the minimum of the purpose's dimension scores (ADR-014); an organization-season

@@ -108,7 +108,6 @@ internal_models:
 - mart_restatement_log
 - mart_uncertainty_decomposition
 - mart_missingness_bias
-- mart_missingness_tests
 gate: DP2's ports (participant master and person-grain facts)
 share_models:
 - share_exec__participation_*

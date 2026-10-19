@@ -163,7 +163,7 @@ restricted_ports:
 - model: int_household_year_consent
   consumers: [DP5, shared_reference]  # shared_reference: share_exec__roadmap_gates reads counts only
 - model: int_participant_year_market
-  consumers: [DP4, DP5]
+  consumers: [DP3, DP4, DP5]
 aggregate_ports:
 - mart_identity_uncertainty
 - mart_reidentification_risk

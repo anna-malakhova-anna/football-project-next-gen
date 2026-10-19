@@ -54,25 +54,10 @@ age_rows as (
 rows as (select * from girls_rows where segment_value <> 'UNKNOWN' or kpi = 'girls_share_of_youth' union all select * from age_rows),
 
 -- where the missing records concentrate
-miss_org as (
+-- where the missing records concentrate (DP1 aggregate port dq_missing_concentration)
+miss_org as (select participation_year, kpi, item, n from {{ ref('dq_missing_concentration') }} where item_type = 'ORGANIZATION'),
 
-    select b.season_year as participation_year, 'girls_share_of_youth' as kpi, b.org_id as item, count(*) as n
-    from {{ ref('dq_record_base') }} b where list_contains(b.dq_flags, 'missing_gender') and b.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') group by all
-    union all
-    select b.season_year, 'age_band_mix', b.org_id, count(*) from {{ ref('dq_record_base') }} b
-    where list_contains(b.dq_flags, 'dob_age_group_only') and b.source_system in ('US_LEAGUE', 'CA_CLUB', 'INTL_FED') group by all
-
-),
-
-miss_div as (
-
-    select u.season_year as participation_year, 'girls_share_of_youth' as kpi, coalesce(u.canonical_division, 'UNMAPPED') as item, count(*) as n
-    from {{ ref('int_registrations_unioned') }} u where u.sex = 'U' and coalesce(u.is_minor, false) and not coalesce(u.is_exact_duplicate, false) group by all
-    union all
-    select u.season_year, 'age_band_mix', coalesce(u.canonical_division, 'UNMAPPED'), count(*) from {{ ref('int_registrations_unioned') }} u
-    where u.birth_year is null and not coalesce(u.is_exact_duplicate, false) group by all
-
-),
+miss_div as (select participation_year, kpi, item, n from {{ ref('dq_missing_concentration') }} where item_type = 'DIVISION'),
 
 top_orgs as (
 

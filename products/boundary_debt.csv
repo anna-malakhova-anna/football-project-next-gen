@@ -7,8 +7,4 @@ dq_scorecard_market,int_participant_year_market,"Record-level data quality needs
 mart_dq_impact,idr_clusters,The cost of a rule in participants and households reads identity and household internals. Candidate fix: DP2 restricted port for DP1.
 mart_dq_impact,idr_match_edges,The cost of a rule in participants and households reads identity and household internals. Candidate fix: DP2 restricted port for DP1.
 mart_dq_impact,int_household,The cost of a rule in participants and households reads identity and household internals. Candidate fix: DP2 restricted port for DP1.
-mart_missingness_bias,dq_record_base,"Missingness bias reads the conformed registrations and record fitness. Candidate fix: widen DP1's restricted port to DP3, or an aggregate port."
-mart_missingness_bias,int_participant_year_market,"Missingness bias reads the conformed registrations and record fitness. Candidate fix: widen DP1's restricted port to DP3, or an aggregate port."
-mart_missingness_bias,int_registrations_unioned,"Missingness bias reads the conformed registrations and record fitness. Candidate fix: widen DP1's restricted port to DP3, or an aggregate port."
-mart_missingness_tests,int_registrations_unioned,"Missingness bias reads the conformed registrations and record fitness. Candidate fix: widen DP1's restricted port to DP3, or an aggregate port."
 share_analyst__participant_year,idr_input_records,Analyst export reads the identity input records. Candidate fix: read dim_participant (a DP2 restricted port).

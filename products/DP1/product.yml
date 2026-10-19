@@ -109,12 +109,15 @@ internal_models:
 - int_dark_org_coverage
 - mart_dq_impact
 - mart_minimization_fitness
+- mart_missingness_tests
 share_models:
 - share_ops__league_*
 - share_privacy__minimization_frontier
 gate: contract validation against the landing tables (raw), then the data standard and the DQ rules
 aggregate_ports:
 - dq_count_fit_by_year
+- dq_missing_concentration
+- mart_missingness_tests
 - dq_scorecard_source
 - dq_scorecard_org
 - dq_scorecard_market
