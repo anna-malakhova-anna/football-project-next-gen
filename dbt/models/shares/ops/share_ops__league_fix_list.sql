@@ -1,6 +1,6 @@
 {{ config(tags=['phase6']) }}
 -- OPS share, DP1 output port (Phase 6): the fix list of each LEAGUE per season, in plain words: what to fix, why, and roughly how many registrations it affects, ranked by records affected. Per organization; counts only, never a
--- record id. A count below the small-cell size is hidden. For the organization-reported rule the count is an estimate of what a dark season is missing (records_basis EXPECTED_FROM_OTHER_SEASONS, EXPECTED_FROM_PEERS or NOT_ESTIMABLE).
+-- record id. A count below the small-cell size is hidden. For the organization-reported rule the count is an estimate of what a dark season is missing (records_basis PRIOR_SEASON, REGION_MEDIAN or NOT_ESTIMABLE).
 {% set k = privacy_param('k_min') %}
 select
     f.season_year, f.source_system, f.org_id, f.org_name, f.rank_in_scope as fix_rank, f.is_systemic,

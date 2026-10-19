@@ -47,3 +47,33 @@ def test_a_pending_gate_never_draws_a_value_or_a_bar():
     from scripts.site_product import _gate_html
     html = _gate_html(dict(gate_id="G", gate_status="PENDING", bar_fill_pct=None, target_marker_pct=80.0, status_text="Baseline pending", value_text="baseline pending"))
     assert "<i " not in html and "baseline pending" in html.lower() and "vg-pending" in html
+
+
+def test_z_activation_uses_the_household_definition_and_keeps_the_75_percent_target():
+    """Decided by Anna 2026-10-19: Z_ACTIVATION is on HOUSEHOLDS with a marketing opt-in (the unit of Z_ANALYTICS), not on consent events (the addendum's 50.2%). Target 75, baseline 28.5."""
+    g = {r["gate_id"]: r for r in rows("product_targets.csv")}
+    z = g["Z_ACTIVATION"]
+    assert float(z["threshold_value"]) == 75 and z["comparison"] == "at least"
+    assert float(z["baseline_2025"]) == 28.5
+    assert z["metric"].lower().startswith("households") and "marketing opt-in" in z["metric"]
+    assert "50.2" not in "".join(z.values()), "the event-based baseline must not appear on the gate"
+    assert g["Z_ANALYTICS"]["metric"].lower().startswith("households"), "the two Z gates count the same unit"
+    sql = (ROOT / "dbt/models/shares/exec/share_exec__roadmap_gates.sql").read_text(encoding="utf-8")
+    line = next(x for x in sql.splitlines() if "'Z_ACTIVATION'" in x)
+    assert "marketing_status" in line and "GRANTED_FULL" in line and "from consent" in line
+
+
+def test_z_activation_gate_value_matches_the_households_in_the_warehouse():
+    import duckdb
+    db = ROOT / "warehouse" / "flag.duckdb"
+    if not db.exists():
+        import pytest
+        pytest.skip("no warehouse built")
+    con = duckdb.connect(str(db), read_only=True)
+    try:
+        want = con.execute("""select 100.0 * count(*) filter (where marketing_status = 'GRANTED_FULL') / count(*) filter (where marketing_status in ('GRANTED_FULL', 'GRANTED_INCOMPLETE'))
+                              from linkage.int_household_year_consent where participation_year = (select max(participation_year) from linkage.int_household_year_consent)""").fetchone()[0]
+        got = con.execute("select current_value from share_exec.share_exec__roadmap_gates where gate_id = 'Z_ACTIVATION'").fetchone()[0]
+    finally:
+        con.close()
+    assert abs(got - want) < 0.05 and abs(got - 28.5) < 0.1

@@ -2,7 +2,7 @@ unit_tests:
   - name: dq_fix_list_no_file_issue_is_first_estimated_and_never_zero
     description: >
       A league that sent no file has records_affected of 0 by construction (it has no registrations), so the "send your file" fix must not drop out or show 0. It stays first, with an estimate
-      and the basis in records_basis: the league's own other seasons, else the median of the reporting leagues of the same source and season, else NOT_ESTIMABLE (NULL, never 0).
+      and the basis in records_basis: the league's registrations in its most recent reported season (PRIOR_SEASON), else the median of the reporting leagues of the same source and region in that season (REGION_MEDIAN), else NOT_ESTIMABLE (NULL, never 0).
     model: dq_fix_list
     config:
       tags: [phase5]
@@ -20,24 +20,28 @@ unit_tests:
           - {param: systemic_share, value: "0.8"}
       - input: ref('dq_rule_measures')
         rows:
+          - {rule_id: DQ-TIME-ORG-REPORTED, source_system: US_LEAGUE, org_id: O1, season_year: 2019, n_evaluated: 1, n_pass: 1, pass_rate: 1.0}
           - {rule_id: DQ-TIME-ORG-REPORTED, source_system: US_LEAGUE, org_id: O1, season_year: 2020, n_evaluated: 1, n_pass: 1, pass_rate: 1.0}
           - {rule_id: DQ-TIME-ORG-REPORTED, source_system: US_LEAGUE, org_id: O1, season_year: 2021, n_evaluated: 1, n_pass: 0, pass_rate: 0.0}
           - {rule_id: DQ-TIME-ORG-REPORTED, source_system: US_LEAGUE, org_id: O2, season_year: 2021, n_evaluated: 1, n_pass: 0, pass_rate: 0.0}
           - {rule_id: DQ-TIME-ORG-REPORTED, source_system: US_LEAGUE, org_id: O3, season_year: 2021, n_evaluated: 1, n_pass: 1, pass_rate: 1.0}
           - {rule_id: DQ-TIME-ORG-REPORTED, source_system: US_LEAGUE, org_id: O4, season_year: 2021, n_evaluated: 1, n_pass: 1, pass_rate: 1.0}
+          - {rule_id: DQ-TIME-ORG-REPORTED, source_system: US_LEAGUE, org_id: O6, season_year: 2021, n_evaluated: 1, n_pass: 1, pass_rate: 1.0}
           - {rule_id: DQ-TIME-ORG-REPORTED, source_system: CA_CLUB, org_id: O5, season_year: 2021, n_evaluated: 1, n_pass: 0, pass_rate: 0.0}
           - {rule_id: DQ-COMP-X, source_system: US_LEAGUE, org_id: O3, season_year: 2021, n_evaluated: 1000, n_pass: 600, pass_rate: 0.6}
       - input: ref('dq_org_season_base')
         rows:
-          - {source_system: US_LEAGUE, org_id: O1, org_name: One, season_year: 2020, reported: true, n_records: 100}
-          - {source_system: US_LEAGUE, org_id: O1, org_name: One, season_year: 2021, reported: false, n_records: 0}
-          - {source_system: US_LEAGUE, org_id: O2, org_name: Two, season_year: 2021, reported: false, n_records: 0}
-          - {source_system: US_LEAGUE, org_id: O3, org_name: Three, season_year: 2021, reported: true, n_records: 1000}
-          - {source_system: US_LEAGUE, org_id: O4, org_name: Four, season_year: 2021, reported: true, n_records: 3000}
-          - {source_system: CA_CLUB, org_id: O5, org_name: Five, season_year: 2021, reported: false, n_records: 0}
+          - {source_system: US_LEAGUE, org_id: O1, org_name: One, region_code: R1, season_year: 2019, reported: true, n_records: 80}
+          - {source_system: US_LEAGUE, org_id: O1, org_name: One, region_code: R1, season_year: 2020, reported: true, n_records: 100}
+          - {source_system: US_LEAGUE, org_id: O1, org_name: One, region_code: R1, season_year: 2021, reported: false, n_records: 0}
+          - {source_system: US_LEAGUE, org_id: O2, org_name: Two, region_code: R1, season_year: 2021, reported: false, n_records: 0}
+          - {source_system: US_LEAGUE, org_id: O3, org_name: Three, region_code: R1, season_year: 2021, reported: true, n_records: 1000}
+          - {source_system: US_LEAGUE, org_id: O4, org_name: Four, region_code: R1, season_year: 2021, reported: true, n_records: 3000}
+          - {source_system: US_LEAGUE, org_id: O6, org_name: Six, region_code: R2, season_year: 2021, reported: true, n_records: 9999}
+          - {source_system: CA_CLUB, org_id: O5, org_name: Five, region_code: R9, season_year: 2021, reported: false, n_records: 0}
     expect:
       rows:
-        - {source_system: US_LEAGUE, org_id: O1, season_year: 2021, fix_rank: 1, rule_id: DQ-TIME-ORG-REPORTED, records_affected: 100, records_basis: EXPECTED_FROM_OTHER_SEASONS}
-        - {source_system: US_LEAGUE, org_id: O2, season_year: 2021, fix_rank: 1, rule_id: DQ-TIME-ORG-REPORTED, records_affected: 2000, records_basis: EXPECTED_FROM_PEERS}
+        - {source_system: US_LEAGUE, org_id: O1, season_year: 2021, fix_rank: 1, rule_id: DQ-TIME-ORG-REPORTED, records_affected: 100, records_basis: PRIOR_SEASON}
+        - {source_system: US_LEAGUE, org_id: O2, season_year: 2021, fix_rank: 1, rule_id: DQ-TIME-ORG-REPORTED, records_affected: 2000, records_basis: REGION_MEDIAN}
         - {source_system: US_LEAGUE, org_id: O3, season_year: 2021, fix_rank: 1, rule_id: DQ-COMP-X, records_affected: 400, records_basis: COUNTED}
         - {source_system: CA_CLUB, org_id: O5, season_year: 2021, fix_rank: 1, rule_id: DQ-TIME-ORG-REPORTED, records_affected: null, records_basis: NOT_ESTIMABLE}

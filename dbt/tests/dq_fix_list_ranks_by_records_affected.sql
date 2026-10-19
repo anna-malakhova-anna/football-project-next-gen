@@ -37,7 +37,7 @@ select 'no-file fix shown as zero', source_system || '|' || org_id || '|' || sea
 from {{ ref('dq_fix_list') }} where rule_id = 'DQ-TIME-ORG-REPORTED' and coalesce(records_affected, 0) = 0 and records_basis <> 'NOT_ESTIMABLE'
 union all
 select 'no-file fix with a basis that is not an estimate', source_system || '|' || org_id || '|' || season_year
-from {{ ref('dq_fix_list') }} where rule_id = 'DQ-TIME-ORG-REPORTED' and records_basis not in ('EXPECTED_FROM_OTHER_SEASONS', 'EXPECTED_FROM_PEERS', 'NOT_ESTIMABLE')
+from {{ ref('dq_fix_list') }} where rule_id = 'DQ-TIME-ORG-REPORTED' and records_basis not in ('PRIOR_SEASON', 'REGION_MEDIAN', 'NOT_ESTIMABLE')
 union all
 select 'counted fix labelled as an estimate', source_system || '|' || org_id || '|' || season_year
 from {{ ref('dq_fix_list') }} where rule_id <> 'DQ-TIME-ORG-REPORTED' and records_basis <> 'COUNTED'
