@@ -275,7 +275,7 @@ charts:
     analyst_md: |
       Share of participant-years that are unique or in a small class on the quasi-identifiers birth year, ZIP3, sex and country (`share_privacy__analyst_k_anonymity`). See ADR-006.
   D1:
-    status: draft
+    status: final
     headline_template: "{n_goals} goals become {n_products} data products. Every goal has a product that drives it."
     fallback_headline: "The goals become a small set of data products. Every goal has a product that drives it."
     slide_headline_templates:
@@ -291,7 +291,7 @@ charts:
       Goals G1 to G3 as stated; products DP1 to DP5 (ADR-021). Value proposition types: utility (keeps things running), enabler (makes other things possible), driver (directly moves a goal). Product types: source-based (DP1), master (DP2), insights (DP3 to DP5).
       DP5 also depends on the fan engagement source and on consent capture in DP1.
   D2:
-    status: draft
+    status: final
     headline_template: "Five stages turn a goal into a product that someone owns and watches."
     fallback_headline: "Five stages turn a goal into a product that someone owns and watches."
     slide_headline_templates: {}
@@ -304,7 +304,7 @@ charts:
     analyst_md: |
       The method is described in this project's own words in `docs/product/README.md`. Structure informed by a published data-product guidance framework (cited once there); none of its text or figures is reproduced.
   D3:
-    status: draft
+    status: final
     headline_template: "Six made-up personas show who each product serves and what we would ask them."
     fallback_headline: "Six made-up personas show who each product serves."
     slide_headline_templates: {}
@@ -317,7 +317,7 @@ charts:
     analyst_md: |
       From `docs/product/discovery.md`. Roles are fictional. The validation questions are the next step before any real build.
   D4:
-    status: draft
+    status: final
     headline_template: "Start with US growth and intake. Conversion waits: high value, data not ready."
     fallback_headline: "Start with US growth and intake. Conversion waits."
     slide_headline_templates:
@@ -332,7 +332,7 @@ charts:
       Scores 1 to 5 from `dbt/seeds/product_prioritization.csv` (status CONFIRMED): value to the goals, feasibility today, data readiness (from the Phase 5 grades) and privacy risk. Total = value + feasibility + readiness - privacy risk.
       Gates and the roadmap are on the next card (`dbt/seeds/product_targets.csv`, `product_roadmap.csv`). The identity range is a guardrail, not a target.
   D10:
-    status: draft
+    status: final
     headline_template: "{n_met} of {n_gates} release gates are met. The MVP is waiting on {blocking_gate_plain}."
     fallback_headline: "Release gates decide when each product moves. The MVP waits on the US league grades."
     slide_headline_templates: {}
@@ -353,7 +353,7 @@ charts:
       Cards come from `dbt/seeds/product_roadmap.csv` (one row per card, status draft). Gates come from `dbt/seeds/product_targets.csv`; their current value, status and bar are computed in SQL by `share_exec__roadmap_gates` and only rendered here.
       A gate is MET when its comparison holds, NOT_YET when it does not, and PENDING (shown as baseline pending, never 0) when its source value is missing. Open a card to see the gate's definition, its source model and field.
   D5:
-    status: draft
+    status: final
     headline_template: "Each product has a label: owner, version, live quality grade and rules for use."
     fallback_headline: "Each product has a label with its owner, version, quality grade and rules for use."
     slide_headline_templates: {}
@@ -366,7 +366,7 @@ charts:
     analyst_md: |
       Specs are `products/DP*/product.yml`, validated by `scripts/validate_products.py` against the dbt manifest (every output port is a share model), the metric catalog and the tests. Terms in `docs/product/terms/`.
   D6:
-    status: draft
+    status: final
     headline_template: "Minors are guardian-only. {pct_activatable_u13} of families with a child under thirteen agreed to club marketing."
     fallback_headline: "Every minor is guardian-only. Few households have agreed to club marketing."
     slide_headline_templates:
@@ -384,7 +384,7 @@ charts:
       Tier boundaries (ages on Dec 31): under 13, 13 to 15, 16 to 17, 18 and over. Rules in `dbt/seeds/age_consent_rules.csv` (28 rows: the anchor rows are verified with a source link, every other row is unverified and the strictest rule applies), documented in `docs/product/age-consent-rules.md`; decisions in ADR-022.
       The funnel is `share_privacy__conversion_funnel_by_tier`: registered, linked to a fan account, engaged, purchased (analytics only) and consented to club marketing (activation). A step is hidden when it or the step before it is under the small-cell size.
   D7:
-    status: draft
+    status: final
     headline_template: "{n_kpis} measures track the three goals. {n_not_measurable} cannot be measured, by design."
     fallback_headline: "The measures track the three goals. One cannot be measured, by design."
     slide_headline_templates:
@@ -401,7 +401,7 @@ charts:
       Inside: `phase6.mart_product_health` (built by `scripts/build_product_health.py` after the tests). Outside: `phase6.mart_goal_scorecard`, from existing marts only. Adoption: `phase6_ops.ops_product_usage_log` (schema only; simulation is not approved).
       The canonical engagement-lift metric is `fan_uplift_pct` (matched estimate) with its naive companion; "Fans created by flag" is `incremental_fan_accounts` (ADR-021).
   D8:
-    status: draft
+    status: final
     headline_template: "Every product has a policy cover. The gaps are listed, not hidden."
     fallback_headline: "Every product has a policy cover. The gaps are listed."
     slide_headline_templates: {}
@@ -414,7 +414,7 @@ charts:
     analyst_md: |
       From `docs/product/governance-coverage.md`: products by definitions and models, ethics, lifecycle, data quality, security and privacy.
   D9:
-    status: draft
+    status: final
     headline_template: "Monitoring found a gap, a fix list targeted it, and the roadmap changed."
     fallback_headline: "Monitoring found a gap and the roadmap changed."
     slide_headline_templates:
@@ -454,7 +454,7 @@ pages:
     demo_text: "See what each field costs, then what is on record about consent."
     demo_slide: "P3-1"
   product:
-    status: draft
+    status: final
     intro_template: "Three goals become five data products, and each has an owner, a label, health measures and a retirement plan. The first to build is US growth, with intake as its foundation. This tab shows the method using this project's own build, on made-up data."
     fallback_intro: "Three goals become five data products. This tab shows the method using this project's own build, on made-up data."
     demo_text: "Goals to products, the method, the first build, children's privacy, and whether it works."

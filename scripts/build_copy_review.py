@@ -57,6 +57,10 @@ def grades(c: dict) -> tuple[float, float]:
     return tuple(round(textstat.flesch_kincaid_grade(" ".join([c["headline"], c[f"means_{lens}"], c[f"action_{lens}"], c["caution"]])), 1) for lens in ("club", "privacy"))
 
 
+def approve(status: str) -> str:
+    return "[x] approved (final) &nbsp; [ ] edit:" if status in ("final", "confirmed") else "[ ] approve &nbsp; [ ] edit:"
+
+
 def flag(g: float) -> str:
     return f"**{g} (over {LIMIT:g})**" if g > LIMIT else str(g)
 
@@ -75,7 +79,7 @@ def card_section(cid: str, page_title: str, c: dict, status: str, demo_rank: int
     for label, key in SLOTS:
         name = {"headline": "Headline", "question": "Question", "means_club": "What it means (club lens)", "means_privacy": "What it means (privacy lens)",
                 "action_club": "What to do (club lens)", "action_privacy": "What to do (privacy lens)", "caution": "Be careful"}[label]
-        lines.append(f"| {name} | {c[label].replace('|', '/')} | `{key}` | [ ] approve &nbsp; [ ] edit: |")
+        lines.append(f"| {name} | {c[label].replace('|', '/')} | `{key}` | {approve(status)} |")
     lines.append("")
     return "\n".join(lines)
 
@@ -91,7 +95,7 @@ def roadmap_rows() -> str:
         dec = f"{r['decision_owner_role']}: {r['decision_text']}" if r["decision_text"] else ""
         text = " ".join(x for x in [r["title"], dec] if x)
         grade = round(textstat.flesch_kincaid_grade(text), 1)
-        out.append(f"| {r['product_id']} | {r['horizon'].title()} | {r['version']} | {r['title'].replace('|', '/')} | {gate} | {dec} | `{r['status']}` | {flag(grade)} | [ ] approve &nbsp; [ ] edit: |")
+        out.append(f"| {r['product_id']} | {r['horizon'].title()} | {r['version']} | {r['title'].replace('|', '/')} | {gate} | {dec} | `{r['status']}` | {flag(grade)} | {approve(r['status'])} |")
     return "\n".join(out)
 
 
@@ -126,7 +130,7 @@ def main() -> int:
            f"- **{len(found)} cards** ({len(demo_ids)} on the demo path), **{len(PAGES)} page intros**, **{sum(1 for _ in csv.DictReader((ROOT / 'dbt/seeds/product_roadmap.csv').open(encoding='utf-8')))} roadmap rows**.",
            f"- Reading level is the Flesch-Kincaid grade of headline + what it means + what to do + caution, per lens (the measure `site_check` enforces, limit {LIMIT:g}). "
            + ("Over the limit: " + ", ".join(over) + "." if over else "Every card is within the limit."),
-           "- How to mark a row: change `[ ]` to `[x]` for approve, or write the new wording after `edit:`.", "",
+           "- How to mark a row: change `[ ]` to `[x]` for approve, or write the new wording after `edit:`. A row already marked `[x] approved (final)` has `status: final` (or `confirmed`) in its source.", "",
            "## Summary", "", "| Order | Chart | Page | Demo path | Question | Reading level (club / privacy) | Copy status |", "|---|---|---|---|---|---|---|"]
     for i, cid in enumerate(demo_ids + rest, 1):
         title, c = found[cid]
@@ -142,7 +146,7 @@ def main() -> int:
     out += ["## 3. Page intros and demo-path text", "", "| Page | Intro as the site shows it | Source key | Demo-path text (`demo_text`) | Status | Approve / edit |", "|---|---|---|---|---|---|"]
     for slug, title in PAGES:
         p = pages_copy.get(slug, {})
-        out.append(f"| {title} | {intros[slug].replace('|', '/')} | `pages.{slug}.intro_template` | {p.get('demo_text', '').replace('|', '/')} | `{p.get('status', '?')}` | [ ] approve &nbsp; [ ] edit: |")
+        out.append(f"| {title} | {intros[slug].replace('|', '/')} | `pages.{slug}.intro_template` | {p.get('demo_text', '').replace('|', '/')} | `{p.get('status', '?')}` | {approve(p.get('status', '?'))} |")
     out += ["", "## 4. Roadmap rows", "",
             "The 14 rows of `dbt/seeds/product_roadmap.csv` (the cards on the roadmap board, grouped by product). Gate values come from the gates model at build time, not from this text. The roadmap card itself (D10) is in section 1 or 2. A card title is a few words, so its reading-level score is unreliable (a short fragment of technical nouns scores high); read it as a prompt to check the wording, not as a failure.", "",
             roadmap_rows(), ""]
