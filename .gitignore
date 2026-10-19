@@ -34,3 +34,7 @@ NOTES-*.md
 *.zip
 Counting Flag Football a plain-language*.pdf
 phase-*-data-product-tab.md
+
+# macOS and local run logs
+.DS_Store
+logs/
