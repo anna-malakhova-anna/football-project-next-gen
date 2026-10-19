@@ -146,7 +146,7 @@ def build(con) -> list[tuple]:
             add("trust", "Known leagues that sent no file", f"{int(d[0])} of {int(d[1])}", d[0], "WATCH" if d[0] else "OK", "their players are in no count; the range allows for them")
         if pid == "DP5":
             add("trust", "Participant households linked to a fan account", f"{100 * link[0]:.1f}%", 100 * link[0], "INFO", "linking is uneven by country (the bias); the metrics describe linked households only")
-            add("trust", "Households with fully known consent provenance", f"{100.0 * prov[0] / prov[1]:.1f}%", 100.0 * prov[0] / prov[1], "INFO", "gate Z_ANALYTICS for DP5 v0 (draft 80%)")
+            add("trust", "Households with fully known consent provenance", f"{100.0 * prov[0] / prov[1]:.1f}%", 100.0 * prov[0] / prov[1], "INFO", "gate Z_ANALYTICS for DP5 v0 (80%)")
         # privacy
         add("privacy", "Share-policy check violations", int(policy), policy, "OK" if policy == 0 else "ALERT", "from share_privacy__policy_checks; zero is expected")
         supp_cells = supp_total = 0

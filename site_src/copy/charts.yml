@@ -329,7 +329,7 @@ charts:
     action_privacy: "Hold conversion until guardian consent for club marketing is captured at registration."
     caution: "These scores and targets are drafts. The program owner sets the final ones."
     analyst_md: |
-      Scores 1 to 5 from `dbt/seeds/product_prioritization.csv` (status DRAFT): value to the goals, feasibility today, data readiness (from the Phase 5 grades) and privacy risk. Total = value + feasibility + readiness - privacy risk.
+      Scores 1 to 5 from `dbt/seeds/product_prioritization.csv` (status CONFIRMED): value to the goals, feasibility today, data readiness (from the Phase 5 grades) and privacy risk. Total = value + feasibility + readiness - privacy risk.
       Gates and the roadmap are on the next card (`dbt/seeds/product_targets.csv`, `product_roadmap.csv`). The identity range is a guardrail, not a target.
   D10:
     status: draft
@@ -341,7 +341,7 @@ charts:
     means_privacy: "Each step that reaches families waits for a privacy sign-off and, for contact by clubs, a separate guardian consent."
     action_club: "Clear the counting and geography grade gap with the leagues first; it unblocks the MVP."
     action_privacy: "Hold contact by clubs until the separate guardian consent for club contact is captured at registration."
-    caution: "Targets are draft and set for a synthetic dataset."
+    caution: "Targets are set for a synthetic dataset."
     pivot: "We learned the real pain point was thin, poor-quality data, not consent to contact. Intake and data quality moved first."
     not_doing:
       - "marketing to anyone under 18"

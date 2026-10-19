@@ -139,7 +139,7 @@ def prioritization_html(rows: list[dict]) -> str:
         body += (f"<tr><th scope='row'>{e(r['product_id'])} {e(r['product_name'])}</th><td>{r['value_to_goals']}</td><td>{r['feasibility_today']}</td><td>{r['data_readiness']}</td><td>{r['privacy_risk']}</td>"
                  f"<td><b>{total}</b></td><td>{e(r['reading'])}</td></tr>")
     return ("<div class='vproduct'><table class='vtable'><thead><tr><th>Product</th><th>Value to the goals</th><th>Feasibility today</th><th>Data readiness</th><th>Privacy risk (higher is riskier)</th><th>Total</th><th>Reading</th></tr></thead>"
-            f"<tbody>{body}</tbody></table><p class='note'>Scores 1 to 5 and DRAFT: proposed from the data quality grades, set by the program owner. Total = value + feasibility + readiness - privacy risk.</p></div>")
+            f"<tbody>{body}</tbody></table><p class='note'>Scores 1 to 5, confirmed by the program owner, based on the data quality grades. Total = value + feasibility + readiness - privacy risk.</p></div>")
 
 
 HORIZONS = [("DELIVERED", "Delivered"), ("NOW", "Now"), ("NEXT", "Next"), ("LATER", "Later")]
@@ -185,7 +185,7 @@ def roadmap_board_html(rows: list[dict], ps: dict, copy: dict, slide_of: dict) -
     return (f"<div class='vroad' data-roadmap><div class='vr-head'><div class='vr-colhead vr-corner'></div>{head}</div>{lanes}"
             f"<div class='vr-notdoing'><span class='vr-nlabel'>Not doing</span>{strip}</div>"
             "<p class='note'>No dates: products move when their data is good enough and the right person has signed off. Bars show where a gate stands; the tick is the target. "
-            "◆ marks a decision. Targets are draft and set for a synthetic dataset.</p></div>")
+            "◆ marks a decision. Targets are set for a synthetic dataset.</p></div>")
 
 
 def roadmap_detail_html(r: dict, ps: dict) -> str:
@@ -203,7 +203,7 @@ def roadmap_detail_html(r: dict, ps: dict) -> str:
     src = (f"<details class='vrow-detail' open><summary>For analysts</summary><p>The value comes from <code>{e(r['source_model'])}</code> (field <code>{e(r['source_field'])}</code>); "
            f"the gate is <code>{e(r['gate_id'])}</code>.</p></details>") if r["gate_id"] else ""
     return (f"<div class='vproduct'><h4>{e(r['title'])}</h4><table class='vtable vdetail'><tbody>{body}</tbody></table>{src}"
-            "<p class='note'>Draft. The value is computed in SQL (share_exec__roadmap_gates); a missing value shows as baseline pending, never as 0.</p></div>")
+            f"<p class='note'>{'Draft. ' if r['card_status'] == 'draft' else ''}The value is computed in SQL (share_exec__roadmap_gates); a missing value shows as baseline pending, never as 0.</p></div>")
 
 
 # ---------------------------------------------------------------- D5 product labels

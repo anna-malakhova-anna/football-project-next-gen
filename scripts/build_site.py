@@ -236,9 +236,9 @@ DATASETS += [
         select product_id, product_name, value_to_goals, feasibility_today, data_readiness, privacy_risk, value_to_goals + feasibility_today + data_readiness - privacy_risk as total,
                case when value_to_goals >= 4 and data_readiness <= 2 then 'High value, low readiness: sequenced, not deprioritized'
                     when rank() over (order by value_to_goals + feasibility_today + data_readiness - privacy_risk desc) <= 2 then 'Build first' else 'Next' end as reading, rationale, status
-        from reference.product_prioritization order by total desc, product_id""", ["reference.product_prioritization"], "governance", "Draft priority of the five data products"),
+        from reference.product_prioritization order by total desc, product_id""", ["reference.product_prioritization"], "governance", "Priority of the five data products"),
     _D("product_targets", "select gate_id, product_id, release, kind, metric, comparison, threshold_value, unit, baseline_2025, status from reference.product_targets order by gate_id",
-       ["reference.product_targets"], "governance", "Draft exit criteria and guardrails with their 2025 baselines"),
+       ["reference.product_targets"], "governance", "Exit criteria and guardrails with their 2025 baselines"),
     _D("roadmap", """
         select r.product_id, r.horizon, case r.horizon when 'DELIVERED' then 1 when 'NOW' then 2 when 'NEXT' then 3 else 4 end as horizon_order, r.version, r.title, r.phase_ref, r.gate_id,
                r.decision_owner_role, r.decision_text, r.status as card_status,
