@@ -460,16 +460,16 @@ pages:
     demo_text: "Goals to products, the method, the first build, children's privacy, and whether it works."
     demo_slide: "D1-1"
 
-# The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf). DRAFT: Anna approves each string, then sets `status: final`.
+# The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf). FINAL: approved by Anna (2026-10-19 edits applied).
 # {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py); the build fails if one has no value. Plain words, grade 8 or lower, about 250 words in all.
 summary:
-  status: draft
+  status: final
   title: "Counting Flag Football: a data product, end to end"
-  pitch: "Three goals, five data products: owned, measured, safe for kids."
+  pitch: "Five data products: owned, measured, safe for kids."
   why_heading: "Why"
   goals:
     G1: "Grow the NFL globally"
-    G2: "Grow US flag, safely and cheaply"
+    G2: "Grow flag in the US as a safe, low-cost way into football"
     G3: "Turn families into fans, never by marketing to kids"
   what_heading: "What"
   product_names:
@@ -494,7 +494,7 @@ summary:
     - {label: "Plan", proof: "MVP chosen"}
     - {label: "Build", proof: "{n_boundary} breaks"}
     - {label: "Package", proof: "labels, owners"}
-    - {label: "Monitor", proof: "{pct_tests}% of tests pass"}
+    - {label: "Monitor", proof: "Health and goals tracked"}
   privacy_heading: "Privacy by design"
   tier_note: "Stricter than the law, by choice."
   tiers:
@@ -510,10 +510,10 @@ summary:
     - "Buying kids' data"
     - "Fuzzy matching"
     - "Scoring families"
-    - "Records past 18"
-  privacy_line: "{pct_u13_club_consent}% of under-13 families agreed to club contact; we count families."
+    - "Old records"
+  privacy_line: "{pct_u13_club_consent}% of families with a child under 13 agreed to club contact. We count families, never kids."
   roadmap_heading: "Roadmap"
-  roadmap_line: "{n_met} of {n_gates} gates met. MVP waits on data score ({current}→{target})."
+  roadmap_line: "{n_met} of {n_gates} gates met; MVP waits on score ({current}→{target})."
   lanes: {DELIVERED: "Delivered", NOW: "Now", NEXT: "Next", LATER: "Later"}
   gate_met: ""
   gate_not_yet: "not yet"
@@ -540,6 +540,6 @@ summary:
   debt: "Second identity chain found; merge planned (DP2 v1.1)."
   next_label: "Next"
   next: "Privacy lead approves fan analysis; guardian consent at registration."
-  footer: "Synthetic data, built to test the method."
-  footer_link: "Full detail: Data product tab"
+  footer: "Synthetic data, built to test."
+  footer_link: "Full tab"
   methodology: "Methodology {version}"

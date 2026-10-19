@@ -232,7 +232,7 @@ Page: **Data product** · Chart ID: **D7** · Demo path: **yes** (demo path, ste
 
 | Slot | Text as the site shows it | Source key | Approve / edit |
 |---|---|---|---|
-| Headline | 15 measures track the three goals. 1 cannot be measured, by design. | `headline_template` | [x] approved (final) &nbsp; [ ] edit: |
+| Headline | 16 measures track the three goals. 1 cannot be measured, by design. | `headline_template` | [x] approved (final) &nbsp; [ ] edit: |
 | Question | Is the portfolio working? | `question` | [x] approved (final) &nbsp; [ ] edit: |
 | What it means (club lens) | Left: is each product healthy. Right: are the goals moving. Flag does two things: families already following the NFL engage about 20% more, and flag creates new fan accounts among families who were not fans. A pooled average hides the second effect. | `means_club` | [x] approved (final) &nbsp; [ ] edit: |
 | What it means (privacy lens) | The youth-to-adult step cannot be measured because a youth record is never linked to the adult. That is the policy working. | `means_privacy` | [x] approved (final) &nbsp; [ ] edit: |

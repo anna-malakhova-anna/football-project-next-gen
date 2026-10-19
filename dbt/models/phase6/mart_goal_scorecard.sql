@@ -19,7 +19,7 @@ girls as (
 
 cov as (
 
-    select participation_year, sum(orgs_known) as known, sum(orgs_reporting) as reporting, sum(orgs_dark) as dark, sum(participants_allocated) as allocated,
+    select participation_year, sum(orgs_known) as known, sum(orgs_reporting) as reporting, sum(orgs_dark) as dark, sum(participants_allocated) as allocated, sum(participants_allocated + coverage_point) as estimated_total,
            sum(interval_low) as allocated_low, sum(interval_high) as allocated_high, count(*) filter (where orgs_dark > 0) as markets_with_dark
     from {{ ref('mart_market_coverage') }} where regexp_matches(club_market_id, '^CM-') and participants_allocated >= {{ k }} group by 1
 
@@ -73,7 +73,11 @@ rows_ as (
            'Known leagues that sent no file', cast(v.dark as double), 'MEASURED'
     from cov v where v.known > 0
     union all
-    select 'G2', 'market_participants_with_coverage', 'Players counted in club markets (range allows for leagues that sent no file)', null, v.participation_year, round(v.allocated, 0), round(v.allocated_low, 0), round(v.allocated_high, 0), 'count', 'DP4',
+    select 'G2', 'market_participants_with_coverage', 'Players counted in club markets', null, v.participation_year, round(v.allocated, -1), null, null, 'count', 'DP4',
+           'Markets with at least one league that sent no file', cast(v.markets_with_dark as double), 'MEASURED'
+    from cov v
+    union all
+    select 'G2', 'market_participants_estimated_total', 'Estimated total, including leagues that sent no file', null, v.participation_year, round(v.estimated_total, -1), round(v.allocated_low, -1), round(v.allocated_high, -1), 'count', 'DP4',
            'Markets with at least one league that sent no file', cast(v.markets_with_dark as double), 'MEASURED'
     from cov v
 
@@ -107,7 +111,7 @@ rows_ as (
 select r.goal_id, r.kpi_id, r.kpi_label, r.segment, r.year, r.value, r.value_low, r.value_high, r.unit, r.product_id, r.trust_label, r.trust_value, u.trust_unit, r.status
 from rows_ r
 join (values ('countries_with_participants', 'count'), ('international_participants', 'percent'), ('global_participants', 'percent'), ('federation_clubs_reporting', 'percent'), ('us_participants', 'percent'),
-             ('girls_share_of_youth', 'ratio'), ('retention_one_year', 'count'), ('leagues_reporting_share', 'count'), ('market_participants_with_coverage', 'count'), ('fan_engagement_uplift', 'ratio'),
+             ('girls_share_of_youth', 'ratio'), ('retention_one_year', 'count'), ('leagues_reporting_share', 'count'), ('market_participants_with_coverage', 'count'), ('market_participants_estimated_total', 'count'), ('fan_engagement_uplift', 'ratio'),
              ('fans_created_by_flag', 'count'), ('fans_created_per_100_households', 'count'), ('linked_household_rate', 'ratio'), ('activatable_households', 'ratio'), ('youth_to_adult_fan_transition', 'none')) u(kpi_id, trust_unit)
   on u.kpi_id = r.kpi_id
 order by goal_id, kpi_id, segment nulls first, year

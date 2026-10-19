@@ -478,7 +478,7 @@
    "name": "goal_scorecard",
    "source": "phase6.mart_goal_scorecard",
    "kind": "approved_aggregate",
-   "rows": 19
+   "rows": 20
   },
   {
    "name": "product_health",
