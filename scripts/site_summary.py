@@ -6,7 +6,6 @@ at build time and rounded for display; nothing is typed into the template and no
 """
 from __future__ import annotations
 
-import csv
 import re
 import sys
 from html import escape as e
@@ -80,6 +79,8 @@ def values(data: dict, n_personas: int) -> tuple[dict, list[dict]]:
     put("girls_share", f"{round(need(gs['value'], 'girls share') * 100):d}", "goal_scorecard", "value (girls_share_of_youth)", gs["value"])
     rt = kpi(data, "retention_one_year")
     put("retention", f"{round(need(rt['value'], 'retention') * 100):d}", "goal_scorecard", "value (retention_one_year)", rt["value"])
+    put("girls_lo", f"{need(gs['value_low'], 'girls share low') * 100:.1f}", "goal_scorecard", "value_low (girls_share_of_youth)", gs["value_low"])
+    put("girls_hi", f"{need(gs['value_high'], 'girls share high') * 100:.1f}", "goal_scorecard", "value_high (girls_share_of_youth)", gs["value_high"])
     fc = kpi(data, "fans_created_by_flag")
     for key, field in (("fans_created", "value"), ("fans_lo", "value_low"), ("fans_hi", "value_high")):
         put(key, f"{round(need(fc[field], 'fans created') / 100) * 100:,}", "goal_scorecard", f"{field} (fans_created_by_flag)", fc[field])
@@ -97,6 +98,11 @@ def values(data: dict, n_personas: int) -> tuple[dict, list[dict]]:
     put("current", f"{round(need(mvp['current_value'], 'MVP gate value'))}", "roadmap", "current_value (the MVP gate)", mvp["current_value"])
     put("target", f"{round(need(mvp['target'], 'MVP gate target'))}", "roadmap", "target (the MVP gate)", mvp["target"])
     put("n_personas", f"{n_personas}", "docs/product/discovery.md", "rows of the persona table", n_personas)
+    gate_z = next(r for r in road if r["gate_id"] == "Z_ACTIVATION")
+    mz = re.search(r"now ([0-9.]+)%", need(gate_z["value_text"], "consent gate value"))
+    if not mz:
+        raise SystemExit(f"SITE BUILD REFUSED:\n  one-pager: cannot read the consent gate value from '{gate_z['value_text']}'")
+    put("z_known", mz.group(1), "roadmap", "value_text (gate Z_ACTIVATION)", gate_z["value_text"])
     gate_y = next(r for r in road if r["gate_id"] == "Y")
     put("identity_limit", f"{round(need(gate_y['target'], 'identity gate limit')):d}", "roadmap", "target (gate Y)", gate_y["target"])
     for sp_row in rows_of(data, "product_specs"):
@@ -108,8 +114,6 @@ def values(data: dict, n_personas: int) -> tuple[dict, list[dict]]:
     put("uplift", f"{round(need(up['value'], 'engagement uplift') * 100):d}", "goal_scorecard", "value (fan_engagement_uplift)", up["value"])
     lk = kpi(data, "linked_household_rate")
     put("linked", f"{round(need(lk['value'], 'linked households') * 100):d}", "goal_scorecard", "value (linked_household_rate)", lk["value"])
-    hist = list(csv.DictReader((ROOT / "products" / "boundary_debt_history.csv").open(encoding="utf-8")))
-    put("debt_start", hist[0]["debt_rows"], "products/boundary_debt_history.csv", "debt_rows (first row)", hist[0]["debt_rows"])
     gaps = rows_of(data, "roadmap_gap_links")
     put("n_gaps", f"{len(gaps)}", "roadmap_gap_links", "row count", len(gaps))
     put("n_changed", f"{sum(1 for g in gaps if g['status'] == 'CHANGED')}", "roadmap_gap_links", "rows with status CHANGED", sum(1 for g in gaps if g["status"] == "CHANGED"))
@@ -285,8 +289,11 @@ def gaps_component(c: dict, data: dict, vals: dict) -> tuple[str, list[dict], di
 
 
 def learned_component(c: dict, vals: dict) -> str:
-    rows = "".join(f"<tr><th scope='row'>{e(r['label'])}</th><td>{e(fill(r['what'], vals))}</td><td>{e(fill(r['sowhat'], vals))}</td></tr>" for r in c["learned_rows"].values())
-    return site_tables.enhance(f"<table class='vtable ps-learned'><thead><tr><th></th><th>What</th><th>So what</th></tr></thead><tbody>{rows}</tbody></table>")
+    h = c["findings_heads"]
+    rows = "".join(f"<tr><th scope='row'>{e(f['finding'])}</th><td>{e(fill(f['evidence'], vals))}</td><td>{e(f['sowhat'])}</td></tr>" for f in c["findings"])
+    table = site_tables.enhance(f"<table class='vtable ps-learned'><thead><tr><th>{e(h['finding'])}</th><th>{e(h['evidence'])}</th><th>{e(h['sowhat'])}</th></tr></thead><tbody>{rows}</tbody></table>")
+    nxt = c["next_strip"]
+    return f"{table}<div class='ps-next'><b>{e(nxt['label'])}</b><span>{e(nxt['text'])}</span></div>"
 
 
 CSS = """
@@ -414,6 +421,9 @@ body.summary .ps-sub{font-size:12px;color:var(--s-muted);margin:14px 0 8px}
 body.summary .ps-hs{display:inline-block;padding:1px 10px;border-radius:999px;font:700 11px/1.5 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase}
 body.summary .ps-hs-ok{background:var(--s-ok-bg);color:var(--s-ok)}body.summary .ps-hs-watch{background:var(--s-watch-bg);color:var(--s-watch)}body.summary .ps-hs-alert{background:var(--s-alert-bg);color:var(--s-alert)}
 body.summary .ps-why{display:block;font-size:12px;color:var(--s-muted);margin-top:2px}
+body.summary .ps-next{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;margin-top:14px;padding:14px 18px;background:var(--s-ink-hero);color:var(--s-hero-ink);border-left:4px solid var(--s-accent);border-radius:0 4px 4px 0}
+body.summary .ps-next b{font:700 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-accent)}
+body.summary .ps-next span{flex:1;min-width:260px;font-size:15px}
 body.summary .ps-gn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-right:8px;border-radius:50%;background:var(--s-ink-hero);color:var(--s-hero-ink);font:700 12px/1 Inter,sans-serif;vertical-align:middle}
 body.summary .ps-tagchip{display:inline-block;font:700 11px/1.5 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:1px 10px;white-space:nowrap;text-decoration:none}
 body.summary .ps-tag-changed{background:var(--s-accent);color:#04251a}
@@ -441,7 +451,7 @@ body.summary .ps-foot a{color:var(--s-accent-2);text-decoration:none;font-weight
 }
 @page{size:letter portrait;margin:.5in}
 @media print{
-  body.summary{--pz1:.63;--pz2:.54;--pz3:.52;--ph:250px;--pf:80px;-webkit-print-color-adjust:exact;print-color-adjust:exact;--s-bg:#fff;--s-card:#fff;--s-text:#1B2733;--s-muted:#4A5866;--s-line:#D5DBE1;--s-zebra:#f0f2f5;--s-ink-hero:#0b1726;--s-hero-ink:#fff;--s-hero-muted:#b4c0d0;--s-accent:#19b37a;--s-accent-ink:#0b7a52;--s-arrow:#0b1726;color-scheme:light}
+  body.summary{--pz1:.63;--pz2:.54;--pz3:.46;--ph:250px;--pf:80px;-webkit-print-color-adjust:exact;print-color-adjust:exact;--s-bg:#fff;--s-card:#fff;--s-text:#1B2733;--s-muted:#4A5866;--s-line:#D5DBE1;--s-zebra:#f0f2f5;--s-ink-hero:#0b1726;--s-hero-ink:#fff;--s-hero-muted:#b4c0d0;--s-accent:#19b37a;--s-accent-ink:#0b7a52;--s-arrow:#0b1726;color-scheme:light}
   body.summary .ps-tabs,body.summary .ps-see,body.summary .ps-screen-only{display:none}
   body.summary table.ps-print-only{display:table}
   body.summary .ps-hero{zoom:var(--pz1);width:calc(720px / var(--pz1));height:var(--ph);overflow:hidden;padding:20px 0 0}
@@ -470,7 +480,7 @@ body.summary .ps-foot a{color:var(--s-accent-2);text-decoration:none;font-weight
   body.summary .ps-leader .n{font-size:56px}
   body.summary .vdep{max-height:300px}
   body.summary .vtable td,body.summary .vtable tbody th,body.summary .vmatrix td,body.summary .vmatrix tbody th{height:30px;padding:3px 10px}
-  body.summary .ps-hero,body.summary .ps-tier,body.summary .vroad,body.summary .vroad .vr-colhead,body.summary .vtable thead th,body.summary .vmatrix thead th,body.summary .ps-foot,body.summary .vpersona .vmono{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body.summary .ps-next,body.summary .ps-hero,body.summary .ps-tier,body.summary .vroad,body.summary .vroad .vr-colhead,body.summary .vtable thead th,body.summary .vmatrix thead th,body.summary .ps-foot,body.summary .vpersona .vmono{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 """
 

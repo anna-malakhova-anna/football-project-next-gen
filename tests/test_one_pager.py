@@ -202,3 +202,21 @@ def test_gap_numbers_in_the_table_match_the_markers_on_the_roadmap():
     changed = {int(g["gap_id"]) for g in data["roadmap_gap_links"]["rows"] if g["status"] == "CHANGED"}
     assert table == {int(g["gap_id"]) for g in data["roadmap_gap_links"]["rows"]}
     assert marked == changed, "every gap that changed the roadmap is marked on its card, by the same number as in the table"
+
+
+def test_every_field_of_section_10_has_a_provenance_entry_and_renders():
+    ss, data = load()
+    page, prov, c = ss.render(data, "2.0")
+    by = {p["key"]: p for p in prov}
+    fields = ("fans_created", "uplift", "girls_lo", "girls_hi", "dark_leagues", "known_leagues", "current", "target", "z_known", "pct_u13_club_consent")
+    for k in fields:
+        assert k in by, f"no provenance for {k}"
+        if by[k]["file"].endswith(".md") or by[k]["field"] in ("row count",):
+            continue
+        assert json.dumps(by[k]["raw"]) in (DATA / f"{by[k]['file']}.json").read_text(encoding="utf-8"), f"{k}: {by[k]['raw']!r} is not in data/{by[k]['file']}.json"
+    sec = squash(section(page, "learned"))
+    for f in c["findings"]:
+        assert squash(ss.fill(f["evidence"], {p["key"]: p["shown"] for p in prov})) in sec, f["finding"]
+    assert "NEXT DECISION" not in sec and c["next_strip"]["text"] in sec
+    assert "debt" not in sec.lower(), "the known-debt row stays in the gaps section only"
+    assert c["sections"]["learned"]["line"] in sec

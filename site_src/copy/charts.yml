@@ -505,7 +505,7 @@ summary:
     privacy: {see: "#view=D6-1", kicker: "How do we protect kids?", h2: "Minors are guardian-only. We count families, never kids.", line: "{pct_u13_club_consent}% of families with a child under 13 agreed to club contact."}
     working: {see: "#view=D7-1", kicker: "Is it working?", h2: "Fans created by flag: about {fans_created} ({fans_lo}–{fans_hi}).", line: "One row per goal, then the health of each product."}
     gaps: {see: "#view=D10-1", kicker: "Where are the gaps, and what did they change?", h2: "{n_gaps} gaps found. {n_changed} of them changed the roadmap.", line: "Each gap shows its evidence and the card it moved."}
-    learned: {see: "#view=D9-1", kicker: "What did we learn, and what's next?", h2: "We started with consent. The real problem was thin, messy data.", line: ""}
+    learned: {see: "#view=D9-1", kicker: "What did the data teach us?", h2: "Five things we only learned by building it.", line: "We started with consent to contact. The real problem was thin, messy data."}
   label_limits:
     DP1: "Limited by league files that arrive late or incomplete."
     DP2: "Limited by a second identity chain that is not merged yet."
@@ -526,10 +526,14 @@ summary:
   health_heads: {product: "Product", grade: "Quality", tests: "Tests", privacy: "Privacy checks", status: "Status"}
   gaps_heads: {gap: "Gap", evidence: "Evidence", product: "Product", changed: "What it changed", tag: "Roadmap"}
   gap_tags: {CHANGED: "Changed roadmap", WATCH: "Watch"}
-  learned_rows:
-    pivot: {label: "Pivot", what: "Started with consent to contact; the real problem was thin, messy data.", sowhat: "We fixed supply first. A better model on bad data is still wrong."}
-    debt: {label: "Known debt", what: "A second identity chain; merge planned (DP2 v1.1).", sowhat: "We track shortcuts openly and pay them down: boundary breaks went from {debt_start} to {n_boundary}."}
-    next: {label: "Next decision", what: "The privacy lead approves the fan analysis; product and legal add guardian consent at sign-up.", sowhat: "It unlocks DP5: the first time clubs can reach families, with consent."}
+  findings:
+    - {finding: "Flag mostly creates new fans", evidence: "~{fans_created} new fan accounts; existing fan families +{uplift}%", sowhat: "Measure fans created separately from fans engaged. Flag is an acquisition channel."}
+    - {finding: "Missing data isn't random", evidence: "Gender is blank more often in younger mixed divisions; girls' share {girls_lo}–{girls_hi}%", sowhat: "Never publish girls' share without its range."}
+    - {finding: "Some growth is better reporting", evidence: "{dark_leagues} of {known_leagues} leagues sent no file", sowhat: "Report league coverage next to every growth number."}
+    - {finding: "Good enough depends on the job", evidence: "Counting OK; contacting families blocked (score {current}/{target}; consent fully known {z_known}%)", sowhat: "Grade data per use, not with one score."}
+    - {finding: "Contact is limited by consent, not data", evidence: "{pct_u13_club_consent}% of families with young kids said yes", sowhat: "Fix it with a clearer question at registration, not data cleaning."}
+  next_strip: {label: "Next decision", text: "Privacy lead approves the fan analysis; product and legal add a clear guardian consent question at sign-up. It unlocks clubs reaching families, with consent."}
+  findings_heads: {finding: "Finding", evidence: "Evidence", sowhat: "So what"}
   print_rule_label: "Rule"
   tiers:
     U13: "Under 13"
