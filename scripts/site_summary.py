@@ -416,7 +416,7 @@ def render(data: dict, version: str) -> tuple[str, list[dict], dict]:
              ("gaps", gaps_html),
              ("learned", learned_component(c, vals))]
     secs = [section(i, c, k, vals, comp) for i, (k, comp) in enumerate(comps, 1)]
-    hero = f"<header class='ps-hero'><h1>{e(c['title'])}</h1><span class='ps-badge'>{e(c['synthetic_badge'])}</span><p>{e(c['pitch'])}</p><p>{e(c['hero_line'])}</p></header>"
+    hero = f"<header class='ps-hero'><h1>{e(c['title'])}</h1><span class='ps-badge'>{e(c['synthetic_badge'])}</span><p>{e(c['pitch'])}</p></header>"
     foot = (f"<footer class='ps-foot'><span>{e(c['footer'])}</span><a href='product.html'>{e(c['footer_link'])} &rarr;</a><span>{e(fill(c['methodology'], {'version': str(version)}))}</span></footer>")
     grid = f"<div class='ps-p1'>{hero}{''.join(secs[:3])}</div><div class='ps-p2'>{''.join(secs[3:6])}</div><div class='ps-p3'>{''.join(secs[6:])}{foot}</div>"
     page = f"""<!doctype html>

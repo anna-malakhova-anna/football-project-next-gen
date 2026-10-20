@@ -466,7 +466,6 @@ summary:
   status: draft
   title: "Flag Football: a data product, end to end"
   pitch: "Three business goals, turned into five data products that are owned, measured and safe for kids."
-  hero_line: "I acted as data product manager. Built for a privacy lead and a club-marketing lead."
   synthetic_badge: "Synthetic data"
   status_words: {mvp: "MVP · building", proposed: "Proposed"}
   quality_labels: {identity: "Identity error under {identity_limit}%", varies: "Grades vary by market"}
