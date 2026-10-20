@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product One-Pager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f1; --panel:#ffffff; --ink:#1b1f24; --muted:#5d6670; --line:#e2dfd7;
+  --src:#2f6f8f; --master:#6b4fa0; --insight:#1f7a55; --restricted:#b5562b;
+  --met:#1f7a55; --metbg:#e3f2ea; --gap:#a35d00; --gapbg:#fbefd9; --pend:#6c7580; --pendbg:#eceef0;
+  --pivot:#c23b3b; --hero:#13294b; --heroink:#ffffff; --herosub:#b9c6dc;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171b; --panel:#1d2126; --ink:#eef0f2; --muted:#a3acb6; --line:#2e343b;
+    --src:#6fb3d6; --master:#b29ae0; --insight:#5fc597; --restricted:#ea8f62;
+    --met:#5fc597; --metbg:#183528; --gap:#f0b25a; --gapbg:#3a2c14; --pend:#a3acb6; --pendbg:#2a2f35;
+    --pivot:#ff7a7a; --hero:#0d1a30; --heroink:#eef0f2; --herosub:#9fb0cc;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171b; --panel:#1d2126; --ink:#eef0f2; --muted:#a3acb6; --line:#2e343b;
+  --src:#6fb3d6; --master:#b29ae0; --insight:#5fc597; --restricted:#ea8f62;
+  --met:#5fc597; --metbg:#183528; --gap:#f0b25a; --gapbg:#3a2c14; --pend:#a3acb6; --pendbg:#2a2f35;
+  --pivot:#ff7a7a; --hero:#0d1a30; --heroink:#eef0f2; --herosub:#9fb0cc;
+}
+@page{size:letter landscape;margin:0.3in}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.4 Inter,system-ui,sans-serif}
+.page{max-width:1400px;margin:0 auto;padding:18px 16px 24px;display:flex;flex-direction:column;gap:12px}
+.mock{font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--gap)}
+/* hero band */
+.hero{background:var(--hero);color:var(--heroink);border-radius:12px;padding:16px 20px;display:grid;grid-template-columns:1.1fr 2fr;gap:20px;align-items:center}
+.hero h1{font-family:"Barlow Condensed",sans-serif;font-size:32px;line-height:1.05;margin:0}
+.hero p{margin:6px 0 0;color:var(--herosub);font-size:13.5px}
+.goals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.goal{background:rgba(255,255,255,.08);border-radius:9px;padding:10px 12px}
+.goal b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:20px;letter-spacing:.02em}
+.goal span{color:var(--herosub);font-size:12.5px}
+/* section title */
+.st{display:flex;align-items:baseline;gap:10px;margin:0 0 6px}
+.st h2{font-family:"Barlow Condensed",sans-serif;font-size:20px;margin:0}
+.st span{color:var(--muted);font-size:12.5px}
+/* roadmap (same component as product tab, static) */
+.grid{display:grid;grid-template-columns:170px repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+.colhead{font-family:"Barlow Condensed",sans-serif;font-size:16px;font-weight:700;padding:7px 10px;border-bottom:1px solid var(--line);background:var(--bg)}
+.colhead small{display:block;font-family:Inter,sans-serif;font-size:10.5px;font-weight:500;color:var(--muted)}
+.lane{padding:8px 10px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;gap:2px}
+.lane b{font-size:12.5px}
+.lane .type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.lane .goal2{font-size:10.5px;color:var(--muted)}
+.cell{padding:6px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.cell:nth-child(5n){border-right:none}
+.del{background:repeating-linear-gradient(135deg,transparent 0 8px,rgba(127,127,127,.04) 8px 16px)}
+.card{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:6px 8px}
+.card.done{opacity:.85}
+.top{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.title{font-weight:600;font-size:11.5px}
+.ver{font:600 10px/1 ui-monospace,Menlo,monospace;color:var(--c);border:1px solid var(--c);border-radius:999px;padding:2px 5px;white-space:nowrap}
+.gate{margin-top:5px;border-radius:5px;padding:4px 6px;font-size:10.5px}
+.gate.met{background:var(--metbg)} .gate.gap{background:var(--gapbg)} .gate.pend{background:var(--pendbg)}
+.lab{display:flex;justify-content:space-between;gap:6px;font-weight:600}
+.met .st2{color:var(--met)} .gap .st2{color:var(--gap)} .pend .st2{color:var(--pend)}
+.bar{position:relative;height:5px;border-radius:3px;background:rgba(127,127,127,.22);margin-top:4px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.met .bar i{background:var(--met)} .gap .bar i{background:var(--gap)}
+.bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.dec{margin-top:4px;display:flex;gap:5px;font-size:10.5px}
+.dia{flex:none;width:8px;height:8px;margin-top:3px;transform:rotate(45deg);border:2px solid var(--ink)}
+.pivot{border:2px dashed var(--pivot);border-radius:6px;padding:5px 7px;font-size:10.5px}
+.pivot b{color:var(--pivot)}
+/* bottom band */
+.bottom{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:12px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:4px 0 8px}
+.tier{border-radius:6px;padding:7px 8px;color:#fff}
+.tier b{display:block;font-size:13px}
+.tier span{font-size:11px;opacity:.9}
+.t1{background:#1f4e79}.t2{background:#2d6a9a}.t3{background:#4a86b5}.t4{background:#6b7480}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;font-size:11px}
+.chip::before{content:"⊘";color:var(--pivot);font-weight:700}
+.note{font-size:11.5px;color:var(--muted);margin-top:7px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi .n{font-family:"Barlow Condensed",sans-serif;font-size:28px;font-weight:700;line-height:1}
+.kpi .l{font-size:11px;color:var(--muted)}
+.kpi .g{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.05em}
+.health{display:flex;gap:14px;margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-size:11.5px}
+.health b{font-size:13px}
+.learn p{margin:0 0 8px;font-size:12.5px}
+.learn b{display:inline-block;min-width:44px;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em}
+.users{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+.user{font-size:11px;background:var(--bg);border-radius:999px;padding:3px 9px}
+.user.sup{border:1px dashed var(--muted)}
+.foot{font-size:10.5px;color:var(--muted)}
+@media (max-width:900px){
+  .hero,.bottom{grid-template-columns:1fr}
+  .goals{grid-template-columns:1fr}
+  .grid{grid-template-columns:1fr}.colhead{display:none}.lane,.cell{border-right:none}
+}
+@media print{
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#fff}
+  .page{width:1400px;max-width:none;padding:0;zoom:0.7}
+  .mock{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="mock">Mockup · sample values from the current one-pager · layout reference for Claude Code</div>
+
+  <section class="hero">
+    <div>
+      <h1>Counting Flag Football</h1>
+      <p>Three business goals, turned into five data products that are owned, measured and safe for kids.</p>
+    </div>
+    <div class="goals">
+      <div class="goal"><b>G1 · Global</b><span>Grow the NFL worldwide through flag</span></div>
+      <div class="goal"><b>G2 · US growth</b><span>A safe, low-cost way into football</span></div>
+      <div class="goal"><b>G3 · Fans</b><span>Families become fans; never market to kids</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="st"><h2>Roadmap</h2><span>2 of 6 release gates met · the MVP waits on the US data score (82 → 85)</span></div>
+    <div class="grid">
+      <div class="colhead">Product</div>
+      <div class="colhead">Delivered<small>Built so far</small></div>
+      <div class="colhead">Now<small>MVP: US growth on solid intake</small></div>
+      <div class="colhead">Next<small>Foundations and global</small></div>
+      <div class="colhead">Later<small>Contacting families</small></div>
+
+      <div class="lane"><span class="type" style="color:var(--src)">Source</span><b>DP1 · Intake</b><span class="goal2">G1, G2 · grade C</span></div>
+      <div class="cell del"><div class="card done" style="--c:var(--src)"><div class="top"><span class="title">Contracts, quality rules</span><span class="ver">v0.5</span></div></div></div>
+      <div class="cell"><div class="card" style="--c:var(--src)"><div class="top"><span class="title">Data standard, league fix lists</span><span class="ver">v2.0</span></div><div class="gate gap"><div class="lab"><span>US data score ≥ 85</span><span class="st2">82 / 85</span></div><div class="bar"><i style="width:82%"></i><em style="left:85%"></em></div></div></div></div>
+      <div class="cell"></div>
+      <div class="cell"><div class="card" style="--c:var(--src)"><div class="top"><span class="title">"Played youth flag?" at adult sign-up</span><span class="ver">v2.2</span></div></div></div>
+
+      <div class="lane"><span class="type" style="color:var(--master)">Master</span><b>DP2 · Participant master</b><span class="goal2">All goals</span></div>
+      <div class="cell del"><div class="card done" style="--c:var(--master)"><div class="top"><span class="title">Identity matching, review queue</span><span class="ver">v0.10</span></div></div></div>
+      <div class="cell"></div>
+      <div class="cell"><div class="card" style="--c:var(--master)"><div class="top"><span class="title">One identity chain; ports only</span><span class="ver">v1.1</span></div><div class="gate met"><div class="lab"><span>Identity range ≤ 1%</span><span class="st2">0.43% ✓</span></div></div></div></div>
+      <div class="cell"></div>
+
+      <div class="lane"><span class="type" style="color:var(--insight)">Insight</span><b>DP3 · Global view</b><span class="goal2">G1 · grade C</span></div>
+      <div class="cell del"><div class="card done" style="--c:var(--insight)"><div class="top"><span class="title">Counting method, ranges</span><span class="ver">v0.9</span></div></div></div>
+      <div class="cell"></div>
+      <div class="cell"><div class="card" style="--c:var(--insight)"><div class="top"><span class="title">Country view for investment</span><span class="ver">v1.0</span></div><div class="gate gap"><div class="lab"><span>Countries at grade B+</span><span class="st2">1 / 6</span></div><div class="bar"><i style="width:17%"></i><em style="left:100%"></em></div></div></div></div>
+      <div class="cell"></div>
+
+      <div class="lane"><span class="type" style="color:var(--insight)">Insight · MVP</span><b>DP4 · US growth</b><span class="goal2">G2</span></div>
+      <div class="cell del"><div class="pivot"><b>Pivot:</b> the real problem was thin, messy data, not consent. Intake and quality moved first.</div></div>
+      <div class="cell"><div class="card" style="--c:var(--insight)"><div class="top"><span class="title">Market view for clubs</span><span class="ver">v1.1</span></div><div class="gate gap"><div class="lab"><span>US data score ≥ 85</span><span class="st2">82 / 85</span></div><div class="bar"><i style="width:82%"></i><em style="left:85%"></em></div></div><div class="dec"><span class="dia"></span><span><b>Privacy lead</b> signs off what clubs see</span></div></div></div>
+      <div class="cell"></div>
+      <div class="cell"><div class="card" style="--c:var(--insight)"><div class="top"><span class="title">Girls' share by market</span><span class="ver">v1.2</span></div><div class="dec"><span class="dia"></span><span><b>Clubs</b> confirm boundaries</span></div></div></div>
+
+      <div class="lane"><span class="type" style="color:var(--restricted)">Insight · restricted</span><b>DP5 · Fan conversion</b><span class="goal2">G3 · high value, low readiness</span></div>
+      <div class="cell del"><div class="card done" style="--c:var(--restricted)"><div class="top"><span class="title">Fan-lift analysis</span><span class="ver">v0.1</span></div></div></div>
+      <div class="cell"></div>
+      <div class="cell"><div class="card" style="--c:var(--restricted)"><div class="top"><span class="title">Fans created by flag (totals)</span><span class="ver">v0.5</span></div><div class="gate met"><div class="lab"><span>Consent wording known ≥ 80%</span><span class="st2">80% ✓</span></div><div class="bar"><i style="width:80%"></i><em style="left:80%"></em></div></div></div></div>
+      <div class="cell"><div class="card" style="--c:var(--restricted)"><div class="top"><span class="title">Families clubs may contact</span><span class="ver">v1.0</span></div><div class="gate gap"><div class="lab"><span>Consent fully known ≥ 75%</span><span class="st2">29 / 75</span></div><div class="bar"><i style="width:29%"></i><em style="left:75%"></em></div></div><div class="dec"><span class="dia"></span><span><b>Product + legal:</b> guardian consent at sign-up</span></div></div></div>
+    </div>
+  </section>
+
+  <section class="bottom">
+    <div class="panel">
+      <div class="st"><h2>Privacy by design</h2><span>stricter than the law, by choice</span></div>
+      <div class="tiers">
+        <div class="tier t1"><b>Under 13</b><span>Guardian</span></div>
+        <div class="tier t2"><b>13–15</b><span>Guardian</span></div>
+        <div class="tier t3"><b>16–17</b><span>Guardian</span></div>
+        <div class="tier t4"><b>18+</b><span>Self, fresh consent</span></div>
+      </div>
+      <div class="chips"><span class="chip">Marketing to under-18s</span><span class="chip">Buying data about kids</span><span class="chip">Fuzzy family matching</span><span class="chip">Scoring families</span><span class="chip">Youth records past 18</span></div>
+      <div class="note">9% of families with a child under 13 agreed to club contact. We count families, never kids.</div>
+    </div>
+    <div class="panel">
+      <div class="st"><h2>Is it working?</h2><span>2025, synthetic</span></div>
+      <div class="kpis">
+        <div class="kpi"><div class="g">G1</div><div class="n">7,400</div><div class="l">players in 8 countries</div></div>
+        <div class="kpi"><div class="g">G2</div><div class="n">47%</div><div class="l">girls · 58% play again</div></div>
+        <div class="kpi"><div class="g">G3</div><div class="n">1,300</div><div class="l">new fans (900–1,600)</div></div>
+      </div>
+      <div class="health"><span><b>100%</b> tests pass</span><span><b>0</b> boundary breaks</span><span><b>14 of 76</b> leagues sent no file</span></div>
+    </div>
+    <div class="panel learn">
+      <div class="st"><h2>Learned &amp; next</h2></div>
+      <p><b>Debt</b> Found a second identity chain; merge planned (DP2 v1.1).</p>
+      <p><b>Next</b> Privacy lead approves the fan analysis; add guardian consent at sign-up.</p>
+      <div class="users"><span class="user">Growth lead</span><span class="user">Ops lead</span><span class="user">Club manager</span><span class="user">Fan analyst</span><span class="user">Privacy lead</span><span class="user sup">League volunteer · supplier</span></div>
+    </div>
+  </section>
+
+  <div class="foot">All figures synthetic, built to test the method · Full detail: Data product tab →</div>
+</div>
+</body>
+</html>
