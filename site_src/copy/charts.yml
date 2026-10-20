@@ -460,45 +460,31 @@ pages:
     demo_text: "Goals to products, the method, the first build, children's privacy, and whether it works."
     demo_slide: "D1-1"
 
-# The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf). Wording from docs/product/design/one-pager-mockup.html, which carries Anna's edits.
-# {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py); the build fails if one has no value.
+# The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf): a vertical story, one section per tab component.
+# Headlines are the tab's own sentences; the one plain sentence under each is new draft copy for Anna. {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py).
 summary:
-  status: final
-  title: "Counting Flag Football"
+  status: draft
+  title: "Counting Flag Football: a data product, end to end"
   pitch: "Three business goals, turned into five data products that are owned, measured and safe for kids."
-  goals:
-    G1: {head: "G1 · Global", text: "Grow the NFL worldwide through flag"}
-    G2: {head: "G2 · US growth", text: "A safe, low-cost way into football"}
-    G3: {head: "G3 · Fans", text: "Families become fans; never market to kids"}
-  roadmap_heading: "Roadmap"
-  roadmap_line: "{n_met} of {n_gates} release gates met · the MVP waits on the US data score ({current} → {target})"
-  lane_subs:
-    DELIVERED: "Built so far"
-    NOW: "MVP: US growth on solid intake"
-    NEXT: "Foundations and global"
-    LATER: "Contacting families"
+  goal_short:
+    G1: "Grow the NFL globally"
+    G2: "Grow flag in the US"
+    G3: "Turn families into fans"
   product_names:
     DP1: "Intake"
-    DP2: "Participant master"
-    DP3: "Global view"
+    DP2: "Master"
+    DP3: "Global"
     DP4: "US growth"
     DP5: "Fan conversion"
-  pivot: "The real problem was thin, messy data, not consent. Intake and quality moved first."
-  roadmap_titles:
-    "DP1 v0.5": "Contracts, quality rules"
-    "DP1 v1.0": "Data standard, league fix lists"
-    "DP1 v1.2": "\"Played youth flag?\" at adult sign-up"
-    "DP2 v1.0": "Identity matching, review queue"
-    "DP2 v1.1": "One identity chain; ports only"
-    "DP3 v0.9": "Counting method, ranges"
-    "DP3 v1.0": "Country view for investment"
-    "DP4 v1.0": "Market view for clubs"
-    "DP4 v1.1": "Girls' share by market"
-    "DP5 v0.1": "Fan-lift analysis"
-    "DP5 v0.5": "Fans created by flag (totals)"
-    "DP5 v1.0": "Families clubs may contact"
-  privacy_heading: "Privacy by design"
-  tier_note: "stricter than the law, by choice"
+  sections:
+    matrix: {kicker: "What would you build for these goals?", h2: "Each goal has one product that moves it directly.", line: "Three goals led to five products."}
+    deps: {kicker: "What would you build for these goals? (continued)", h2: "Intake feeds the master, and the master feeds the three insight products.", line: "Conversion also needs the fan feed and guardian consent."}
+    personas: {kicker: "Who are the products for?", h2: "Six personas, and what we'd ask them.", line: "There are no real users yet, so these are assumptions to test."}
+    priorities: {kicker: "What do we build first, and why?", h2: "Intake and US growth first. Conversion waits: high value, data not ready.", line: "Each product is scored on value, feasibility, readiness and privacy risk."}
+    roadmap: {kicker: "What has to be true before each product moves forward?", h2: "{n_met} of {n_gates} release gates met. The MVP waits on the US data score ({current} → {target}).", line: "No dates: a product moves when its gate is met and the right person signs off."}
+    privacy: {kicker: "How do we protect kids?", h2: "Minors are guardian-only. We count families, never kids.", line: "{pct_u13_club_consent}% of families with a child under 13 agreed to club contact."}
+    working: {kicker: "Is it working?", h2: "Fans created by flag: about {fans_created} ({fans_lo}–{fans_hi}).", line: "Three goal numbers, then the health of the data behind them."}
+    learned: {kicker: "What did we learn, and what's next?", h2: "We started with consent. The real problem was thin, messy data.", line: ""}
   tiers:
     U13: "Under 13"
     "13_15": "13–15"
@@ -513,8 +499,6 @@ summary:
     - "Fuzzy family matching"
     - "Scoring families"
     - "Youth records past 18"
-  privacy_line: "{pct_u13_club_consent}% of families with a child under 13 agreed to club contact. We count families, never kids."
-  working_heading: "Is it working?"
   working_sub: "{year}, synthetic"
   kpis_goals:
     - {tag: G1, value: "{global_participants}", label: "players in {n_countries} countries"}
@@ -524,19 +508,12 @@ summary:
     - {value: "{pct_tests}%", label: "tests pass"}
     - {value: "{n_boundary}", label: "boundary breaks"}
     - {value: "{dark_leagues} of {known_leagues}", label: "leagues sent no file"}
-  learned_heading: "Learned & next"
-  debt_label: "Debt"
+  pivot_label: "Pivot"
+  pivot: "We started with consent to contact. The real problem was thin, messy data, so intake and quality went first."
+  debt_label: "Known debt"
   debt: "Found a second identity chain; merge planned (DP2 v1.1)."
-  next_label: "Next"
+  next_label: "Next decision"
   next: "Privacy lead approves the fan analysis; add guardian consent at sign-up."
-  supplier_tag: "supplier"
-  personas:
-    - {role: "Growth lead"}
-    - {role: "Ops lead"}
-    - {role: "Club manager"}
-    - {role: "Fan analyst"}
-    - {role: "Privacy lead"}
-    - {role: "League volunteer", supplier: true}
   footer: "All figures synthetic, built to test the method"
   footer_link: "Full detail: Data product tab"
   methodology: "Methodology {version}"

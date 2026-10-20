@@ -14,6 +14,7 @@ from pathlib import Path
 import yaml
 
 from scripts import site_product as sp
+from scripts import site_tables
 
 ROOT = Path(__file__).resolve().parent.parent
 COPY_PATH = ROOT / "site_src" / "copy" / "charts.yml"
@@ -124,98 +125,91 @@ def who_consents(rules: list[dict], tier: str) -> str:
     return who[0]
 
 
-def hero_block(c: dict) -> str:
-    tiles = "".join(f"<div class='ps-goal'><b>{e(g['head'])}</b><span>{e(g['text'])}</span></div>" for g in c["goals"].values())
-    return f"<section class='ps-hero'><div><h1>{e(c['title'])}</h1><p>{e(c['pitch'])}</p></div><div class='ps-goals'>{tiles}</div></section>"
+def section(n: int, c: dict, key: str, vals: dict, component: str) -> str:
+    sec = c["sections"][key]
+    line = f"<p class='ps-line'>{e(fill(sec['line'], vals))}</p>" if sec["line"] else ""
+    return (f"<section class='ps-sec' id='s-{key}'><p class='ps-kicker'>{n} · {e(sec['kicker'])}</p><h2>{e(fill(sec['h2'], vals))}</h2>{line}{component}</section>")
 
 
-def roadmap_block(c: dict, data: dict, vals: dict) -> str:
-    """The roadmap component of the Data product tab (site_product.roadmap_board_html), static: same rows, same gate markup, no viewer."""
-    ps = sp.products()
-    spec = {r["id"]: r for r in rows_of(data, "product_specs")}
-    notes = {}
-    for pid, p in ps.items():
-        extra = " · MVP" if p["status"] == "mvp" else ""
-        notes[pid] = f"{', '.join(p['goals'])}{extra} · {quality_chip(spec[pid]['quality_text'])}"
-    static = {"names": c["product_names"], "notes": notes, "subs": c["lane_subs"], "titles": c["roadmap_titles"], "pivot": c["pivot"]}
-    board = sp.roadmap_board_html(rows_of(data, "roadmap"), ps, {}, {}, static=static)
-    return f"<section><div class='ps-st'><h2>{e(c['roadmap_heading'])}</h2><span>{e(fill(c['roadmap_line'], vals))}</span></div>{board}</section>"
-
-
-def privacy_block(c: dict, data: dict, vals: dict) -> str:
+def tiers_component(c: dict, data: dict) -> str:
     rules = rows_of(data, "age_rules")
     segs = ""
     for i, (code, label) in enumerate(c["tiers"].items(), 1):
-        who = who_consents(rules, code)
-        segs += f"<div class='ps-tier ps-t{i}'><b>{e(label)}</b><span>{e(c['consents'][who])}</span></div>"
+        segs += f"<div class='ps-tier ps-t{i}'><b>{e(label)}</b><span>{e(c['consents'][who_consents(rules, code)])}</span></div>"
     nots = "".join(f"<span class='ps-chip'><s>{e(t)}</s></span>" for t in c["not_doing"])
-    return (f"<div class='ps-panel'><div class='ps-st'><h2>{e(c['privacy_heading'])}</h2><span>{e(c['tier_note'])}</span></div><div class='ps-tiers'>{segs}</div>"
-            f"<div class='ps-chips'>{nots}</div><p class='ps-note'>{e(fill(c['privacy_line'], vals))}</p></div>")
+    return f"<div class='ps-tiers'>{segs}</div><div class='ps-chips'>{nots}</div>"
 
 
-def working_block(c: dict, vals: dict) -> str:
+def working_component(c: dict, vals: dict) -> str:
     kpis = "".join(f"<div class='ps-kpi'><div class='g'>{e(k['tag'])}</div><div class='n'>{e(fill(k['value'], vals))}</div><div class='l'>{e(fill(k['label'], vals))}</div></div>" for k in c["kpis_goals"])
     health = "".join(f"<span><b>{e(fill(h['value'], vals))}</b> {e(h['label'])}</span>" for h in c["health"])
-    return (f"<div class='ps-panel'><div class='ps-st'><h2>{e(c['working_heading'])}</h2><span>{e(fill(c['working_sub'], vals))}</span></div>"
-            f"<div class='ps-kpis'>{kpis}</div><div class='ps-health'>{health}</div></div>")
+    return f"<div class='ps-kpis'>{kpis}</div><div class='ps-health'>{health}<span class='ps-sub'>{e(fill(c['working_sub'], vals))}</span></div>"
 
 
-def learned_block(c: dict) -> str:
-    users = "".join(f"<span class='ps-user{' ps-sup' if p.get('supplier') else ''}'>{e(p['role'])}{' · ' + e(c['supplier_tag']) if p.get('supplier') else ''}</span>" for p in c["personas"])
-    return (f"<div class='ps-panel ps-learn'><div class='ps-st'><h2>{e(c['learned_heading'])}</h2></div><p><b>{e(c['debt_label'])}</b> {e(c['debt'])}</p>"
-            f"<p><b>{e(c['next_label'])}</b> {e(c['next'])}</p><div class='ps-users'>{users}</div></div>")
+def learned_component(c: dict) -> str:
+    rows = "".join(f"<p><b>{e(c[k + '_label'])}</b> {e(c[k])}</p>" for k in ("pivot", "debt", "next"))
+    return f"<div class='ps-learn'>{rows}</div>"
 
 
 CSS = """
-body.ps{margin:0;background:var(--bg);color:var(--text);font:13px/1.4 var(--font-body)}
+body.ps{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--font-body)}
 .ps *{box-sizing:border-box}
-.ps-page{max-width:1400px;margin:0 auto;padding:16px 16px 14px;display:flex;flex-direction:column;gap:12px}
-.ps-hero{background:var(--night-field);color:#fff;border-radius:12px;padding:16px 20px;display:grid;grid-template-columns:1.1fr 2fr;gap:20px;align-items:center}
-.ps-hero h1{font-family:var(--font-display);font-size:32px;line-height:1.05;margin:0}
-.ps-hero p{margin:6px 0 0;color:#B9C6DC;font-size:13.5px}
-.ps-goals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.ps-goal{background:rgba(255,255,255,.1);border-radius:9px;padding:10px 12px}
-.ps-goal b{display:block;font-family:var(--font-display);font-size:20px;letter-spacing:.02em}
-.ps-goal span{color:#B9C6DC;font-size:12.5px}
-.ps-st{display:flex;align-items:baseline;gap:10px;margin:0 0 6px;flex-wrap:wrap}
-.ps-st h2{font-family:var(--font-display);font-size:20px;margin:0;color:var(--text)}
-.ps-st span{color:var(--text-muted);font-size:12.5px}
-.vroad-static{font-size:.75rem}
-.vroad-static .vr-head,.vroad-static .vr-lane{grid-template-columns:170px repeat(4,minmax(0,1fr))}
-.vroad-static .vr-colhead{font-size:.8125rem}
-.vroad-static .vr-colhead small{display:block;text-transform:none;letter-spacing:0;font-weight:400;font-size:.6875rem}
-.vroad-static .vrcard{cursor:default}
-.ps-bottom{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:12px}
-.ps-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
-.ps-tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:4px 0 8px}
-.ps-tier{border-radius:6px;padding:7px 8px;color:#fff}
-.ps-tier b{display:block;font-size:13px}.ps-tier span{font-size:11px}
+.ps-story{max-width:960px;margin:0 auto;padding:20px 16px 28px}
+.ps-hero{background:var(--night-field);color:#fff;border-radius:12px;padding:20px 24px;margin-bottom:40px}
+.ps-hero h1{font-family:var(--font-display);font-size:32px;line-height:1.1;margin:0;color:#fff}
+.ps-hero p{margin:6px 0 0;color:#B9C6DC;font-size:15px}
+.ps-sec{margin:0 0 40px;padding-bottom:36px;border-bottom:1px solid var(--border);break-inside:avoid}
+.ps-sec:last-of-type{border-bottom:0}
+.ps-kicker{margin:0 0 4px;font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
+.ps-sec h2{font-family:var(--font-display);font-size:26px;line-height:1.15;margin:0 0 6px;color:var(--text)}
+.ps-line{margin:0 0 14px;color:var(--text-muted)}
+.ps-sec .vproduct{margin:0}
+.ps-sec .vpersonas{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ps-sec .vpersona{font-size:.8125rem}
+.ps-sec .vdep{max-height:none}
+.ps-tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 12px}
+.ps-tier{border-radius:6px;padding:9px 10px;color:#fff}
+.ps-tier b{display:block;font-size:14px}.ps-tier span{font-size:12px}
 .ps-t1{background:#1f4e79}.ps-t2{background:#2d6a9a}.ps-t3{background:#3b76a6}.ps-t4{background:#59626d}
-.ps-chips{display:flex;flex-wrap:wrap;gap:5px}
-.ps-chip{display:inline-flex;gap:4px;border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:11px;color:var(--text-muted)}
-.ps-chip::before{content:"\2298";text-decoration:none;color:#C0392B;font-weight:700}
-.ps-note{font-size:11.5px;color:var(--text-muted);margin:7px 0 0}
-.ps-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.ps-kpi .n{font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1}
-.ps-kpi .l{font-size:11px;color:var(--text-muted)}.ps-kpi .g{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.05em}
-.ps-health{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:11.5px}
-.ps-health b{font-size:13px}
-.ps-learn p{margin:0 0 8px;font-size:12.5px}
-.ps-learn p b{display:inline-block;min-width:44px;color:var(--text-muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em}
-.ps-users{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:8px;border-top:1px solid var(--border)}
-.ps-user{font-size:11px;background:var(--bg);border-radius:999px;padding:3px 9px}
-.ps-sup{border:1px dashed var(--text-muted)}
-.ps-foot{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:10.5px;color:var(--text-muted)}
+.ps-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ps-chip{display:inline-flex;gap:4px;border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--text-muted)}
+.ps-chip::before{content:"\\2298";color:#C0392B;font-weight:700}
+.ps-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ps-kpi .n{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1.05}
+.ps-kpi .l{font-size:12.5px;color:var(--text-muted)}.ps-kpi .g{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em}
+.ps-health{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;padding-top:10px;border-top:1px solid var(--border);font-size:13px}
+.ps-sub{color:var(--text-muted)}
+.ps-learn p{margin:0 0 8px}
+.ps-learn p b{display:inline-block;min-width:110px;color:var(--text-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+.ps-foot{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--text-muted)}
 .ps-foot a{color:var(--link)}
-@media screen and (max-width:900px){
-  .ps-hero,.ps-bottom,.ps-goals,.ps-kpis{grid-template-columns:1fr}
+@media screen and (max-width:700px){
+  .ps-sec .vpersonas,.ps-tiers,.ps-kpis{grid-template-columns:1fr}
+  .ps-sec h2{font-size:22px}
 }
-@page{size:letter landscape;margin:.3in}
+@page{size:letter portrait;margin:.5in}
 @media print{
-  :root:root{--bg:#fff;--surface:#fff;--text:#1B2733;--text-muted:#4A5866;--border:#D5DBE1;--link:#1F5E8F;color-scheme:light}
+  :root:root{--bg:#fff;--surface:#fff;--text:#1B2733;--text-muted:#4A5866;--border:#D5DBE1;--link:#1F5E8F;color-scheme:light;--pz1:.61;--pz2:.63}
   body.ps{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#fff}
-  .ps-page{width:1400px;max-width:none;padding:0;zoom:.7}
-  .ps-hero,.ps-tier,.ps-panel,.vroad-static{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ps-story{max-width:none;padding:0}
+  .ps-p1{zoom:var(--pz1);width:calc(720px / var(--pz1));height:calc(960px / var(--pz1));overflow:hidden;break-after:page}
+  .ps-p2{zoom:var(--pz2);width:calc(720px / var(--pz2));height:calc(960px / var(--pz2));overflow:hidden}
+  .ps-hero,.ps-tier,.vroad,.vmatrix{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .ps-hero{margin-bottom:22px;padding:14px 20px}
+  .ps-sec{margin-bottom:18px;padding-bottom:14px}
+  .ps-sec h2{font-size:24px}
+  .ps-line{margin-bottom:8px}
+  .ps-story .vr-head{display:grid}
+  .ps-story .vr-head,.ps-story .vr-lane{grid-template-columns:170px repeat(4,minmax(0,1fr))}
+  .ps-story .vr-lane{grid-template-columns:170px repeat(4,minmax(0,1fr))}
+  .ps-story .vr-cell:empty,.ps-story .vr-cell:not(:has(*)){display:flex}
+  .ps-story .vr-cell::before{content:none}
+  .ps-story .ps-tiers,.ps-story .ps-kpis{grid-template-columns:repeat(4,1fr)}
+  .ps-story .ps-kpis{grid-template-columns:repeat(3,1fr)}
+  .ps-sec .vdep{max-height:300px}
+  .ps-sec .vpersona{padding:7px 9px}
+  .ps-sec .vpersona p{margin:3px 0}
+  .ps-sec .vtable th,.ps-sec .vtable td,.ps-sec .vmatrix th,.ps-sec .vmatrix td{padding:4px 8px}
 }
 """
 
@@ -224,11 +218,22 @@ def render(data: dict, version: str) -> tuple[str, list[dict], dict]:
     """The page, the provenance of every number on it, and the copy block it was built from."""
     c = load_copy()
     n_personas = len(sp.md_table(ROOT / "docs/product/discovery.md")) - 1
-    if n_personas != len(c["personas"]):
-        raise SystemExit(f"SITE BUILD REFUSED:\n  one-pager: {len(c['personas'])} personas in the copy but {n_personas} in docs/product/discovery.md")
     vals, prov = values(data, n_personas)
-    grid = hero_block(c) + roadmap_block(c, data, vals) + f"<section class='ps-bottom'>{privacy_block(c, data, vals)}{working_block(c, vals)}{learned_block(c)}</section>"
+    ps = sp.products()
+    names = c["product_names"]
+    d10 = yaml.safe_load(COPY_PATH.read_text(encoding="utf-8"))["charts"]["D10"]
+    comps = [("matrix", sp.matrix_html(ps, static={"goals": c["goal_short"], "products": names})),
+             ("deps", sp.dependency_svg()),
+             ("personas", sp.personas_html(False, static=True)),
+             ("priorities", site_tables.enhance(sp.prioritization_html(rows_of(data, "product_prioritization"), static={"products": names}))),
+             ("roadmap", sp.roadmap_board_html(rows_of(data, "roadmap"), ps, d10, {}, static=True)),
+             ("privacy", tiers_component(c, data)),
+             ("working", working_component(c, vals)),
+             ("learned", learned_component(c))]
+    secs = [section(i, c, k, vals, comp) for i, (k, comp) in enumerate(comps, 1)]
+    hero = f"<header class='ps-hero'><h1>{e(c['title'])}</h1><p>{e(c['pitch'])}</p></header>"
     foot = (f"<footer class='ps-foot'><span>{e(c['footer'])}</span><a href='product.html'>{e(c['footer_link'])} &rarr;</a><span>{e(fill(c['methodology'], {'version': str(version)}))}</span></footer>")
+    grid = f"<div class='ps-p1'>{hero}{''.join(secs[:4])}</div><div class='ps-p2'>{''.join(secs[4:])}{foot}</div>"
     page = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -241,14 +246,14 @@ def render(data: dict, version: str) -> tuple[str, list[dict], dict]:
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@600;700&display=swap">
 <link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
 <link rel="stylesheet" href="assets/viewer.css">
 <script>try{{var t=localStorage.getItem("cff-theme");if(t==="light"||t==="dark"){{document.documentElement.dataset.theme=t}}}}catch(e){{}}</script>
 <style>{CSS}</style>
 </head>
 <body class="ps">
-<main class="ps-page" id="main">
+<main class="ps-story" id="main">
 {grid}
-{foot}
 </main>
 </body>
 </html>

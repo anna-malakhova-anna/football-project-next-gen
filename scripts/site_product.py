@@ -75,13 +75,18 @@ def products() -> dict[str, dict]:
 SHORT_GOALS = {"G1": "Grow NFL presence globally", "G2": "Grow flag in the US", "G3": "Track conversion to fans, protecting children"}
 
 
-def matrix_html(ps: dict, compact: bool = False) -> str:
-    head = "".join(f"<th scope='col'>{e(pid)}" + ("" if compact else f"<br><span class='note'>{e(p['name'])}</span>") + "</th>" for pid, p in ps.items())
+def matrix_html(ps: dict, compact: bool = False, static: dict | None = None) -> str:
+    """Goals by products. `static` (the one-page summary) uses short goal and product names so no header wraps tall: static = {goals: {G1: name}, products: {DP1: name}}."""
+    if static:
+        head = "".join(f"<th scope='col'>{e(pid)} {e(static['products'][pid])}</th>" for pid in ps)
+    else:
+        head = "".join(f"<th scope='col'>{e(pid)}" + ("" if compact else f"<br><span class='note'>{e(p['name'])}</span>") + "</th>" for pid, p in ps.items())
     body = ""
     for g, text in GOALS.items():
         cells = "".join(f"<td class='vm-{p['value_proposition']}'>{VALUE_WORD[p['value_proposition']] if g in p['goals'] else '&nbsp;'}</td>" for p in ps.values())
-        body += f"<tr><th scope='row'><b>{g}</b> {e(SHORT_GOALS[g] if compact else text)}</th>{cells}</tr>"
-    note = "" if compact else "<p class='note'>Driver: moves the goal directly. Enabler: makes other products possible. Utility: keeps things running.</p>"
+        label = static["goals"][g] if static else (SHORT_GOALS[g] if compact else text)
+        body += f"<tr><th scope='row'><b>{g}</b> {e(label)}</th>{cells}</tr>"
+    note = "" if compact and not static else "<p class='note'>Driver: moves the goal directly. Enabler: makes other products possible. Utility: keeps things running.</p>"
     return f"<div class='vproduct'><table class='vmatrix'><thead><tr><th>Goal</th>{head}</tr></thead><tbody>{body}</tbody></table>{note}</div>"
 
 
@@ -121,25 +126,36 @@ def stepper_html() -> str:
 
 
 # ---------------------------------------------------------------- D3 discovery
-def personas_html(compact: bool) -> str:
+def personas_html(compact: bool, static: bool = False) -> str:
+    """`static` (the one-page summary): role, who it serves (with its supplier or guardrail tag), the job, and ONE question we would ask; no assumed pain."""
     rows = md_table(ROOT / "docs/product/discovery.md")[1:]
     cards = ""
     for persona, goal, job, pain, questions in rows:
-        extra = "" if compact else f"<p><b>What we assumed:</b> {md_inline(pain)}</p><p><b>What we would ask:</b> {md_inline(questions)}</p>"
+        if static:
+            first = re.search(r'"([^"]+)"', questions)
+            extra = f"<p><b>We would ask:</b> {e(first.group(1)) if first else md_inline(questions)}</p>"
+        else:
+            extra = "" if compact else f"<p><b>What we assumed:</b> {md_inline(pain)}</p><p><b>What we would ask:</b> {md_inline(questions)}</p>"
         cards += f"<div class='vpersona'><h4>{md_inline(persona)}</h4><p class='note'>Serves {md_inline(goal)}</p><p>{md_inline(job)}</p>{extra}</div>"
-    note = "" if compact else "<p class='note'>There are no real users. These are assumption-based personas with the questions we would validate in real interviews. The league operator is a supplier, not a consumer.</p>"
+    note = "" if compact or static else "<p class='note'>There are no real users. These are assumption-based personas with the questions we would validate in real interviews. The league operator is a supplier, not a consumer.</p>"
     return f"<div class='vproduct'><div class='vpersonas{' vcompact' if compact else ''}'>{cards}</div>{note}</div>"
 
 
 # ---------------------------------------------------------------- D4 prioritization and roadmap
-def prioritization_html(rows: list[dict]) -> str:
+def prioritization_html(rows: list[dict], static: dict | None = None) -> str:
+    """`static` (the one-page summary) = {products: {DP1: short name}}: short names, short column heads and a one-line formula."""
     body = ""
     for r in rows:
         total = r["value_to_goals"] + r["feasibility_today"] + r["data_readiness"] - r["privacy_risk"]
-        body += (f"<tr><th scope='row'>{e(r['product_id'])} {e(r['product_name'])}</th><td>{r['value_to_goals']}</td><td>{r['feasibility_today']}</td><td>{r['data_readiness']}</td><td>{r['privacy_risk']}</td>"
+        name = f"{r['product_id']} {static['products'][r['product_id']]}" if static else f"{r['product_id']} {r['product_name']}"
+        body += (f"<tr><th scope='row'>{e(name)}</th><td>{r['value_to_goals']}</td><td>{r['feasibility_today']}</td><td>{r['data_readiness']}</td><td>{r['privacy_risk']}</td>"
                  f"<td><b>{total}</b></td><td>{e(r['reading'])}</td></tr>")
-    return ("<div class='vproduct'><table class='vtable'><thead><tr><th>Product</th><th>Value to the goals</th><th>Feasibility today</th><th>Data readiness</th><th>Privacy risk (higher is riskier)</th><th>Total</th><th>Reading</th></tr></thead>"
-            f"<tbody>{body}</tbody></table><p class='note'>Scores 1 to 5, confirmed by the program owner, based on the data quality grades. Total = value + feasibility + readiness - privacy risk.</p></div>")
+    heads = ("Product", "Value", "Feasibility", "Readiness", "Privacy risk", "Total", "Reading") if static else (
+        "Product", "Value to the goals", "Feasibility today", "Data readiness", "Privacy risk (higher is riskier)", "Total", "Reading")
+    note = ("Scores 1 to 5. Total = value + feasibility + readiness - privacy risk." if static else
+            "Scores 1 to 5, confirmed by the program owner, based on the data quality grades. Total = value + feasibility + readiness - privacy risk.")
+    return (f"<div class='vproduct'><table class='vtable'><thead><tr>{''.join(f'<th>{h}</th>' for h in heads)}</tr></thead>"
+            f"<tbody>{body}</tbody></table><p class='note'>{note}</p></div>")
 
 
 HORIZONS = [("DELIVERED", "Delivered"), ("NOW", "Now"), ("NEXT", "Next"), ("LATER", "Later")]
@@ -163,43 +179,31 @@ def _decision_html(r: dict) -> str:
     return f"<p class='vdec'><span class='vdia' aria-hidden='true'>◆</span> <b>{e(r['decision_owner_role'])}:</b> {e(r['decision_text'])}</p>"
 
 
-def roadmap_board_html(rows: list[dict], ps: dict, copy: dict, slide_of: dict, static: dict | None = None) -> str:
+def roadmap_board_html(rows: list[dict], ps: dict, copy: dict, slide_of: dict, static: bool = False) -> str:
     """Swimlanes (one per product) by columns Delivered | Now | Next | Later. Cards open the full-screen viewer on their own slide.
 
-    `static` (the one-page summary) renders the same component with no click handler and no viewer: cards are plain blocks, the Delivered column keeps only the latest card per product, and the pivot card
-    is the summary's own wording. static = {names: {pid: short name}, notes: {pid: lane line}, subs: {horizon: sub-heading}, titles: {"DP1 v0.5": short title}, pivot: text}. Same rows, same gate markup."""
-    head = "".join(f"<div class='vr-colhead'>{label}" + (f"<small>{e(static['subs'][k])}</small>" if static else "") + "</div>" for k, label in HORIZONS)
+    `static` (the one-page summary) is the same board with no click handler and no viewer: each card is a plain block. Same rows, same markup otherwise."""
+    head = "".join(f"<div class='vr-colhead'>{label}</div>" for _k, label in HORIZONS)
     lanes = ""
     for pid, p in ps.items():
         key, word = LANE_KIND[pid]
         cells = ""
         for hz, label in HORIZONS:
             cards = ""
-            mine = [x for x in rows if x["product_id"] == pid and x["horizon"] == hz]
-            if static and hz == "DELIVERED":
-                mine = [] if pid == "DP4" else mine[-1:]
             if pid == "DP4" and hz == "DELIVERED":
-                cards += f"<div class='vrpivot'><b>{'Pivot.' if static else 'What we learned.'}</b> {e(static['pivot'] if static else copy['pivot'])}</div>"
-            for r in mine:
-                if static:
-                    key_t = f"{pid} {r['version']}"
-                    if key_t not in static["titles"]:
-                        raise SystemExit(f"SITE BUILD REFUSED:\n  one-pager: no short title for roadmap card {key_t} in the summary copy")
-                    title, chip = static["titles"][key_t], e(r["version"])
-                    cards += (f"<div class='vrcard' data-card='{e(pid)} {e(r['version'])}'><span class='vrhead'><span class='vrtitle'>{e(title)}</span><span class='vrchip'>{chip}</span></span>{_gate_html(r)}{_decision_html(r)}</div>")
-                    continue
+                cards += f"<div class='vrpivot'><b>What we learned.</b> {e(copy['pivot'])}</div>"
+            for r in (x for x in rows if x["product_id"] == pid and x["horizon"] == hz):
                 chip = f"{e(r['version'])}" + (f" · {e(r['phase_ref'])}" if r["phase_ref"] else "")
-                cards += (f"<button type='button' class='vrcard' data-open='D10-{slide_of[id(r)]}' aria-label='Open details: {e(r['title'])}'><span class='vrhead'><span class='vrtitle'>{e(r['title'])}</span>"
-                          f"<span class='vrchip'>{chip}</span></span>{_gate_html(r)}{_decision_html(r)}</button>")
+                inner = f"<span class='vrhead'><span class='vrtitle'>{e(r['title'])}</span><span class='vrchip'>{chip}</span></span>{_gate_html(r)}{_decision_html(r)}"
+                if static:
+                    cards += f"<div class='vrcard' style='cursor:default'>{inner}</div>"
+                else:
+                    cards += f"<button type='button' class='vrcard' data-open='D10-{slide_of[id(r)]}' aria-label='Open details: {e(r['title'])}'>{inner}</button>"
             cells += f"<div class='vr-cell' data-col='{label}'>{cards}</div>"
-        goals = static["notes"][pid] if static else ", ".join(SHORT_GOALS[g] for g in p["goals"])
-        name = static["names"][pid] if static else p["name"]
-        lanes += (f"<div class='vr-lane vl-{key}'><div class='vr-label' title='{e(', '.join(SHORT_GOALS[g] for g in p['goals']))}'><span class='vr-type'>{e(word)}</span><b>{e(pid)} {e(name)}</b>"
-                  f"<span class='vr-goal'>{e(goals)}</span></div>{cells}</div>")
-    if static:
-        return f"<div class='vroad vroad-static' data-roadmap-static><div class='vr-head'><div class='vr-colhead vr-corner'>Product</div>{head}</div>{lanes}</div>"
+        lanes += (f"<div class='vr-lane vl-{key}'><div class='vr-label' title='{e(', '.join(SHORT_GOALS[g] for g in p['goals']))}'><span class='vr-type'>{e(word)}</span><b>{e(pid)} {e(p['name'])}</b>"
+                  f"<span class='vr-goal'>{e(', '.join(SHORT_GOALS[g] for g in p['goals']))}</span></div>{cells}</div>")
     strip = "".join(f"<span class='vr-no'>{e(t)}</span>" for t in copy["not_doing"])
-    return (f"<div class='vroad' data-roadmap><div class='vr-head'><div class='vr-colhead vr-corner'></div>{head}</div>{lanes}"
+    return (f"<div class='vroad' data-roadmap{'-static' if static else ''}><div class='vr-head'><div class='vr-colhead vr-corner'></div>{head}</div>{lanes}"
             f"<div class='vr-notdoing'><span class='vr-nlabel'>Not doing</span>{strip}</div>"
             "<p class='note'>No dates: products move when their data is good enough and the right person has signed off. Bars show where a gate stands; the tick is the target. "
             "◆ marks a decision. Targets are set for a synthetic dataset.</p></div>")

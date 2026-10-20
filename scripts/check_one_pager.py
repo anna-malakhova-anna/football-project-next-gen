@@ -2,9 +2,9 @@
 
   uv run python -m scripts.check_one_pager
 
-  - public layout: no vertical scroll at 1440x1000, no horizontal overflow at 1440 and 390 wide;
-  - print: the page prints to exactly one US Letter landscape page, and so does the committed docs/product/one-pager.pdf;
-  - words: at most 450 visible words, reading grade 8 or lower, no banned word, model name or code, no long decimal, no unfilled {placeholder};
+  - public layout: no horizontal overflow at 1440 and 390 wide (a vertical story scrolls);
+  - print: the page prints to exactly two US Letter portrait pages with nothing cut off, and so does the committed docs/product/one-pager.pdf;
+  - words: at most 1200 visible words, reading grade 8 or lower, no banned word, model name or code, no long decimal, no unfilled {placeholder};
   - product.html links to the summary.
 That every number comes from a product-tab export is checked by tests/test_one_pager.py (the build records where each number came from).
 """
@@ -23,9 +23,10 @@ SITE = ROOT / "public"          # the deployable site: run `make public` first
 
 SLUG = "product-summary"
 PDF = ROOT / "docs" / "product" / "one-pager.pdf"
-MAX_WORDS = 450       # the redesign carries the whole roadmap (the mockup itself is 412 words); the earlier one-pager limit was 300
+MAX_WORDS = 1200      # the vertical story reuses the whole tab components (the roadmap alone is about 300 words); earlier one-pagers were limited to 300 and 450
 MAX_GRADE = 8.0
-LETTER_LANDSCAPE = (792, 612)
+LETTER_PORTRAIT = (612, 792)
+PAGES = 2
 
 
 def prose(text: str) -> str:
@@ -36,11 +37,11 @@ def prose(text: str) -> str:
 def pdf_ok(pdf: bytes, label: str) -> list[str]:
     fails = []
     n = pdf_pages(pdf)
-    if n != 1:
-        fails.append(f"{label}: {n} pages, expected exactly 1")
+    if n != PAGES:
+        fails.append(f"{label}: {n} pages, expected exactly {PAGES}")
     boxes = {tuple(round(float(v)) for v in m.split()) for m in re.findall(rb"/MediaBox\s*\[([^\]]*)\]", pdf) for m in [m.decode()]}
-    if boxes != {(0, 0, *LETTER_LANDSCAPE)}:
-        fails.append(f"{label}: page size {sorted(boxes)}, expected US Letter landscape {LETTER_LANDSCAPE}")
+    if boxes != {(0, 0, *LETTER_PORTRAIT)}:
+        fails.append(f"{label}: page size {sorted(boxes)}, expected US Letter portrait {LETTER_PORTRAIT}")
     return fails
 
 
@@ -52,8 +53,6 @@ def check(page, base: str) -> list[str]:
         page.wait_for_load_state("networkidle")
         page.wait_for_timeout(500)
         sh, sw = page.evaluate("[document.documentElement.scrollHeight, document.documentElement.scrollWidth]")
-        if width == 1440 and sh > 1000:
-            fails.append(f"{SLUG}@1440: the page is {sh}px tall; it must fit 1000px with no scrolling")
         if sw > width:
             fails.append(f"{SLUG}@{width}: horizontal overflow ({sw}px wide)")
     page.set_viewport_size({"width": 1440, "height": 1000})
@@ -82,6 +81,12 @@ def check(page, base: str) -> list[str]:
         fails.append(f"{SLUG}: a long decimal on the page")
     page.emulate_media(color_scheme="light")
     fails += pdf_ok(page.pdf(prefer_css_page_size=True, print_background=True), f"{SLUG} printed")
+    page.set_viewport_size({"width": 720, "height": 960})     # a printed Letter page is 720 CSS px wide inside its margins: the narrow-screen rules must not apply
+    page.emulate_media(media="print")
+    for i, (sh, ch) in enumerate(page.evaluate("[...document.querySelectorAll('.ps-p1,.ps-p2')].map(e => [e.scrollHeight, e.clientHeight])"), 1):
+        if sh > ch:
+            fails.append(f"{SLUG} printed: page {i} content is {sh}px but the page holds {ch}px (it would be cut off)")
+    page.emulate_media(media="null")
     page.emulate_media(color_scheme=None)
     print(f"one-pager: {words} words, reading grade {grade:.1f}")
     return fails
