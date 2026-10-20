@@ -36,6 +36,9 @@ def test_every_number_on_the_page_comes_from_a_product_tab_export():
         assert json.dumps(p["raw"]) in text or str(p["raw"]) in text, f"{p['key']}: {p['raw']!r} is not in data/{p['file']}.json"
     allowed = {n for p in prov for n in NUMBER.findall(p["shown"])}
     allowed |= {str(r[k]) for r in data["age_rules"]["rows"] for k in ("age_min", "age_max")} | {"18", "2.0"}
+    for r in data["roadmap"]["rows"]:        # the roadmap component prints the gate lines and decisions of the tab as they are
+        for k in ("value_text", "status_text", "decision_text", "gate_id"):
+            allowed |= set(NUMBER.findall(r[k] or ""))
     for r in data["product_specs"]["rows"]:
         if (m := re.match(r"identity range ([0-9.]+)%", r["quality_text"])):
             allowed.add(f"{float(m.group(1)):.1f}")
@@ -67,3 +70,35 @@ def test_summary_copy_is_draft_until_approved_and_every_string_is_listed():
     keys = {k for k, _t in ss.copy_strings(c)}
     assert "summary.pitch" in keys and any(k.startswith("summary.personas[") for k in keys)
     assert yaml.safe_load((ROOT / "site_src/copy/charts.yml").read_text(encoding="utf-8"))["summary"]["title"]
+
+
+def cards(html: str) -> dict:
+    """version -> (gate text) of every roadmap card in a page's roadmap component."""
+    out = {}
+    for m in re.finditer(r"<(?:button|div) [^>]*class='vrcard'[^>]*>(.*?)</(?:button|div)>", html, flags=re.S):
+        body = m.group(1)
+        ver = re.search(r"<span class='vrchip'>(v[\d.]+)", body).group(1)
+        title = re.search(r"<span class='vrtitle'>(.*?)</span>", body).group(1)
+        gate = re.search(r"<p class='vgtext'>(.*?)</p>", body, flags=re.S)
+        out[ver, title] = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", gate.group(1))).strip() if gate else ""
+    return out
+
+
+def test_every_gate_and_version_on_the_one_pager_equals_the_product_tab():
+    ss, data = load()
+    tab = (ROOT / "public" / "product.html")
+    if not tab.exists():
+        pytest.skip("no built site")
+    page, _p, _c = ss.render(data, "2.0")
+    tab_cards = cards(tab.read_text(encoding="utf-8"))
+    gate_by_version = {}
+    for (ver, _t), g in tab_cards.items():
+        gate_by_version.setdefault(ver, set()).add(g)
+    mine = cards(page)
+    assert mine, "no roadmap cards on the one-pager"
+    # a version is shared by several products, so compare the set of gate lines per version on the tab with each card here
+    for (ver, _title), g in mine.items():
+        assert g in gate_by_version[ver] or g == "", f"{ver}: gate line {g!r} is not on the Data product tab"
+    gated_tab = {g for gs in gate_by_version.values() for g in gs if g}
+    gated_mine = {g for g in mine.values() if g}
+    assert gated_mine == gated_tab, "every gate of the tab is on the one-pager, with the same value"

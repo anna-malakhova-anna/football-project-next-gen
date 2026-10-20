@@ -163,24 +163,41 @@ def _decision_html(r: dict) -> str:
     return f"<p class='vdec'><span class='vdia' aria-hidden='true'>◆</span> <b>{e(r['decision_owner_role'])}:</b> {e(r['decision_text'])}</p>"
 
 
-def roadmap_board_html(rows: list[dict], ps: dict, copy: dict, slide_of: dict) -> str:
-    """Swimlanes (one per product) by columns Delivered | Now | Next | Later. Cards open the full-screen viewer on their own slide."""
-    head = "".join(f"<div class='vr-colhead'>{label}</div>" for _k, label in HORIZONS)
+def roadmap_board_html(rows: list[dict], ps: dict, copy: dict, slide_of: dict, static: dict | None = None) -> str:
+    """Swimlanes (one per product) by columns Delivered | Now | Next | Later. Cards open the full-screen viewer on their own slide.
+
+    `static` (the one-page summary) renders the same component with no click handler and no viewer: cards are plain blocks, the Delivered column keeps only the latest card per product, and the pivot card
+    is the summary's own wording. static = {names: {pid: short name}, notes: {pid: lane line}, subs: {horizon: sub-heading}, titles: {"DP1 v0.5": short title}, pivot: text}. Same rows, same gate markup."""
+    head = "".join(f"<div class='vr-colhead'>{label}" + (f"<small>{e(static['subs'][k])}</small>" if static else "") + "</div>" for k, label in HORIZONS)
     lanes = ""
     for pid, p in ps.items():
         key, word = LANE_KIND[pid]
         cells = ""
         for hz, label in HORIZONS:
             cards = ""
+            mine = [x for x in rows if x["product_id"] == pid and x["horizon"] == hz]
+            if static and hz == "DELIVERED":
+                mine = [] if pid == "DP4" else mine[-1:]
             if pid == "DP4" and hz == "DELIVERED":
-                cards += f"<div class='vrpivot'><b>What we learned.</b> {e(copy['pivot'])}</div>"
-            for r in (x for x in rows if x["product_id"] == pid and x["horizon"] == hz):
+                cards += f"<div class='vrpivot'><b>{'Pivot.' if static else 'What we learned.'}</b> {e(static['pivot'] if static else copy['pivot'])}</div>"
+            for r in mine:
+                if static:
+                    key_t = f"{pid} {r['version']}"
+                    if key_t not in static["titles"]:
+                        raise SystemExit(f"SITE BUILD REFUSED:\n  one-pager: no short title for roadmap card {key_t} in the summary copy")
+                    title, chip = static["titles"][key_t], e(r["version"])
+                    cards += (f"<div class='vrcard' data-card='{e(pid)} {e(r['version'])}'><span class='vrhead'><span class='vrtitle'>{e(title)}</span><span class='vrchip'>{chip}</span></span>{_gate_html(r)}{_decision_html(r)}</div>")
+                    continue
                 chip = f"{e(r['version'])}" + (f" · {e(r['phase_ref'])}" if r["phase_ref"] else "")
                 cards += (f"<button type='button' class='vrcard' data-open='D10-{slide_of[id(r)]}' aria-label='Open details: {e(r['title'])}'><span class='vrhead'><span class='vrtitle'>{e(r['title'])}</span>"
                           f"<span class='vrchip'>{chip}</span></span>{_gate_html(r)}{_decision_html(r)}</button>")
             cells += f"<div class='vr-cell' data-col='{label}'>{cards}</div>"
-        lanes += (f"<div class='vr-lane vl-{key}'><div class='vr-label' title='{e(', '.join(SHORT_GOALS[g] for g in p['goals']))}'><span class='vr-type'>{e(word)}</span><b>{e(pid)} {e(p['name'])}</b>"
-                  f"<span class='vr-goal'>{e(', '.join(SHORT_GOALS[g] for g in p['goals']))}</span></div>{cells}</div>")
+        goals = static["notes"][pid] if static else ", ".join(SHORT_GOALS[g] for g in p["goals"])
+        name = static["names"][pid] if static else p["name"]
+        lanes += (f"<div class='vr-lane vl-{key}'><div class='vr-label' title='{e(', '.join(SHORT_GOALS[g] for g in p['goals']))}'><span class='vr-type'>{e(word)}</span><b>{e(pid)} {e(name)}</b>"
+                  f"<span class='vr-goal'>{e(goals)}</span></div>{cells}</div>")
+    if static:
+        return f"<div class='vroad vroad-static' data-roadmap-static><div class='vr-head'><div class='vr-colhead vr-corner'>Product</div>{head}</div>{lanes}</div>"
     strip = "".join(f"<span class='vr-no'>{e(t)}</span>" for t in copy["not_doing"])
     return (f"<div class='vroad' data-roadmap><div class='vr-head'><div class='vr-colhead vr-corner'></div>{head}</div>{lanes}"
             f"<div class='vr-notdoing'><span class='vr-nlabel'>Not doing</span>{strip}</div>"

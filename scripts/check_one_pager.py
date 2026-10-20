@@ -2,9 +2,9 @@
 
   uv run python -m scripts.check_one_pager
 
-  - public layout: no vertical scroll at 1440x900, no horizontal overflow at 1440 and 390 wide;
+  - public layout: no vertical scroll at 1440x1000, no horizontal overflow at 1440 and 390 wide;
   - print: the page prints to exactly one US Letter landscape page, and so does the committed docs/product/one-pager.pdf;
-  - words: at most 300 visible words, reading grade 8 or lower, no banned word, model name or code, no long decimal, no unfilled {placeholder};
+  - words: at most 450 visible words, reading grade 8 or lower, no banned word, model name or code, no long decimal, no unfilled {placeholder};
   - product.html links to the summary.
 That every number comes from a product-tab export is checked by tests/test_one_pager.py (the build records where each number came from).
 """
@@ -23,7 +23,7 @@ SITE = ROOT / "public"          # the deployable site: run `make public` first
 
 SLUG = "product-summary"
 PDF = ROOT / "docs" / "product" / "one-pager.pdf"
-MAX_WORDS = 300
+MAX_WORDS = 450       # the redesign carries the whole roadmap (the mockup itself is 412 words); the earlier one-pager limit was 300
 MAX_GRADE = 8.0
 LETTER_LANDSCAPE = (792, 612)
 
@@ -46,17 +46,17 @@ def pdf_ok(pdf: bytes, label: str) -> list[str]:
 
 def check(page, base: str) -> list[str]:
     fails: list[str] = []
-    for width, height in ((1440, 900), (390, 844)):
+    for width, height in ((1440, 1000), (390, 844)):
         page.set_viewport_size({"width": width, "height": height})
         page.goto(f"{base}/{SLUG}.html")
         page.wait_for_load_state("networkidle")
         page.wait_for_timeout(500)
         sh, sw = page.evaluate("[document.documentElement.scrollHeight, document.documentElement.scrollWidth]")
-        if width == 1440 and sh > 900:
-            fails.append(f"{SLUG}@1440: the page is {sh}px tall; it must fit 900px with no scrolling")
+        if width == 1440 and sh > 1000:
+            fails.append(f"{SLUG}@1440: the page is {sh}px tall; it must fit 1000px with no scrolling")
         if sw > width:
             fails.append(f"{SLUG}@{width}: horizontal overflow ({sw}px wide)")
-    page.set_viewport_size({"width": 1440, "height": 900})
+    page.set_viewport_size({"width": 1440, "height": 1000})
     page.goto(f"{base}/{SLUG}.html")
     page.wait_for_load_state("networkidle")
     text = page.evaluate("document.body.innerText")

@@ -36,7 +36,7 @@ def main() -> int:
     try:
         with sync_playwright() as pw:
             browser = pw.chromium.launch(channel="chrome")
-            page = browser.new_page(viewport={"width": 1440, "height": 900})
+            page = browser.new_page(viewport={"width": 1440, "height": 1000})
             page.emulate_media(color_scheme="light")
             page.goto(f"{base}/{SLUG}.html")
             page.wait_for_load_state("networkidle")
