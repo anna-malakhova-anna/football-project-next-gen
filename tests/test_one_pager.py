@@ -47,6 +47,7 @@ def test_every_number_on_the_page_comes_from_a_product_tab_export():
         allowed |= {str(r[k]) for k in ("value_to_goals", "feasibility_today", "data_readiness", "privacy_risk")} | {str(r["value_to_goals"] + r["feasibility_today"] + r["data_readiness"] - r["privacy_risk"])}
     for r in data["product_health"]["rows"]:      # the health table prints the tab's own measures
         allowed |= set(NUMBER.findall(r["value_text"] or ""))
+    allowed |= {str(g["gap_id"]) for g in data["roadmap_gap_links"]["rows"]}     # the gap numbers shown in the gaps table and on the roadmap cards
     allowed |= {"1", "5"}                    # "Scores 1 to 5", the scale named in the tab's own note
     allowed |= set(NUMBER.findall((ROOT / "docs/product/discovery.md").read_text(encoding="utf-8")))   # the persona cards print discovery.md
     for r in data["product_specs"]["rows"]:      # the product rows print their version and live quality
@@ -191,3 +192,13 @@ def test_the_label_accordion_is_exclusive_and_has_no_model_names():
     assert page.count("<details name='dp-label'") == 5
     labels = section(page, "labels")
     assert not re.search(r"\b(?:share|mart|dq|int|dim|fct)_[a-z_]+", labels), "no model names in the labels"
+
+
+def test_gap_numbers_in_the_table_match_the_markers_on_the_roadmap():
+    ss, data = load()
+    page, _p, _c = ss.render(data, "2.0")
+    table = {int(a) for a, b in re.findall(r"<tr id='gap-(\d+)'>.*?<span class='ps-gn'[^>]*>(\d+)</span>", section(page, "gaps"), flags=re.S) if a == b}
+    marked = {int(n) for n in re.findall(r"from gap (\d+)", section(page, "roadmap"))}
+    changed = {int(g["gap_id"]) for g in data["roadmap_gap_links"]["rows"] if g["status"] == "CHANGED"}
+    assert table == {int(g["gap_id"]) for g in data["roadmap_gap_links"]["rows"]}
+    assert marked == changed, "every gap that changed the roadmap is marked on its card, by the same number as in the table"

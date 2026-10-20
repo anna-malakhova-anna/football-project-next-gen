@@ -279,7 +279,7 @@ def gaps_component(c: dict, data: dict, vals: dict) -> tuple[str, list[dict], di
             tag = f"<a class='ps-tagchip ps-tag-changed' href='#card-{rid.replace(' ', '-')}'>{e(c['gap_tags'][g['status']])}</a>"
         else:
             tag = f"<span class='ps-tagchip ps-tag-watch'>{e(c['gap_tags'][g['status']])}</span>"
-        body += (f"<tr id='gap-{g['gap_id']}'><th scope='row'>{e(g['plain_text'])}</th><td>{e(text)}</td><td><span class='ps-tag'>{e(g['product_id'])}</span></td><td>{e(g['change_text'])}</td><td>{tag}</td></tr>")
+        body += (f"<tr id='gap-{g['gap_id']}'><th scope='row'><span class='ps-gn' aria-label='Gap {g['gap_id']}'>{g['gap_id']}</span>{e(g['plain_text'])}</th><td>{e(text)}</td><td><span class='ps-tag'>{e(g['product_id'])}</span></td><td>{e(g['change_text'])}</td><td>{tag}</td></tr>")
     table = site_tables.enhance(f"<table class='vtable ps-gaps'><thead><tr><th>{e(h['gap'])}</th><th>{e(h['evidence'])}</th><th>{e(h['product'])}</th><th>{e(h['changed'])}</th><th>{e(h['tag'])}</th></tr></thead><tbody>{body}</tbody></table>")
     return table, prov, marks
 
@@ -371,11 +371,12 @@ body.summary .vpersona h4{margin:0;align-self:end;font:700 22px/1.05 "Barlow Con
 body.summary .vpersona .note{grid-column:2;margin:2px 0 0;font:600 11px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-muted)}
 /* diagram */
 body.summary .vdep{width:100%;height:auto;max-height:none}
-body.summary .vdep rect{fill:var(--s-card);stroke:var(--s-line);stroke-width:1;rx:4}
-body.summary .vdep .db-util{filter:drop-shadow(0 -4px 0 #b8a06a)}body.summary .vdep .db-en{filter:drop-shadow(0 -4px 0 #3D7CC9)}body.summary .vdep .db-dr{filter:drop-shadow(0 -4px 0 #2F6B4F)}
-body.summary .vdep .db-src{fill:var(--s-bg);stroke-dasharray:4 3}
-body.summary .vdep .dt{font:700 14px "Barlow Condensed",sans-serif;letter-spacing:.02em;text-transform:uppercase;fill:var(--s-text)}
-body.summary .vdep .ds{font:400 11px Inter,sans-serif;fill:var(--s-muted)}
+body.summary .vdep rect{fill:var(--s-card);stroke:rgba(27,39,51,.28);stroke-width:1;rx:4}
+body.summary .vdep .db-util{fill:#f3ecd3;filter:drop-shadow(0 -5px 0 #b8a06a)}body.summary .vdep .db-en{fill:#dbe7f8;filter:drop-shadow(0 -5px 0 #3D7CC9)}body.summary .vdep .db-dr{fill:#d3ebd9;filter:drop-shadow(0 -5px 0 #2F6B4F)}
+body.summary .vdep .db-src{fill:var(--s-bg);stroke:var(--s-muted);stroke-dasharray:4 3}
+body.summary .vdep .dt{font:700 14px "Barlow Condensed",sans-serif;letter-spacing:.02em;text-transform:uppercase;fill:#1B2733}
+body.summary .vdep .ds{font:400 11px Inter,sans-serif;fill:#3a4654}
+body.summary .vdep g:has(.db-src) .dt{fill:var(--s-text)}body.summary .vdep g:has(.db-src) .ds{fill:var(--s-muted)}
 body.summary .vdep .da{stroke:var(--s-arrow);stroke-width:1.6}body.summary .vdep .dah{fill:var(--s-arrow)}
 /* roadmap as a schedule grid */
 body.summary .vroad{font-size:.8125rem}
@@ -413,6 +414,7 @@ body.summary .ps-sub{font-size:12px;color:var(--s-muted);margin:14px 0 8px}
 body.summary .ps-hs{display:inline-block;padding:1px 10px;border-radius:999px;font:700 11px/1.5 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase}
 body.summary .ps-hs-ok{background:var(--s-ok-bg);color:var(--s-ok)}body.summary .ps-hs-watch{background:var(--s-watch-bg);color:var(--s-watch)}body.summary .ps-hs-alert{background:var(--s-alert-bg);color:var(--s-alert)}
 body.summary .ps-why{display:block;font-size:12px;color:var(--s-muted);margin-top:2px}
+body.summary .ps-gn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-right:8px;border-radius:50%;background:var(--s-ink-hero);color:var(--s-hero-ink);font:700 12px/1 Inter,sans-serif;vertical-align:middle}
 body.summary .ps-tagchip{display:inline-block;font:700 11px/1.5 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:1px 10px;white-space:nowrap;text-decoration:none}
 body.summary .ps-tag-changed{background:var(--s-accent);color:#04251a}
 body.summary .ps-tag-watch{background:var(--s-watch-bg);color:var(--s-watch)}
