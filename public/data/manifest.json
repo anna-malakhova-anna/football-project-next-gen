@@ -469,6 +469,12 @@
    "rows": 7
   },
   {
+   "name": "dq_grade_bands",
+   "source": "reference.dq_grade_bands",
+   "kind": "governance",
+   "rows": 4
+  },
+  {
    "name": "age_rules",
    "source": "reference.age_consent_rules",
    "kind": "governance",

@@ -16,7 +16,7 @@ def load():
     if not (DATA / "roadmap.json").exists():
         pytest.skip("no built site")
     from scripts import site_summary
-    names = ("roadmap", "product_specs", "goal_scorecard", "product_health", "age_rules", "conv_tier", "product_prioritization", "roadmap_gap_links")
+    names = ("roadmap", "product_specs", "goal_scorecard", "product_health", "age_rules", "conv_tier", "product_prioritization", "roadmap_gap_links", "dq_grade_bands")
     return site_summary, {n: json.loads((DATA / f"{n}.json").read_text(encoding="utf-8")) for n in names}
 
 

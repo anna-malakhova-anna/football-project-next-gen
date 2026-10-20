@@ -77,16 +77,13 @@ def check(page, base: str) -> list[str]:
         if opened != [False, False, True, False, False]:
             fails.append(f"{SLUG}: opening DP3 should close DP1, but the open states are {opened}")
         labels.nth(2).locator("summary").click()
-    # a so-what line on every section from 4 on (section 10 carries its so-what column), in plain words
-    for sid in ("labels", "priorities", "roadmap", "privacy", "working", "gaps"):
-        sw = page.locator(f"#s-{sid} > .ps-sowhat")
-        if sw.count() != 1:
-            fails.append(f"{SLUG}: section {sid} has no so-what line")
-            continue
-        line = sw.text_content().replace("So what.", "").strip()
-        g = textstat.flesch_kincaid_grade(line)
+    # the so-what lines left on the page (per goal in section 8, a column in section 10) read in plain words
+    for line in page.locator(".ps-gso").all_text_contents():
+        g = textstat.flesch_kincaid_grade(line.replace("So what.", "").strip())
         if g > MAX_GRADE:
-            fails.append(f"{SLUG}: the so-what of {sid} reads at grade {g:.1f} (limit {MAX_GRADE:g})")
+            fails.append(f"{SLUG}: a so-what reads at grade {g:.1f} (limit {MAX_GRADE:g}): {line[:50]!r}")
+    if page.locator(".ps-sowhat").count():
+        fails.append(f"{SLUG}: the section so-what boxes were removed")
     if page.locator("#s-learned td").count() != 6:
         fails.append(f"{SLUG}: the learned table should have three rows of what and so what")
     text = page.evaluate("document.body.innerText")     # the labels were reopened and closed again: the text is the collapsed page

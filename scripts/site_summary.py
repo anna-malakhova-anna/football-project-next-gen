@@ -20,7 +20,7 @@ from scripts import site_tables
 ROOT = Path(__file__).resolve().parent.parent
 COPY_PATH = ROOT / "site_src" / "copy" / "charts.yml"
 SLUG = "product-summary"
-PLACEHOLDER = re.compile(r"\{([a-z_0-9]+)\}")
+PLACEHOLDER = re.compile(r"\{([A-Za-z_0-9]+)\}")
 HORIZONS = ["DELIVERED", "NOW", "NEXT", "LATER"]
 TIER_AGES = {"U13": 5, "13_15": 14, "16_17": 17, "ADULT": 40}
 TYPE_WORD = {"source-based": "Source", "master": "Master", "insights": "Insight"}
@@ -113,6 +113,9 @@ def values(data: dict, n_personas: int) -> tuple[dict, list[dict]]:
     gaps = rows_of(data, "roadmap_gap_links")
     put("n_gaps", f"{len(gaps)}", "roadmap_gap_links", "row count", len(gaps))
     put("n_changed", f"{sum(1 for g in gaps if g['status'] == 'CHANGED')}", "roadmap_gap_links", "rows with status CHANGED", sum(1 for g in gaps if g["status"] == "CHANGED"))
+    bands = {b["grade"]: b["min_score"] for b in rows_of(data, "dq_grade_bands")}
+    for grade in ("A", "B", "C"):
+        put(f"band_{grade.lower()}", f"{int(need(bands.get(grade), 'grade band ' + grade))}", "dq_grade_bands", f"min_score ({grade})", bands[grade])
     put("n_age_rules", f"{len(rows_of(data, 'age_rules'))}", "age_rules", "row count", len(rows_of(data, "age_rules")))
     for code in ("U13", "13_15", "16_17", "ADULT"):
         reg = next(r for r in rows_of(data, "conv_tier") if r["age_tier"] == code and r["step_no"] == 1)
@@ -175,8 +178,7 @@ def who_consents(rules: list[dict], tier: str) -> str:
 def section(n: int, c: dict, key: str, vals: dict, component: str) -> str:
     sec = c["sections"][key]
     line = f"<p class='ps-line'>{e(fill(sec['line'], vals))}</p>" if sec["line"] else ""
-    sowhat = f"<p class='ps-sowhat'><b>So what.</b> {e(fill(sec['sowhat'], vals))}</p>" if sec.get("sowhat") else ""
-    return (f"<section class='ps-sec' id='s-{key}'><p class='ps-kicker'>{n} · {e(sec['kicker'])}</p><h2>{e(fill(sec['h2'], vals))}</h2>{line}{component}{sowhat}</section>")
+    return (f"<section class='ps-sec' id='s-{key}'><p class='ps-kicker'>{n} · {e(sec['kicker'])}</p><h2>{e(fill(sec['h2'], vals))}</h2>{line}{component}</section>")
 
 
 def labels_component(c: dict, data: dict, vals: dict) -> str:
@@ -196,7 +198,8 @@ def labels_component(c: dict, data: dict, vals: dict) -> str:
         table += (f"<tr><th scope='row'>{e(pid)} {e(c['product_names'][pid])}</th><td>{e(sp.TYPE_WORD[p['type']])}</td><td>{e(c['status_words'][p['status']])}</td><td>v{e(p['version'])}</td>"
                   f"<td>{e(quality_chip(sp_row['quality_text'], c, vals))}</td><td>{e(p['owner_role'])}</td><td>Never: {e(rule)}</td></tr>")
     ptable = site_tables.enhance(f"<table class='vtable ps-print-only'><thead><tr><th>Product</th><th>Type</th><th>Status</th><th>Version</th><th>Quality</th><th>Owner</th><th>{e(c['print_rule_label'])}</th></tr></thead><tbody>{table}</tbody></table>")
-    return f"<div class='ps-labels ps-screen-only'>{rows}</div>{ptable}"
+    legend = f"<p class='ps-legend'>{e(fill(c['grade_legend'], vals))}</p>"
+    return f"<div class='ps-labels ps-screen-only'>{rows}</div>{ptable}{legend}"
 
 
 def tiers_component(c: dict, data: dict, vals: dict) -> str:
@@ -236,9 +239,7 @@ def working_component(c: dict, data: dict, vals: dict) -> str:
     for gid, g in c["goal_rows"].items():
         gate = road[g["gate"]]
         chip = f"{gate['status_text']}: {gate['value_text']}"
-        major = next(r for r in rows_of(data, "product_specs") if r["id"] == g["product"])["version"].split(".")[0]
-        proto = f"<span class='ps-proto'>{e(fill(c['prototype_tag'], {'ver': vals['ver_' + g['product']]}))}</span>" if major == "0" else ""
-        goals += (f"<div class='ps-grow'><div class='ps-gnum'><span class='ps-tag'>{e(gid)}</span><div class='n'>{e(fill(g['value'], vals))}</div>{proto}</div>"
+        goals += (f"<div class='ps-grow'><div class='ps-gnum'><span class='ps-tag'>{e(gid)}</span><div class='n'>{e(fill(g['value'], vals))}</div></div>"
                   f"<div class='ps-gtext'><p>{e(fill(g['support'], vals))}</p><p><span class='ps-gate ps-gate-{'met' if gate['gate_status'] == 'MET' else 'no'}'>{e(chip)}</span></p>"
                   f"<p class='ps-gso'><b>So what.</b> {e(fill(g['sowhat'], vals))}</p></div></div>")
     hrows = ""
@@ -311,8 +312,7 @@ body.ps{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--font
 .ps-kpi .l{font-size:12.5px;color:var(--text-muted)}.ps-kpi .g{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em}
 .ps-health{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;padding-top:10px;border-top:1px solid var(--border);font-size:13px}
 .ps-sub{color:var(--text-muted)}
-.ps-sowhat{margin:14px 0 0;padding:8px 12px;border-left:4px solid var(--accent);background:var(--surface);border-radius:0 6px 6px 0;font-size:14px}
-.ps-sowhat b{color:var(--accent)}
+.ps-legend{margin:10px 0 0;font-size:12.5px;color:var(--text-muted)}
 .ps-print-only{display:none}
 .ps-labels{display:grid;gap:6px}
 .ps-label{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0}
@@ -345,7 +345,6 @@ body.ps{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--font
 .ps-grow:first-child{border-top:0}
 .ps-gnum .n{font-family:var(--font-display);font-size:36px;font-weight:700;line-height:1.05}
 .ps-gtext p{margin:0 0 4px}
-.ps-proto{display:inline-block;font-size:11px;color:var(--text-muted);border:1px dashed var(--text-muted);border-radius:999px;padding:0 8px;margin-top:2px}
 .ps-badge{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid #F2C230;color:#F2C230;border-radius:999px;padding:1px 10px}
 .ps-gso{color:var(--text)}.ps-gso b{color:var(--accent)}
 .ps-gate{display:inline-block;font-size:12px;border-radius:999px;padding:1px 10px;border:1px solid var(--border)}
@@ -381,7 +380,6 @@ body.ps{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--font
   .ps-sec{margin-bottom:18px;padding-bottom:14px}
   .ps-sec h2{font-size:24px}
   .ps-line{margin-bottom:8px}
-  .ps-sowhat{margin-top:8px;padding:5px 10px}
   .ps-story .vr-head{display:grid}
   .ps-story .vr-head,.ps-story .vr-lane{grid-template-columns:170px repeat(4,minmax(0,1fr))}
   .ps-story .vr-cell:empty,.ps-story .vr-cell:not(:has(*)){display:flex}

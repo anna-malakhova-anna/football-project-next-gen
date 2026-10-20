@@ -470,7 +470,6 @@ summary:
   synthetic_badge: "Synthetic data"
   status_words: {mvp: "MVP · building", proposed: "Proposed"}
   quality_labels: {identity: "Identity error under {identity_limit}%", varies: "Grades vary by market"}
-  prototype_tag: "from prototype ({ver})"
   goal_short:
     G1: "Grow the NFL globally"
     G2: "Grow flag in the US as a safe, low-cost way into football"
@@ -485,13 +484,13 @@ summary:
     matrix: {kicker: "What would you build for these goals?", h2: "Each goal has one product that moves it directly.", line: "Three goals led to five products."}
     deps: {kicker: "What would you build for these goals? (continued)", h2: "Intake feeds the master, and the master feeds the three insight products.", line: "Conversion also needs the fan feed and guardian consent."}
     personas: {kicker: "Who are the products for?", h2: "Six personas, and what we'd ask them.", line: "There are no real users yet, so these are assumptions to test."}
-    labels: {kicker: "What is each product?", h2: "Each product has a label: owner, version, live quality grade and rules for use.", line: "Open one to see who uses it and what it must never do.", sowhat: "Every product has an owner and rules. Nobody uses kids' data by accident."}
-    priorities: {kicker: "What do we build first, and why?", h2: "Intake and US growth first. Conversion waits: high value, data not ready.", line: "Each product is scored on value, feasibility, readiness and privacy risk.", sowhat: "We build where value is high and the data is ready, and we say why the rest waits."}
-    roadmap: {kicker: "What has to be true before each product moves?", h2: "{n_met} of {n_gates} release gates met. The MVP waits on the US data score ({current} → {target}).", line: "No dates: a product moves when its gate is met and the right person signs off.", sowhat: "The roadmap is a set of tests a product must pass, not a calendar."}
-    privacy: {kicker: "How do we protect kids?", h2: "Minors are guardian-only. We count families, never kids.", line: "{pct_u13_club_consent}% of families with a child under 13 agreed to club contact.", sowhat: "Contacting families is limited by consent, not by data. The only way to grow it is to ask clearly at registration, never to buy or guess."}
-    working: {kicker: "Is it working?", h2: "Fans created by flag: about {fans_created} ({fans_lo}–{fans_hi}).", line: "One row per goal, then the health of each product.", sowhat: "The data is healthy enough to trust the direction, not yet the decimals."}
-    gaps: {kicker: "Where are the gaps, and what did they change?", h2: "{n_gaps} gaps found. {n_changed} of them changed the roadmap.", line: "Each gap shows its evidence and the card it moved.", sowhat: "The roadmap moved because of what the data showed, not on a schedule."}
-    learned: {kicker: "What did we learn, and what's next?", h2: "We started with consent. The real problem was thin, messy data.", line: "", sowhat: ""}
+    labels: {kicker: "What is each product?", h2: "Each product has a label: owner, version, live quality grade and rules for use.", line: "Open one to see who uses it and what it must never do."}
+    priorities: {kicker: "What do we build first, and why?", h2: "Intake and US growth first. Conversion waits: high value, data not ready.", line: "Each product is scored on value, feasibility, readiness and privacy risk."}
+    roadmap: {kicker: "What has to be true before each product moves?", h2: "{n_met} of {n_gates} release gates met. The MVP waits on the US data score ({current} → {target}).", line: "No dates: a product moves when its gate is met and the right person signs off."}
+    privacy: {kicker: "How do we protect kids?", h2: "Minors are guardian-only. We count families, never kids.", line: "{pct_u13_club_consent}% of families with a child under 13 agreed to club contact."}
+    working: {kicker: "Is it working?", h2: "Fans created by flag: about {fans_created} ({fans_lo}–{fans_hi}).", line: "One row per goal, then the health of each product."}
+    gaps: {kicker: "Where are the gaps, and what did they change?", h2: "{n_gaps} gaps found. {n_changed} of them changed the roadmap.", line: "Each gap shows its evidence and the card it moved."}
+    learned: {kicker: "What did we learn, and what's next?", h2: "We started with consent. The real problem was thin, messy data.", line: ""}
   label_limits:
     DP1: "Limited by league files that arrive late or incomplete."
     DP2: "Limited by a second identity chain that is not merged yet."
@@ -503,11 +502,12 @@ summary:
     "13_15": "Counted in totals · club contact only via guardian consent"
     "16_17": "Counted in totals · club contact only via guardian consent"
     ADULT: "Own fan record, only with fresh consent"
+  grade_legend: "Quality grade: A is {band_a} or more, B is {band_b}, C is {band_c}, D is below {band_c} (score out of 100). Identity error is how far identity matching alone could move the count. Grades vary by market: each market is graded on its own."
   consent_bar_label: "agreed to club contact"
   goal_rows:
-    G1: {value: "{global_participants}", gate: N, product: DP3, support: "{global_participants} players in {n_countries} countries. Only {countries_b} reports at grade B or better.", sowhat: "We can count globally, but can't compare countries fairly yet."}
-    G2: {value: "{girls_share}%", gate: X_COUNT, product: DP4, support: "Girls {girls_share}% · {retention}% play again · {dark_leagues} of {known_leagues} leagues sent no file.", sowhat: "Growth looks real, but missing leagues mean we undercount it."}
-    G3: {value: "{fans_created}", gate: Z_ACTIVATION, product: DP5, support: "About {fans_created} new fans ({fans_lo}–{fans_hi}) · engaged families +{uplift}% · {linked}% of families linked.", sowhat: "Flag does create fans. With only {linked}% of families linked, this is a floor, not the full number."}
+    G1: {value: "{global_participants}", gate: N, support: "{global_participants} players in {n_countries} countries. Only {countries_b} reports at grade B or better.", sowhat: "We can count globally, but can't compare countries fairly yet."}
+    G2: {value: "{girls_share}%", gate: X_COUNT, support: "Girls {girls_share}% · {retention}% play again · {dark_leagues} of {known_leagues} leagues sent no file.", sowhat: "Growth looks real, but missing leagues mean we undercount it."}
+    G3: {value: "{fans_created}", gate: Z_ACTIVATION, support: "About {fans_created} new fans ({fans_lo}–{fans_hi}) · engaged families +{uplift}% · {linked}% of families linked.", sowhat: "Flag does create fans. With only {linked}% of families linked, this is a floor, not the full number."}
   health_heads: {product: "Product", grade: "Quality", tests: "Tests", privacy: "Privacy checks", status: "Status"}
   gaps_heads: {gap: "Gap", evidence: "Evidence", product: "Product", changed: "What it changed", tag: "Roadmap"}
   gap_tags: {CHANGED: "Changed roadmap", WATCH: "Watch"}
