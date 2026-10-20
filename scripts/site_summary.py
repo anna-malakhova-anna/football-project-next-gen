@@ -97,6 +97,11 @@ def values(data: dict, n_personas: int) -> tuple[dict, list[dict]]:
     put("current", f"{round(need(mvp['current_value'], 'MVP gate value'))}", "roadmap", "current_value (the MVP gate)", mvp["current_value"])
     put("target", f"{round(need(mvp['target'], 'MVP gate target'))}", "roadmap", "target (the MVP gate)", mvp["target"])
     put("n_personas", f"{n_personas}", "docs/product/discovery.md", "rows of the persona table", n_personas)
+    gate_y = next(r for r in road if r["gate_id"] == "Y")
+    put("identity_limit", f"{round(need(gate_y['target'], 'identity gate limit')):d}", "roadmap", "target (gate Y)", gate_y["target"])
+    for sp_row in rows_of(data, "product_specs"):
+        major_minor = ".".join(sp_row["version"].split(".")[:2])
+        put(f"ver_{sp_row['id']}", f"v{major_minor}", "product_specs", f"version ({sp_row['id']})", sp_row["version"])
     gate_n = next(r for r in road if r["gate_id"] == "N")
     put("countries_b", f"{round(need(gate_n['current_value'], 'countries at grade B')):d}", "roadmap", "current_value (gate N)", gate_n["current_value"])
     up = kpi(data, "fan_engagement_uplift")
@@ -147,14 +152,15 @@ def fill(text: str, vals: dict) -> str:
     return PLACEHOLDER.sub(lambda m: vals[m.group(1)], text)
 
 
-def quality_chip(text: str) -> str:
-    """A short plain label from the live quality text of a product spec; unknown shapes fail the build instead of showing nothing."""
+def quality_chip(text: str, c: dict | None = None, vals: dict | None = None) -> str:
+    """A short plain label from the live quality text of a product spec; unknown shapes fail the build instead of showing nothing.
+    With the copy and values, the identity range and the spread of market grades use the copy's wording ("Identity error under 1%", "Grades vary by market")."""
     if (m := re.match(r"grade ([A-F])\b", text)):
         return f"Grade {m.group(1)}"
-    if (m := re.match(r"identity range ([0-9.]+)%", text)):
-        return f"{float(m.group(1)):.1f}% range"
+    if re.match(r"identity range ([0-9.]+)%", text):
+        return fill(c["quality_labels"]["identity"], vals) if c else "Identity range"
     if re.match(r"A \d+, B \d+", text):
-        return "A to D"
+        return c["quality_labels"]["varies"] if c else "Grades vary"
     raise SystemExit(f"SITE BUILD REFUSED:\n  one-pager: cannot make a short quality label from '{text}'")
 
 
@@ -173,7 +179,7 @@ def section(n: int, c: dict, key: str, vals: dict, component: str) -> str:
     return (f"<section class='ps-sec' id='s-{key}'><p class='ps-kicker'>{n} · {e(sec['kicker'])}</p><h2>{e(fill(sec['h2'], vals))}</h2>{line}{component}{sowhat}</section>")
 
 
-def labels_component(c: dict, data: dict) -> str:
+def labels_component(c: dict, data: dict, vals: dict) -> str:
     """Product labels: five collapsed rows (one open at a time, a native exclusive accordion) on screen; a compact five-row table in print."""
     ps = sp.products()
     specs = {r["id"]: r for r in rows_of(data, "product_specs")}
@@ -181,14 +187,14 @@ def labels_component(c: dict, data: dict) -> str:
     for i, (pid, p) in enumerate(ps.items(), 1):
         sp_row = specs[pid]
         goals = " ".join(f"<span class='ps-tag'>{e(g)}</span>" for g in p["goals"])
-        head = (f"<span class='ps-lname'>{e(pid)} {e(c['product_names'][pid])}</span><span class='ps-chip2'>{e(sp.TYPE_WORD[p['type']])}</span><span class='ps-chip2 ps-st-{e(p['status'])}'>{e(sp.STATUS_WORD[p['status']])}</span>"
-                f"<span class='ps-lver'>v{e(p['version'])}</span><span class='ps-chip2 ps-q'>{e(quality_chip(sp_row['quality_text']))}</span>{goals}")
+        head = (f"<span class='ps-lname'>{e(pid)} {e(c['product_names'][pid])}</span><span class='ps-chip2'>{e(sp.TYPE_WORD[p['type']])}</span><span class='ps-chip2 ps-st-{e(p['status'])}'>{e(c['status_words'][p['status']])}</span>"
+                f"<span class='ps-lver'>v{e(p['version'])}</span><span class='ps-chip2 ps-q'>{e(quality_chip(sp_row['quality_text'], c, vals))}</span>{goals}")
         body = (sp.label_html(pid, p, sp_row, True, plain=True) + f"<p class='ps-limit'>{e(c['label_limits'][pid])}</p>"
                 f"<p class='note'><a href='product.html#view=D5-{i}'>Full label on the tab &rarr;</a></p>")
         rows += f"<details name='dp-label' class='ps-label'><summary>{head}</summary>{body}</details>"
         rule = p["privacy"]["prohibited_uses"][0]["use"]
-        table += (f"<tr><th scope='row'>{e(pid)} {e(c['product_names'][pid])}</th><td>{e(sp.TYPE_WORD[p['type']])}</td><td>{e(sp.STATUS_WORD[p['status']])}</td><td>v{e(p['version'])}</td>"
-                  f"<td>{e(quality_chip(sp_row['quality_text']))}</td><td>{e(p['owner_role'])}</td><td>Never: {e(rule)}</td></tr>")
+        table += (f"<tr><th scope='row'>{e(pid)} {e(c['product_names'][pid])}</th><td>{e(sp.TYPE_WORD[p['type']])}</td><td>{e(c['status_words'][p['status']])}</td><td>v{e(p['version'])}</td>"
+                  f"<td>{e(quality_chip(sp_row['quality_text'], c, vals))}</td><td>{e(p['owner_role'])}</td><td>Never: {e(rule)}</td></tr>")
     ptable = site_tables.enhance(f"<table class='vtable ps-print-only'><thead><tr><th>Product</th><th>Type</th><th>Status</th><th>Version</th><th>Quality</th><th>Owner</th><th>{e(c['print_rule_label'])}</th></tr></thead><tbody>{table}</tbody></table>")
     return f"<div class='ps-labels ps-screen-only'>{rows}</div>{ptable}"
 
@@ -230,7 +236,9 @@ def working_component(c: dict, data: dict, vals: dict) -> str:
     for gid, g in c["goal_rows"].items():
         gate = road[g["gate"]]
         chip = f"{gate['status_text']}: {gate['value_text']}"
-        goals += (f"<div class='ps-grow'><div class='ps-gnum'><span class='ps-tag'>{e(gid)}</span><div class='n'>{e(fill(g['value'], vals))}</div></div>"
+        major = next(r for r in rows_of(data, "product_specs") if r["id"] == g["product"])["version"].split(".")[0]
+        proto = f"<span class='ps-proto'>{e(fill(c['prototype_tag'], {'ver': vals['ver_' + g['product']]}))}</span>" if major == "0" else ""
+        goals += (f"<div class='ps-grow'><div class='ps-gnum'><span class='ps-tag'>{e(gid)}</span><div class='n'>{e(fill(g['value'], vals))}</div>{proto}</div>"
                   f"<div class='ps-gtext'><p>{e(fill(g['support'], vals))}</p><p><span class='ps-gate ps-gate-{'met' if gate['gate_status'] == 'MET' else 'no'}'>{e(chip)}</span></p>"
                   f"<p class='ps-gso'><b>So what.</b> {e(fill(g['sowhat'], vals))}</p></div></div>")
     hrows = ""
@@ -244,7 +252,7 @@ def working_component(c: dict, data: dict, vals: dict) -> str:
         privacy = next(r for r in mine if r["area"] == "privacy" and r["measure"] == "Share-policy check violations")
         mark = lambda r: ("&#10003;" if r["status"] == "OK" else ("&ndash;" if r["value_num"] is None else "&#10007;"))  # noqa: E731
         word, why = health_status(mine)
-        hrows += (f"<tr><th scope='row'>{e(pid)} {e(c['product_names'][pid])}</th><td>{e(quality_chip(specs[pid]['quality_text']))}</td><td>{mark(tests)}</td><td>{e(breaks['value_text'])}</td><td>{mark(privacy)}</td>"
+        hrows += (f"<tr><th scope='row'>{e(pid)} {e(c['product_names'][pid])}</th><td>{e(quality_chip(specs[pid]['quality_text'], c, vals))}</td><td>{mark(tests)}</td><td>{e(breaks['value_text'])}</td><td>{mark(privacy)}</td>"
                   f"<td><b class='ps-hs ps-hs-{word.lower()}'>{word}</b>{(' <span class=ps-why>' + e(why) + '</span>') if why else ''}</td></tr>")
     htable = site_tables.enhance(f"<table class='vtable ps-health-table'><thead><tr><th>{e(h['product'])}</th><th>{e(h['grade'])}</th><th>{e(h['tests'])}</th><th>{e(h['breaks'])}</th><th>{e(h['privacy'])}</th><th>{e(h['status'])}</th></tr></thead><tbody>{hrows}</tbody></table>")
     return f"<div class='ps-grows'>{goals}</div><p class='ps-sub'>{e(fill(c['working_sub'], vals))}</p>{htable}"
@@ -338,6 +346,8 @@ body.ps{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--font
 .ps-grow:first-child{border-top:0}
 .ps-gnum .n{font-family:var(--font-display);font-size:36px;font-weight:700;line-height:1.05}
 .ps-gtext p{margin:0 0 4px}
+.ps-proto{display:inline-block;font-size:11px;color:var(--text-muted);border:1px dashed var(--text-muted);border-radius:999px;padding:0 8px;margin-top:2px}
+.ps-badge{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid #F2C230;color:#F2C230;border-radius:999px;padding:1px 10px}
 .ps-gso{color:var(--text)}.ps-gso b{color:var(--accent)}
 .ps-gate{display:inline-block;font-size:12px;border-radius:999px;padding:1px 10px;border:1px solid var(--border)}
 .ps-gate-met{border-color:#2F6B4F;color:#2F6B4F}.ps-gate-no{border-color:#B04A1C;color:#B04A1C}
@@ -401,7 +411,7 @@ def render(data: dict, version: str) -> tuple[str, list[dict], dict]:
     comps = [("matrix", sp.matrix_html(ps, static={"goals": c["goal_short"], "products": names})),
              ("deps", sp.dependency_svg()),
              ("personas", sp.personas_html(False, static=True)),
-             ("labels", labels_component(c, data)),
+             ("labels", labels_component(c, data, vals)),
              ("priorities", site_tables.enhance(sp.prioritization_html(rows_of(data, "product_prioritization"), static={"products": names}))),
              ("roadmap", sp.roadmap_board_html(rows_of(data, "roadmap"), ps, d10, {}, static=True, gap_marks=marks)),
              ("privacy", tiers_component(c, data, vals)),
@@ -409,7 +419,7 @@ def render(data: dict, version: str) -> tuple[str, list[dict], dict]:
              ("gaps", gaps_html),
              ("learned", learned_component(c, vals))]
     secs = [section(i, c, k, vals, comp) for i, (k, comp) in enumerate(comps, 1)]
-    hero = f"<header class='ps-hero'><h1>{e(c['title'])}</h1><p>{e(c['pitch'])}</p></header>"
+    hero = f"<header class='ps-hero'><h1>{e(c['title'])}</h1><span class='ps-badge'>{e(c['synthetic_badge'])}</span><p>{e(c['pitch'])}</p><p>{e(c['hero_line'])}</p></header>"
     foot = (f"<footer class='ps-foot'><span>{e(c['footer'])}</span><a href='product.html'>{e(c['footer_link'])} &rarr;</a><span>{e(fill(c['methodology'], {'version': str(version)}))}</span></footer>")
     grid = f"<div class='ps-p1'>{hero}{''.join(secs[:3])}</div><div class='ps-p2'>{''.join(secs[3:6])}</div><div class='ps-p3'>{''.join(secs[6:])}{foot}</div>"
     page = f"""<!doctype html>
