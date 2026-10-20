@@ -176,7 +176,7 @@ public:
 
 # Phase 6: the product portfolio. Seeds and the Phase 6 models, the specs validated against the manifest and the warehouse, the health and adoption tables. The Data product tab is built by `make site`.
 product: dbt/profiles.yml
-	$(DBT) seed --profiles-dir . --select product_prioritization product_targets product_roadmap age_consent_rules age_consent_jurisdiction_map funnel_step_display
+	$(DBT) seed --profiles-dir . --select product_prioritization product_targets product_roadmap roadmap_gap_links age_consent_rules age_consent_jurisdiction_map funnel_step_display
 	$(DBT) run --profiles-dir . --select tag:phase6
 	$(DBT) test --profiles-dir . --select tag:phase6
 	$(PY) -m scripts.validate_products

@@ -16,7 +16,7 @@ def load():
     if not (DATA / "roadmap.json").exists():
         pytest.skip("no built site")
     from scripts import site_summary
-    names = ("roadmap", "product_specs", "goal_scorecard", "product_health", "age_rules", "conv_tier", "product_prioritization")
+    names = ("roadmap", "product_specs", "goal_scorecard", "product_health", "age_rules", "conv_tier", "product_prioritization", "roadmap_gap_links")
     return site_summary, {n: json.loads((DATA / f"{n}.json").read_text(encoding="utf-8")) for n in names}
 
 
@@ -30,7 +30,11 @@ def test_every_number_on_the_page_comes_from_a_product_tab_export():
     ss, data = load()
     page, prov, _c = ss.render(data, "2.0")
     for p in prov:
-        if p["file"].endswith(".md"):
+        if p["field"] in ("row count", "rows with status CHANGED"):         # counts of an export's rows
+            rows = data[p["file"]]["rows"]
+            assert p["raw"] == (len(rows) if p["field"] == "row count" else sum(1 for r in rows if r["status"] == "CHANGED")), p
+            continue
+        if p["file"].endswith((".md", ".csv")):
             continue
         text = (DATA / f"{p['file']}.json").read_text(encoding="utf-8")
         assert json.dumps(p["raw"]) in text or str(p["raw"]) in text, f"{p['key']}: {p['raw']!r} is not in data/{p['file']}.json"
@@ -41,9 +45,12 @@ def test_every_number_on_the_page_comes_from_a_product_tab_export():
             allowed |= set(NUMBER.findall(r[k] or ""))
     for r in data["product_prioritization"]["rows"]:       # the priorities table prints the confirmed scores and their total
         allowed |= {str(r[k]) for k in ("value_to_goals", "feasibility_today", "data_readiness", "privacy_risk")} | {str(r["value_to_goals"] + r["feasibility_today"] + r["data_readiness"] - r["privacy_risk"])}
+    for r in data["product_health"]["rows"]:      # the health table prints the tab's own measures
+        allowed |= set(NUMBER.findall(r["value_text"] or ""))
     allowed |= {"1", "5"}                    # "Scores 1 to 5", the scale named in the tab's own note
     allowed |= set(NUMBER.findall((ROOT / "docs/product/discovery.md").read_text(encoding="utf-8")))   # the persona cards print discovery.md
-    for r in data["product_specs"]["rows"]:
+    for r in data["product_specs"]["rows"]:      # the product rows print their version and live quality
+        allowed |= set(NUMBER.findall(r["version"])) | set(NUMBER.findall(r["quality_text"]))
         if (m := re.match(r"identity range ([0-9.]+)%", r["quality_text"])):
             allowed.add(f"{float(m.group(1)):.1f}")
     text = re.sub(r"\b(?:DP|G)\d\b|\bv\d+\.\d+\b", " ", visible(re.sub(r"<svg.*?</svg>", " ", page, flags=re.S)))
@@ -146,3 +153,41 @@ def test_every_roadmap_card_gate_and_version_equals_the_product_tab():
     tab, page = tab_and_page()
     mine, theirs = cards(section(page, "roadmap")), cards(tab)
     assert mine and mine == theirs, "the one-pager roadmap is the tab's roadmap, card for card"
+
+
+def test_every_gap_resolves_to_a_roadmap_card_and_an_export_value():
+    ss, data = load()
+    import csv
+    cards = {f"{r['product_id']} {r['version']}" for r in csv.DictReader((ROOT / "dbt/seeds/product_roadmap.csv").open(encoding="utf-8"))}
+    gaps = list(csv.DictReader((ROOT / "dbt/seeds/roadmap_gap_links.csv").open(encoding="utf-8")))
+    assert len(gaps) == len(data["roadmap_gap_links"]["rows"]) >= 7
+    _vals, prov = ss.values(data, 6)
+    vals = {p["key"]: p["shown"] for p in prov}
+    for g in gaps:
+        assert g["status"] in ("CHANGED", "WATCH")
+        if g["status"] == "CHANGED":
+            assert g["roadmap_row_id"] in cards, f"gap {g['gap_id']}: no roadmap card {g['roadmap_row_id']!r}"
+        else:
+            assert not g["roadmap_row_id"], "a WATCH gap changed nothing, so it names no card"
+        text, pr = ss.gap_evidence(g, data, vals)     # raises if the export, filter or field does not resolve
+        assert text and (DATA / f"{g['source_export']}.json").exists()
+        assert json.dumps(pr["raw"]) in (DATA / f"{g['source_export']}.json").read_text(encoding="utf-8"), g["gap_id"]
+
+
+def test_the_health_table_reads_the_tabs_health_rows():
+    ss, data = load()
+    page, _p, _c = ss.render(data, "2.0")
+    sec = section(page, "working")
+    assert sec.count("ps-hs ps-hs-") == 5
+    for pid in ("DP1", "DP2", "DP3", "DP4", "DP5"):
+        rows = [r for r in data["product_health"]["rows"] if r["product_id"] == pid]
+        word, _why = ss.health_status(rows)
+        assert f"ps-hs ps-hs-{word.lower()}" in sec
+
+
+def test_the_label_accordion_is_exclusive_and_has_no_model_names():
+    ss, data = load()
+    page, _p, _c = ss.render(data, "2.0")
+    assert page.count("<details name='dp-label'") == 5
+    labels = section(page, "labels")
+    assert not re.search(r"\b(?:share|mart|dq|int|dim|fct)_[a-z_]+", labels), "no model names in the labels"

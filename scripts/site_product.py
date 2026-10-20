@@ -179,7 +179,7 @@ def _decision_html(r: dict) -> str:
     return f"<p class='vdec'><span class='vdia' aria-hidden='true'>◆</span> <b>{e(r['decision_owner_role'])}:</b> {e(r['decision_text'])}</p>"
 
 
-def roadmap_board_html(rows: list[dict], ps: dict, copy: dict, slide_of: dict, static: bool = False) -> str:
+def roadmap_board_html(rows: list[dict], ps: dict, copy: dict, slide_of: dict, static: bool = False, gap_marks: dict | None = None) -> str:
     """Swimlanes (one per product) by columns Delivered | Now | Next | Later. Cards open the full-screen viewer on their own slide.
 
     `static` (the one-page summary) is the same board with no click handler and no viewer: each card is a plain block. Same rows, same markup otherwise."""
@@ -196,7 +196,9 @@ def roadmap_board_html(rows: list[dict], ps: dict, copy: dict, slide_of: dict, s
                 chip = f"{e(r['version'])}" + (f" · {e(r['phase_ref'])}" if r["phase_ref"] else "")
                 inner = f"<span class='vrhead'><span class='vrtitle'>{e(r['title'])}</span><span class='vrchip'>{chip}</span></span>{_gate_html(r)}{_decision_html(r)}"
                 if static:
-                    cards += f"<div class='vrcard' style='cursor:default'>{inner}</div>"
+                    row_id = f"{pid} {r['version']}"
+                    mark = "".join(f"<a class='vrgap' href='#gap-{n}'>&#8617; from gap {n}</a>" for n in (gap_marks or {}).get(row_id, []))
+                    cards += f"<div class='vrcard' id='card-{pid}-{e(r['version'])}' style='cursor:default'>{inner}{mark}</div>"
                 else:
                     cards += f"<button type='button' class='vrcard' data-open='D10-{slide_of[id(r)]}' aria-label='Open details: {e(r['title'])}'>{inner}</button>"
             cells += f"<div class='vr-cell' data-col='{label}'>{cards}</div>"
@@ -228,7 +230,7 @@ def roadmap_detail_html(r: dict, ps: dict) -> str:
 
 
 # ---------------------------------------------------------------- D5 product labels
-def label_html(pid: str, p: dict, spec_row: dict, full: bool) -> str:
+def label_html(pid: str, p: dict, spec_row: dict, full: bool, plain: bool = False) -> str:
     q = spec_row
     ports = "".join(f"<li><code>{e(pt['model'])}</code> <span class='note'>{e(pt['audience'])} audience, {e(pt['grain'])}, {e(pt['refresh'])}</span></li>" for pt in p["output_ports"])
     consumers = "".join(f"<li><b>{e(c['role'])}:</b> {e(c['use_case'])}</li>" for c in p["consumers"])
@@ -239,11 +241,29 @@ def label_html(pid: str, p: dict, spec_row: dict, full: bool) -> str:
     ev = "<p><b>Detailed evidence:</b> " + ", ".join(f'<a href="{h}">{l}</a>' for h, l in evidence) + " pages.</p>" if evidence else ""
     if not full:
         return f"<div class='vlabel vlabel-small'>{head}{grade}<p class='note'>{e(p['consumers'][0]['role'])}</p></div>"
+    if plain:
+        return label_plain_html(pid, p, spec_row)
     prohibited = "".join(f"<li>{e(u['use'])} <span class='note'>enforced by {', '.join(e(x['name']) for x in u['enforced_by'])}</span></li>" for u in p["privacy"]["prohibited_uses"])
     return (f"<div class='vproduct'><div class='vlabel'>{base}{ev}<h5>Consumers</h5><ul>{consumers}</ul><h5>Output ports</h5><ul>{ports}</ul>"
             f"<h5>Prohibited uses and what enforces them</h5><ul>{prohibited}</ul>"
             f"<p><b>Shelf life:</b> {e(p['shelf_life'])}. <b>Decommission:</b> {link(p['decommission_plan'])}. <b>Support:</b> {e(p['support_contact'])}. <b>Pricing:</b> {e(p['pricing'])}</p>"
             f"<p class='note'>Fictional roles. The quality grade is read from the scorecards at build time, never typed.</p></div></div>")
+
+
+def permitted_uses(pid: str) -> list[str]:
+    """The bullets under 'Permitted uses' in the product's terms of use (docs/product/terms/<id>.md)."""
+    text = (ROOT / f"docs/product/terms/{pid}.md").read_text(encoding="utf-8")
+    block = re.search(r"## Permitted uses\n(.*?)\n## ", text, flags=re.S).group(1)
+    return [re.sub(r"\s+", " ", md_inline(m)).strip() for m in re.findall(r"^- (.+)$", block, flags=re.M)]
+
+
+def label_plain_html(pid: str, p: dict, spec_row: dict) -> str:
+    """The label in plain words, for the one-page summary: owner, who uses it, what it publishes, the live grade, and the rules for use. No model names, no enforcement detail (that stays on the tab)."""
+    users = "".join(f"<li><b>{e(c['role'])}:</b> {e(c['use_case'])}</li>" for c in p["consumers"])
+    allowed = "".join(f"<li>{t}</li>" for t in permitted_uses(pid)[:2])      # already inline html from md_inline
+    never = "".join(f"<li>{e(u['use'])}</li>" for u in p["privacy"]["prohibited_uses"])
+    return (f"<div class='vlabel vlabel-plain'><p>{e(p['description'])}</p><p><b>Owner:</b> {e(p['owner_role'])}</p><p><b>Who uses it</b></p><ul>{users}</ul>"
+            f"<p><b>Live quality:</b> {e(spec_row['quality_text'])}</p><div class='vrules'><div><p><b>Allowed</b></p><ul>{allowed}</ul></div><div><p><b>Never allowed</b></p><ul class='vnever'>{never}</ul></div></div></div>")
 
 
 # ---------------------------------------------------------------- D6 kids' privacy

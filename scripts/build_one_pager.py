@@ -53,7 +53,7 @@ def main() -> int:
     PDF.write_bytes(pdf)
     c = yaml.safe_load((ROOT / "site_src" / "copy" / "charts.yml").read_text(encoding="utf-8"))["summary"]
     COPY_OUT.write_text(copy_review(c, c.get("status", "?")), encoding="utf-8")
-    print(f"wrote {PDF.relative_to(ROOT)} (2 pages, Letter portrait) and {COPY_OUT.relative_to(ROOT)}")
+    print(f"wrote {PDF.relative_to(ROOT)} (up to 3 pages, Letter portrait) and {COPY_OUT.relative_to(ROOT)}")
     return 0
 
 

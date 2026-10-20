@@ -1,0 +1,8 @@
+gap_id,plain_text,source_export,source_field,source_filter,evidence_template,product_id,change_text,roadmap_row_id,status
+1,US data score is below target,roadmap,value_text,gate_id=X_COUNT,{v},DP4,Blocks the DP1 and DP4 release; intake and quality went first (the pivot),DP1 v1.0,CHANGED
+2,Consent fully known for too few families,roadmap,value_text,gate_id=Z_ACTIVATION,{v},DP5,Club contact moved to Later; guardian consent added at sign-up as a decision,DP5 v1.0,CHANGED
+3,A second identity chain was found,roadmap,version,product_id=DP2;horizon=NEXT,planned for {v},DP2,"Added the ""one identity chain"" card",DP2 v1.1,CHANGED
+4,Leagues that sent no file,product_health,value_text,product_id=DP4;area=trust;measure=Known leagues that sent no file,{v} leagues,DP1,The send-your-file fix ranks first on every fix list,DP1 v1.0,CHANGED
+5,Youth-to-adult link cannot be measured,goal_scorecard,trust_label,kpi_id=youth_to_adult_fan_transition,{v},DP5,Added the played-youth-flag question at adult sign-up,DP1 v1.2,CHANGED
+6,Age rules not yet verified,product_health,value_text,product_id=DP1;area=privacy;measure=Age-rule rows still unverified,{v} of {n_age_rules} rules,DP1,No roadmap change; the strictest rule applies,,WATCH
+7,Too few countries at grade B,roadmap,value_text,gate_id=N,{v},DP3,No roadmap change; it is the gate for the country view,,WATCH

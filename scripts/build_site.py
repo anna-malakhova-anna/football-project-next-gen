@@ -46,7 +46,7 @@ APPROVED_AGGREGATES |= P5.APPROVED
 APPROVED_AGGREGATES |= {"phase6.mart_goal_scorecard", "phase6.mart_product_health", "phase6.mart_product_adoption"}
 EVAL_WHITELIST |= P5.EVAL
 GOVERNANCE_WHITELIST |= P5.GOVERNANCE
-GOVERNANCE_WHITELIST |= {"reference.product_prioritization", "reference.product_targets", "reference.age_consent_rules", "reference.product_roadmap"}
+GOVERNANCE_WHITELIST |= {"reference.product_prioritization", "reference.product_targets", "reference.age_consent_rules", "reference.product_roadmap", "reference.roadmap_gap_links"}
 FORBIDDEN_TRANSFORMS = {"calculate", "aggregate", "joinaggregate", "window", "bin", "fold", "pivot", "regression", "loess", "density", "timeUnit", "stack"}
 LIBS = ["https://cdn.jsdelivr.net/npm/vega@5", "https://cdn.jsdelivr.net/npm/vega-lite@5", "https://cdn.jsdelivr.net/npm/vega-embed@6"]
 
@@ -246,6 +246,7 @@ DATASETS += [
                g.bar_fill_pct, g.target_marker_pct, g.n_met, g.n_gates, g.blocking_gate_plain
         from reference.product_roadmap r left join share_exec.share_exec__roadmap_gates g using (gate_id) order by r.product_id, horizon_order, r.version""",
        ["reference.product_roadmap", "share_exec.share_exec__roadmap_gates"], "governance", "Roadmap cards with their release gates (values computed in SQL)"),
+    _D("roadmap_gap_links", "select * from reference.roadmap_gap_links order by gap_id", ["reference.roadmap_gap_links"], "governance", "Gaps found and the roadmap cards they changed (evidence read from the exports)"),
     _D("age_rules", "select jurisdiction, age_min, age_max, who_consents, allowed_purposes, prohibited_purposes, verified, project_policy from reference.age_consent_rules order by jurisdiction, age_min",
        ["reference.age_consent_rules"], "governance", "Age-tier consent rules (project policy; the anchor rows are verified, the rest unverified)"),
     _D("conv_tier", """

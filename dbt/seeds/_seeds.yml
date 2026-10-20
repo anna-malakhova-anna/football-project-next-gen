@@ -588,6 +588,23 @@ seeds:
         data_tests:
           - accepted_values: {arguments: {values: [draft, confirmed]}}
 
+  - name: roadmap_gap_links
+    description: >-
+      One-page summary, section 9 (gaps and what they changed): one row per gap. The evidence is NEVER typed: source_export + source_field + source_filter (key=value;key=value) point at one row of a
+      product-tab export (public/data/<source_export>.json), and evidence_template wraps that value ({v}, {n_age_rules}). roadmap_row_id is a roadmap card as "<product_id> <version>" (null for a WATCH gap).
+    config:
+      tags: [phase6]
+      column_types: {gap_id: integer, roadmap_row_id: varchar}
+    columns:
+      - name: gap_id
+        data_tests: [unique, not_null]
+      - name: product_id
+        data_tests:
+          - accepted_values: {arguments: {values: [DP1, DP2, DP3, DP4, DP5]}}
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: [CHANGED, WATCH]}}
+
   - name: age_consent_rules
     description: >-
       Age-tier consent policy by jurisdiction and age band (Phase 6, ADR-022). One row per jurisdiction and band. Rule text is a paraphrase and project policy informed by public rules, not legal advice;
