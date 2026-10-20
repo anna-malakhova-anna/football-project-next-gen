@@ -45,6 +45,54 @@ def pdf_ok(pdf: bytes, label: str) -> list[str]:
     return fails
 
 
+APPROVED_FONTS = {"barlow", "barlow condensed", "inter", "system-ui", "-apple-system", "segoe ui", "arial narrow", "sans-serif", "roboto condensed", "ui-monospace", "menlo", "monospace"}
+TEAM_COLOURS = re.compile(r"#E31837|#FFB81C", re.I)
+
+
+def brand_guard(page) -> list[str]:
+    """The sports-media look borrows a visual grammar, not a brand: no team colour, no logo, shield or helmet image, no font outside the approved ones."""
+    fails: list[str] = []
+    src = (SITE / f"{SLUG}.html").read_text(encoding="utf-8")
+    if TEAM_COLOURS.search(src):
+        fails.append(f"{SLUG}: a team colour ({TEAM_COLOURS.search(src).group(0)}) is in the page")
+    for m in re.finditer(r"<img\b[^>]*>|url\([^)]*\)", src, flags=re.I):
+        if re.search(r"logo|shield|helmet", m.group(0), re.I):
+            fails.append(f"{SLUG}: a brand image: {m.group(0)[:60]}")
+    for fam in re.findall(r"font-family:([^;}]+)", src) + re.findall(r"font:[^;}]*?\d(?:px|rem)(?:/[\d.]+)?\s+([^;}]+)", src):
+        for f in (x.strip().strip("\"'").lower() for x in fam.split(",")):
+            if f and not f.startswith("var(") and f not in APPROVED_FONTS and f != "inherit":
+                fails.append(f"{SLUG}: a font outside the approved set: {f!r}")
+    for fam in re.findall(r"family=([A-Za-z+]+)", src):
+        if fam.replace("+", " ").lower() not in APPROVED_FONTS:
+            fails.append(f"{SLUG}: a web font outside the approved set: {fam!r}")
+    return fails
+
+
+CONTRAST_JS = """(() => {
+  const lum = (c) => { const [r, g, b] = c.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const rgb = (s) => (s.match(/[\\d.]+/g) || []).slice(0, 3).map(Number);
+  const bg = (el) => { for (let e = el; e; e = e.parentElement) { const c = getComputedStyle(e).backgroundColor; const m = c.match(/[\\d.]+/g) || []; if (m.length >= 3 && !(m.length === 4 && +m[3] === 0)) return rgb(c); } return [255, 255, 255]; };
+  const out = [];
+  for (const sel of ['.ps-eyebrow', '.ps-hero h1', '.ps-badge', '.ps-pitch', '.ps-rec .n', '.ps-rec .l', '.ps-tabs a', '.ps-tabs a.on', '.ps-foot span', '.ps-foot a']) {
+    for (const el of document.querySelectorAll(sel)) {
+      const f = rgb(getComputedStyle(el).color), b = bg(el);
+      const l1 = lum(f), l2 = lum(b), ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+      out.push([sel, ratio]);
+    }
+  }
+  return out;
+})()"""
+
+
+def contrast(page) -> list[str]:
+    """Text on the dark hero, the tab bar and the footer reads at 4.5:1 or better (hero gradients are decoration over the solid colour that is measured)."""
+    fails = []
+    for sel, ratio in page.evaluate(CONTRAST_JS):
+        if ratio < 4.5:
+            fails.append(f"{SLUG}: {sel} has contrast {ratio:.1f}:1 on its background (needs 4.5:1)")
+    return fails
+
+
 def check(page, base: str) -> list[str]:
     fails: list[str] = []
     for width, height in ((1440, 1000), (390, 844)):
@@ -60,6 +108,8 @@ def check(page, base: str) -> list[str]:
     page.wait_for_load_state("networkidle")
     text = page.evaluate("document.body.innerText")
     words = len(text.split())
+    # CSS uppercase turns "count" into "COUNT" in innerText, which the code lint would take for a rule code: lint the text as written
+    lint_text = page.evaluate("(() => { const c = document.body.cloneNode(true); c.querySelectorAll('script,style').forEach(e => e.remove()); return c.textContent.replace(/\\s+/g, ' '); })()")
     if words > MAX_WORDS:
         fails.append(f"{SLUG}: {words} visible words (limit {MAX_WORDS})")
     grade = textstat.flesch_kincaid_grade(prose(text))
@@ -86,7 +136,7 @@ def check(page, base: str) -> list[str]:
         fails.append(f"{SLUG}: the section so-what boxes were removed")
     if page.locator("#s-learned td").count() != 6:
         fails.append(f"{SLUG}: the learned table should have three rows of what and so what")
-    text = page.evaluate("document.body.innerText")     # the labels were reopened and closed again: the text is the collapsed page
+    text = lint_text
     low = text.lower()
     for b in BANNED:
         if re.search(rf"\b{re.escape(b)}\b", low):
@@ -101,13 +151,15 @@ def check(page, base: str) -> list[str]:
         fails.append(f"{SLUG}: an unfilled placeholder: {PLACEHOLDER.search(text).group(0)!r}")
     if SMALL_DECIMAL.search(text) or re.search(r"\d+\.\d{3,}", text):
         fails.append(f"{SLUG}: a long decimal on the page")
+    fails += brand_guard(page)
+    fails += contrast(page)
     page.emulate_media(color_scheme="light")
     fails += pdf_ok(page.pdf(prefer_css_page_size=True, print_background=True), f"{SLUG} printed")
     page.set_viewport_size({"width": 720, "height": 960})     # a printed Letter page is 720 CSS px wide inside its margins: the narrow-screen rules must not apply
     page.emulate_media(media="print")
-    for i, (sh, ch) in enumerate(page.evaluate("[...document.querySelectorAll('.ps-p1,.ps-p2,.ps-p3')].map(e => [e.scrollHeight, e.clientHeight])"), 1):
+    for i, (sh, ch) in enumerate(page.evaluate("[...document.querySelectorAll('.ps-hero,.ps-p1,.ps-p2,.ps-p3,.ps-foot')].map(e => [e.scrollHeight, e.clientHeight])"), 1):
         if sh > ch:
-            fails.append(f"{SLUG} printed: page {i} content is {sh}px but the page holds {ch}px (it would be cut off)")
+            fails.append(f"{SLUG} printed: block {i} content is {sh}px but its box holds {ch}px (it would be cut off)")
     page.emulate_media(media="null")
     page.emulate_media(color_scheme=None)
     print(f"one-pager: {words} words, reading grade {grade:.1f}")

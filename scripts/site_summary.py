@@ -113,6 +113,7 @@ def values(data: dict, n_personas: int) -> tuple[dict, list[dict]]:
     gaps = rows_of(data, "roadmap_gap_links")
     put("n_gaps", f"{len(gaps)}", "roadmap_gap_links", "row count", len(gaps))
     put("n_changed", f"{sum(1 for g in gaps if g['status'] == 'CHANGED')}", "roadmap_gap_links", "rows with status CHANGED", sum(1 for g in gaps if g["status"] == "CHANGED"))
+    put("n_products", f"{len(rows_of(data, 'product_specs'))}", "product_specs", "row count", len(rows_of(data, "product_specs")))
     bands = {b["grade"]: b["min_score"] for b in rows_of(data, "dq_grade_bands")}
     for grade in ("A", "B", "C"):
         put(f"band_{grade.lower()}", f"{int(need(bands.get(grade), 'grade band ' + grade))}", "dq_grade_bands", f"min_score ({grade})", bands[grade])
@@ -178,22 +179,26 @@ def who_consents(rules: list[dict], tier: str) -> str:
 def section(n: int, c: dict, key: str, vals: dict, component: str) -> str:
     sec = c["sections"][key]
     line = f"<p class='ps-line'>{e(fill(sec['line'], vals))}</p>" if sec["line"] else ""
-    return (f"<section class='ps-sec' id='s-{key}'><p class='ps-kicker'>{n} · {e(sec['kicker'])}</p><h2>{e(fill(sec['h2'], vals))}</h2>{line}{component}</section>")
+    see = f"<a class='ps-see' href='product.html{e(sec['see'])}'>{e(c['see_full'])} &rarr;</a>"
+    return (f"<section class='ps-sec' id='s-{key}'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>{n} · {e(sec['kicker'])}</p><h2>{e(fill(sec['h2'], vals))}</h2></div>{see}</header>{line}{component}</section>")
 
 
 def labels_component(c: dict, data: dict, vals: dict) -> str:
     """Product labels: five collapsed rows (one open at a time, a native exclusive accordion) on screen; a compact five-row table in print."""
     ps = sp.products()
     specs = {r["id"]: r for r in rows_of(data, "product_specs")}
+    st = c["card_stats"]
     rows, table = "", ""
     for i, (pid, p) in enumerate(ps.items(), 1):
         sp_row = specs[pid]
+        kind = sp.LANE_KIND[pid][0]
         goals = " ".join(f"<span class='ps-tag'>{e(g)}</span>" for g in p["goals"])
-        head = (f"<span class='ps-lname'>{e(pid)} {e(c['product_names'][pid])}</span><span class='ps-chip2'>{e(sp.TYPE_WORD[p['type']])}</span><span class='ps-chip2 ps-st-{e(p['status'])}'>{e(c['status_words'][p['status']])}</span>"
-                f"<span class='ps-lver'>v{e(p['version'])}</span><span class='ps-chip2 ps-q'>{e(quality_chip(sp_row['quality_text'], c, vals))}</span>{goals}")
+        cell = lambda k, v: f"<span class='ps-cell'><i>{e(st[k])}</i><b>{v}</b></span>"   # noqa: E731
+        head = (f"<span class='ps-num' aria-hidden='true'>{i:02d}</span><span class='ps-lname'>{e(pid)} {e(c['product_names'][pid])}<small class='ps-pos'>{e(c['positions'][kind])}</small></span>"
+                f"<span class='ps-cells'>{cell('version', 'v' + e(p['version']))}{cell('status', e(c['status_words'][p['status']]))}{cell('grade', e(quality_chip(sp_row['quality_text'], c, vals)))}{cell('goals', goals)}</span>")
         body = (sp.label_html(pid, p, sp_row, True, plain=True) + f"<p class='ps-limit'>{e(c['label_limits'][pid])}</p>"
                 f"<p class='note'><a href='product.html#view=D5-{i}'>Full label on the tab &rarr;</a></p>")
-        rows += f"<details name='dp-label' class='ps-label'><summary>{head}</summary>{body}</details>"
+        rows += f"<details name='dp-label' class='ps-label ps-k-{kind}'><summary>{head}</summary>{body}</details>"
         rule = p["privacy"]["prohibited_uses"][0]["use"]
         table += (f"<tr><th scope='row'>{e(pid)} {e(c['product_names'][pid])}</th><td>{e(sp.TYPE_WORD[p['type']])}</td><td>{e(c['status_words'][p['status']])}</td><td>v{e(p['version'])}</td>"
                   f"<td>{e(quality_chip(sp_row['quality_text'], c, vals))}</td><td>{e(p['owner_role'])}</td><td>Never: {e(rule)}</td></tr>")
@@ -239,9 +244,9 @@ def working_component(c: dict, data: dict, vals: dict) -> str:
     for gid, g in c["goal_rows"].items():
         gate = road[g["gate"]]
         chip = f"{gate['status_text']}: {gate['value_text']}"
-        goals += (f"<div class='ps-grow'><div class='ps-gnum'><span class='ps-tag'>{e(gid)}</span><div class='n'>{e(fill(g['value'], vals))}</div></div>"
-                  f"<div class='ps-gtext'><p>{e(fill(g['support'], vals))}</p><p><span class='ps-gate ps-gate-{'met' if gate['gate_status'] == 'MET' else 'no'}'>{e(chip)}</span></p>"
-                  f"<p class='ps-gso'><b>So what.</b> {e(fill(g['sowhat'], vals))}</p></div></div>")
+        goals += (f"<div class='ps-leader'><span class='ps-tag'>{e(gid)}</span><div class='n'>{e(fill(g['value'], vals))}</div><div class='lab'>{e(g['label'])}</div>"
+                  f"<p>{e(fill(g['support'], vals))}</p><p><span class='ps-gate ps-gate-{'met' if gate['gate_status'] == 'MET' else 'no'}'>{e(chip)}</span></p>"
+                  f"<p class='ps-gso'><b>So what.</b> {e(fill(g['sowhat'], vals))}</p></div>")
     hrows = ""
     h = c["health_heads"]
     health = rows_of(data, "product_health")
@@ -255,7 +260,7 @@ def working_component(c: dict, data: dict, vals: dict) -> str:
         hrows += (f"<tr><th scope='row'>{e(pid)} {e(c['product_names'][pid])}</th><td>{e(quality_chip(specs[pid]['quality_text'], c, vals))}</td><td>{mark(tests)}</td><td>{mark(privacy)}</td>"
                   f"<td><b class='ps-hs ps-hs-{word.lower()}'>{word}</b>{(' <span class=ps-why>' + e(why) + '</span>') if why else ''}</td></tr>")
     htable = site_tables.enhance(f"<table class='vtable ps-health-table'><thead><tr><th>{e(h['product'])}</th><th>{e(h['grade'])}</th><th>{e(h['tests'])}</th><th>{e(h['privacy'])}</th><th>{e(h['status'])}</th></tr></thead><tbody>{hrows}</tbody></table>")
-    return f"<div class='ps-grows'>{goals}</div><p class='ps-sub'>{e(fill(c['working_sub'], vals))}</p>{htable}"
+    return f"<div class='ps-leaders'>{goals}</div><p class='ps-sub'>{e(fill(c['working_sub'], vals))}</p>{htable}"
 
 
 def gaps_component(c: dict, data: dict, vals: dict) -> tuple[str, list[dict], dict]:
@@ -285,111 +290,185 @@ def learned_component(c: dict, vals: dict) -> str:
 
 
 CSS = """
-body.ps{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 var(--font-body)}
-.ps *{box-sizing:border-box}
-.ps-story{max-width:960px;margin:0 auto;padding:20px 16px 28px}
-.ps-hero{background:var(--night-field);color:#fff;border-radius:12px;padding:20px 24px;margin-bottom:40px}
-.ps-hero h1{font-family:var(--font-display);font-size:32px;line-height:1.1;margin:0;color:#fff}
-.ps-hero p{margin:6px 0 0;color:#B9C6DC;font-size:15px}
-.ps-sec{margin:0 0 40px;padding-bottom:36px;border-bottom:1px solid var(--border);break-inside:avoid}
-.ps-sec:last-of-type{border-bottom:0}
-.ps-kicker{margin:0 0 4px;font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)}
-.ps-sec h2{font-family:var(--font-display);font-size:26px;line-height:1.15;margin:0 0 6px;color:var(--text)}
-.ps-line{margin:0 0 14px;color:var(--text-muted)}
-.ps-sec .vproduct{margin:0}
-.ps-sec .vpersonas{grid-template-columns:repeat(3,minmax(0,1fr))}
-.ps-sec .vpersona{font-size:.8125rem}
-.ps-sec .vdep{max-height:none}
-.ps-tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 12px}
-.ps-tier{border-radius:6px;padding:9px 10px;color:#fff}
-.ps-tier b{display:block;font-size:14px}.ps-tier span{font-size:12px}
-.ps-t1{background:#1f4e79}.ps-t2{background:#2d6a9a}.ps-t3{background:#3b76a6}.ps-t4{background:#59626d}
-.ps-chips{display:flex;flex-wrap:wrap;gap:6px}
-.ps-chip{display:inline-flex;gap:4px;border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--text-muted)}
-.ps-chip::before{content:"\\2298";color:#C0392B;font-weight:700}
-.ps-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.ps-kpi .n{font-family:var(--font-display);font-size:34px;font-weight:700;line-height:1.05}
-.ps-kpi .l{font-size:12.5px;color:var(--text-muted)}.ps-kpi .g{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.05em}
-.ps-health{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:14px;padding-top:10px;border-top:1px solid var(--border);font-size:13px}
-.ps-sub{color:var(--text-muted)}
-.ps-legend{margin:10px 0 0;font-size:12.5px;color:var(--text-muted)}
-.ps-print-only{display:none}
-.ps-labels{display:grid;gap:6px}
-.ps-label{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0}
-.ps-label summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;list-style:none}
-.ps-label summary::-webkit-details-marker{display:none}
-.ps-label summary::before{content:"\\25B8";color:var(--text-muted)}
-.ps-label[open] summary::before{content:"\\25BE"}
-.ps-lname{font-weight:700;min-width:150px}
-.ps-lver{font-size:12px;color:var(--text-muted)}
-.ps-chip2{display:inline-block;font-size:12px;padding:0 8px;border-radius:999px;border:1px solid var(--border)}
-.ps-st-mvp{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
-.ps-st-proposed{border-style:dashed}
-.ps-q{border-color:var(--series-sand)}
-.ps-tag{display:inline-block;font-weight:700;font-size:11px;padding:0 5px;border:1px solid var(--accent);color:var(--accent);border-radius:2px;white-space:nowrap}
-.ps-label .vlabel{padding:0 14px 6px;font-size:13.5px}
-.ps-label .vlabel p{margin:4px 0}
-.ps-label .vlabel ul{margin:2px 0 6px;padding-left:18px}
-.ps-label .vrules{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.ps-label .vnever li{color:var(--text)}
-.ps-label .vnever li::marker{content:"\\2298  ";color:#C0392B}
-.ps-limit{margin:0 14px 4px;color:var(--text-muted);font-size:13px}
-.ps-label .note{margin:0 14px 10px}
-.ps-tcol{min-width:0}
-.ps-allowed{font-size:12px;margin:6px 0;color:var(--text)}
-.ps-cbar{height:7px;border-radius:4px;background:var(--border);overflow:hidden}
-.ps-cbar i{display:block;height:100%;background:#2d6a9a}
-.ps-cnote{font-size:12px;margin:4px 0 0;color:var(--text-muted)}
-.ps-grows{display:grid;gap:0}
-.ps-grow{display:grid;grid-template-columns:170px 1fr;gap:16px;padding:12px 0;border-top:1px solid var(--border)}
-.ps-grow:first-child{border-top:0}
-.ps-gnum .n{font-family:var(--font-display);font-size:36px;font-weight:700;line-height:1.05}
-.ps-gtext p{margin:0 0 4px}
-.ps-badge{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid #F2C230;color:#F2C230;border-radius:999px;padding:1px 10px}
-.ps-gso{color:var(--text)}.ps-gso b{color:var(--accent)}
-.ps-gate{display:inline-block;font-size:12px;border-radius:999px;padding:1px 10px;border:1px solid var(--border)}
-.ps-gate-met{border-color:#2F6B4F;color:#2F6B4F}.ps-gate-no{border-color:#B04A1C;color:#B04A1C}
-.ps-sub{font-size:12px;color:var(--text-muted);margin:8px 0}
-.ps-hs{font-weight:700}.ps-hs-ok{color:#2F6B4F}.ps-hs-watch{color:#B04A1C}.ps-hs-alert{color:#C0392B}
-.ps-why{display:block;font-size:12px;color:var(--text-muted)}
-.ps-tagchip{display:inline-block;font-size:12px;border-radius:999px;padding:1px 10px;white-space:nowrap;text-decoration:none}
-.ps-tag-changed{background:var(--accent);color:#fff;font-weight:700}
-.ps-tag-watch{border:1px dashed var(--text-muted);color:var(--text-muted)}
-.vrgap{display:inline-block;margin-top:2px;font-size:.625rem;color:var(--accent);font-weight:700;text-decoration:none}
-.ps-sec .vrcard:target{outline:2px solid var(--accent)}
-.ps-learn p{margin:0 0 8px}
-.ps-learn p b{display:inline-block;min-width:110px;color:var(--text-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
-.ps-foot{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--text-muted)}
-.ps-foot a{color:var(--link)}
-@media screen and (max-width:700px){
-  .ps-sec .vpersonas,.ps-tiers,.ps-kpis,.ps-grow,.ps-label .vrules{grid-template-columns:1fr}
-  .ps-sec h2{font-size:22px}
+body.summary{--s-ink-hero:#0b1726;--s-hero-ink:#ffffff;--s-hero-muted:#b4c0d0;--s-accent:#19b37a;--s-accent-ink:#0b7a52;--s-accent-2:#7aa7ff;--s-bg:#f4f5f7;--s-card:#ffffff;--s-line:#e1e4e8;
+  --s-text:#1b2733;--s-muted:#4f5b68;--s-zebra:#f0f2f5;--s-arrow:#0b1726;--s-ok-bg:#d8f3e7;--s-ok:#0b5f41;--s-watch-bg:#fde9c8;--s-watch:#7a4a00;--s-alert-bg:#fbdada;--s-alert:#9b1c1c;--s-shadow:0 6px 16px rgba(11,23,38,.14)}
+@media (prefers-color-scheme:dark){html:not([data-theme="light"]) body.summary{--s-ink-hero:#070e18;--s-hero-ink:#eef2f7;--s-hero-muted:#a9b6c7;--s-accent:#3fd39a;--s-accent-ink:#5fe0b0;--s-accent-2:#9dbdff;--s-bg:#0f141b;--s-card:#161d26;--s-line:#26303b;
+  --s-text:#e6ebf1;--s-muted:#a9b4c0;--s-zebra:#1a222c;--s-arrow:#cfd8e3;--s-ok-bg:#0f3a2a;--s-ok:#7ee3b8;--s-watch-bg:#3a2a0c;--s-watch:#f0c070;--s-alert-bg:#3d1717;--s-alert:#ff9a9a;--s-shadow:0 6px 16px rgba(0,0,0,.5)}}
+html[data-theme="dark"] body.summary{--s-ink-hero:#070e18;--s-hero-ink:#eef2f7;--s-hero-muted:#a9b6c7;--s-accent:#3fd39a;--s-accent-ink:#5fe0b0;--s-accent-2:#9dbdff;--s-bg:#0f141b;--s-card:#161d26;--s-line:#26303b;
+  --s-text:#e6ebf1;--s-muted:#a9b4c0;--s-zebra:#1a222c;--s-arrow:#cfd8e3;--s-ok-bg:#0f3a2a;--s-ok:#7ee3b8;--s-watch-bg:#3a2a0c;--s-watch:#f0c070;--s-alert-bg:#3d1717;--s-alert:#ff9a9a;--s-shadow:0 6px 16px rgba(0,0,0,.5)}
+body.summary{--bg:var(--s-bg);--surface:var(--s-card);--border:var(--s-line);--text:var(--s-text);--text-muted:var(--s-muted);--accent:var(--s-accent-ink);--font-body:Inter,system-ui,sans-serif;--font-display:"Barlow Condensed","Arial Narrow",sans-serif;
+  margin:0;background:var(--s-bg);color:var(--s-text);font:400 15px/1.5 Inter,system-ui,sans-serif}
+body.summary *{box-sizing:border-box}
+body.summary .ps-inner,body.summary .ps-story{max-width:1200px;margin:0 auto;padding-left:24px;padding-right:24px}
+/* hero */
+body.summary .ps-hero{background-color:var(--s-ink-hero);background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 1px,transparent 1px 56px),linear-gradient(115deg,transparent 50%,rgba(25,179,122,.16) 100%);color:var(--s-hero-ink);padding:40px 0 0}
+body.summary .ps-eyebrow{margin:0 0 8px;font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-accent)}
+body.summary .ps-hero h1{font:700 64px/1 "Barlow Condensed",sans-serif;letter-spacing:.01em;text-transform:uppercase;margin:0;color:var(--s-hero-ink)}
+body.summary .ps-badge{display:inline-block;margin:14px 0 0;font:600 11px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--s-hero-muted);color:var(--s-hero-ink);border-radius:999px;padding:5px 12px}
+body.summary .ps-pitch{margin:14px 0 0;color:var(--s-hero-muted);font-size:17px;max-width:760px}
+body.summary .ps-record{display:grid;grid-template-columns:repeat(4,1fr);margin-top:28px;border-top:1px solid rgba(255,255,255,.14)}
+body.summary .ps-rec{padding:18px 0 20px 20px;border-left:1px solid rgba(255,255,255,.14)}
+body.summary .ps-rec:first-child{border-left:0;padding-left:0}
+body.summary .ps-rec .n{font:700 64px/1 "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums;color:var(--s-hero-ink)}
+body.summary .ps-rec .l{margin-top:4px;font:600 12px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-hero-muted)}
+/* sticky tab bar */
+body.summary .ps-tabs{position:sticky;top:0;z-index:20;background:var(--s-ink-hero);border-top:1px solid rgba(255,255,255,.1);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+body.summary .ps-tabs .ps-inner{display:flex;gap:4px;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
+body.summary .ps-tabs a{display:block;padding:15px 14px 12px;font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-hero-muted);text-decoration:none;border-bottom:3px solid transparent}
+body.summary .ps-tabs a:hover{color:var(--s-hero-ink)}
+body.summary .ps-tabs a.on{color:var(--s-hero-ink);border-bottom-color:var(--s-accent)}
+/* sections */
+body.summary .ps-story{padding-top:56px;padding-bottom:40px}
+body.summary .ps-sec{margin:0 0 64px;padding:0;border:0;scroll-margin-top:60px;break-inside:avoid}
+body.summary .ps-sh{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-left:4px solid var(--s-accent);padding-left:14px;margin-bottom:14px}
+body.summary .ps-kicker{margin:0 0 4px;font:600 12px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-muted)}
+body.summary .ps-sec h2{font:700 36px/1.05 "Barlow Condensed",sans-serif;letter-spacing:.01em;text-transform:uppercase;margin:0;color:var(--s-text)}
+body.summary .ps-see{flex:none;margin-top:4px;font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-accent-ink);text-decoration:none;white-space:nowrap}
+body.summary .ps-see:hover{text-decoration:underline}
+body.summary .ps-line{margin:0 0 16px;color:var(--s-muted)}
+body.summary .ps-sec .vproduct{margin:0}
+/* standings tables */
+body.summary .vtable,body.summary .vmatrix{width:100%;border-collapse:collapse;font-size:14px;background:var(--s-card);border:1px solid var(--s-line)}
+body.summary .vtable thead th,body.summary .vmatrix thead th{background:var(--s-ink-hero);color:var(--s-hero-ink);font:600 11px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:0 12px;height:40px;border:0;text-align:left;vertical-align:middle}
+body.summary .vtable td,body.summary .vtable tbody th,body.summary .vmatrix td,body.summary .vmatrix tbody th{height:40px;padding:6px 12px;border:0;border-bottom:1px solid var(--s-line);vertical-align:middle;font-weight:400}
+body.summary .vtable tbody th[scope=row],body.summary .vmatrix tbody th{font-weight:700;color:var(--s-text)}
+body.summary .vtable tbody tr:nth-child(even){background:var(--s-zebra)}
+body.summary #s-priorities td:nth-child(n+2):nth-child(-n+6),body.summary #s-priorities thead th:nth-child(n+2):nth-child(-n+6){text-align:right;font-variant-numeric:tabular-nums}
+body.summary .ps-health-table td:nth-child(n+2):nth-child(-n+4),body.summary .ps-health-table thead th:nth-child(n+2):nth-child(-n+4){text-align:center}
+body.summary .vmatrix td{text-align:center;font-weight:600}
+body.summary .vm-pill{display:inline-block;padding:2px 12px;border-radius:999px;font:700 11px/1.5 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+body.summary .vmatrix thead th:not(:first-child){text-align:center}
+/* roster cards (product labels) */
+body.summary .ps-labels{display:grid;gap:10px}
+body.summary .ps-label{--k:#b8a06a;background:var(--s-card);border:1px solid var(--s-line);border-left:6px solid var(--k);border-radius:4px}
+body.summary .ps-k-source{--k:#b8a06a}body.summary .ps-k-master{--k:#3D7CC9}body.summary .ps-k-insights{--k:#2F6B4F}body.summary .ps-k-restricted{--k:#7D4E8E}
+body.summary .ps-label summary{color:var(--s-text);display:grid;grid-template-columns:64px minmax(190px,1fr) 3fr;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;list-style:none}
+body.summary .ps-label summary::-webkit-details-marker{display:none}
+body.summary .ps-num{font:700 52px/1 "Barlow Condensed",sans-serif;color:transparent;-webkit-text-stroke:1.5px var(--s-muted)}
+body.summary .ps-lname{font:700 22px/1.1 "Barlow Condensed",sans-serif;letter-spacing:.01em;text-transform:uppercase}
+body.summary .ps-pos{display:block;margin-top:3px;font:600 11px/1 Inter,sans-serif;letter-spacing:.08em;color:var(--s-muted)}
+body.summary .ps-cells{display:flex;flex-wrap:wrap;gap:8px}
+body.summary .ps-cell{background:var(--s-bg);border-radius:4px;padding:5px 12px;min-width:92px}
+body.summary .ps-cell i{display:block;font:600 10px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-muted);font-style:normal}
+body.summary .ps-cell b{font:600 14px/1.3 Inter,sans-serif;font-variant-numeric:tabular-nums}
+body.summary .ps-tag{display:inline-block;font-weight:700;font-size:11px;padding:0 5px;border:1px solid var(--s-accent-ink);color:var(--s-accent-ink);border-radius:2px;white-space:nowrap}
+body.summary .ps-label[open]>summary{border-bottom:1px solid var(--s-line)}
+body.summary .ps-label .vlabel{padding:12px 20px 4px;font-size:14px;background:var(--s-bg)}
+body.summary .ps-label .vlabel p{margin:4px 0}
+body.summary .ps-label .vlabel ul{margin:2px 0 6px;padding-left:18px}
+body.summary .ps-label .vrules{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+body.summary .ps-label .vnever li::marker{content:"\\2298  ";color:#C0392B}
+body.summary .ps-limit{margin:0;padding:0 20px 4px;background:var(--s-bg);color:var(--s-muted);font-size:13px}
+body.summary .ps-label .note{margin:0;padding:4px 20px 12px;background:var(--s-bg)}
+body.summary .ps-legend{margin:14px 0 0;font-size:13px;color:var(--s-muted)}
+body.summary .ps-print-only{display:none}
+/* persona cards */
+body.summary .vpersonas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+body.summary .vpersona{display:grid;grid-template-columns:44px 1fr;column-gap:12px;align-content:start;background:var(--s-card);border:1px solid var(--s-line);border-top:4px solid var(--s-accent);border-radius:4px;padding:16px;font-size:14px}
+body.summary .vpersona>p{grid-column:1 / -1;margin:6px 0 0}
+body.summary .vpersona .vmono{grid-row:1 / span 2;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;background:var(--s-ink-hero);color:var(--s-hero-ink);font:700 18px/1 "Barlow Condensed",sans-serif;letter-spacing:.04em}
+body.summary .vpersona h4{margin:0;align-self:end;font:700 22px/1.05 "Barlow Condensed",sans-serif;letter-spacing:.01em;text-transform:uppercase;color:var(--s-text)}
+body.summary .vpersona .note{grid-column:2;margin:2px 0 0;font:600 11px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-muted)}
+/* diagram */
+body.summary .vdep{width:100%;height:auto;max-height:none}
+body.summary .vdep rect{fill:var(--s-card);stroke:var(--s-line);stroke-width:1;rx:4}
+body.summary .vdep .db-util{filter:drop-shadow(0 -4px 0 #b8a06a)}body.summary .vdep .db-en{filter:drop-shadow(0 -4px 0 #3D7CC9)}body.summary .vdep .db-dr{filter:drop-shadow(0 -4px 0 #2F6B4F)}
+body.summary .vdep .db-src{fill:var(--s-bg);stroke-dasharray:4 3}
+body.summary .vdep .dt{font:700 14px "Barlow Condensed",sans-serif;letter-spacing:.02em;text-transform:uppercase;fill:var(--s-text)}
+body.summary .vdep .ds{font:400 11px Inter,sans-serif;fill:var(--s-muted)}
+body.summary .vdep .da{stroke:var(--s-arrow);stroke-width:1.6}body.summary .vdep .dah{fill:var(--s-arrow)}
+/* roadmap as a schedule grid */
+body.summary .vroad{font-size:.8125rem}
+body.summary .vroad .vr-colhead{background:var(--s-ink-hero);color:var(--s-hero-ink);font:700 15px/1 "Barlow Condensed",sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:9px 10px;border-radius:4px 4px 0 0}
+body.summary .vroad .vrcard{border-radius:4px;box-shadow:0 1px 0 rgba(11,23,38,.18);background:var(--s-card);border-color:var(--s-line)}
+body.summary .vroad .vr-cell{background:var(--s-bg);border-color:var(--s-line)}
+body.summary .vroad .vr-label{color:#1B2733}
+body.summary .vroad .vrpivot{background:var(--s-card);color:var(--s-text)}
+body.summary .vroad .vrtitle,body.summary .vroad .vgval{color:var(--s-text)}
+body.summary .vrgap{display:inline-block;margin-top:2px;font-size:.6875rem;color:var(--s-accent-ink);font-weight:700;text-decoration:none}
+body.summary .vroad .vrcard:target{outline:2px solid var(--s-accent)}
+/* privacy */
+body.summary .ps-tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px 0 16px}
+body.summary .ps-tier{border-radius:4px;padding:10px 12px;color:#fff}
+body.summary .ps-tier b{display:block;font:700 20px/1.1 "Barlow Condensed",sans-serif;letter-spacing:.01em;text-transform:uppercase}
+body.summary .ps-tier span{font-size:12px}
+body.summary .ps-t1{background:#1f4e79}body.summary .ps-t2{background:#2d6a9a}body.summary .ps-t3{background:#2e6c97}body.summary .ps-t4{background:#59626d}
+body.summary .ps-allowed{font-size:13px;margin:8px 0}
+body.summary .ps-cbar{height:8px;border-radius:2px;background:var(--s-line);overflow:hidden}
+body.summary .ps-cbar i{display:block;height:100%;background:var(--s-accent)}
+body.summary .ps-cnote{font-size:12px;margin:5px 0 0;color:var(--s-muted)}
+body.summary .ps-chips{display:flex;flex-wrap:wrap;gap:6px}
+body.summary .ps-chip{display:inline-flex;gap:4px;border:1px solid var(--s-line);border-radius:999px;padding:3px 11px;font-size:12px;color:var(--s-muted);background:var(--s-card)}
+body.summary .ps-chip::before{content:"\\2298";color:#C0392B;font-weight:700}
+/* stat leaders */
+body.summary .ps-leaders{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+body.summary .ps-leader{background:var(--s-card);border:1px solid var(--s-line);border-top:4px solid var(--s-accent);border-radius:4px;padding:18px 18px 16px}
+body.summary .ps-leader .n{font:700 72px/1 "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums;color:var(--s-accent-ink);margin-top:6px}
+body.summary .ps-leader .lab{font:600 12px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-muted);margin-bottom:8px}
+body.summary .ps-leader p{margin:0 0 6px;font-size:14px}
+body.summary .ps-gso b{color:var(--s-accent-ink)}
+body.summary .ps-gate{display:inline-block;font-size:12px;border-radius:999px;padding:1px 10px;border:1px solid var(--s-line)}
+body.summary .ps-gate-met{border-color:#2F6B4F;color:var(--s-ok)}body.summary .ps-gate-no{border-color:#B04A1C;color:var(--s-watch)}
+body.summary .ps-sub{font-size:12px;color:var(--s-muted);margin:14px 0 8px}
+body.summary .ps-hs{display:inline-block;padding:1px 10px;border-radius:999px;font:700 11px/1.5 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+body.summary .ps-hs-ok{background:var(--s-ok-bg);color:var(--s-ok)}body.summary .ps-hs-watch{background:var(--s-watch-bg);color:var(--s-watch)}body.summary .ps-hs-alert{background:var(--s-alert-bg);color:var(--s-alert)}
+body.summary .ps-why{display:block;font-size:12px;color:var(--s-muted);margin-top:2px}
+body.summary .ps-tagchip{display:inline-block;font:700 11px/1.5 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:1px 10px;white-space:nowrap;text-decoration:none}
+body.summary .ps-tag-changed{background:var(--s-accent);color:#04251a}
+body.summary .ps-tag-watch{background:var(--s-watch-bg);color:var(--s-watch)}
+/* motion */
+@media (prefers-reduced-motion:no-preference){body.summary .ps-label,body.summary .vpersona,body.summary .ps-leader,body.summary .vroad .vrcard{transition:transform .15s,box-shadow .15s}
+  body.summary .ps-label:hover,body.summary .vpersona:hover,body.summary .ps-leader:hover,body.summary .vroad .vrcard:hover{transform:translateY(-2px);box-shadow:var(--s-shadow)}}
+/* footer */
+body.summary .ps-foot{background:var(--s-ink-hero);color:var(--s-hero-muted);padding:28px 0;font-size:13px}
+body.summary .ps-foot .ps-inner{display:flex;flex-wrap:wrap;gap:6px 24px;align-items:center}
+body.summary .ps-foot a{color:var(--s-accent-2);text-decoration:none;font-weight:600}
+@media screen and (max-width:900px){
+  body.summary .ps-hero h1{font-size:40px}
+  body.summary .ps-record{grid-template-columns:repeat(2,1fr)}
+  body.summary .ps-rec:nth-child(3){border-left:0;padding-left:0}
+  body.summary .ps-rec .n{font-size:44px}
+  body.summary .ps-sh{flex-direction:column}
+  body.summary .ps-sec h2{font-size:28px}
+  body.summary .vpersonas,body.summary .ps-tiers,body.summary .ps-leaders,body.summary .ps-label .vrules{grid-template-columns:1fr}
+  body.summary .ps-label summary{grid-template-columns:48px 1fr}
+  body.summary #s-matrix .vproduct{overflow-x:auto}
+  body.summary #s-matrix .vmatrix{min-width:560px}
+  body.summary .ps-cells{grid-column:1 / -1}
+  body.summary .ps-inner,body.summary .ps-story{padding-left:16px;padding-right:16px}
 }
 @page{size:letter portrait;margin:.5in}
 @media print{
-  :root:root{--bg:#fff;--surface:#fff;--text:#1B2733;--text-muted:#4A5866;--border:#D5DBE1;--link:#1F5E8F;color-scheme:light;--pz1:.6;--pz2:.57;--pz3:.5}
-  body.ps{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#fff}
-  .ps-story{max-width:none;padding:0}
-  .ps-p1{zoom:var(--pz1);width:calc(720px / var(--pz1));height:calc(960px / var(--pz1));overflow:hidden;break-after:page}
-  .ps-p2{zoom:var(--pz2);width:calc(720px / var(--pz2));height:calc(960px / var(--pz2));overflow:hidden;break-after:page}
-  .ps-p3{zoom:var(--pz3);width:calc(720px / var(--pz3));height:calc(960px / var(--pz3));overflow:hidden}
-  .ps-screen-only{display:none}
-  table.ps-print-only{display:table}
-  .ps-hero,.ps-tier,.vroad,.vmatrix{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .ps-hero{margin-bottom:22px;padding:14px 20px}
-  .ps-sec{margin-bottom:18px;padding-bottom:14px}
-  .ps-sec h2{font-size:24px}
-  .ps-line{margin-bottom:8px}
-  .ps-story .vr-head{display:grid}
-  .ps-story .vr-head,.ps-story .vr-lane{grid-template-columns:170px repeat(4,minmax(0,1fr))}
-  .ps-story .vr-cell:empty,.ps-story .vr-cell:not(:has(*)){display:flex}
-  .ps-story .vr-cell::before{content:none}
-  .ps-story .ps-tiers{grid-template-columns:repeat(4,1fr)}
-  .ps-story .ps-kpis{grid-template-columns:repeat(3,1fr)}
-  .ps-sec .vdep{max-height:300px}
-  .ps-sec .vpersona{padding:7px 9px}
-  .ps-sec .vpersona p{margin:3px 0}
-  .ps-sec .vtable th,.ps-sec .vtable td,.ps-sec .vmatrix th,.ps-sec .vmatrix td{padding:4px 8px}
+  body.summary{--pz1:.63;--pz2:.54;--pz3:.52;--ph:250px;--pf:80px;-webkit-print-color-adjust:exact;print-color-adjust:exact;--s-bg:#fff;--s-card:#fff;--s-text:#1B2733;--s-muted:#4A5866;--s-line:#D5DBE1;--s-zebra:#f0f2f5;--s-ink-hero:#0b1726;--s-hero-ink:#fff;--s-hero-muted:#b4c0d0;--s-accent:#19b37a;--s-accent-ink:#0b7a52;--s-arrow:#0b1726;color-scheme:light}
+  body.summary .ps-tabs,body.summary .ps-see,body.summary .ps-screen-only{display:none}
+  body.summary table.ps-print-only{display:table}
+  body.summary .ps-hero{zoom:var(--pz1);width:calc(720px / var(--pz1));height:var(--ph);overflow:hidden;padding:20px 0 0}
+  body.summary .ps-hero .ps-inner,body.summary .ps-story{max-width:none;padding-left:0;padding-right:0}
+  body.summary .ps-hero h1{font-size:44px}
+  body.summary .ps-pitch{margin-top:6px;font-size:14px}
+  body.summary .ps-badge{margin-top:8px}
+  body.summary .ps-record{margin-top:10px}
+  body.summary .ps-rec{padding:8px 0 0 16px}.ps-rec .n{font-size:36px}
+  body.summary .ps-hero .ps-inner{padding-left:20px;padding-right:20px}
+  body.summary .ps-story{padding-top:0;padding-bottom:0}
+  body.summary .ps-p1{zoom:var(--pz1);width:calc(720px / var(--pz1));height:calc(960px / var(--pz1) - var(--ph));overflow:hidden;break-after:page;padding-top:16px}
+  body.summary .ps-p2{zoom:var(--pz2);width:calc(720px / var(--pz2));height:calc(960px / var(--pz2));overflow:hidden;break-after:page}
+  body.summary .ps-p3{zoom:var(--pz3);width:calc(720px / var(--pz3));height:calc(960px / var(--pz3) - var(--pf));overflow:hidden}
+  body.summary .ps-foot{zoom:var(--pz3);width:calc(720px / var(--pz3));height:var(--pf);overflow:hidden;padding:14px 0}
+  body.summary .ps-foot .ps-inner{padding-left:20px;padding-right:20px;max-width:none}
+  body.summary .ps-sec{margin-bottom:28px}
+  body.summary .ps-sec h2{font-size:28px}
+  body.summary .ps-line{margin-bottom:8px}
+  body.summary .vr-head,body.summary .vr-lane{grid-template-columns:170px repeat(4,minmax(0,1fr))}
+  body.summary .vr-head{display:grid}
+  body.summary .vr-cell:empty,body.summary .vr-cell:not(:has(*)){display:flex}
+  body.summary .vr-cell::before{content:none}
+  body.summary .ps-tiers{grid-template-columns:repeat(4,1fr)}
+  body.summary .ps-leaders{grid-template-columns:repeat(3,1fr)}
+  body.summary .ps-leader .n{font-size:56px}
+  body.summary .vdep{max-height:300px}
+  body.summary .vtable td,body.summary .vtable tbody th,body.summary .vmatrix td,body.summary .vmatrix tbody th{height:30px;padding:3px 10px}
+  body.summary .ps-hero,body.summary .ps-tier,body.summary .vroad,body.summary .vroad .vr-colhead,body.summary .vtable thead th,body.summary .vmatrix thead th,body.summary .ps-foot,body.summary .vpersona .vmono{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 """
 
@@ -416,9 +495,15 @@ def render(data: dict, version: str) -> tuple[str, list[dict], dict]:
              ("gaps", gaps_html),
              ("learned", learned_component(c, vals))]
     secs = [section(i, c, k, vals, comp) for i, (k, comp) in enumerate(comps, 1)]
-    hero = f"<header class='ps-hero'><h1>{e(c['title'])}</h1><span class='ps-badge'>{e(c['synthetic_badge'])}</span><p>{e(c['pitch'])}</p></header>"
-    foot = (f"<footer class='ps-foot'><span>{e(c['footer'])}</span><a href='product.html'>{e(c['footer_link'])} &rarr;</a><span>{e(fill(c['methodology'], {'version': str(version)}))}</span></footer>")
-    grid = f"<div class='ps-p1'>{hero}{''.join(secs[:3])}</div><div class='ps-p2'>{''.join(secs[3:6])}</div><div class='ps-p3'>{''.join(secs[6:])}{foot}</div>"
+    rl = c["record_labels"]
+    rec = [("products", vals["n_products"]), ("gates", f"{vals['n_met']}/{vals['n_gates']}"), ("fans", f"~{vals['fans_created']}"), ("breaks", vals["n_boundary"])]
+    record = "".join(f"<div class='ps-rec'><div class='n'>{e(v)}</div><div class='l'>{e(rl[k])}</div></div>" for k, v in rec)
+    hero = (f"<header class='ps-hero'><div class='ps-inner'><p class='ps-eyebrow'>{e(fill(c['eyebrow'], vals))}</p><h1>{e(c['title'])}</h1><span class='ps-badge'>{e(c['synthetic_badge'])}</span>"
+            f"<p class='ps-pitch'>{e(c['pitch'])}</p><div class='ps-record'>{record}</div></div></header>")
+    tabs = "<nav class='ps-tabs' aria-label='Sections'><div class='ps-inner'>" + "".join(f"<a href='#{e(t['id'])}'{' class=on' if i == 0 else ''}>{e(t['label'])}</a>" for i, t in enumerate(c["tabs"])) + "</div></nav>"
+    foot = (f"<footer class='ps-foot'><div class='ps-inner'><span>{e(c['disclaimer'])}</span><span>{e(c['footer'])}</span><span>{e(fill(c['methodology'], {'version': str(version)}))}</span>"
+            f"<a href='product.html'>{e(c['footer_link'])} &rarr;</a></div></footer>")
+    grid = f"<div class='ps-p1'>{''.join(secs[:3])}</div><div class='ps-p2'>{''.join(secs[3:6])}</div><div class='ps-p3'>{''.join(secs[6:])}</div>"
     page = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -429,19 +514,25 @@ def render(data: dict, version: str) -> tuple[str, list[dict], dict]:
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/site.css">
 <link rel="stylesheet" href="assets/viewer.css">
 <script>try{{var t=localStorage.getItem("cff-theme");if(t==="light"||t==="dark"){{document.documentElement.dataset.theme=t}}}}catch(e){{}}</script>
 <style>{CSS}</style>
 </head>
-<body class="ps">
+<body class="ps summary">
+{hero}
+{tabs}
 <main class="ps-story" id="main">
 {grid}
 </main>
+{foot}
 <script>/* progressive enhancement: where the browser lacks exclusive <details name>, opening one closes the others. It only toggles open; it computes nothing. */
 document.querySelectorAll('details[name=dp-label]').forEach(function(d){{d.addEventListener('toggle',function(){{if(d.open&&!('name' in HTMLDetailsElement.prototype)){{document.querySelectorAll('details[name=dp-label]').forEach(function(o){{if(o!==d)o.open=false}})}}}})}});
+</script>
+<script>/* active tab follows the scroll; no data logic */
+(function(){{var links=[].slice.call(document.querySelectorAll('.ps-tabs a'));var map={{}};links.forEach(function(a){{map[a.getAttribute('href').slice(1)]=a}});if(!('IntersectionObserver' in window))return;var obs=new IntersectionObserver(function(es){{es.forEach(function(en){{if(en.isIntersecting){{links.forEach(function(l){{l.classList.remove('on')}});var a=map[en.target.id];if(a)a.classList.add('on')}}}})}},{{rootMargin:'-25% 0px -65% 0px'}});Object.keys(map).forEach(function(id){{var el=document.getElementById(id);if(el)obs.observe(el)}});}})();
 </script>
 </body>
 </html>

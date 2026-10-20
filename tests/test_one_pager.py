@@ -53,7 +53,7 @@ def test_every_number_on_the_page_comes_from_a_product_tab_export():
         allowed |= set(NUMBER.findall(r["version"])) | set(NUMBER.findall(r["quality_text"]))
         if (m := re.match(r"identity range ([0-9.]+)%", r["quality_text"])):
             allowed.add(f"{float(m.group(1)):.1f}")
-    text = re.sub(r"\b(?:DP|G)\d\b|\bv\d+\.\d+\b", " ", visible(re.sub(r"<svg.*?</svg>", " ", page, flags=re.S)))
+    text = re.sub(r"\b(?:DP|G)\d\b|\bv\d+\.\d+\b", " ", visible(re.sub(r"<svg.*?</svg>|<span class='ps-num'[^>]*>.*?</span>", " ", page, flags=re.S)))
     stray = [n for n in NUMBER.findall(text) if n.rstrip(",") not in allowed]
     assert not stray, f"numbers with no source: {stray}"
 
@@ -122,7 +122,7 @@ def test_the_matrix_has_the_tabs_cells():
 
 def test_the_personas_are_the_tabs_personas():
     tab, page = tab_and_page()
-    names = lambda h: re.findall(r"<div class='vpersona'><h4>(.*?)</h4><p class='note'>(.*?)</p><p>(.*?)</p>", h)   # noqa: E731
+    names = lambda h: re.findall(r"<div class='vpersona'>(?:<span class='vmono'[^>]*>.*?</span>)?<h4>(.*?)</h4><p class='note'>(.*?)</p><p>(.*?)</p>", h)   # noqa: E731
     assert names(slides(tab)["D3-1"]) == names(section(page, "personas")) and len(names(section(page, "personas"))) == 6
 
 

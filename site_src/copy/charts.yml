@@ -467,6 +467,22 @@ summary:
   title: "Flag Football: a data product, end to end"
   pitch: "Three business goals, turned into five data products that are owned, measured and safe for kids."
   synthetic_badge: "Synthetic data"
+  eyebrow: "Data product · {year} season · Synthetic data"
+  record_labels: {products: "Products", gates: "Gates met", fans: "New fans", breaks: "Boundary breaks"}
+  tabs:
+    - {id: s-matrix, label: "Overview"}
+    - {id: s-personas, label: "Users"}
+    - {id: s-labels, label: "Products"}
+    - {id: s-priorities, label: "Priorities"}
+    - {id: s-roadmap, label: "Roadmap"}
+    - {id: s-privacy, label: "Kids' privacy"}
+    - {id: s-working, label: "Results"}
+    - {id: s-gaps, label: "Gaps"}
+    - {id: s-learned, label: "Learned"}
+  see_full: "See full tab"
+  card_stats: {version: "Version", status: "Status", grade: "Grade", goals: "Goals"}
+  positions: {source: "Source", master: "Master", insights: "Insight", restricted: "Restricted"}
+  disclaimer: "Independent portfolio project using synthetic data. Not affiliated with or endorsed by any league or team."
   status_words: {mvp: "MVP · building", proposed: "Proposed"}
   quality_labels: {identity: "Identity error under {identity_limit}%", varies: "Grades vary by market"}
   goal_short:
@@ -480,16 +496,16 @@ summary:
     DP4: "US growth"
     DP5: "Fan conversion"
   sections:
-    matrix: {kicker: "What would you build for these goals?", h2: "Each goal has one product that moves it directly.", line: "Three goals led to five products."}
-    deps: {kicker: "What would you build for these goals? (continued)", h2: "Intake feeds the master, and the master feeds the three insight products.", line: "Conversion also needs the fan feed and guardian consent."}
-    personas: {kicker: "Who are the products for?", h2: "Six personas, and what we'd ask them.", line: "There are no real users yet, so these are assumptions to test."}
-    labels: {kicker: "What is each product?", h2: "Each product has a label: owner, version, live quality grade and rules for use.", line: "Open one to see who uses it and what it must never do."}
-    priorities: {kicker: "What do we build first, and why?", h2: "Intake and US growth first. Conversion waits: high value, data not ready.", line: "Each product is scored on value, feasibility, readiness and privacy risk."}
-    roadmap: {kicker: "What has to be true before each product moves?", h2: "{n_met} of {n_gates} release gates met. The MVP waits on the US data score ({current} → {target}).", line: "No dates: a product moves when its gate is met and the right person signs off."}
-    privacy: {kicker: "How do we protect kids?", h2: "Minors are guardian-only. We count families, never kids.", line: "{pct_u13_club_consent}% of families with a child under 13 agreed to club contact."}
-    working: {kicker: "Is it working?", h2: "Fans created by flag: about {fans_created} ({fans_lo}–{fans_hi}).", line: "One row per goal, then the health of each product."}
-    gaps: {kicker: "Where are the gaps, and what did they change?", h2: "{n_gaps} gaps found. {n_changed} of them changed the roadmap.", line: "Each gap shows its evidence and the card it moved."}
-    learned: {kicker: "What did we learn, and what's next?", h2: "We started with consent. The real problem was thin, messy data.", line: ""}
+    matrix: {see: "#view=D1-1", kicker: "What would you build for these goals?", h2: "Each goal has one product that moves it directly.", line: "Three goals led to five products."}
+    deps: {see: "#view=D1-2", kicker: "What would you build for these goals? (continued)", h2: "Intake feeds the master, and the master feeds the three insight products.", line: "Conversion also needs the fan feed and guardian consent."}
+    personas: {see: "#view=D3-1", kicker: "Who are the products for?", h2: "Six personas, and what we'd ask them.", line: "There are no real users yet, so these are assumptions to test."}
+    labels: {see: "#view=D5-1", kicker: "What is each product?", h2: "Each product has a label: owner, version, live quality grade and rules for use.", line: "Open one to see who uses it and what it must never do."}
+    priorities: {see: "#view=D4-1", kicker: "What do we build first, and why?", h2: "Intake and US growth first. Conversion waits: high value, data not ready.", line: "Each product is scored on value, feasibility, readiness and privacy risk."}
+    roadmap: {see: "#view=D10-1", kicker: "What has to be true before each product moves?", h2: "{n_met} of {n_gates} release gates met. The MVP waits on the US data score ({current} → {target}).", line: "No dates: a product moves when its gate is met and the right person signs off."}
+    privacy: {see: "#view=D6-1", kicker: "How do we protect kids?", h2: "Minors are guardian-only. We count families, never kids.", line: "{pct_u13_club_consent}% of families with a child under 13 agreed to club contact."}
+    working: {see: "#view=D7-1", kicker: "Is it working?", h2: "Fans created by flag: about {fans_created} ({fans_lo}–{fans_hi}).", line: "One row per goal, then the health of each product."}
+    gaps: {see: "#view=D10-1", kicker: "Where are the gaps, and what did they change?", h2: "{n_gaps} gaps found. {n_changed} of them changed the roadmap.", line: "Each gap shows its evidence and the card it moved."}
+    learned: {see: "#view=D9-1", kicker: "What did we learn, and what's next?", h2: "We started with consent. The real problem was thin, messy data.", line: ""}
   label_limits:
     DP1: "Limited by league files that arrive late or incomplete."
     DP2: "Limited by a second identity chain that is not merged yet."
@@ -504,9 +520,9 @@ summary:
   grade_legend: "Quality grade: A is {band_a} or more, B is {band_b}, C is {band_c}, D is below {band_c} (score out of 100). Identity error is how far identity matching alone could move the count. Grades vary by market: each market is graded on its own."
   consent_bar_label: "agreed to club contact"
   goal_rows:
-    G1: {value: "{global_participants}", gate: N, support: "{global_participants} players in {n_countries} countries. Only {countries_b} reports at grade B or better.", sowhat: "We can count globally, but can't compare countries fairly yet."}
-    G2: {value: "{girls_share}%", gate: X_COUNT, support: "Girls {girls_share}% · {retention}% play again · {dark_leagues} of {known_leagues} leagues sent no file.", sowhat: "Growth looks real, but missing leagues mean we undercount it."}
-    G3: {value: "{fans_created}", gate: Z_ACTIVATION, support: "About {fans_created} new fans ({fans_lo}–{fans_hi}) · engaged families +{uplift}% · {linked}% of families linked.", sowhat: "Flag does create fans. With only {linked}% of families linked, this is a floor, not the full number."}
+    G1: {label: "Players worldwide", value: "{global_participants}", gate: N, support: "{global_participants} players in {n_countries} countries. Only {countries_b} reports at grade B or better.", sowhat: "We can count globally, but can't compare countries fairly yet."}
+    G2: {label: "Girls' share of youth", value: "{girls_share}%", gate: X_COUNT, support: "Girls {girls_share}% · {retention}% play again · {dark_leagues} of {known_leagues} leagues sent no file.", sowhat: "Growth looks real, but missing leagues mean we undercount it."}
+    G3: {label: "New fans from flag", value: "{fans_created}", gate: Z_ACTIVATION, support: "About {fans_created} new fans ({fans_lo}–{fans_hi}) · engaged families +{uplift}% · {linked}% of families linked.", sowhat: "Flag does create fans. With only {linked}% of families linked, this is a floor, not the full number."}
   health_heads: {product: "Product", grade: "Quality", tests: "Tests", privacy: "Privacy checks", status: "Status"}
   gaps_heads: {gap: "Gap", evidence: "Evidence", product: "Product", changed: "What it changed", tag: "Roadmap"}
   gap_tags: {CHANGED: "Changed roadmap", WATCH: "Watch"}

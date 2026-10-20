@@ -84,6 +84,8 @@ def matrix_html(ps: dict, compact: bool = False, static: dict | None = None) -> 
     body = ""
     for g, text in GOALS.items():
         cells = "".join(f"<td class='vm-{p['value_proposition']}'>{VALUE_WORD[p['value_proposition']] if g in p['goals'] else '&nbsp;'}</td>" for p in ps.values())
+        if static:      # a coloured pill only where the product serves the goal
+            cells = "".join(f"<td><span class='vm-pill vm-{p['value_proposition']}'>{VALUE_WORD[p['value_proposition']]}</span></td>" if g in p["goals"] else "<td>&nbsp;</td>" for p in ps.values())
         label = static["goals"][g] if static else (SHORT_GOALS[g] if compact else text)
         body += f"<tr><th scope='row'><b>{g}</b> {e(label)}</th>{cells}</tr>"
     note = "" if compact and not static else "<p class='note'>Driver: moves the goal directly. Enabler: makes other products possible. Utility: keeps things running.</p>"
@@ -136,7 +138,11 @@ def personas_html(compact: bool, static: bool = False) -> str:
             extra = f"<p><b>We would ask:</b> {e(first.group(1)) if first else md_inline(questions)}</p>"
         else:
             extra = "" if compact else f"<p><b>What we assumed:</b> {md_inline(pain)}</p><p><b>What we would ask:</b> {md_inline(questions)}</p>"
-        cards += f"<div class='vpersona'><h4>{md_inline(persona)}</h4><p class='note'>Serves {md_inline(goal)}</p><p>{md_inline(job)}</p>{extra}</div>"
+        mono = ""
+        if static:       # a two-letter monogram (the last two words of the role, without a bracketed tag), no photo
+            words = re.sub(r"\(.*?\)", "", re.sub(r"\*", "", persona)).split()
+            mono = f"<span class='vmono' aria-hidden='true'>{e(''.join(w[0].upper() for w in words[-2:]))}</span>"
+        cards += f"<div class='vpersona'>{mono}<h4>{md_inline(persona)}</h4><p class='note'>Serves {md_inline(goal)}</p><p>{md_inline(job)}</p>{extra}</div>"
     note = "" if compact or static else "<p class='note'>There are no real users. These are assumption-based personas with the questions we would validate in real interviews. The league operator is a supplier, not a consumer.</p>"
     return f"<div class='vproduct'><div class='vpersonas{' vcompact' if compact else ''}'>{cards}</div>{note}</div>"
 
