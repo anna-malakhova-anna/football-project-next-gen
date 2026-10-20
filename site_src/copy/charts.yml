@@ -464,7 +464,7 @@ pages:
 # Headlines are the tab's own sentences; the one plain sentence under each is new draft copy for Anna. {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py).
 summary:
   status: draft
-  title: "Counting Flag Football: a data product, end to end"
+  title: "Flag Football: a data product, end to end"
   pitch: "Three business goals, turned into five data products that are owned, measured and safe for kids."
   hero_line: "I acted as data product manager. Built for a privacy lead and a club-marketing lead."
   synthetic_badge: "Synthetic data"
@@ -508,7 +508,7 @@ summary:
     G1: {value: "{global_participants}", gate: N, product: DP3, support: "{global_participants} players in {n_countries} countries. Only {countries_b} reports at grade B or better.", sowhat: "We can count globally, but can't compare countries fairly yet."}
     G2: {value: "{girls_share}%", gate: X_COUNT, product: DP4, support: "Girls {girls_share}% · {retention}% play again · {dark_leagues} of {known_leagues} leagues sent no file.", sowhat: "Growth looks real, but missing leagues mean we undercount it."}
     G3: {value: "{fans_created}", gate: Z_ACTIVATION, product: DP5, support: "About {fans_created} new fans ({fans_lo}–{fans_hi}) · engaged families +{uplift}% · {linked}% of families linked.", sowhat: "Flag does create fans. With only {linked}% of families linked, this is a floor, not the full number."}
-  health_heads: {product: "Product", grade: "Quality", tests: "Tests", breaks: "Boundary breaks", privacy: "Privacy checks", status: "Status"}
+  health_heads: {product: "Product", grade: "Quality", tests: "Tests", privacy: "Privacy checks", status: "Status"}
   gaps_heads: {gap: "Gap", evidence: "Evidence", product: "Product", changed: "What it changed", tag: "Roadmap"}
   gap_tags: {CHANGED: "Changed roadmap", WATCH: "Watch"}
   learned_rows:

@@ -248,13 +248,12 @@ def working_component(c: dict, data: dict, vals: dict) -> str:
     for pid in sp.products():
         mine = [r for r in health if r["product_id"] == pid]
         tests = next(r for r in mine if r["area"] == "pipeline")
-        breaks = next(r for r in mine if r["area"] == "boundaries")
         privacy = next(r for r in mine if r["area"] == "privacy" and r["measure"] == "Share-policy check violations")
         mark = lambda r: ("&#10003;" if r["status"] == "OK" else ("&ndash;" if r["value_num"] is None else "&#10007;"))  # noqa: E731
         word, why = health_status(mine)
-        hrows += (f"<tr><th scope='row'>{e(pid)} {e(c['product_names'][pid])}</th><td>{e(quality_chip(specs[pid]['quality_text'], c, vals))}</td><td>{mark(tests)}</td><td>{e(breaks['value_text'])}</td><td>{mark(privacy)}</td>"
+        hrows += (f"<tr><th scope='row'>{e(pid)} {e(c['product_names'][pid])}</th><td>{e(quality_chip(specs[pid]['quality_text'], c, vals))}</td><td>{mark(tests)}</td><td>{mark(privacy)}</td>"
                   f"<td><b class='ps-hs ps-hs-{word.lower()}'>{word}</b>{(' <span class=ps-why>' + e(why) + '</span>') if why else ''}</td></tr>")
-    htable = site_tables.enhance(f"<table class='vtable ps-health-table'><thead><tr><th>{e(h['product'])}</th><th>{e(h['grade'])}</th><th>{e(h['tests'])}</th><th>{e(h['breaks'])}</th><th>{e(h['privacy'])}</th><th>{e(h['status'])}</th></tr></thead><tbody>{hrows}</tbody></table>")
+    htable = site_tables.enhance(f"<table class='vtable ps-health-table'><thead><tr><th>{e(h['product'])}</th><th>{e(h['grade'])}</th><th>{e(h['tests'])}</th><th>{e(h['privacy'])}</th><th>{e(h['status'])}</th></tr></thead><tbody>{hrows}</tbody></table>")
     return f"<div class='ps-grows'>{goals}</div><p class='ps-sub'>{e(fill(c['working_sub'], vals))}</p>{htable}"
 
 
