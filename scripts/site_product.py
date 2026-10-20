@@ -94,7 +94,7 @@ def dependency_svg() -> str:
     box = lambda x, y, w, t, sub, cls: (f"<g><rect x='{x}' y='{y}' width='{w}' height='54' rx='4' class='{cls}'/><text x='{x + w / 2}' y='{y + 22}' text-anchor='middle' class='dt'>{e(t)}</text>"  # noqa: E731
                                         f"<text x='{x + w / 2}' y='{y + 40}' text-anchor='middle' class='ds'>{e(sub)}</text></g>")
     arrow = lambda x1, y1, x2, y2: f"<path d='M{x1} {y1} L{x2} {y2}' class='da' marker-end='url(#ar)'/>"  # noqa: E731
-    svg = ("<svg data-diagram='dependencies' viewBox='0 0 900 400' role='img' aria-label='Dependencies: Intake feeds the master; the master feeds global, US and conversion insights; conversion also needs the fan feed and consent capture' class='vdep'>"
+    svg = ("<svg data-diagram='dependencies' viewBox='0 0 900 440' role='img' aria-label='Dependencies: Intake feeds the master; the master feeds global, US and conversion insights; conversion also needs the fan feed and consent capture' class='vdep'>"
            "<defs><marker id='ar' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto'><path d='M0 0 L10 5 L0 10 z' class='dah'/></marker></defs>"
            + box(10, 143, 190, "DP1 Intake", "source-based", "db-util") + arrow(200, 170, 260, 170)
            + box(260, 143, 280, "DP2 Participant and household master", "master, restricted", "db-en")
@@ -102,8 +102,8 @@ def dependency_svg() -> str:
            + box(610, 35, 280, "DP3 Global participation", "insights, drives G1", "db-dr") + box(610, 143, 280, "DP4 US growth and club markets", "insights, drives G2 (MVP with DP1)", "db-dr")
            + box(610, 243, 280, "DP5 Flag-to-fan conversion", "insights (restricted), drives G3", "db-dr")
            + box(310, 293, 230, "Fan engagement feed", "an outside source", "db-src") + arrow(540, 320, 610, 296)
-           + "<path d='M105 197 C105 372 750 372 750 297' class='da dd' marker-end='url(#ar)' fill='none'/>"
-           + "<text x='430' y='392' text-anchor='middle' class='ds'>consent capture at registration (DP1) is a precondition for DP5</text></svg>")
+           + "<path d='M105 197 C105 440 750 440 750 297' class='da dd' marker-end='url(#ar)' fill='none'/>"
+           + "<text x='430' y='432' text-anchor='middle' class='ds'>consent capture at registration (DP1) is a precondition for DP5</text></svg>")
     return f"<div class='vproduct'>{svg}</div>"
 
 
