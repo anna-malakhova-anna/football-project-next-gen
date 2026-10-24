@@ -10,6 +10,7 @@ Why a script and not a dbt model: the pipeline pass rate and the run time exist 
 """
 from __future__ import annotations
 
+import math
 import csv
 import json
 import sys
@@ -128,8 +129,10 @@ def build(con) -> list[tuple]:
             rate = (100.0 * pl["tests_ok"] / pl["tests_recorded"]) if pl["tests_recorded"] else None
             add("pipeline", "dbt tests on the product's lineage passing", f"{pl['tests_ok']} of {pl['tests_recorded']} ({pl['warn']} warnings)" if rate is not None else "no run recorded", rate,
                 "ALERT" if pl["failed"] else ("OK" if rate is not None else "INFO"), f"{pl['tests_in_lineage']} tests attach to {pl['models_in_lineage']} models in the lineage; latest recorded result of each")
-            add("cost", "Warehouse compute proxy: seconds to build the lineage's models", pl["model_seconds"], pl["model_seconds"], "INFO",
-                "A proxy: the latest recorded run time of each model, summed. Not a cost in money.")
+            # Bucketed to whole minutes (rounded up) so a rebuild on unchanged data gives the same published file
+            minutes = max(1, math.ceil(pl["model_seconds"] / 60))
+            add("cost", "Warehouse compute proxy: minutes to build the lineage's models (rounded up)", f"under {minutes} min" if minutes == 1 else f"{minutes - 1} to {minutes} min", minutes, "INFO",
+                "A proxy: the latest recorded run time of each model, summed, rounded up to a whole minute so the number does not change between builds. Not a cost in money.")
         except duckdb.Error:
             add("pipeline", "dbt tests on the product's lineage passing", "no run recorded", None, "INFO", "run `dbt test` first")
         # trust
