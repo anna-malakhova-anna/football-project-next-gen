@@ -46,7 +46,7 @@ def org_scores(db: Path, year: int, adopters: set[str], controls: set[str]) -> d
         out = {}
         for group, ids in (("adopters", adopters), ("struggling_non_adopters", controls)):
             idl = ",".join("'" + i.replace("'", "''") + "'" for i in sorted(ids)) or "''"
-            out[group] = {p: con.execute(f"select round(avg(score), 2), count(*) from quality.dq_scorecard_org where dimension = 'PURPOSE_SCORE' and purpose = ? and season_year = ? and reported and org_id in ({idl})", [p, year]).fetchone()
+            out[group] = {p: con.execute(f"select round(avg(cast(score as decimal(18, 6))), 2), count(*) from quality.dq_scorecard_org where dimension = 'PURPOSE_SCORE' and purpose = ? and season_year = ? and reported and org_id in ({idl})", [p, year]).fetchone()
                           for p in PURPOSES}
         return out
     finally:
