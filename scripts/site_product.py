@@ -323,7 +323,7 @@ def funnel_spec(thumb: bool) -> dict:
 
 
 # ---------------------------------------------------------------- D7 is it working
-AREA_LABEL = {"quality": "Quality", "freshness": "Freshness", "contract_status": "Contracts", "pipeline": "Pipeline", "trust": "Trust", "boundaries": "Boundaries", "privacy": "Privacy", "cost": "Cost proxy"}
+AREA_LABEL = {"quality": "Quality", "freshness": "Freshness", "contract_status": "Contracts", "pipeline": "Pipeline", "trust": "Trust", "boundaries": "Boundaries", "privacy": "Privacy"}
 STATUS_CLASS = {"OK": "ok", "WATCH": "watch", "ALERT": "alert", "INFO": "info"}
 STATUS_TEXT = {"OK": "OK", "WATCH": "Watch", "ALERT": "Alert", "INFO": "Info"}
 
@@ -335,7 +335,7 @@ def health_html(rows: list[dict], ps: dict, compact: bool) -> str:
         lines = "".join(f"<tr><th scope='row'>{AREA_LABEL.get(r['area'], r['area'])}</th><td>{e(r['measure'])}</td><td><b>{e(r['value_text'])}</b></td><td><span class='vstat vstat-{STATUS_CLASS[r['status']]}'>{STATUS_TEXT[r['status']]}</span></td></tr>"
                         for r in mine if not compact or r["area"] in ("quality", "trust", "boundaries", "privacy"))
         cards += f"<div class='vhealth'><h4>{e(pid)} {e(p['name'])}</h4><table class='vtable vtable-tight'><tbody>{lines}</tbody></table></div>"
-    note = "" if compact else "<p class='note'>Inside view: is each product healthy? Read from the scorecards, the contract results, the share checks and the dbt run history after the latest build. The cost is a proxy (model run time), not money.</p>"
+    note = "" if compact else "<p class='note'>Inside view: is each product healthy? Read from the scorecards, the contract results, the share checks and the dbt run history after the latest build.</p>"
     return f"<div class='vproduct'><div class='vhealths{' vcompact' if compact else ''}'>{cards}</div>{note}</div>"
 
 

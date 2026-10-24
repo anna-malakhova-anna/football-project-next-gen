@@ -259,8 +259,8 @@ DATASETS += [
        "Households by the age tier of the youngest child at each step of the conversion funnel"),
     _D("goal_scorecard", "select goal_id, kpi_id, kpi_label, segment, year, value, value_low, value_high, unit, product_id, trust_label, trust_value, trust_unit, status from phase6.mart_goal_scorecard where year = (select max(year) from phase6.mart_goal_scorecard) order by goal_id, kpi_id, segment nulls first",
        ["phase6.mart_goal_scorecard"], "approved_aggregate", "Goal scorecard: each goal's KPIs with the data-trust companion (latest year)"),
-    _D("product_health", "select product_id, area, measure, value_text, value_num, status, note from phase6.mart_product_health order by product_id, area, measure",
-       ["phase6.mart_product_health"], "approved_aggregate", "Product health (inside): quality, freshness, contracts, pipeline, trust, privacy, cost proxy"),
+    _D("product_health", "select product_id, area, measure, value_text, value_num, status, note from phase6.mart_product_health where area <> 'cost' order by product_id, area, measure",
+       ["phase6.mart_product_health"], "approved_aggregate", "Product health (inside): quality, freshness, contracts, pipeline, trust, privacy (build time stays local: it changes on every build)"),
     _D("product_adoption", "select product_id, stage, definition, real_events, simulated_events, status from phase6.mart_product_adoption order by product_id, stage",
        ["phase6.mart_product_adoption"], "approved_aggregate", "Adoption (outside): instrumented, awaiting real users"),
 ]

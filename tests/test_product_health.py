@@ -34,7 +34,7 @@ def test_health_covers_every_product_with_quality_privacy_and_trust():
     for p, a in rows:
         areas.setdefault(p, set()).add(a)
     assert set(areas) == {"DP1", "DP2", "DP3", "DP4", "DP5"}
-    assert all({"quality", "privacy", "pipeline", "cost"} <= a for a in areas.values())
+    assert all({"quality", "privacy", "pipeline", "cost"} <= a for a in areas.values())      # build time is still measured locally
     assert all("trust" in areas[p] for p in ("DP2", "DP3", "DP4", "DP5"))
 
 
@@ -61,3 +61,10 @@ def test_goal_scorecard_names_a_product_and_a_trust_companion_for_every_measured
         if status == "MEASURED":
             assert value is not None, kpi
     assert [r for r in rows if r[0] == "youth_to_adult_fan_transition"][0][4] == "NOT_MEASURABLE_BY_DESIGN"
+
+
+def test_the_site_export_leaves_out_the_build_time_measure():
+    # Build time changes on every build, so publishing it would make public/ differ from run to run
+    from scripts import build_site
+    ds = next(d for d in build_site.DATASETS if d["name"] == "product_health")
+    assert "area <> 'cost'" in ds["sql"]

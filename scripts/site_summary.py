@@ -224,7 +224,7 @@ def tiers_component(c: dict, data: dict, vals: dict) -> str:
     return f"<div class='ps-tiers'>{segs}</div><div class='ps-chips'>{nots}</div>"
 
 
-WATCH_ORDER = ["quality", "trust", "contract_status", "pipeline", "freshness", "cost", "privacy", "boundaries"]
+WATCH_ORDER = ["quality", "trust", "contract_status", "pipeline", "freshness", "privacy", "boundaries"]
 
 
 def health_status(rows: list[dict]) -> tuple[str, str]:

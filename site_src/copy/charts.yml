@@ -396,7 +396,7 @@ charts:
     means_privacy: "The youth-to-adult step cannot be measured because a youth record is never linked to the adult. That is the policy working."
     action_club: "Read each number with the trust measure beside it."
     action_privacy: "Treat any alert on the health panel as a stop for club access."
-    caution: "No real users exist, so no adoption number is shown. The cost is a proxy, not money."
+    caution: "No real users exist, so no adoption number is shown."
     analyst_md: |
       Inside: `phase6.mart_product_health` (built by `scripts/build_product_health.py` after the tests). Outside: `phase6.mart_goal_scorecard`, from existing marts only. Adoption: `phase6_ops.ops_product_usage_log` (schema only; simulation is not approved).
       The canonical engagement-lift metric is `fan_uplift_pct` (matched estimate) with its naive companion; "Fans created by flag" is `incremental_fan_accounts` (ADR-021).
