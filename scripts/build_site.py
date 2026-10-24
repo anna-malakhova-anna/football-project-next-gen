@@ -138,7 +138,7 @@ DATASETS = [
     _D("fan_vs_truth", "select estimator, estimate_pct, ci_low_pct, ci_high_pct, true_effect_pct, true_uplift_parameter, estimate_over_truth, truth_in_ci "
        "from evaluation.eval_fan_effect where estimator in ('NAIVE_EXISTING', 'NAIVE', 'DID_ADDITIVE') order by estimator",
        ["evaluation.eval_fan_effect"], "evaluation", "Fan effect: naive and matched estimates against the true uplift"),
-    _D("fan_diagnostics", "select measure, value from evaluation.eval_fan_matching_diagnostics order by 1",
+    _D("fan_diagnostics", "select measure, round(value, 9) as value from evaluation.eval_fan_matching_diagnostics order by 1",
        ["evaluation.eval_fan_matching_diagnostics"], "evaluation", "Why the matched estimate is where it is"),
     _D("reach_vs_truth", "select participation_year, true_combined_reach, combined_reach_low, combined_reach_high, truth_inside_range, naive_sum from evaluation.eval_headcount_overlap order by 1",
        ["evaluation.eval_headcount_overlap"], "evaluation", "Combined reach range against the synthetic truth"),
