@@ -240,8 +240,8 @@ charts:
     fallback_headline: "Asking for less data protects children and costs little matching accuracy."
     slide_headline_templates: {}
     question: "What does each field buy us, and what does it cost?"
-    means_club: "Each dot is a choice of fields. The ringed dot is the data standard. It costs {matching_cost} of matching accuracy. A hashed contact cannot reach a family."
-    means_privacy: "Left is safer. Only the horizontal axis is a privacy measure. The vertical axis is what matching keeps: the standard loses {matching_cost}."
+    means_club: "Each dot is a choice of fields. The ringed dot is the data standard. Its matching accuracy is {matching_cost}. A hashed contact cannot reach a family."
+    means_privacy: "Left is safer. Only the horizontal axis is a privacy measure. The vertical axis is what matching keeps: under the standard it is {matching_cost}."
     action_club: "Ask for the fields in the data standard and no more."
     action_privacy: "Use the ringed choice as the default and review it when the data changes."
     caution: "This is one made-up data set. Read the pattern, not the decimals."
