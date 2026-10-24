@@ -18,7 +18,7 @@ select
         when t.is_orphan_refund or t.amount is null then 0.0
         when t.is_refund then -t.amount
         else t.amount
-    end                                                                     as signed_amount
+    end::decimal(18, 2)                                                     as signed_amount   -- money is exact: a float sum depends on row order, which flipped RFM quintiles between macOS and Linux
 from {{ ref('stg_fan_transactions') }} t
 join {{ ref('int_fan_account_xref') }} x using (account_id)
 where not t.is_duplicate
