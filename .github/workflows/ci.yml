@@ -38,4 +38,16 @@ jobs:
       - name: The committed public/ must match the code
         # Render serves the committed public/. A stale copy fails here. Only the footer's build date is ignored: it
         # comes from the last commit's time, which is later than the commit that built public/.
-        run: make public && git diff --exit-code -I 'built 20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]' public/
+        run: |
+          make public
+          git diff -I 'built 20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]' public/ > public-drift.diff
+          if [ -s public-drift.diff ]; then git diff --stat -I 'built 20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]' public/; echo "public/ differs from the commit: download the public-drift artifact"; exit 1; fi
+
+      - name: Keep the rebuilt public/ and the diff when the check fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-drift
+          path: |
+            public/
+            public-drift.diff

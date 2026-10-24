@@ -25,9 +25,10 @@ def test_ci_does_not_deploy_and_fails_when_the_committed_public_is_stale():
     assert wf["permissions"] == {"contents": "read"}                  # the build job gets no write access
     runs = [s["run"] for s in wf["jobs"]["build"]["steps"] if "run" in s]
     assert not any("publish" in r for r in runs)                      # CI never runs `make publish`
-    assert not any("pages" in s.get("uses", "") for s in wf["jobs"]["build"]["steps"])
+    assert not any("pages" in s.get("uses", "") or "deploy" in s.get("uses", "") for s in wf["jobs"]["build"]["steps"])
     check = [r for r in runs if r.startswith("make public")]
-    assert len(check) == 1 and "git diff --exit-code" in check[0] and "public/" in check[0]
+    assert len(check) == 1 and "git diff" in check[0] and "exit 1" in check[0] and "public/" in check[0]
+    assert any("upload-artifact" in s.get("uses", "") and s.get("if") == "failure()" for s in wf["jobs"]["build"]["steps"])   # the rebuilt public/ can be downloaded
     assert runs.index("make all-phases") < runs.index(check[0])       # public/ is rebuilt from the full build's warehouse
 
 

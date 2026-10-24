@@ -151,7 +151,7 @@ checks: ground-truth isolation, aggregate lineage, share policy and participant-
 | `make fan-status` / `make funnel` / `make acquisition` / `make fan-value` / `make audience` | run one fan analysis and print its comparison with the truth (also `make retention`, `make linkage`, `make fan`) |
 | `make docs` | regenerate the data dictionary, metric catalog and access policy |
 | `make publish YEAR=2025` | write an immutable snapshot of that year's scorecard under the current methodology version (refuses unless every test passes, about 5 minutes per year; never part of `all-phases`) |
-| `make public` | build the deployable site into the committed `public/` (no local logo); Render serves it. Rebuild and commit after site changes. CI runs it and fails if `public/` differs from the commit (footer date ignored) |
+| `make public` | build the deployable site into the committed `public/` (no local logo); Render serves it. Rebuild and commit after site changes. CI runs it and fails (uploading the rebuilt copy as an artifact) if `public/` differs from the commit (footer date ignored) |
 | `make site` | build the results site from `scripts/build_site.py` and `site_src/` (templates, styles, JS); fails if a chart would compute a number in the browser, or if the site contains an image or an SVG that is not the project's own |
 
 Explore `warehouse/flag.duckdb`:
