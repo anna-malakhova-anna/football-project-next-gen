@@ -11,9 +11,8 @@ from __future__ import annotations
 import csv
 import subprocess
 import sys
-from pathlib import Path
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 DEBT = ROOT / "products" / "boundary_debt.csv"
 HISTORY = ROOT / "products" / "boundary_debt_history.csv"
 FIELDS = ["step", "commit", "date", "debt_rows", "change", "what"]

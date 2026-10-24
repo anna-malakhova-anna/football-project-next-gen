@@ -6,12 +6,10 @@ age-out-as-churn version beside the correct one. Also writes CSVs to docs/eval/.
 from __future__ import annotations
 
 import csv
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "warehouse" / "flag.duckdb"
 OUT = ROOT / "docs" / "eval"
 
 

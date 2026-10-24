@@ -13,15 +13,14 @@ from __future__ import annotations
 import csv
 import json
 import sys
-from pathlib import Path
 
 import duckdb
 import yaml
 
 from scripts import check_product_boundaries as cb
 from scripts import validate_products as vp
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 DB = vp.DB
 GUARDRAIL_IDENTITY_PCT = "Y"      # product_targets.gate_id of the identity guardrail (read from the seed)
 

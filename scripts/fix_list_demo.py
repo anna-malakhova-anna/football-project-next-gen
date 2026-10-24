@@ -23,9 +23,8 @@ from generator import main as gen
 from generator.population import load_config
 from loader import load_raw
 from scripts import validate_contracts
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "warehouse" / "flag.duckdb"
 OUT = ROOT / "docs" / "reports" / "fix_list_demo.md"
 SELECT = ["+dq_scorecard_org", "+dq_fix_list", "+dq_fix_ranking", "+mart_uncertainty_decomposition", "+mart_missingness_bias"]
 PURPOSES = ("COUNT", "SEGMENT", "GEO", "RETAIN", "ACTIVATE")

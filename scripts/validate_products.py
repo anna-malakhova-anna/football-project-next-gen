@@ -14,15 +14,13 @@ import json
 import re
 import sys
 from decimal import ROUND_HALF_UP, Decimal
-from pathlib import Path
 
 import duckdb
 import yaml
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 PRODUCTS = ROOT / "products"
 MANIFEST = ROOT / "dbt" / "target" / "manifest.json"
-DB = ROOT / "warehouse" / "flag.duckdb"
 CATALOG = ROOT / "dbt" / "seeds" / "metric_catalog.csv"
 GOALS = {"G1", "G2", "G3"}
 REQUIRED = ["id", "name", "version", "type", "status", "description", "goals", "value_proposition", "consumers", "owner_role", "steward_role", "support_contact", "output_ports", "input_products",

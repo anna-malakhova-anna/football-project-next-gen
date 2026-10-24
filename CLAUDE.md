@@ -1,37 +1,50 @@
 # Flag Football Project
 
-Governed participation data platform built on **synthetic** flag football data (the real equivalent would be minors' PII).
+Governed participation and fan-acquisition data platform built on **synthetic** flag football data (the real equivalent would be minors' PII).
+Phases 1 to 6 are built. Python generates and loads; dbt on DuckDB does everything else; `scripts/build_site.py` renders the results site.
 
-**Source of truth for what to build:** `phase-1-spec.md` and `phase-2-spec.md` (Phase 2 builds on Phase 1; later phases are context).
+**Where the intent lives.** The phase specs (`phase-*-spec.md`) and handovers are local-only and git-ignored, so a fresh clone does not have them.
+In the repo, the record of what was decided and why is `docs/decisions/ADR-*.md` (001 to 023), then `README.md`, `docs/product/README.md` and `fix-list.md`.
+If a spec file is present locally, it wins over this summary for the phase it covers.
 
-## Conventions
-- SQL is the showcase: Python generates and loads data as-is; all cleaning/typing/standardizing happens in dbt SQL.
-- Raw is immutable: raw tables are strings in, strings stored.
-- Deterministic: global seed 42 (`config/generation.yaml`).
-- Ground truth lives in `data/ground_truth/` and is never loaded into `raw` or referenced by dbt models.
-- Consent NULL means "not captured"; never coerce to TRUE/FALSE.
+## Build and test
+- `make setup` then `make all-phases` is the one supported build from an empty checkout (about 10 minutes locally, longer on 2 cores). CI runs exactly this, then `make site`.
+- `make build` / `make test` run every model / every test and check on top of existing sources; named targets (`make dq`, `make fan`, ...) re-run a slice on top of a full build.
+- dbt tags `phase2` to `phase6` record which phase added a model. They are **not** independent layers (Phase 1 quality models read Phase 4 staging; Phase 3 scorecards read Phase 4 models). Do not reintroduce `--exclude tag:phaseN` builds.
+- After any change to the site: `make site` (local, may carry the git-ignored logo) and `make public` (deployable, committed `public/`, served by Render). Commit `public/` when it changes.
+- Generated docs have `--check` modes or tests (`build_rule_registry`, `build_data_standard`, data dictionary, metrics, access policy): regenerate, never hand-edit the generated blocks.
+
+## Conventions (all phases)
+- SQL is the showcase: Python generates and loads data as-is; cleaning, typing, counting, matching and analysis happen in dbt SQL.
+- Raw is immutable: raw tables are strings in, strings stored. The generator clears each source folder before writing.
+- Deterministic: global seed 42 (`config/generation.yaml`). Ties are broken explicitly in SQL (ADR-023); a test rebuilds and compares.
+- Configuration, not literals: thresholds, windows, tolerances and suppression limits come from `config/generation.yaml` (exported to seeds) or `dbt_project.yml` vars. No literal years in models (a pytest guards it).
+- Paths: scripts import `ROOT`, `DB` (from `paths.warehouse`) and `print_table` from `scripts/common.py`; do not re-derive them.
+- Consent NULL means "not captured"; never coerce to TRUE/FALSE. A consent email is not a marketing opt-in.
 - Keep dbt portable (Snowflake later); log every DuckDB-specific function in `docs/decisions/ADR-001-stack.md`.
-- Age is computed as of Dec 31 of the season year (ADR-002).
-- Stop after each numbered build step in spec section 10 and confirm it runs.
+- Age is computed as of Dec 31 of the season year (ADR-002); age tiers come from `dbt_project.yml` vars (ADR-022).
+- Label every assumption about NFL, RCX, vendor or club systems as an assumption; legal points are questions or design constraints, never findings.
 
-## Phase 2 conventions (identity resolution)
-- The matcher never sees ground truth: it lives in schema `eval`, source `ground_truth`, read only by `dbt/models/evaluation/`
-  (`scripts/check_eval_isolation.py` enforces it). m-probabilities are reasoned, never tuned against truth.
-- Every link carries its reason; `matcher` / `stage` / `scope` columns let one run compare matchers and review stages.
-- Precision first: a sibling or twin false merge is a privacy incident. The steward in `simulate_steward.py` is simulated;
-  never present POST_REVIEW numbers as matcher performance.
-- Phase 2 models and their tests carry the dbt tag `phase2`; `make all` excludes them, `make phase2` runs everything.
+## Ground truth and evaluation
+- Ground truth lives in `data/ground_truth/`, is loaded only into schema `eval` (`make load-eval`), and is read only by `dbt/models/evaluation/` (`scripts/check_eval_isolation.py` enforces it).
+- Estimator designs are fixed before the answer key is read; never tune m-probabilities, matching or thresholds against truth. Report misses honestly (ADR-010, ADR-011).
+- Precision first in identity resolution: a sibling or twin false merge is a privacy incident. The steward in `simulate_steward.py` is simulated; never present POST_REVIEW numbers as matcher performance.
+- The deletion and fix-list experiments run on a COPY of the warehouse.
 
-## Phase 5 conventions (data quality under privacy constraints)
+## Privacy zones and shares
+- Parent side and child side are separate: consent and activation models are keyed by household and never carry a child key (a test enforces it).
+- Restricted schemas (`linkage`, `phase5_restricted`, `phase6_restricted`) never reach an audience directly. Anything an audience sees goes through a `share_*` model with explicit columns, `audience_column_policy.csv` and `check_share_policy`; small cells are suppressed.
+- Nothing household-linked reaches marketing or media (ADR-009). Never invent population denominators; `population_denominators` stays empty until Anna loads real data.
+
+## Data quality (Phase 5)
 - Rules are rows of `dq_rule_registry` (generated by `scripts/build_rule_registry.py`; `--check` in CI). Predicates are TRUE pass / FALSE fail / NULL not applicable. Contract rules are read from `quality.dq_contract_results`, never restated. A purpose score is the MINIMUM of its dimension scores (ADR-014).
-- Thresholds, tolerances and suppression limits are configuration (`config/generation.yaml` `phase5`, exported to the `p5_params` seed), never literals in models; no literal years in models (a pytest guards it).
-- Uncertainty components (identity, DQ exclusions, coverage) are shown side by side and NEVER added (ADR-015). Never invent population denominators; `population_denominators` stays empty until Anna loads real data.
-- Parent side and child side are separate: consent and activation models are keyed by household and never carry a child key (a test enforces it). A consent email is not a marketing opt-in; NULL consent is "not captured".
-- Anything that reaches clubs or the privacy audience goes through `share_club` / `share_privacy` (explicit columns, `audience_column_policy.csv`, `check_share_policy`); `share_club` reads only approved aggregate marts and carries no direct or quasi identifier.
-- Evaluation against the answer key lives in `models/evaluation/` only. Report misses honestly; do not tune a method after reading the answer key. The deletion and fix-list experiments run on a COPY of the warehouse.
-- The generator clears each source folder before writing (stale files from an earlier run were once loaded as data).
-- Label every assumption about NFL, RCX, vendor or club systems as an assumption; legal points are questions or design constraints, never findings. The club-as-"third party" question is NOT resolved by the build.
-- Phase 5 models carry the dbt tag `phase5`; `make all` excludes them, `make all-phases` builds everything.
+- Uncertainty components (identity, DQ exclusions, coverage) are shown side by side and NEVER added (ADR-015).
 
-## Commands
-`make setup | generate | load | build | test | all | clean`; Phase 2: `make load-eval | idr | eval | phase2`; Phase 5: `make dq | nuance | consent | markets | minimize | retention-vs-deletion | fix-list-demo | p5-demo` (and `p5-feeds | p5-score | p5-retention`)
+## Products (Phase 6)
+- Five data products, `products/DP*/product.yml`; every model has one owner; a product reads another only through its ports (`scripts/check_product_boundaries.py`, ADR-023). Run `make product` after moving or adding a model.
+- Scores, targets, age rules and site copy are drafts until Anna approves them (`status: draft` in `site_src/copy/charts.yml`).
+
+## Site
+- The site never computes a number in the browser; values come from `share_exec` and whitelisted evaluation summaries.
+- No third-party marks: the brand-boundary check in `build_site.py` refuses image files, `<img>` and foreign inline SVG. The local logo (`local_assets/`, git-ignored) is never in `public/`.
+- Plain labels in visible text; model and column names only in source lines.

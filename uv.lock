@@ -176,13 +176,13 @@ dependencies = [
     { name = "faker" },
     { name = "openpyxl" },
     { name = "pyarrow" },
-    { name = "pytest" },
     { name = "pyyaml" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "playwright" },
+    { name = "pytest" },
     { name = "pytest-xdist" },
     { name = "textstat" },
 ]
@@ -195,13 +195,13 @@ requires-dist = [
     { name = "faker" },
     { name = "openpyxl" },
     { name = "pyarrow" },
-    { name = "pytest" },
     { name = "pyyaml" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "playwright", specifier = ">=1.64.0" },
+    { name = "pytest" },
     { name = "pytest-xdist", specifier = ">=3.8.0" },
     { name = "textstat", specifier = ">=0.7.13" },
 ]

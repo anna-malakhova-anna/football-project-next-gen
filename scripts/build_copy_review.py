@@ -13,12 +13,11 @@ import csv
 import html
 import re
 import sys
-from pathlib import Path
 
 import textstat
 import yaml
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / "public"
 SITE = ROOT / "site"
 COPY = ROOT / "site_src" / "copy" / "charts.yml"

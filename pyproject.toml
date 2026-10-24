@@ -1,7 +1,7 @@
 [project]
 name = "counting-flag-football"
 version = "0.1.0"
-description = "Governed participation data platform for a SYNTHETIC global flag football program (Phase 1: foundations)."
+description = "Flag Football Project: a governed participation and fan-acquisition data platform on SYNTHETIC flag football data (dbt on DuckDB)."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
@@ -12,7 +12,6 @@ dependencies = [
     "openpyxl",
     "pyarrow",
     "pyyaml",
-    "pytest",
 ]
 
 [tool.pytest.ini_options]
@@ -27,6 +26,7 @@ build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
+    "pytest",
     "playwright>=1.64.0",
     "pytest-xdist>=3.8.0",
     "textstat>=0.7.13",

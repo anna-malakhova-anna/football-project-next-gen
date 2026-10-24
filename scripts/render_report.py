@@ -9,12 +9,10 @@ number. Data-trust figures sit directly under the headline numbers, not in an ap
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "warehouse" / "flag.duckdb"
 OUT_DIR = ROOT / "docs" / "reports"
 MEMO = "../methodology/counting-a-participant.md"
 

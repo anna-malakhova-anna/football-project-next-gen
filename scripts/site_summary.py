@@ -9,14 +9,13 @@ from __future__ import annotations
 import re
 import sys
 from html import escape as e
-from pathlib import Path
 
 import yaml
 
 from scripts import site_product as sp
 from scripts import site_tables
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 COPY_PATH = ROOT / "site_src" / "copy" / "charts.yml"
 SLUG = "product-summary"
 PLACEHOLDER = re.compile(r"\{([A-Za-z_0-9]+)\}")

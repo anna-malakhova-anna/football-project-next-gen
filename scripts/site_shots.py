@@ -16,8 +16,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 VIEWPORTS = {"1440": (1440, 900), "390": (390, 844)}
 MAX_SHOT_HEIGHT = 7000

@@ -17,9 +17,8 @@ import sys
 from pathlib import Path
 
 import duckdb
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "warehouse" / "flag.duckdb"
 OUT = ROOT / "published"
 
 CONTEXT_SQL = """

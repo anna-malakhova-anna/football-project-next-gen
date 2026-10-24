@@ -2,14 +2,14 @@
 
 **Live site:** https://counting-flag-football.onrender.com (synthetic data only; built from `public/`)
 
-**[Results site](site/index.html)** (built by `make site`; CI publishes it to GitHub Pages) · [Participation memo](docs/methodology/counting-a-participant.md) · [Fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) · [Decisions](docs/decisions/) · [Demo script](docs/demo_script.md) · [UI spec](ui-spec.md)
+**Results site:** the live link above, or build it locally with `make site` (into the git-ignored `site/`) · [Participation memo](docs/methodology/counting-a-participant.md) · [Fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) · [Decisions](docs/decisions/) · [Demo script](docs/demo_script.md) · [UI spec](ui-spec.md)
 
 **How many fans does flag football create, how engaged and valuable are they, and how many can we contact?** This is a governed data platform for a **synthetic** global flag football
-program that answers that question, and then shows how sure it is: the fans the programme added (an estimate with an interval, next to the naive count that is more than twice too big), what a fan
+program that answers that question, and then shows how sure it is: the fans the programme added (an estimate with an interval, next to a naive count that is almost twice too big), what a fan
 is worth, and how much of the engaged audience governance lets the organisation talk to. It started as "how many people play" and still answers that too. Five messy sources (a league CSV, a club API,
 a federation workbook, school headcounts and a fan feed) go in; every claim is graded against an answer key the generator keeps. Python generates and loads; **SQL (dbt on DuckDB) is the showcase**.
 
-**Status:** all 13 steps of the fan-acquisition rework are built; methodology **v2.0** (25 scorecard KPIs) is published for 2021 to 2025 and the restatement log is empty. The two methodology memos and the demo talking points are drafts for the owner to write, and the CI workflow has not yet run (no GitHub remote). The results site has six pages (overview, acquisition, value, audience, participation, trust) plus an appendix, a drive chart on the Acquisition page, and an original project mark; a build check refuses any image file, `<img>`, foreign inline SVG or foreign favicon, so no third-party logo can ship. [`fix-list.md`](fix-list.md) tracks what remains (the generator-side items are open).
+**Status:** Phases 1 to 6 and all 13 steps of the fan-acquisition rework are built; methodology **v2.0** (25 scorecard KPIs) is published for 2021 to 2025 and the restatement log is empty. The two methodology memos and the demo talking points are drafts for the owner to write. The results site has six pages (overview, acquisition, value, audience, participation, trust) plus an appendix, a drive chart on the Acquisition page, and an original project mark; a build check refuses any image file, `<img>`, foreign inline SVG or foreign favicon, so no third-party logo can ship. [`fix-list.md`](fix-list.md) tracks what remains (the generator-side items are open).
 
 > ## All data in this project is synthetic
 > Every person, email and phone number is fake, generated from a fixed seed (42). The real equivalent is **minors' personal information**: children aged 5 to 17, their
@@ -35,23 +35,25 @@ flowchart LR
 
 ## Results (synthetic data, 2021 to 2025; latest period shown)
 
+Figures from a clean `make all-phases` on 2026-10-24 (they match the committed `public/` site). If the generator changes, refresh this table from the `make` printouts named in each row.
+
 | What | Result |
 |---|---|
-| **Fan accounts the programme added** (incremental, stacked market-launch comparison) | **1,264** (95% interval 897 to 1,630); truth 1,111. The naive count of net-new households is 939 linked (0.85x the truth) and 2,543 scaled by the link rate (**2.3x**) |
-| **Addressable audience** (guardian opted in on at least one channel, December 2025) | **3,511 of 13,043** registered households (email 2,107, SMS 1,231, push 1,748; channels overlap) |
-| **Consent gap** (active households with no opt-in at all) | **803 households, about 25% of the active**, worth about 96,360 in synthetic currency at the median monetized household's spend (an opportunity size, not revenue) |
-| Fan lifetime value (36-month horizon, synthetic currency) | existing fans 387 (381 to 393), net-new 368 to 372 (352 to 386); 12-month survival 95% for existing fans, 89% for net-new |
-| Value uplift after registering a child (existing fans) | +0.21 events per household-month (truth +0.18); net spend up about 1.1 per household-month (synthetic currency) |
-| Fan engagement uplift after first registration (linked households) | naive +17.5% (0.99x the truth), matched difference-in-differences +22.6% (truth +20.5%) |
-| Markets (46 synthetic) | 15 retention-and-engagement, 8 program-growth, 3 acquisition white space, 20 long-term build |
-| Unique registered participants | 8,959 in 2025 (identity range 8,921 to 8,976, a 0.6% band) |
-| Identity resolution, final matcher (`fs`, automatic merges) | precision 99.81%, recall 99.99%; **9 sibling/twin false merges (a finding, not yet fixed: ADR-008)**; 14,991 predicted vs 15,000 true people |
-| Rules baseline vs probabilistic | rules recall 92.7% (16,044 predicted people, no sibling merges); literal Fellegi-Sunter `fs_naive` makes 213 sibling merges; the corrected `fs` makes 9 |
-| One-year retention of entrants (Kaplan-Meier, censored) | 72.2%; counting age-outs as churn would report 37% for entrants aged 14 to 17 (truth 61%) |
-| Household link rate (registration to fan account) | 36% overall; email links 99.98% precise, phone links 85.8% (UNLINKED means unknown: about 23% of unlinked households do have an account) |
+| **Fan accounts the programme added** (incremental, stacked market-launch comparison) | **1,264** (95% interval 897 to 1,630); truth 1,111. The naive count of net-new households is 743 linked (0.67x the truth) and 2,019 scaled by the link rate (**1.8x**) (`make acquisition`) |
+| **Addressable audience** (guardian opted in on at least one channel, December 2025) | **3,182 of 11,787** registered households (email 1,912, SMS 1,104, push 1,597; channels overlap) (`make audience`) |
+| **Consent gap** (active households with no opt-in at all) | **725 households, about 25% of the active**, worth about 87,000 in synthetic currency at the median monetized household's spend (an opportunity size, not revenue) |
+| Fan lifetime value (36-month horizon, synthetic currency) | existing fans 383 (377 to 389), net-new 373 to 374 (355 to 390); 12-month survival 95% for existing fans, 89% for net-new (`make fan-value`) |
+| Value uplift after registering a child (existing fans) | +0.19 events per household-month (truth +0.185); net spend up about 0.9 per household-month (synthetic currency; truth 1.4, inside the interval) |
+| Fan engagement uplift after first registration (linked households) | naive +16.5% (truth +17.6%), matched difference-in-differences +20.0% (truth +20.5%) (`make fan`) |
+| Markets (37 synthetic) | 15 retention-and-engagement, 8 program-growth, 3 acquisition white space, 11 long-term build |
+| Unique registered participants | 7,430 in 2025 (identity range 7,405 to 7,437, a 0.4% band) |
+| Identity resolution, final matcher (`fs`, automatic merges) | precision 99.82%, recall 99.69%; **7 sibling/twin false merges (a finding, not yet fixed: ADR-008)**; 13,395 predicted vs 13,368 true people (`make eval`) |
+| Rules baseline vs probabilistic | rules recall 91.6% (14,415 predicted people, no sibling merges); literal Fellegi-Sunter `fs_naive` makes 153 sibling merges; the corrected `fs` makes 7 |
+| One-year retention of entrants (Kaplan-Meier, censored) | 57.8% (truth 58.3%); counting age-outs as churn would report 29.5% for entrants aged 14 to 17 (truth 48.5%) (`make retention`) |
+| Household link rate (registration to fan account) | 36% overall; email links 100% precise, phone links 86.1% (UNLINKED means unknown: about 30% of unlinked households do have an account) (`make linkage`) |
 
 Counts are **registered participants in onboarded sources**, not total participation; fan results describe **households linked to a fan account**. Details and caveats: the
-[participation memo](docs/methodology/counting-a-participant.md) and the [fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) (both prose still being written), and the [results site](site/index.html).
+[participation memo](docs/methodology/counting-a-participant.md) and the [fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) (both prose still being written), and the results site.
 Governance sets the size of the marketable audience: nothing linked reaches marketing or media, so the audience is published as counts only (ADR-009).
 
 ## Design decisions
@@ -80,18 +82,19 @@ Governance sets the size of the marketable audience: nothing linked reaches mark
 | [020 Site viewer and plain-language copy](docs/decisions/ADR-020-site-viewer-and-copy.md) | Cards and a full-screen viewer, copy rules and checks, a league belongs to one market, the open control-limit and market-name choices |
 | [021 Data product portfolio](docs/decisions/ADR-021-data-product-portfolio.md) | Three goals become five data products; the MVP (US growth with intake first); the one canonical uplift metric; what happens to the older Acquisition, Value and Audience pages |
 | [022 Age tiers and guardian consent](docs/decisions/ADR-022-age-tiers-and-guardian-consent.md) | Four age tiers, guardian-only for every minor, the strictest-standard default, and the youth-to-adult step that is not measurable by design |
+| [023 Product boundaries and roadmap](docs/decisions/ADR-023-product-boundaries-and-roadmap.md) | One owner per model, reads across products only through ports, deterministic tie-breaks, and the roadmap gates (proposed) |
 
 ## Phase 5: data quality under privacy constraints
 
 **How do you fix thin, messy youth participation data when privacy rules block the obvious fixes (collect more, buy enrichment, share more)?** The real pain point is that participation data is sparse and poor quality; consent is
-not the bottleneck. Phase 5 tells one story through two lenses, built around **one club market end to end** (`make p5-demo`; the 15-minute two-audience path is in [`docs/demo_script.md`](docs/demo_script.md); the site has four new pages, each with a Club lens / Privacy lens toggle; every chart is a small card that opens in a full-screen viewer you can scroll or arrow through, and `page.html#view=Q3-2` links to a slide. Terms are explained in the [glossary](site/glossary.html); `make site-check` runs the layout and plain-language checks, [ADR-020](docs/decisions/ADR-020-site-viewer-and-copy.md)):
+not the bottleneck. Phase 5 tells one story through two lenses, built around **one club market end to end** (`make p5-demo`; the 15-minute two-audience path is in [`docs/demo_script.md`](docs/demo_script.md); the site has four new pages, each with a Club lens / Privacy lens toggle; every chart is a small card that opens in a full-screen viewer you can scroll or arrow through, and `page.html#view=Q3-2` links to a slide. Terms are explained in the glossary page; `make site-check` runs the layout and plain-language checks, [ADR-020](docs/decisions/ADR-020-site-viewer-and-copy.md)):
 
 | Lens | Question | Where the answer is |
 |---|---|---|
 | **Privacy / compliance lead** | What do we collect and why; what is a consent worth; what never leaves the league; when is it deleted? | [data standard](docs/data-standard.md), [consent provenance and the activation funnel](docs/decisions/ADR-019-consent-provenance-and-activation-funnel.md), [minimization frontier](docs/decisions/ADR-018-minimization-and-data-standard.md), [retention versus deletion](docs/decisions/ADR-017-retention-vs-deletion.md) |
 | **Clubs / analytics lead** | What can I see and act on in my market, and how far can I trust it? | [data quality explained](docs/data-quality.md), the purpose scorecards and fix lists (`make dq`), the club-market view ([ADR-016](docs/decisions/ADR-016-club-market-mapping.md)), `share_club` |
 
-All data is **synthetic**, and every claim about NFL, RCX, vendor or club systems is an **assumption**, labelled where it is made ([real-world context](docs/context/real-world-context.md)); legal points are open questions ([`docs/questions-for-stakeholders.md`](docs/questions-for-stakeholders.md)), never findings. The decisions are ADR-013 to ADR-022; ADR-013 records how the first build (v1, from the handover) was reconciled with the larger spec.
+All data is **synthetic**, and every claim about NFL, RCX, vendor or club systems is an **assumption**, labelled where it is made ([real-world context](docs/context/real-world-context.md)); legal points are open questions ([`docs/questions-for-stakeholders.md`](docs/questions-for-stakeholders.md)), never findings. The decisions are ADR-013 to ADR-023; ADR-013 records how the first build (v1, from the handover) was reconciled with the larger spec.
 
 ### What was built
 - **Structured defects.** Organizations get latent quality profiles (35% disciplined, 45% typical, 15% struggling, 5% manual), fields go missing for reasons that depend on who registers (not at random), 15 to 25% of known organizations send no file in a season, and consent wording comes in four versions. Counting rules and KPI definitions are unchanged.
@@ -114,7 +117,7 @@ All data is **synthetic**, and every claim about NFL, RCX, vendor or club system
 
 ## Phase 6: a data product portfolio
 
-**Given three business goals (grow flag globally, grow it in the US, and track conversion to fans while protecting children), what data products would you build, in what order, for whom, under what privacy rules, and how would you know they are working?** The site's first tab, **[Data product](site/product.html)** (`make site`), shows the answer using this project's own build: goals to five products (intake, participant and household master, global insights, US growth and club markets, flag-to-fan conversion), the method in five stages, assumption-based personas, the MVP and a now, next, later roadmap, a product label for each (`products/DP*/product.yml`, validated against the dbt manifest and the live quality grades), children's privacy by age tier, product health and a goal scorecard, and the governance gaps stated honestly. Product, not project: each product has an owner, versions, health measures and a retirement plan. Start at [`docs/product/README.md`](docs/product/README.md); `make product` builds and validates it. Decisions: [ADR-021](docs/decisions/ADR-021-data-product-portfolio.md), [ADR-022](docs/decisions/ADR-022-age-tiers-and-guardian-consent.md). Scores, targets, age rules and the tab's copy are drafts for the program owner.
+**Given three business goals (grow flag globally, grow it in the US, and track conversion to fans while protecting children), what data products would you build, in what order, for whom, under what privacy rules, and how would you know they are working?** The site's first tab, **Data product** (`product.html`, `make site`), shows the answer using this project's own build: goals to five products (intake, participant and household master, global insights, US growth and club markets, flag-to-fan conversion), the method in five stages, assumption-based personas, the MVP and a now, next, later roadmap, a product label for each (`products/DP*/product.yml`, validated against the dbt manifest and the live quality grades), children's privacy by age tier, product health and a goal scorecard, and the governance gaps stated honestly. Product, not project: each product has an owner, versions, health measures and a retirement plan. Start at [`docs/product/README.md`](docs/product/README.md); `make product` builds and validates it. Decisions: [ADR-021](docs/decisions/ADR-021-data-product-portfolio.md), [ADR-022](docs/decisions/ADR-022-age-tiers-and-guardian-consent.md). Scores, targets, age rules and the tab's copy are drafts for the program owner.
 
 ## If this were real
 
@@ -129,11 +132,11 @@ All data is **synthetic**, and every claim about NFL, RCX, vendor or club system
 
 ## Run it
 
-Requires [`uv`](https://docs.astral.sh/uv/) and `make`. Python 3.12 is fetched automatically. pytest runs on four workers; the CI job allows 25 minutes.
+Requires [`uv`](https://docs.astral.sh/uv/) and `make`. Any Python from 3.11 to 3.13 works (uv uses an installed one or fetches one). pytest runs on four workers and needs about 3 GB per worker for the generator determinism test; the CI job allows 25 minutes.
 
 ```bash
 make setup        # install dependencies, create dbt/profiles.yml from the example
-make all-phases   # the supported full build, from an empty checkout: about 8 minutes, most of it the test suite
+make all-phases   # the supported full build, from an empty checkout: about 10 minutes, most of it the test suite
 make site         # build the results site into site/
 python3 -m http.server 8000 -d site   # then open http://localhost:8000
 ```
@@ -148,6 +151,7 @@ checks: ground-truth isolation, aggregate lineage, share policy and participant-
 | `make fan-status` / `make funnel` / `make acquisition` / `make fan-value` / `make audience` | run one fan analysis and print its comparison with the truth (also `make retention`, `make linkage`, `make fan`) |
 | `make docs` | regenerate the data dictionary, metric catalog and access policy |
 | `make publish YEAR=2025` | write an immutable snapshot of that year's scorecard under the current methodology version (refuses unless every test passes, about 5 minutes per year; never part of `all-phases`) |
+| `make public` | build the deployable site into the committed `public/` (no local logo); Render serves it. Rebuild and commit after site changes |
 | `make site` | build the results site from `scripts/build_site.py` and `site_src/` (templates, styles, JS); fails if a chart would compute a number in the browser, or if the site contains an image or an SVG that is not the project's own |
 
 Explore `warehouse/flag.duckdb`:

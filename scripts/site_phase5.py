@@ -109,7 +109,7 @@ DATASETS = [
         select c.plain_name as channel_plain, o.record_count, round(o.score, 1) as score, round(o.score_interval_low, 1) as score_interval_low, round(o.score_interval_high, 1) as score_interval_high, o.grade
         from quality.dq_scorecard_org o join reference.channel_display c on c.channel = o.channel
         where o.season_year = {LATEST_Q} and o.purpose = 'SEGMENT' and o.dimension = 'PURPOSE_SCORE' and o.reported and o.score is not null
-        order by o.record_count""", ["quality.dq_scorecard_org", "quality.dq_scorecard_source", "reference.channel_display"], "approved_aggregate", "League score against league size, latest season"),
+        order by o.record_count, o.org_id""", ["quality.dq_scorecard_org", "quality.dq_scorecard_source", "reference.channel_display"], "approved_aggregate", "League score against league size, latest season"),
     _D("dq_fix_examples", f"""
         with f as (
             select f.org_id, f.rule_id, f.rank_in_scope, f.impact_estimate, f.impact_unit, f.impact_basis, f.purposes_breached
@@ -179,7 +179,7 @@ DATASETS = [
                case when m.club_market_id is null then '' when coalesce(m.orgs_known, 0) = 0 then 'No leagues known yet'
                     else cast(cast(m.orgs_reporting as bigint) as varchar) || ' of ' || cast(cast(m.orgs_known as bigint) as varchar) || ' leagues reporting' end as leagues_text
         from mk cross join p left join m on m.club_market_id = mk.club_market_id
-        order by p.purpose_order, state_order, market_no""", ["share_club.share_club__market_year", "reference.club_market_map", "reference.dq_purposes", "reference.privacy_params"], "share_club",
+        order by p.purpose_order, state_order, market_no, mk.club_market_id""", ["share_club.share_club__market_year", "reference.club_market_map", "reference.dq_purposes", "reference.privacy_params"], "share_club",
        "Club-market tiles: grade for each use, players and leagues reporting, latest season (all markets, including those with no data yet)"),
     _D("market_growth", f"""
         with s as (select club_market_id, participation_year, participants_allocated as p, participants_allocated_interval_low as lo, participants_allocated_interval_high as hi

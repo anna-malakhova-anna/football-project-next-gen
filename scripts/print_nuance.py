@@ -6,19 +6,18 @@ The decomposition and the bias are label-free; the comparison with the truth (ev
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB, print_table
 
-DB = Path(__file__).resolve().parent.parent / "warehouse" / "flag.duckdb"
+
+
+def _cell(v) -> str:
+    return "-" if v is None else (f"{v:,.0f}" if isinstance(v, float) and abs(v) >= 100 else (f"{v:.4f}".rstrip("0").rstrip(".") if isinstance(v, float) else str(v)))
 
 
 def table(rows, cols):
-    cells = [[("-" if v is None else (f"{v:,.0f}" if isinstance(v, float) and abs(v) >= 100 else (f"{v:.4f}".rstrip("0").rstrip(".") if isinstance(v, float) else str(v)))) for v in r] for r in rows]
-    widths = [max(len(c), *(len(r[i]) for r in cells)) if cells else len(c) for i, c in enumerate(cols)]
-    print("  " + "  ".join(c.ljust(w) for c, w in zip(cols, widths)))
-    for r in cells:
-        print("  " + "  ".join(v.ljust(w) for v, w in zip(r, widths)))
+    print_table(rows, cols, _cell)
 
 
 def main() -> None:

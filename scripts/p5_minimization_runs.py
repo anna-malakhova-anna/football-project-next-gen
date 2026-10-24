@@ -11,12 +11,10 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "warehouse" / "flag.duckdb"
 SELECT = ["path:models/identity", "eval_truth_pairs", "eval_record_truth", "eval_pairwise", "eval_clusters"]
 MATCHERS = ("fs", "rules")
 COLUMNS = ("variant_id varchar, matcher varchar, records integer, precision double, recall double, f1 double, sibling_or_twin_false_merges integer, twin_false_merges integer, "

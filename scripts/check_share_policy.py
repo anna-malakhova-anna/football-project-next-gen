@@ -28,12 +28,10 @@ import csv
 import json
 import re
 import sys
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "warehouse" / "flag.duckdb"
 POLICY = ROOT / "dbt" / "seeds" / "audience_column_policy.csv"
 MANIFEST = ROOT / "dbt" / "target" / "manifest.json"
 COMPILED = ROOT / "dbt" / "target" / "compiled" / "counting_flag_football" / "models" / "shares"

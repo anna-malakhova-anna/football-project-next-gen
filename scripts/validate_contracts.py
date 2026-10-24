@@ -29,10 +29,9 @@ from pathlib import Path
 
 import duckdb
 import yaml
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 CONTRACTS = ROOT / "contracts"
-DB = ROOT / "warehouse" / "flag.duckdb"
 REQUIRED = ["source_system", "version", "effective_date", "owner_role", "partner_type", "delivery", "grain", "raw", "primary_key",
             "person_identifier", "minors_present", "consent_fields", "schema", "quality"]
 PII = {"direct", "quasi", "none"}

@@ -18,6 +18,7 @@ from __future__ import annotations
 import datetime as dt
 import html
 import json
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -25,9 +26,8 @@ from pathlib import Path
 import duckdb
 
 from scripts import site_cards, site_phase5 as P5, site_product, site_summary, site_tables
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "warehouse" / "flag.duckdb"
 OUT = ROOT / "site"
 
 SHARE_EXEC_PREFIX = "share_exec."
@@ -1164,7 +1164,9 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     for name, d in data.items():
         (out / "data" / f"{name}.json").write_text(json.dumps(d, default=str), encoding="utf-8")
     (out / "data" / "manifest.json").write_text(json.dumps({"datasets": [{"name": n, "source": d["source"], "kind": d["kind"], "rows": len(d["rows"])} for n, d in data.items()]}, indent=1), encoding="utf-8")
-    stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
+    # SOURCE_DATE_EPOCH (the reproducible-builds convention) pins the footer date, so rebuilding unchanged data gives byte-identical pages.
+    epoch = os.environ.get("SOURCE_DATE_EPOCH")
+    stamp = (dt.datetime.fromtimestamp(int(epoch), dt.timezone.utc) if epoch else dt.datetime.now(dt.timezone.utc)).strftime("%Y-%m-%d")
     version = con_version
     copy_assets(out)
     for slug, (_title, body) in build_pages(data, chart_defs, facts).items():

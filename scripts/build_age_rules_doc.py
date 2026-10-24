@@ -5,9 +5,8 @@ Every row is project policy informed by public rules, not legal advice. Rows wit
 from __future__ import annotations
 
 import csv
-from pathlib import Path
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 SEED = ROOT / "dbt" / "seeds" / "age_consent_rules.csv"
 OUT = ROOT / "docs" / "product" / "age-consent-rules.md"
 

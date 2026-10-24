@@ -13,8 +13,8 @@ import yaml
 
 from scripts import site_cards as sc
 from scripts import validate_products as vp
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 REPO = "https://github.com/anna-malakhova-anna/football-project-next-gen/blob/main/"
 GOALS = {"G1": "Grow NFL presence globally through flag football",
          "G2": "Grow flag football popularity in the US as a safe, accessible way into the sport, alongside tackle football",

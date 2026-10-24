@@ -20,11 +20,10 @@ from __future__ import annotations
 import csv
 import re
 import sys
-from pathlib import Path
 
 import yaml
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 SEED = ROOT / "dbt" / "seeds" / "dq_rule_registry.csv"
 PURPOSES = ["COUNT", "SEGMENT", "GEO", "RETAIN", "ACTIVATE"]
 FIELDS = ["rule_id", "dimension", "applies_to", "grain", "check_sql", "purposes", *[f"threshold_{p}" for p in PURPOSES], "severity", "owner_role", "fix_guidance", "origin", "contract_ref", "plain_label", "plain_action"]

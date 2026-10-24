@@ -7,11 +7,10 @@ The scorecards, fix lists and market views of the spec are printed by `make dq` 
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB
 
-DB = Path(__file__).resolve().parent.parent / "warehouse" / "flag.duckdb"
 
 
 def show(con, title: str, sql: str) -> None:

@@ -9,8 +9,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 YAML_PATH = ROOT / "dbt" / "models" / "intermediate" / "_intermediate.yml"
 OUT_PATH = ROOT / "docs" / "data_dictionary.md"
 SYSTEMS = ["US_LEAGUE", "CA_CLUB", "INTL_FED"]

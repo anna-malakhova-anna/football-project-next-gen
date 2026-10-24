@@ -23,9 +23,8 @@ from itertools import combinations
 from pathlib import Path
 
 import duckdb
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "warehouse" / "flag.duckdb"
 OUT = ROOT / "dbt" / "seeds" / "review_decisions.csv"
 HEADER = ["record_a", "record_b", "decision", "decided_by", "decided_at", "note"]
 DECIDED_BY = "SIMULATED_STEWARD"

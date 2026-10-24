@@ -10,11 +10,10 @@ from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB
 
-DB = Path(__file__).resolve().parent.parent / "warehouse" / "flag.duckdb"
 INTERACTIVE = False
 ANSWER_KEY = True
 

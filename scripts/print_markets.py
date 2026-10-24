@@ -6,19 +6,18 @@ Counts are allocated (fractional where a ZIP3 is shared). No participation rate 
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB, print_table
 
-DB = Path(__file__).resolve().parent.parent / "warehouse" / "flag.duckdb"
+
+
+def _cell(v) -> str:
+    return "-" if v is None else ((f"{v:,.3f}" if abs(v) < 2 else f"{v:,.1f}") if isinstance(v, float) else str(v))
 
 
 def table(rows, cols):
-    cells = [[("-" if v is None else ((f"{v:,.3f}" if abs(v) < 2 else f"{v:,.1f}") if isinstance(v, float) else str(v))) for v in r] for r in rows]
-    widths = [max(len(c), *(len(r[i]) for r in cells)) if cells else len(c) for i, c in enumerate(cols)]
-    print("  " + "  ".join(c.ljust(w) for c, w in zip(cols, widths)))
-    for r in cells:
-        print("  " + "  ".join(v.ljust(w) for v, w in zip(r, widths)))
+    print_table(rows, cols, _cell)
 
 
 def main() -> None:

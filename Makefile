@@ -1,14 +1,17 @@
-.PHONY: product one-pager public site-check site-check-ci phase5 phase5-experiments minimize retention-vs-deletion fix-list-demo markets consent nuance dq p5-demo p5-retention p5-minimization p5-score p5-feeds audience fan-value acquisition funnel fan-status all-phases phase4 site fan linkage retention measure eval-measure shares report publish phase3 test-phase3 test-phase4 contracts steward-demo steward-reset setup generate load load-eval build idr eval test test-phase2 all phase2 clean docs isolation id-stability
+.PHONY: acquisition all all-phases audience build clean consent contracts copy-review docs dq eval eval-measure fan fan-status fan-value fix-list-demo funnel generate id-stability idr isolation linkage load load-eval markets measure minimize nuance one-pager p5-demo p5-feeds p5-minimization p5-retention p5-score phase2 phase3 phase4 phase5 phase5-experiments product public publish report retention retention-vs-deletion setup shares site site-check site-check-ci steward-demo steward-reset test test-phase2 test-phase3 test-phase4
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
-# Phase 1 builds and tests everything except the Phase 2 and Phase 3 models and their tests (dbt tags).
-P1  := --exclude tag:phase2 tag:phase3 tag:phase4 tag:phase5 tag:phase6
-P2  := --exclude tag:phase3 tag:phase4 tag:phase5 tag:phase6
-P3  := --exclude tag:phase4 tag:phase5 tag:phase6
 
+# The dbt tags phase2 to phase6 record which build phase added a model. They are NOT independent layers any more: Phase 1 quality models read
+# Phase 4 staging, and Phase 3 scorecards read Phase 4 models. So every target below builds or tests the whole graph, or selects named models
+# on top of a full build. `make all-phases` is the one supported full build from an empty checkout.
+
+# The readability checks (textstat) need NLTK's CMU dictionary. textstat downloads it on first use, in the middle of a test or site check;
+# fetching it here makes the network dependency explicit and fails early with a clear message.
 setup: dbt/profiles.yml
 	uv sync
+	uv run python -c "import nltk; nltk.data.find('corpora/cmudict')" 2>/dev/null || uv run python -c "import nltk, sys; sys.exit(0 if nltk.download('cmudict', quiet=True) else 'could not download the NLTK cmudict corpus (needed by textstat)')"
 
 dbt/profiles.yml:
 	cp dbt/profiles.yml.example dbt/profiles.yml
@@ -29,9 +32,10 @@ isolation: dbt/profiles.yml
 	$(PY) -m scripts.check_eval_isolation
 	$(PY) -m scripts.check_lineage
 
+# Seed and run every model. Needs `make generate load load-eval p5-feeds` (or a previous `make all-phases`) for the sources.
 build: dbt/profiles.yml
 	$(DBT) seed --profiles-dir .
-	$(DBT) run --profiles-dir . $(P1)
+	$(DBT) run --profiles-dir .
 
 # Phase 2: identity resolution, marts and evaluation (needs `make load-eval` first for the evaluation models)
 idr: dbt/profiles.yml
@@ -41,24 +45,18 @@ eval: dbt/profiles.yml
 	$(DBT) run --profiles-dir . --select evaluation --exclude tag:phase3
 	$(PY) -m scripts.print_headline
 
+# Every test and build check on an already-built warehouse (the test half of `make all-phases`).
 test: dbt/profiles.yml
-	uv run pytest
 	$(PY) -m scripts.validate_contracts
-	$(DBT) test --profiles-dir . $(P1)
-	$(DBT) parse --profiles-dir .
-	$(PY) -m scripts.check_eval_isolation
-	$(PY) -m scripts.check_lineage
-
-test-phase2: dbt/profiles.yml
-	$(DBT) test --profiles-dir . $(P2)
-	$(PY) -m scripts.check_eval_isolation
-	$(PY) -m scripts.check_lineage
-
-test-phase3: dbt/profiles.yml
-	$(DBT) test --profiles-dir . $(P3)
+	$(DBT) test --profiles-dir .
+	uv run pytest -q -n 4
 	$(PY) -m scripts.check_eval_isolation
 	$(PY) -m scripts.check_lineage
 	$(PY) -m scripts.check_share_policy
+	$(PY) -m scripts.check_id_stability
+
+# Kept as names for old notes and muscle memory: each one is now the full test run.
+test-phase2 test-phase3 test-phase4: test
 
 # Optional demo of the review loop. The steward is SIMULATED from ground truth; POST_REVIEW rows are not matcher performance.
 steward-demo:
@@ -131,35 +129,30 @@ p5-demo: p5-feeds p5-score p5-retention
 p5-minimization:
 	$(PY) -m scripts.p5_minimization
 
-# Phase 5 spec 7: the minimization frontier. Runs the identity chain once per variant (about 30 seconds each), then the label-free risk and fitness and the evaluation.
-# MIN_VARIANTS="V0_FULL V2_BIRTH_YEAR V4_HASHED_CONTACT" runs the reduced set (CI); the default is every variant of the seed.
 # Phase 5 spec 10: delete child-level identifiers in the identity and linkage zones of a COPY of the warehouse, rebuild the Phase 4 retention marts, and report what survives
 retention-vs-deletion: dbt/profiles.yml
 	$(PY) -m retention.zones
-	$(DBT) run --profiles-dir . --select mart_retention_vs_deletion share_privacy__retention_vs_deletion
-	$(DBT) test --profiles-dir . --select mart_retention_vs_deletion share_privacy__retention_vs_deletion
+	$(DBT) run --profiles-dir . --select mart_retention_vs_deletion+
+	$(DBT) test --profiles-dir . --select mart_retention_vs_deletion+
 
 # Phase 5 spec 6.4: the SIMULATED feedback-loop demo (fix_list_adoption on, in a copy of the warehouse) -> docs/reports/fix_list_demo.md
 fix-list-demo: dbt/profiles.yml
 	$(PY) -m scripts.fix_list_demo
 
+# Phase 5 spec 7: the minimization frontier. Runs the identity chain once per variant (about 30 seconds each), then the label-free risk and fitness and the evaluation.
+# MIN_VARIANTS="V0_FULL V2_BIRTH_YEAR V4_HASHED_CONTACT" runs the reduced set (CI); the default is every variant of the seed.
+# The trailing + rebuilds everything downstream (chart insights, privacy shares). Without it a clean `make all-phases` left
+# eval_chart_insights built from empty minimization runs, and `make site` refused the build (P3: no insight value for matching_cost).
 minimize: dbt/profiles.yml
 	$(DBT) seed --profiles-dir . --full-refresh --select minimization_variants
 	$(PY) -m scripts.p5_minimization_runs $(if $(MIN_VARIANTS),--variants $(MIN_VARIANTS))
-	$(DBT) run --profiles-dir . --select mart_reidentification_risk mart_minimization_fitness eval_minimization_tradeoff eval_minimization_checks
-	$(DBT) test --profiles-dir . --select minimization_variants mart_reidentification_risk mart_minimization_fitness eval_minimization_tradeoff eval_minimization_checks
+	$(DBT) run --profiles-dir . --select mart_reidentification_risk+ mart_minimization_fitness+ eval_minimization_tradeoff+ eval_minimization_checks+
+	$(DBT) test --profiles-dir . --select minimization_variants mart_reidentification_risk+ mart_minimization_fitness+ eval_minimization_tradeoff+ eval_minimization_checks+
 	$(PY) -m scripts.print_minimize
 
 # Phase 4: validate every source's raw table against its data contract (writes quality.dq_contract_results)
 contracts:
 	$(PY) -m scripts.validate_contracts
-
-test-phase4: dbt/profiles.yml
-	$(PY) -m scripts.validate_contracts
-	$(DBT) test --profiles-dir .
-	$(PY) -m scripts.check_eval_isolation
-	$(PY) -m scripts.check_lineage
-	$(PY) -m scripts.check_share_policy
 
 # Phase 4: household -> fan account linkage (restricted `linkage` schema) and its evaluation (needs `make load-eval`)
 linkage: dbt/profiles.yml
@@ -171,8 +164,9 @@ site:
 	$(PY) -m scripts.build_site
 
 # The deployable site (Render static site, see render.yaml): built WITHOUT the git-ignored local logo, into the committed `public/` folder. Rebuild and commit it after `make site` changes.
+# The footer date is pinned to the last commit (SOURCE_DATE_EPOCH), so rebuilding unchanged data leaves public/ byte-identical except for real changes.
 public:
-	$(PY) -m scripts.build_site --public --out public
+	SOURCE_DATE_EPOCH=$$(git log -1 --format=%ct) $(PY) -m scripts.build_site --public --out public
 
 # Phase 6: the product portfolio. Seeds and the Phase 6 models, the specs validated against the manifest and the warehouse, the health and adoption tables. The Data product tab is built by `make site`.
 product: dbt/profiles.yml
@@ -257,10 +251,8 @@ publish:
 	$(PY) -m scripts.publish $(YEAR)
 	$(PY) -m loader.load_published
 
-all: generate load build test
-
-# Everything: Phase 1, then ground truth load, identity resolution, evaluation, all tests, isolation, id stability
-phase2: all load-eval idr eval test-phase2 id-stability
+# `all` and `phase2` used to build a Phase 1 or Phase 2 subset; those subsets no longer build from an empty checkout. Both are now the full build.
+all phase2: all-phases
 
 # Everything, from an empty checkout: generate, load (raw, ground truth, published snapshots), contract validation, every dbt model and test,
 # pytest, and the build checks (eval isolation, aggregate lineage, share policy, ID stability). From Phase 4 the layers depend on each other in both
@@ -318,4 +310,4 @@ docs:
 	$(PY) -m scripts.build_age_rules_doc
 
 clean:
-	rm -rf data/raw/* data/ground_truth/* warehouse/* dbt/target dbt/logs dbt/dbt_packages
+	rm -rf data/raw/* data/ground_truth/* warehouse/* dbt/target dbt/logs dbt/dbt_packages site

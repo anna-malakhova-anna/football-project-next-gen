@@ -4,11 +4,10 @@
 """
 from __future__ import annotations
 
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB
 
-DB = Path(__file__).resolve().parent.parent / "warehouse" / "flag.duckdb"
 
 
 def main() -> None:

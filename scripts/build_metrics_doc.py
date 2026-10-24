@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 CATALOG = ROOT / "dbt" / "seeds" / "metric_catalog.csv"
 OUT = ROOT / "docs" / "metrics.md"
 GROUPS = [("north_star", "North star"), ("growth", "Growth"), ("reach", "Reach"), ("depth", "Depth"),

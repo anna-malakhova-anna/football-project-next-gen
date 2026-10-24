@@ -6,8 +6,8 @@ from __future__ import annotations
 import csv
 from collections import defaultdict
 from pathlib import Path
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 POLICY = ROOT / "dbt" / "seeds" / "audience_column_policy.csv"
 OUT = ROOT / "docs" / "access_policy.md"
 

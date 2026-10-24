@@ -9,12 +9,10 @@ from __future__ import annotations
 
 import subprocess
 import sys
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "warehouse" / "flag.duckdb"
 SNAPSHOT = "select registration_key, participant_id from marts.bridge_registration_participant order by 1"
 
 

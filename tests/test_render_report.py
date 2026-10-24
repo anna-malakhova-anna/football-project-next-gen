@@ -73,6 +73,7 @@ def test_methodology_version_footer_links_to_the_memo(con):
 
 def test_the_script_reads_only_the_exec_share_and_the_scorecard():
     src = (Path(rr.__file__)).read_text()
+    src = re.sub(r"^(from \S+ import .*|import .*)$", "", src, flags=re.M)     # Python imports are not SQL reads
     sql = re.findall(r'"[^"]*\bfrom\s+([a-z_]+\.[a-z_]+)', src) + re.findall(r"\bfrom\s+([a-z_]+\.[a-z_]+)", src)
     assert set(sql) <= set(rr.SOURCES), set(sql) - set(rr.SOURCES)
     for banned in ("fct_participant", "dim_participant", "mart_participation", "ground_truth", "share_ops", "share_analyst"):

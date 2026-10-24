@@ -17,11 +17,10 @@ import csv
 import fnmatch
 import json
 import sys
-from pathlib import Path
 
 import yaml
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "dbt" / "target" / "manifest.json"
 PRODUCTS = ROOT / "products"
 DEBT = PRODUCTS / "boundary_debt.csv"

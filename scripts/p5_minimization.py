@@ -11,12 +11,10 @@ from __future__ import annotations
 import csv
 import json
 import subprocess
-from pathlib import Path
 
 import duckdb
+from scripts.common import DB, ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "warehouse" / "flag.duckdb"
 SELECT = ["p5_idr_input_records+", "eval_p5_resolution"]
 
 

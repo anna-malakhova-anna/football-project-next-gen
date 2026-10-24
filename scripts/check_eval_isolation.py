@@ -11,8 +11,8 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from scripts.common import ROOT
 
-ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "dbt" / "target" / "manifest.json"
 GROUND_TRUTH_SOURCE = "ground_truth"
 ALLOWED_DIR = "models/evaluation/"

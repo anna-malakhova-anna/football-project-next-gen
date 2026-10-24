@@ -135,9 +135,9 @@ evaluation targets for Phase 2.
 Turns 17,530 registrations into 6,000 participants (the generator's true population is also 6,000) **in SQL only**, without the
 matcher ever seeing the answer key, then measures how well that worked. Ground truth lives in a separate `eval` schema and
 is read only by `models/evaluation/`; `scripts/check_eval_isolation.py` fails the build if anything else depends on it.
-Business explainer: [docs/identity_resolution.md](docs/identity_resolution.md). Decisions:
-[ADR-003](docs/decisions/ADR-003-identity-resolution.md), [ADR-004](docs/decisions/ADR-004-participant-id-stability.md).
-Generated results: [docs/phase2_results.md](docs/phase2_results.md).
+Business explainer: [docs/identity_resolution.md](identity_resolution.md). Decisions:
+[ADR-003](decisions/ADR-003-identity-resolution.md), [ADR-004](decisions/ADR-004-participant-id-stability.md).
+Generated results: [docs/phase2_results.md](phase2_results.md).
 
 **Why it matters.** Every participation number in Phase 3 depends on it. *Under-merging* (one child split in two) inflates
 participation and breaks retention. *Over-merging* (two children collapsed) undercounts, and can apply one child's consent
@@ -203,19 +203,19 @@ Turns resolved participants into numbers an executive can trust and data each au
 A count is **registered participants in onboarded sources**: not total participation, and a registration is not proof that
 someone played.
 
-- **A defined, versioned methodology** (v1.0): counting rules C1 to C15, in [ADR-005](docs/decisions/ADR-005-counting-rules.md) and the
-  [methodology memo](docs/methodology/counting-a-participant.md). **The memo is a draft skeleton: every heading, rule and number is in
+- **A defined, versioned methodology** (v1.0): counting rules C1 to C15, in [ADR-005](decisions/ADR-005-counting-rules.md) and the
+  [methodology memo](methodology/counting-a-participant.md). **The memo is a draft skeleton: every heading, rule and number is in
   place, and the prose is Anna's to write.**
 - **One counting engine** (`fct_registration` -> `fct_participant_year`, plus a US-season fact) behind every mart, share and report. Global
   unique participants are **not** the sum of country presence counts; both views exist and are labelled, and tests prove the arithmetic.
 - **Honest uncertainty:** a low / point / high identity range computed without ground truth (the same `connected_components` macro over three
   edge sets), reported beside the headline numbers, with a separately labelled comparison against the synthetic truth.
 - **Audience shares with privacy controls** enforced by tests: exec (aggregates, small cells suppressed), analyst (pseudonymous participant-year),
-  ops (full identifiers), marketing (consented contacts only), media (cleared roster only). [access_policy.md](docs/access_policy.md),
-  [ADR-006](docs/decisions/ADR-006-privacy-controls.md).
+  ops (full identifiers), marketing (consented contacts only), media (cleared roster only). [access_policy.md](access_policy.md),
+  [ADR-006](decisions/ADR-006-privacy-controls.md).
 - **A KPI scorecard**, **publish and restatement** (immutable snapshots; a log that names the likely cause of any change;
-  [ADR-007](docs/decisions/ADR-007-publish-and-restatement.md)) and an **executive report** rendered with no calculations
-  ([2025 report](docs/reports/participation_report_2025.md)).
+  [ADR-007](decisions/ADR-007-publish-and-restatement.md)) and an **executive report** rendered with no calculations
+  ([2025 report](reports/participation_report_2025.md)).
 
 | 2025 headline | Value | Identity range |
 |---|---|---|
@@ -259,7 +259,7 @@ make docs                    # regenerate the data dictionary, docs/metrics.md a
 | KPI scorecard covers the full tree incl. data-trust KPIs; every metric in the catalog | 17 KPIs per year, 29 catalog metrics, tests |
 | Five shares; the policy check fails on any unlisted column; consent and minor tests pass | yes; exercised against a deliberately added DOB column |
 | Primary and secondary suppression enforced by tests | independent checker, itself tested |
-| Publish refuses on failing tests; restatement demo shows a caught change with a cause | yes ([restatement_demo.md](docs/reports/restatement_demo.md)) |
+| Publish refuses on failing tests; restatement demo shows a caught change with a cause | yes ([restatement_demo.md](reports/restatement_demo.md)) |
 | Exec report renders from `share_exec` and the scorecard only, trust beside the numbers | yes |
 | Memo skeleton complete; **Anna has written the prose** | skeleton complete; **prose pending** |
 | ADR-005/006/007, access policy, metrics, CHANGELOG, README | done |
@@ -275,13 +275,13 @@ make docs                    # regenerate the data dictionary, docs/metrics.md a
 
 ## Documents
 
-- [Source inventory](docs/source_inventory.md)
-- [Data dictionary](docs/data_dictionary.md) (generated)
-- [User stories: onboarding a new source](docs/user_stories/onboard-new-source.md)
-- [ADR-001: Stack](docs/decisions/ADR-001-stack.md), [ADR-002: Age cutoff convention](docs/decisions/ADR-002-age-cutoff-convention.md)
-- [Identity resolution explained](docs/identity_resolution.md) (for a program lead)
-- [ADR-003: Identity resolution](docs/decisions/ADR-003-identity-resolution.md), [ADR-004: Participant ID stability](docs/decisions/ADR-004-participant-id-stability.md)
-- [Methodology memo: counting a participant](docs/methodology/counting-a-participant.md) (draft skeleton), [metric catalog](docs/metrics.md), [access policy](docs/access_policy.md), [CHANGELOG](docs/methodology/CHANGELOG.md)
-- [ADR-005: Counting rules](docs/decisions/ADR-005-counting-rules.md), [ADR-006: Privacy controls](docs/decisions/ADR-006-privacy-controls.md), [ADR-007: Publish and restatement](docs/decisions/ADR-007-publish-and-restatement.md)
-- [2025 participation report](docs/reports/participation_report_2025.md), [restatement demo](docs/reports/restatement_demo.md), [Phase 2 results](docs/phase2_results.md)
-- Evaluation exports for charts: [`docs/eval/`](docs/eval/) (threshold sweep, headline, segments)
+- [Source inventory](source_inventory.md)
+- [Data dictionary](data_dictionary.md) (generated)
+- [User stories: onboarding a new source](user_stories/onboard-new-source.md)
+- [ADR-001: Stack](decisions/ADR-001-stack.md), [ADR-002: Age cutoff convention](decisions/ADR-002-age-cutoff-convention.md)
+- [Identity resolution explained](identity_resolution.md) (for a program lead)
+- [ADR-003: Identity resolution](decisions/ADR-003-identity-resolution.md), [ADR-004: Participant ID stability](decisions/ADR-004-participant-id-stability.md)
+- [Methodology memo: counting a participant](methodology/counting-a-participant.md) (draft skeleton), [metric catalog](metrics.md), [access policy](access_policy.md), [CHANGELOG](methodology/CHANGELOG.md)
+- [ADR-005: Counting rules](decisions/ADR-005-counting-rules.md), [ADR-006: Privacy controls](decisions/ADR-006-privacy-controls.md), [ADR-007: Publish and restatement](decisions/ADR-007-publish-and-restatement.md)
+- [2025 participation report](reports/participation_report_2025.md), [restatement demo](reports/restatement_demo.md), [Phase 2 results](phase2_results.md)
+- Evaluation exports for charts: [`docs/eval/`](eval/) (threshold sweep, headline, segments)
