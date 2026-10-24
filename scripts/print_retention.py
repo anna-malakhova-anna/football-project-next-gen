@@ -22,7 +22,8 @@ def main() -> None:
     q = lambda sql: con.execute(sql).fetchall()  # noqa: E731
     print("SYNTHETIC DATA. Truth below is the generator's churn parameters, used only to grade the estimates.\n")
 
-    print("1. Kaplan-Meier vs truth, all entrants (entry cohorts 2022 onwards; 2021 is the left-censored first year)")
+    first = q("select first_observed_year from reference.observation_window")[0][0]
+    print(f"1. Kaplan-Meier vs truth, all entrants (entry cohorts {first + 1} onwards; {first} is the left-censored first year)")
     print(f"{'k':>2} {'at risk':>8} {'KM':>8} {'95% CI':>17} {'truth':>8} {'error':>8} {'inside CI':>10}")
     for k, n, km, lo, hi, tr, err, ok in q("select years_since_entry, at_risk, km_survival, km_ci_low, km_ci_high, true_survival, km_error, truth_in_ci "
                                            "from evaluation.eval_retention where segment_type = 'ALL' order by 1"):

@@ -39,10 +39,11 @@ def main() -> None:
         select participation_year, unknown, total, value_phase3, value_known_only, bound_low, bound_high, missing_share, missingness_verdict, associated_factors
         from quality.mart_missingness_bias where kpi = 'girls_share_of_youth' and segment_value = 'ALL' order by 1""").fetchall(),
           ["year", "unknown", "youth", "phase 3", "known only", "bound low", "bound high", "missing", "verdict", "associated with"])
-    print("\n  where the 2025 blank genders concentrate (records):")
+    yr = con.execute("select max(participation_year) from quality.mart_missingness_bias").fetchone()[0]
+    print(f"\n  where the {yr} blank genders concentrate (records):")
     t, d = con.execute("select top_orgs, top_divisions from quality.mart_missingness_bias where kpi = 'girls_share_of_youth' and participation_year = (select max(participation_year) from quality.mart_missingness_bias) limit 1").fetchone()
     print(f"    organizations: {t}\n    divisions:     {d}")
-    print("\n  tests of 'missing at random' (2025, blank gender; approximate chi-square p-values):")
+    print(f"\n  tests of 'missing at random' ({yr}, blank gender; approximate chi-square p-values):")
     table(con.execute("""select factor, records, records_missing, chi2, df, p_value, lowest_group_missing_rate, highest_group_missing_rate, associated_with_missingness
                          from quality.mart_missingness_tests where kpi = 'girls_share_of_youth' and participation_year = (select max(participation_year) from quality.mart_missingness_tests) order by factor""").fetchall(),
           ["factor", "records", "missing", "chi2", "df", "p", "lowest group", "highest group", "associated"])

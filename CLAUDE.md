@@ -18,7 +18,7 @@ If a spec file is present locally, it wins over this summary for the phase it co
 - SQL is the showcase: Python generates and loads data as-is; cleaning, typing, counting, matching and analysis happen in dbt SQL.
 - Raw is immutable: raw tables are strings in, strings stored. The generator clears each source folder before writing.
 - Deterministic: global seed 42 (`config/generation.yaml`). Ties are broken explicitly in SQL (ADR-023); a test rebuilds and compares.
-- Configuration, not literals: thresholds, windows, tolerances and suppression limits come from `config/generation.yaml` (exported to seeds) or `dbt_project.yml` vars. No literal years in models (a pytest guards it).
+- Configuration, not literals: thresholds, windows, tolerances and suppression limits come from `config/generation.yaml` (exported to seeds) or `dbt_project.yml` vars. No literal years in models or `print_*` scripts (pytests guard both); read the window from `reference.observation_window`.
 - Paths: scripts import `ROOT`, `DB` (from `paths.warehouse`) and `print_table` from `scripts/common.py`; do not re-derive them.
 - Consent NULL means "not captured"; never coerce to TRUE/FALSE. A consent email is not a marketing opt-in.
 - Keep dbt portable (Snowflake later); log every DuckDB-specific function in `docs/decisions/ADR-001-stack.md`.

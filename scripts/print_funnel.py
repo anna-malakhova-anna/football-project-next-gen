@@ -30,9 +30,10 @@ def main() -> None:
     for r in q("select segment, sum(households), sum(linked_households), sum(contactable_households), sum(active_households), sum(monetized_households) "
                "from linkage.mart_fan_funnel where market_type = 'ALL' and fan_status = 'ALL' group by 1 order by 2 desc"):
         print(f"{r[0]:26s} {r[1]:>10,} {pct(r[2] / r[1])} {pct(r[3] / r[2]) if r[2] else '   n/a'} {pct(r[4] / r[3]) if r[3] else '   n/a'} {pct(r[5] / r[4]) if r[4] else '   n/a'}")
-    print("\nThe unconditional counts show the cost of the funnel's order (cohort 2024, all statuses):")
+    cohort = q("select last_observed_year from reference.observation_window")[0][0]      # the latest cohort, read from the data window
+    print(f"\nThe unconditional counts show the cost of the funnel's order (cohort {cohort}, all statuses):")
     r = q("select linked_households, contactable_regardless, contactable_households, active_regardless, active_households from linkage.mart_fan_funnel "
-          "where cohort_year = 2024 and segment = 'ALL' and market_type = 'ALL' and fan_status = 'ALL'")[0]
+          f"where cohort_year = {cohort} and segment = 'ALL' and market_type = 'ALL' and fan_status = 'ALL'")[0]
     print(f"  linked {r[0]:,}; contactable {r[2]:,} (consent held by {r[1]:,} linked accounts); active and contactable {r[4]:,} (active whether or not contactable: {r[3]:,})")
 
 
