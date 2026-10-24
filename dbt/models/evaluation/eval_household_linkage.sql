@@ -17,8 +17,10 @@ with truth_hh as (
 
 obs_hh as (
 
-    select h.household_id, mode(t.true_household) as true_household
-    from {{ ref('int_household') }} h join truth_hh t using (participant_id) group by 1
+    -- Ties go to the most members, then the true household key: mode() picks an arbitrary value on a tie (differs between machines)
+    select h.household_id, t.true_household
+    from {{ ref('int_household') }} h join truth_hh t using (participant_id) group by 1, 2
+    qualify row_number() over (partition by h.household_id order by count(*) desc, t.true_household) = 1
 
 ),
 
