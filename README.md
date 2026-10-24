@@ -2,7 +2,7 @@
 
 **Live site:** https://counting-flag-football.onrender.com (synthetic data only; built from `public/`)
 
-**Results site:** the live link above, or build it locally with `make site` (into the git-ignored `site/`) · [Participation memo](docs/methodology/counting-a-participant.md) · [Fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) · [Decisions](docs/decisions/) · [Demo script](docs/demo_script.md) · [UI spec](ui-spec.md)
+**Results site:** the live link above, or build it locally with `make site` (into the git-ignored `site/`) · [Participation memo](docs/methodology/counting-a-participant.md) · [Fan-acquisition memo](docs/methodology/flag-as-fan-acquisition.md) · [Decisions](docs/decisions/) · [Demo script](docs/demo_script.md) · [UI spec](docs/ui-spec.md)
 
 **How many fans does flag football create, how engaged and valuable are they, and how many can we contact?** This is a governed data platform for a **synthetic** global flag football
 program that answers that question, and then shows how sure it is: the fans the programme added (an estimate with an interval, next to a naive count that is almost twice too big), what a fan
