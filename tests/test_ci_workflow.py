@@ -19,13 +19,16 @@ def test_ci_runs_the_full_build_then_the_site_and_fits_the_time_budget():
     assert any("setup-uv" in s.get("uses", "") and s.get("with", {}).get("enable-cache") for s in build["steps"])   # the uv environment is cached
 
 
-def test_the_site_is_deployed_only_from_main_and_only_after_the_build():
+def test_ci_does_not_deploy_and_fails_when_the_committed_public_is_stale():
     wf = _wf()
-    deploy = wf["jobs"]["deploy"]
-    assert deploy["needs"] == "build" and "refs/heads/main" in deploy["if"] and "push" in deploy["if"]
-    assert deploy["permissions"] == {"pages": "write", "id-token": "write"}
+    assert list(wf["jobs"]) == ["build"]                              # Render serves the committed public/; there is no Pages deploy job
     assert wf["permissions"] == {"contents": "read"}                  # the build job gets no write access
-    assert not any("publish" in s.get("run", "") for j in wf["jobs"].values() for s in j.get("steps", []))      # CI never runs `make publish`
+    runs = [s["run"] for s in wf["jobs"]["build"]["steps"] if "run" in s]
+    assert not any("publish" in r for r in runs)                      # CI never runs `make publish`
+    assert not any("pages" in s.get("uses", "") for s in wf["jobs"]["build"]["steps"])
+    check = [r for r in runs if r.startswith("make public")]
+    assert len(check) == 1 and "git diff --exit-code" in check[0] and "public/" in check[0]
+    assert runs.index("make all-phases") < runs.index(check[0])       # public/ is rebuilt from the full build's warehouse
 
 
 def test_all_phases_covers_every_check_the_spec_names():
