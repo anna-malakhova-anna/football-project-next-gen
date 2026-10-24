@@ -496,7 +496,7 @@
    "name": "product_health",
    "source": "phase6.mart_product_health",
    "kind": "approved_aggregate",
-   "rows": 52
+   "rows": 47
   },
   {
    "name": "product_adoption",
