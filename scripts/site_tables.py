@@ -87,7 +87,7 @@ def _chips(content: str) -> str:
     if "class='adr'" in content or "class=\"adr\"" in content:
         return content
     if "<a " in content:
-        return re.sub(r"(<a\b[^>]*>)(.*?)(</a>)", lambda m: f"{m.group(1).replace('<a ', '<a class=\"adr\" ', 1)}{m.group(2)}{m.group(3)}", content)
+        return re.sub(r"(<a\b[^>]*>)(.*?)(</a>)", lambda m: m.group(1).replace("<a ", '<a class="adr" ', 1) + m.group(2) + m.group(3), content)
     return "".join(f"<span class='adr'>{a}</span> " for a in ADR.findall(content)).strip() or content
 
 
