@@ -3,15 +3,15 @@
 # Reading level: Flesch-Kincaid grade 9 or lower; sentences of 25 words or fewer; headline of 15 words or fewer; no rule codes outside analyst_md.
 charts:
   Q3:
-    status: draft
-    headline_template: "Fixing the top {top_k_activate} problems would recover {cum_pct_activate} of the families we currently lose."
+    status: final
+    headline_template: "The top {top_k_activate} problems cause {cum_pct_activate} of what blocks contacting families."
     fallback_headline: "A few problems cause most of the loss."
     slide_headline_templates:
       COUNT: "Counting players is barely affected: the top problem touches {top_problem_size_count} players."
-      SEGMENT: "Fixing the top {top_k_segment} problems would recover {cum_pct_segment} of the players we lose when splitting by age and gender."
+      SEGMENT: "The top {top_k_segment} problems cause {cum_pct_segment} of the losses for age and gender splits."
       GEO: "Two ZIP code problems cost players their place on the map."
-      RETAIN: "Fixing the top {top_k_retain} problems would recover {cum_pct_retain} of the players we lose when following them year to year."
-      ACTIVATE: "Fixing the top {top_k_activate} problems would recover {cum_pct_activate} of the families we currently lose."
+      RETAIN: "The top {top_k_retain} problems cause {cum_pct_retain} of the losses when following players over years."
+      ACTIVATE: "The top {top_k_activate} problems cause {cum_pct_activate} of what blocks contacting families."
     question: "Which few fixes matter most?"
     means_club: "A few problems cause most of the loss. Fixing the longest bars first helps the most families and players."
     means_privacy: "For contacting families, the biggest problems are about consent forms. Fixing them means changing a form, not cleaning data."
@@ -24,7 +24,7 @@ charts:
       A rule that affects fewer than the small-cell limit is shown as "fewer than 10"; other estimates are rounded to the nearest 10.
       The cost is what failing records remove from a count, not what a fix would recover.
   Q1:
-    status: draft
+    status: final
     headline_template: "Only {n_ready_activate} of {n_sources} sources are ready for contacting families. Most can count players."
     fallback_headline: "The same data earns different grades for different uses."
     slide_headline_templates:
@@ -39,7 +39,7 @@ charts:
       Grades are per use (purpose), latest season. A use's grade is its **weakest quality check** (the minimum of its dimension scores, ADR-014); a small source is graded on the lower end of its Wilson interval.
       "Ready" means grade A or B. Checks a use does not need are shown as a grey dash and never count against it. Source order: worst grade for contacting families first.
   Q2:
-    status: draft
+    status: final
     headline_template: "Contacting-families quality held steady for {n_steady} sources. {n_shift} had a real change in {latest_season}."
     fallback_headline: "Most sources show only normal year-to-year wobble."
     slide_headline_templates: {}
@@ -53,7 +53,7 @@ charts:
       Limits are **provisional**: a P-chart (prior mean plus or minus 3 standard errors, record count as n), drawn only from the fourth season. They are narrow for large sources because the score also moves for reasons other than sampling noise.
       The investigation and the options (individuals chart on the score, Laney P-prime) are in `docs/reports/site_after/control_chart_note.md`; the method is Anna's decision (ADR-020).
   Q4:
-    status: draft
+    status: final
     headline_template: "{pct_cd_size_small} of small leagues score C or D. Only {pct_cd_size_large} of large leagues do."
     fallback_headline: "Small leagues and new intake channels have the weakest grades."
     slide_headline_templates:
@@ -62,7 +62,7 @@ charts:
       SCATTER: "Each dot is one league: its score against how many players it registered."
     question: "Is it small leagues, or everyone?"
     means_club: "The weak grades sit mostly with small leagues and leagues that send spreadsheets or use new intake channels. Large leagues on the recommended software are mostly fine."
-    means_privacy: "The same pattern holds for consent records: small leagues and spreadsheet senders are least likely to record them."
+    means_privacy: "Consent records are weak almost everywhere: most leagues of every size grade C or D. Small leagues and spreadsheet senders do worst."
     action_club: "Offer the recommended software and a short guide to small leagues first."
     action_privacy: "Add a required consent field to the spreadsheet template."
     caution: "Leagues are grouped by size and by how they send data. Size and software overlap, so one does not fully explain the other."
@@ -70,7 +70,7 @@ charts:
       Share of leagues at each grade for the *segmentation* purpose (age, gender, division), latest season, leagues that sent a file. Size bands come from `phase5.site` in `config/generation.yaml` (small below 60 scored registrations, large from 140). A group with fewer than the small-cell limit is not shown.
       The last slide is the scatter of score against size (log scale), with each league's interval.
   Q5:
-    status: draft
+    status: final
     headline_template: "Each league gets a short letter with at most three fixes, in plain words."
     fallback_headline: "Each league gets a short letter with at most three fixes."
     slide_headline_templates:
@@ -87,7 +87,7 @@ charts:
       Examples are chosen by rule from the latest fix list, one per profile: the league with the most spreadsheet fixes, the league whose first fix is "no file sent", and the league with the largest consent-provenance cost.
       Fixes come from `dq_fix_ranking` (ranked by players affected, within the league, not systemic). Numbers below the small-cell limit read "fewer than 10"; others are rounded to the nearest 10. A number from other seasons is labelled estimated.
   M1:
-    status: draft
+    status: final
     headline_template: "{n_markets_ready} of {n_markets} markets can be counted reliably. {n_markets_dark} have leagues that send no data."
     fallback_headline: "Most markets can be counted. Some have leagues that send no data."
     slide_headline_templates: {}
@@ -101,12 +101,12 @@ charts:
       The markets are a **project approximation** built from contiguous ZIP3 groups (ADR-016); participants are allocated to markets by weight, so counts are fractional underneath and rounded to the nearest 10 here.
       A market with fewer than the small-cell limit shows no grade and no count. Tiles are grouped by state from west to east; this is not a map. "Ready" means grade A or B for counting players.
   M2:
-    status: draft
+    status: final
     headline_template: "Players grew in {n_markets_growing} of {n_markets_history} markets. Read the shaded range before the line."
     fallback_headline: "Growth can be real or better reporting. Read the shaded range."
     slide_headline_templates: {}
     question: "Is growth real, or just better reporting?"
-    means_club: "Each chart shows players since the market's first year, with that year set to 100. The shaded range shows how many players there could be if leagues that sent no data had."
+    means_club: "Each chart shows players since the market's first year, with that year set to 100. The shaded range shows how many players there could be if the leagues that sent no data had sent it."
     means_privacy: "Markets with fewer than 10 players are not drawn, so a very small market cannot be picked out."
     action_club: "Where the range widens, ask the leagues that stopped sending data to send it again."
     action_privacy: "No action. Check that small markets stay hidden."
@@ -115,12 +115,12 @@ charts:
       Index = participants allocated to the market in the season divided by its first published season, times 100. The band is the market's coverage interval on the same base (a heuristic band, not a statistical confidence interval; `docs/market-estimate.md`).
       Slides hold six markets each, largest first. Whether growth came from more leagues reporting rather than more players is not computed here (`growth_from_new_reporting_share` is not built).
   M3:
-    status: draft
+    status: final
     headline_template: "Only {activatable_households} of {households_total} families can be contacted by their club."
     fallback_headline: "Most families cannot be contacted by their club."
     slide_headline_templates: {}
     question: "Why can't I reach more families?"
-    means_club: "Orange is lost to data problems the leagues can fix. Purple is the family's choice, or a family that was never asked."
+    means_club: "Orange is lost to data problems the leagues can fix, including families who were never asked. Purple is families who said no or later withdrew."
     means_privacy: "Purple is the family's decision. We do not try to win those families back."
     action_club: "Work with leagues on the orange part first."
     action_privacy: "Treat the purple part as the design working, not as a defect."
@@ -129,7 +129,7 @@ charts:
       Funnel from `mart_activation_funnel` (latest season), one slide for all markets and one for each of the six largest. Counts are households allocated to markets by ZIP3 weight, so they are fractional underneath.
       Each bar row is the previous step's total: still reachable, lost to a fixable data problem (missing or unusable record), and lost to privacy (consent declined, withdrawn, never covered the purpose). A step with fewer than 10 is hidden with the one after it.
   M4:
-    status: draft
+    status: final
     headline_template: "{n_dark_leagues} known leagues sent no data this season. Their players are missing from every count."
     fallback_headline: "Some known leagues sent no data this season."
     slide_headline_templates: {}
@@ -143,7 +143,7 @@ charts:
       A league belongs to one market only: the market with the highest weight for the league's ZIP3 (ties: lowest market id). Participants are still split by weight; leagues never are, so every count here is a whole number (ADR-020).
       Markets with no known league yet are listed under the chart. A market with fewer than 10 players is hidden with its league counts.
   M5:
-    status: draft
+    status: final
     headline_template: "The club sees players and grades. The privacy lead sees what never leaves the league."
     fallback_headline: "One market, seen by the club and by the privacy lead."
     slide_headline_templates: {}
@@ -156,7 +156,7 @@ charts:
     analyst_md: |
       Both panels come from `share_club` aggregates for the six largest published markets, latest season. The deletion count at age-out (from `retention_log`) is not on this panel: it lives in a restricted store and has no approved share yet.
   U1:
-    status: draft
+    status: final
     headline_template: "The count is {count_point}. Missing leagues could add {coverage_extra_high} more."
     fallback_headline: "The count has three separate doubts. Leagues that sent no file add the most."
     slide_headline_templates: {}
@@ -170,20 +170,20 @@ charts:
       Three intervals from `mart_uncertainty_decomposition`, per year, never added (ADR-015): **identity** (what the resolver could move the count by), **data-quality exclusions** (strict versus lenient counting rules), and **coverage** (organizations that sent no file; an estimate, not a bound).
       Values are rounded to the nearest 10 players.
   U2:
-    status: draft
+    status: final
     headline_template: "Girls are {girls_share_pct} of players. Missing gender moves that by {girls_bounds_width}."
     fallback_headline: "Missing gender barely changes the girls' share."
     slide_headline_templates: {}
     question: "Is the girls' trend real?"
     means_club: "The dot is the girls' share among players with a recorded gender. The grey bar shows how far it could move if every blank were a girl, or a boy."
-    means_privacy: "Gender is not asked on every form. The bar shows what that choice costs the statistic."
+    means_privacy: "Gender is left blank most often for the youngest players and in spreadsheets. The bar shows what those blanks cost."
     action_club: "Collect gender on every form for the youngest age groups first."
     action_privacy: "Keep gender optional where families object. A wider bar is the price."
     caution: "Age groups with fewer than 10 players are left out. Nothing is guessed."
     analyst_md: |
       Girls' share of youth by division (`mart_missingness_bias`, KPI `girls_share_of_youth`), national. The bounds assign every unknown gender to girls, then to boys (Manski bounds); the width is reported in share points. Nothing is imputed.
   U3:
-    status: draft
+    status: final
     headline_template: "In {n_inside} of {n_checks} checks, the true number fell inside our range."
     fallback_headline: "Most of our ranges contain the true number."
     slide_headline_templates: {}
@@ -196,7 +196,7 @@ charts:
     analyst_md: |
       Each component's interval against the generator's answer key (`eval_uncertainty_decomposition`), evaluation only. The coverage estimate was not tuned after the answer key was read, and its interval misses the truth in some years; that is reported, not hidden.
   U4:
-    status: draft
+    status: final
     headline_template: "Fixing a league's top problems lifts its grades. It does not find missing leagues."
     fallback_headline: "Leagues that fix their top problems lift their grades."
     slide_headline_templates: {}
@@ -209,21 +209,21 @@ charts:
     analyst_md: |
       A simulation on a COPY of the warehouse (`make fix-list-demo`): half of the struggling organizations apply their fix list in the final season. Purpose scores before and after, beside the struggling organizations that did not act. It narrows the missingness bounds only slightly, because the large uncertainty is coverage, which a fix list does not touch.
   P1:
-    status: draft
+    status: final
     headline_template: "{pct_provenance_full} of consent records show exactly what the family agreed to."
     fallback_headline: "Not every consent record shows what the family agreed to."
     slide_headline_templates: {}
     question: "Do we know what families agreed to?"
     means_club: "A family can only be contacted if we know what they agreed to. Records marked partly or not recorded cannot be used."
-    means_privacy: "This is why a consent email is not a marketing opt-in. We need the wording, the date and the purpose."
+    means_privacy: "An opt-in only counts with its proof: the form wording, the date and the purpose."
     action_club: "Ask your league to record the form version and the date with every consent."
     action_privacy: "Fix the weakest source first. Check that its form names each purpose."
     caution: "This says what is on record. It does not say a family would agree today."
     analyst_md: |
       Consent events by provenance grade (`share_privacy__consent_provenance`), latest season: fully known (wording, time and purpose), partly known, unknown. A cell with fewer than the small-cell limit is hidden.
   P2:
-    status: draft
-    headline_template: "{n_versions_ok} of {n_versions} consent forms name club marketing as a purpose."
+    status: final
+    headline_template: "Club marketing is named on {n_versions_ok} of {n_versions} consent forms."
     fallback_headline: "Only some consent forms name club marketing."
     slide_headline_templates: {}
     question: "Which purposes does each consent form cover?"
@@ -249,7 +249,7 @@ charts:
       One point per field-granularity variant V0 to V4 (`eval_minimization_tradeoff`, final matcher before review). The ringed point is the data standard's choice (V2), made by the program owner on 2026-10-14 from this frontier (ADR-018), not an optimum.
       Share below the small-cell limit is above 97% for every variant, so it cannot separate them; the x axis uses the share of unique participant-years.
   P4:
-    status: draft
+    status: final
     headline_template: "{n_metrics_kept_facts} of {n_metrics} retention figures survive deleting old records, if we rebuild from anonymized facts."
     fallback_headline: "Most retention figures survive deleting old records."
     slide_headline_templates: {}
@@ -262,7 +262,7 @@ charts:
     analyst_md: |
       Change in each retention figure after the age-out deletion, on a warehouse COPY (`share_privacy__retention_vs_deletion`), under two scenarios, against the tolerance in `phase5.retention`.
   P5:
-    status: draft
+    status: final
     headline_template: "{pct_unique_analyst_share} of participant-years in the analyst share are unique on four fields."
     fallback_headline: "Many records in the analyst share are unique on four fields."
     slide_headline_templates: {}
@@ -430,25 +430,25 @@ charts:
       From `docs/product/feedback-loop.md` and `products/CHANGELOG.md`. The simulation is `make fix-list-demo`.
 pages:
   quality:
-    status: draft
+    status: final
     intro_template: "Only {Q1.n_ready_activate} of {Q1.n_sources} sources are good enough to contact families, though {Q1.n_ready_count} can count players. A few problems cause most of the loss, and small leagues have the weakest grades. All numbers come from made-up data."
     fallback_intro: "The same data earns different grades for different uses. A few problems cause most of the loss. All numbers come from made-up data."
     demo_text: "Start with the grade grid, then see which few fixes matter."
     demo_slide: "Q1-1"
   sure:
-    status: draft
+    status: final
     intro_template: "The count for {U1.latest_year} is {U1.count_point} players, but it is a range, not one number. Leagues that sent no file add the most doubt. Missing gender hardly moves the girls' share."
     fallback_intro: "The player count is a range, not one number. Leagues that sent no file add the most doubt."
     demo_text: "See the three separate doubts, then check that the methods work."
     demo_slide: "U1-1"
   markets:
-    status: draft
+    status: final
     intro_template: "{M1.n_markets_ready} of {M1.n_markets} markets can be counted reliably, but only {M3.activatable_households} of {M3.households_total} families can be contacted by their club. The markets are made-up groups of ZIP code areas, not any club's territory."
     fallback_intro: "Most markets can be counted, but few families can be contacted. The markets are made-up groups of ZIP code areas, not any club's territory."
     demo_text: "Find a market, see why families are not reached, then compare the two lenses."
     demo_slide: "M1-1"
   privacy:
-    status: draft
+    status: final
     intro_template: "Asking for birth year instead of full birth date cuts unique records from {P3.pct_unique_v0} to {P3.pct_unique_standard}. {P1.pct_provenance_full} of consent records show exactly what the family agreed to. No legal conclusion is drawn about any organization."
     fallback_intro: "Asking for less data protects children. No legal conclusion is drawn about any organization."
     demo_text: "See what each field costs, then what is on record about consent."
