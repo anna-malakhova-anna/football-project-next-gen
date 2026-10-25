@@ -63,8 +63,14 @@ def test_goal_scorecard_names_a_product_and_a_trust_companion_for_every_measured
     assert [r for r in rows if r[0] == "youth_to_adult_fan_transition"][0][4] == "NOT_MEASURABLE_BY_DESIGN"
 
 
-def test_the_site_export_leaves_out_the_build_time_measure():
-    # Build time changes on every build, so publishing it would make public/ differ from run to run
+def test_the_site_export_leaves_out_the_measures_that_read_the_clock():
+    # Build time and load age change on every build (a CI run that crossed the top of an hour published a load age of 1/24 day
+    # instead of 0 and failed the public/ check), so publishing either would make public/ differ from run to run
     from scripts import build_site
     ds = next(d for d in build_site.DATASETS if d["name"] == "product_health")
-    assert "area <> 'cost'" in ds["sql"]
+    assert "area not in ('cost', 'freshness')" in ds["sql"]
+
+
+def test_load_age_is_elapsed_time_not_hour_boundaries():
+    src = (Path(__file__).resolve().parent.parent / "scripts" / "build_product_health.py").read_text(encoding="utf-8")
+    assert "date_diff('hour'" not in src

@@ -290,7 +290,7 @@ DATASETS = [
         union all select 'Quality check', plain_label, 'One of the checks behind a grade.', dimension from reference.dq_dimensions where dimension <> 'PURPOSE_SCORE'
         union all select 'Grade', plain_label || ' (' || grade || ')', description, 'minimum score ' || cast(min_score as varchar) from reference.dq_grade_bands
         order by 1, 2""", ["reference.dq_purposes", "reference.dq_dimensions", "reference.dq_grade_bands"], "governance", "Plain names for uses, quality checks and grades"),
-    _D("glossary_rules", "select plain_label as problem, plain_action as what_to_do, rule_id as technical from reference.dq_rule_registry order by plain_label",
+    _D("glossary_rules", "select plain_label as problem, plain_action as what_to_do, rule_id as technical from reference.dq_rule_registry order by plain_label, rule_id",
        ["reference.dq_rule_registry"], "governance", "Plain names for every problem we check"),
     _D("chart_insights_eval", "select chart_id, lens, field, value_display, value_raw, suppressed from evaluation.eval_chart_insights order by 1, 3", ["evaluation.eval_chart_insights"], "evaluation",
        "Numbers used inside headline sentences (evaluation cards)"),

@@ -112,7 +112,8 @@ def build(con) -> list[tuple]:
                 try:
                     t = con.execute(f"select max(_loaded_at) from {ci['table']}").fetchone()[0]
                     if t is not None:
-                        ages.append(con.execute("select date_diff('hour', ?::timestamp, current_timestamp::timestamp) / 24.0", [t]).fetchone()[0])
+                        # elapsed time, not hour boundaries crossed (counting boundaries read a load five minutes before the hour as an hour old)
+                        ages.append(round(con.execute("select (epoch(current_timestamp::timestamp) - epoch(?::timestamp)) / 86400.0", [t]).fetchone()[0], 1))
                 except duckdb.Error:
                     pass
             r = con.execute("select count(*) filter (where severity = 'ERROR'), count(*) filter (where severity = 'WARN') from quality.dq_contract_results where source_system = ?", [s]).fetchone()
