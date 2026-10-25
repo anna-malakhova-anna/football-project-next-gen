@@ -138,7 +138,7 @@ DATASETS = [
         select participation_year, component,
                case component when 'IDENTITY' then 'Matching people' when 'DQ_EXCLUSIONS' then 'Records that fail the rules' else 'Leagues that sent no file' end as component_label,
                case component when 'IDENTITY' then 1 when 'DQ_EXCLUSIONS' then 2 else 3 end as component_order,
-               round(reported_point, -1) as reported_point, round(interval_low, -1) as interval_low, round(interval_high, -1) as interval_high
+               cast(round(reported_point, -1) as bigint) as reported_point, cast(round(interval_low, -1) as bigint) as interval_low, cast(round(interval_high, -1) as bigint) as interval_high
         from quality.mart_uncertainty_decomposition order by participation_year, component""", ["quality.mart_uncertainty_decomposition"], "approved_aggregate",
        "Participants counted, with three separate uncertainty intervals"),
     _D("miss_dumbbell", f"""

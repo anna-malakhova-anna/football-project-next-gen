@@ -16,6 +16,7 @@ Rules the build enforces (and tests/test_build_site.py checks):
 from __future__ import annotations
 
 import datetime as dt
+import decimal
 import html
 import json
 import os
@@ -787,7 +788,7 @@ COLUMN_LABELS = {
     "capture_point": "Capture point", "channel": "Channel", "consent_lines": "Consent records", "consent_opt_in_rate": "Opt-in rate", "market_name": "Market", "quadrant": "Quadrant",
     "participant_households": "Participant households", "participation_per_1000": "Participants per 1,000", "fan_accounts_per_1000": "Fan accounts per 1,000", "markets_shown": "Markets shown",
     "markets": "Markets", "method": "Method", "estimate": "Estimate", "ci_low": "Interval, low", "ci_high": "Interval, high", "true_incremental_accounts": "True incremental accounts",
-    "years_since_launch": "Years since launch", "truth": "Truth", "source_system": "Source", "component": "Component", "contract_version": "Contract version", "pass": "Passed", "warn": "Warnings",
+    "years_since_launch": "Years since launch", "truth": "Truth", "source_system": "Source", "component": "Component", "component_label": "Source of doubt", "contract_version": "Contract version", "pass": "Passed", "warn": "Warnings",
     "error": "Errors", "onboarding_status": "Onboarding status", "description": "Description", "audience": "Audience", "share_tables": "Share tables", "columns_allowed": "Columns allowed",
     "columns_denied": "Columns denied", "kpi_rows": "KPI rows", "kpis": "KPIs", "restatement_required": "Restatements required", "step": "Step", "conversion": "Conversion", "conversion_base": "Share of",
     "true_survival": "True",
@@ -816,6 +817,8 @@ def fmt_cell(v, col: str = "") -> str:
         return ""
     if isinstance(v, bool):
         return "yes" if v else "no"
+    if isinstance(v, decimal.Decimal) and v == v.to_integral_value():      # exact money sums come back as decimals: whole amounts read as counts
+        v = int(v)
     if col in RATE_COLUMNS or col.endswith("_pct"):
         if isinstance(v, (int, float)) and abs(v) <= 5:
             return f"{v:.1%}"
@@ -826,6 +829,8 @@ def fmt_cell(v, col: str = "") -> str:
     return str(v)
 
 
+# columns that are in the exported file but not shown in the page table (a code beside its plain label, a sort key)
+TABLE_HIDE = {"unc_decomp": {"component", "component_order"}}
 PRODUCT_TABLES = {"conv_tier", "goal_scorecard", "product_health", "product_targets", "roadmap"}
 RATIO_COLUMNS = {"value", "value_low", "value_high", "trust_value"}
 
@@ -845,6 +850,7 @@ def table_html(ds: dict, limit: int = 60) -> str:
     cell = (lambda r, c: fmt_cell_product(r[c], c, r)) if ds["name"] in PRODUCT_TABLES else (lambda r, c: fmt_cell(r[c], c))
     if not rows:
         return f"<p class='note'><b>No rows.</b> The query returned nothing, which is the expected result when {esc(ds['title'].lower())} has nothing to report.</p>"
+    cols = [c for c in cols if c not in TABLE_HIDE.get(ds["name"], ())]
     head = "".join(f"<th>{esc(COLUMN_LABELS.get(c, c))}</th>" for c in cols)
     body = "".join("<tr>" + "".join(f"<td>{esc(cell(r, c))}</td>" for c in cols) + "</tr>" for r in rows)
     more = f"<p class='note'>First {limit} of {len(ds['rows'])} rows; the full file is data/{ds['name']}.json.</p>" if len(ds["rows"]) > limit else ""
