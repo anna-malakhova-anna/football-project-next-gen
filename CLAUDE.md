@@ -1,7 +1,7 @@
 # Flag Football Project
 
 Governed participation and fan-acquisition data platform built on **synthetic** flag football data (the real equivalent would be minors' PII).
-Phases 1 to 6 are built. Python generates and loads; dbt on DuckDB does everything else; `scripts/build_site.py` renders the results site.
+Phases 1 to 6 are built. Python generates and loads; dbt on DuckDB does everything else; `scripts/build_site.py` renders the results site (datasets in `site_data.py` and `site_p5_data.py`, checks in `site_rules.py`, chart specs in `site_charts.py`, tables and labels in `site_render.py`).
 
 **Where the intent lives.** The phase specs (`phase-*-spec.md`), `rework-fan-acquisition-spec.md` and handovers are local-only and git-ignored, so a fresh clone does not have them.
 In the repo, the record of what was decided and why is `docs/decisions/ADR-*.md` (001 to 023), then `README.md`, `docs/product/README.md` and `fix-list.md`.
@@ -46,5 +46,5 @@ If a spec file is present locally, it wins over this summary for the phase it co
 
 ## Site
 - The site never computes a number in the browser; values come from `share_exec` and whitelisted evaluation summaries.
-- No third-party marks: the brand-boundary check in `build_site.py` refuses image files, `<img>` and foreign inline SVG. The local logo (`local_assets/`, git-ignored) is never in `public/`.
+- No third-party marks: the brand-boundary check in `site_rules.py` refuses image files, `<img>` and foreign inline SVG. The local logo (`local_assets/`, git-ignored) is never in `public/`.
 - Plain labels in visible text; model and column names only in source lines.
