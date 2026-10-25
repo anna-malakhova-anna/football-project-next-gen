@@ -24,7 +24,12 @@ cost as (
 rows_ as (
     select 'U3' as chart_id, 'both' as lens, 'n_checks' as field, cast(n_checks as varchar) as value_display, n_checks * 1.0 as value_raw from checks
     union all select 'U3', 'both', 'n_inside', cast(n_inside as varchar), n_inside * 1.0 from checks
-    union all select 'P3', 'both', 'matching_cost', case when pts <= 0 then 'no worse, slightly better here' when pts < 0.5 then 'less than half a point lower' else cast(round(pts, 1) as varchar) || ' points lower' end, round(pts, 2) from cost
+    -- a whole clause, so the card's sentence is true whichever way the cost goes (pts = F1 points the standard loses against the full fields)
+    union all select 'P3', 'both', 'matching_effect',
+           case when pts <= 0 then 'it matches as accurately as the full fields'
+                when pts < 0.5 then 'it matches almost as accurately as the full fields (less than half a point lower)'
+                else 'it matches ' || cast(round(pts, 1) as varchar) || ' points less accurately than the full fields' end,
+           round(pts, 2) from cost
 )
 
 select chart_id, lens, field, value_display, value_raw, 'NONE' as suppressed from rows_ order by chart_id, field

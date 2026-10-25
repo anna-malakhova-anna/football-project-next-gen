@@ -235,13 +235,13 @@ charts:
     analyst_md: |
       For each consent wording (`share_privacy__purpose_coverage`), whether the form names each purpose. Reads the wording the generator gave each form; a purpose that needs its own consent is never covered by a terms acceptance.
   P3:
-    status: draft
+    status: final
     headline_template: "Birth year, not birth date, cuts unique records from {pct_unique_v0} to {pct_unique_standard}."
-    fallback_headline: "Asking for less data protects children and costs little matching accuracy."
+    fallback_headline: "Asking for less data protects children. The chart shows what it costs in matching accuracy."
     slide_headline_templates: {}
     question: "What does each field buy us, and what does it cost?"
-    means_club: "Each dot is a choice of fields. The ringed dot is the data standard. Its matching accuracy is {matching_cost}. A hashed contact cannot reach a family."
-    means_privacy: "Left is safer. Only the horizontal axis is a privacy measure. The vertical axis is what matching keeps: under the standard it is {matching_cost}."
+    means_club: "Each dot is a choice of fields. The ringed dot is the data standard, and {matching_effect}. A hashed contact cannot reach a family."
+    means_privacy: "Left is safer. Only the horizontal axis is a privacy measure. The vertical axis is what matching keeps: under the standard, {matching_effect}."
     action_club: "Ask for the fields in the data standard and no more."
     action_privacy: "Use the ringed choice as the default and review it when the data changes."
     caution: "This is one made-up data set. Read the pattern, not the decimals."
