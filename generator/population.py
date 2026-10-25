@@ -80,7 +80,7 @@ PARTICIPATION_FIELDS = [
 # FLAG_SMALL_POPULATION=1 (set by tests/conftest.py) shrinks the population and the fan stream: the structure, defects and truth files
 # are the same, only the sizes are smaller. `load_config(small=...)` overrides the variable for one call.
 SMALL_POPULATION_ENV = "FLAG_SMALL_POPULATION"
-SMALL_RUN = {"total_people": 4000, "fan_base_events_per_month": 0.3}
+SMALL_RUN = {"total_people": 4000, "fan_base_events_per_month": 0.3, "fan_stock_penetration": 0.001}
 
 
 def load_config(path: str | Path = "config/generation.yaml", small: bool | None = None) -> dict:
@@ -91,6 +91,7 @@ def load_config(path: str | Path = "config/generation.yaml", small: bool | None 
     if small:
         cfg["population"]["total_people"] = SMALL_RUN["total_people"]
         cfg["sources"]["fan"]["base_events_per_month"] = SMALL_RUN["fan_base_events_per_month"]
+        cfg["sources"]["fan"]["account"]["stock_penetration"] = SMALL_RUN["fan_stock_penetration"]      # the opening stock of fan accounts is most of the generator's memory
     return cfg
 
 

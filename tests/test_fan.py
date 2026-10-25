@@ -1,4 +1,5 @@
 import collections
+import hashlib
 import json
 
 import pyarrow.parquet as pq
@@ -13,6 +14,7 @@ def load_config():
     """The real configuration (not the small test run, see conftest.py), at a mid size: enough households to see the fan mechanics, small enough for a test."""
     cfg = population.load_config(small=False)
     cfg["population"]["total_people"] = 6000
+    cfg["sources"]["fan"]["base_events_per_month"] = 0.3      # half the real rate: the event stream is the memory hog (1.6 GB at 0.6); the mechanics below do not need the volume
     return cfg
 
 
@@ -173,16 +175,22 @@ def test_duplicate_accounts_share_a_household_and_a_canonical_account(run):
         assert orig["household_key"] == d["household_key"] and not orig["is_duplicate_account"]
 
 
+def _fingerprint(cfg):
+    """Generate once and keep only a hash per file (plus the manifest), so two runs never sit in memory together: the full output of one run is
+    about 1 GB, and holding two of them made this test peak near 2.8 GB with four pytest workers."""
+    people, parts = build_population(cfg)
+    out = fan.generate(people, parts, cfg)
+    hashes = {k: hashlib.sha256(v if isinstance(v, bytes) else str(v).encode("utf-8")).hexdigest() for k, v in out.files.items()}
+    return hashes, out.manifest
+
+
 def test_generation_is_deterministic():
     cfg = load_config()
     cfg["population"]["total_people"] = 1500
-    people, parts = build_population(cfg)
-    a = fan.generate(people, parts, cfg)
-    people, parts = build_population(cfg)
-    b = fan.generate(people, parts, cfg)
-    assert a.files["fan/fan_accounts.csv"] == b.files["fan/fan_accounts.csv"]
-    assert a.files["fan/fan_consent_events.jsonl"] == b.files["fan/fan_consent_events.jsonl"]
-    k = "fan/events_2023_10.jsonl"
-    assert a.files[k] == b.files[k] and a.manifest == b.manifest
-    t = [k for k in a.files if k.startswith("fan/fan_transactions_")][5]
-    assert a.files[t] == b.files[t]
+    cfg["sources"]["fan"]["base_events_per_month"] = 0.1      # the event stream is the memory hog (1.7 GB at 0.6, 0.7 GB at 0.1); determinism does not depend on its volume
+    a_hashes, a_manifest = _fingerprint(cfg)
+    b_hashes, b_manifest = _fingerprint(cfg)
+    assert {"fan/fan_accounts.csv", "fan/fan_consent_events.jsonl", "fan/events_2023_10.jsonl"} <= set(a_hashes)
+    assert any(k.startswith("fan/fan_transactions_") for k in a_hashes)
+    assert a_hashes == b_hashes             # every file, not a sample
+    assert a_manifest == b_manifest

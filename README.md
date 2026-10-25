@@ -136,7 +136,7 @@ All data is **synthetic**, and every claim about NFL, RCX, vendor or club system
 
 ## Run it
 
-Requires [`uv`](https://docs.astral.sh/uv/) and `make`. Any Python from 3.11 to 3.13 works (uv uses an installed one or fetches one). pytest runs on four workers and needs about 3 GB per worker for the generator determinism test; the CI job allows 25 minutes.
+Requires [`uv`](https://docs.astral.sh/uv/) and `make`. Any Python from 3.11 to 3.13 works (uv uses an installed one or fetches one). pytest runs on four workers; the generator tests are the heavy ones (a tests-only small population and fan stock keep them near 0.8 GB per worker, about 2 GB in total on macOS; a Linux machine may need up to twice that); the CI job allows 25 minutes.
 
 ```bash
 make setup        # install dependencies, create dbt/profiles.yml from the example

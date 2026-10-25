@@ -25,8 +25,9 @@ def test_without_the_variable_the_configuration_is_unchanged(monkeypatch):
     assert population.load_config(small=True)["population"]["total_people"] == population.SMALL_RUN["total_people"]
 
 
-def test_only_the_two_sizes_differ_in_the_small_run():
+def test_only_the_three_sizes_differ_in_the_small_run():
     small, real = population.load_config(), _real()
     small["population"]["total_people"] = real["population"]["total_people"]
     small["sources"]["fan"]["base_events_per_month"] = real["sources"]["fan"]["base_events_per_month"]
+    small["sources"]["fan"]["account"]["stock_penetration"] = real["sources"]["fan"]["account"]["stock_penetration"]
     assert small == real
