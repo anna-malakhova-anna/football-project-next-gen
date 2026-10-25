@@ -10,8 +10,8 @@ from generator.sources import fan
 
 
 def load_config():
-    """The real configuration (see conftest.py), at a mid size: enough households to see the fan mechanics, small enough for a test."""
-    cfg = population.load_config_full()
+    """The real configuration (not the small test run, see conftest.py), at a mid size: enough households to see the fan mechanics, small enough for a test."""
+    cfg = population.load_config(small=False)
     cfg["population"]["total_people"] = 6000
     return cfg
 

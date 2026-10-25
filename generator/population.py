@@ -12,6 +12,7 @@ Two outputs:
 from __future__ import annotations
 
 import datetime as dt
+import os
 import random
 from pathlib import Path
 
@@ -75,9 +76,22 @@ PARTICIPATION_FIELDS = [
 ]
 
 
-def load_config(path: str | Path = "config/generation.yaml") -> dict:
+# The tests would otherwise write the whole 15,000-person dataset, with its million-line fan stream, in almost every test module.
+# FLAG_SMALL_POPULATION=1 (set by tests/conftest.py) shrinks the population and the fan stream: the structure, defects and truth files
+# are the same, only the sizes are smaller. `load_config(small=...)` overrides the variable for one call.
+SMALL_POPULATION_ENV = "FLAG_SMALL_POPULATION"
+SMALL_RUN = {"total_people": 4000, "fan_base_events_per_month": 0.3}
+
+
+def load_config(path: str | Path = "config/generation.yaml", small: bool | None = None) -> dict:
     with open(path) as f:
-        return yaml.safe_load(f)
+        cfg = yaml.safe_load(f)
+    if small is None:
+        small = os.environ.get(SMALL_POPULATION_ENV) == "1"
+    if small:
+        cfg["population"]["total_people"] = SMALL_RUN["total_people"]
+        cfg["sources"]["fan"]["base_events_per_month"] = SMALL_RUN["fan_base_events_per_month"]
+    return cfg
 
 
 def random_us_zip(rng: random.Random, state: str) -> str:
