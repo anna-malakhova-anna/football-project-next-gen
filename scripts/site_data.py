@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from scripts import site_p5_data as P5
 
-SHARE_EXEC_PREFIX = "share_exec."
 APPROVED_AGGREGATES = {"share_analyst.share_analyst__fan_event_study", "share_analyst.share_analyst__fan_acquisition_event_study"}
 EVAL_WHITELIST = {
     "evaluation.eval_threshold_sweep", "evaluation.eval_pairwise", "evaluation.eval_clusters", "evaluation.eval_errors",

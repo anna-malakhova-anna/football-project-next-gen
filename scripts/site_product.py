@@ -9,7 +9,6 @@ import re
 from html import escape as e
 from pathlib import Path
 
-import yaml
 
 from scripts import site_cards as sc
 from scripts import validate_products as vp

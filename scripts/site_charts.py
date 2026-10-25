@@ -16,22 +16,8 @@ def _ax(title):
     return {"title": title}
 
 
-def line_band(dataset, x, lo, hi, y, color=None, xt="", yt="", pct=True, y_min=0, y_max=None):
-    enc_c = {"color": {"field": color, "type": "nominal", "title": None}} if color else {}
-    scale = {"domain": [y_min, y_max]} if y_max is not None else {"zero": y_min == 0}
-    fmt = {"format": "%"} if pct else {}
-    return {"data": _src(dataset), "width": "container", "height": 300, "layer": [
-        {"mark": {"type": "area", "opacity": 0.18}, "encoding": {"x": {"field": x, "type": "quantitative", "axis": _ax(xt)},
-         "y": {"field": lo, "type": "quantitative", "scale": scale, "axis": {"title": yt, **fmt}}, "y2": {"field": hi}, **enc_c}},
-        {"mark": {"type": "line", "point": True}, "encoding": {"x": {"field": x, "type": "quantitative"},
-         "y": {"field": y, "type": "quantitative", "scale": scale}, **enc_c}},
-    ]}
-
-
 AGE_ORDER = ["0-7", "8-9", "10-11", "12-13", "14-17", "18-29", "30-44", "45+"]
 EST_ORDER = ["Naive comparison (existing fans)", "Matched before/after"]
-PALETTE = {"turf": "#2F6B4F", "sky": "#3D7CC9", "pylon": "#D9622B", "plum": "#7D4E8E", "sand": "#B8A06A"}
-
 
 def charts():
     """-> {id: dict(page, title, spec, shows, doesnt, datasets, table_columns)}"""

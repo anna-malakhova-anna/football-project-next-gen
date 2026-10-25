@@ -56,7 +56,6 @@ CA_POSTAL_LETTERS = {
 CA_FR_REGIONS = [("QC", 70), ("NB", 15), ("ON", 15)]
 CA_EN_REGIONS = [("ON", 45), ("BC", 20), ("AB", 20), ("NS", 8), ("MB", 7)]
 
-INTL_LOCALE = {"MX": "es_MX", "GB": "en_GB", "JP": "ja_JP", "DE": "de_DE", "AT": "de_DE", "PA": "es_MX"}
 INTL_LANG = {"MX": "es", "GB": "en", "JP": "ja", "DE": "de", "AT": "de", "PA": "es"}
 INTL_PHONE_PREFIX = {"MX": ("+52", 10), "GB": ("+44", 10), "JP": ("+81", 10),
                      "DE": ("+49", 10), "AT": ("+43", 10), "PA": ("+507", 8)}
@@ -143,7 +142,6 @@ class _Builder:
         self.used_emails: set[str] = set()
         self._hh_counter = 0
         self.markets = markets_mod.build_markets(cfg)["markets"]
-        self.market_by_id = {m["market_id"]: m for m in self.markets}
 
     # ---------- small helpers ----------
     def _weighted(self, pairs):

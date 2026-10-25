@@ -12,12 +12,11 @@ import argparse
 import json
 import re
 import sys
-from pathlib import Path
 
 import textstat
 from playwright.sync_api import sync_playwright
 
-from scripts.site_shots import ROOT, SITE, pdf_pages, serve
+from scripts.site_shots import SITE, pdf_pages, serve
 
 PAGES = ["product", "quality", "sure", "markets", "privacy"]
 CI_PAGES = ["quality", "markets", "product"]

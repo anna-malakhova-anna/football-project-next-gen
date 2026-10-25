@@ -130,8 +130,6 @@ def test_categories_known_and_minor_email_mostly_blank(run):
 
 def test_junk_rows_in_manifest(run):
     cfg, _, out = run
-    years = len(cfg["seasons"]["years"])
-    sc = cfg["sources"]["intl"]
     counts = collections.Counter(m["defect_id"] for m in out.manifest)
     # a country has a worksheet only in the years its market has launched, so the expected counts come from the config's launch years (DE + AT titles; MX, GB, DE, PA totals)
     assert counts["junk_title_row"] == counts["junk_blank_row"] == ecs._structural_count(cfg, "junk_title_row")

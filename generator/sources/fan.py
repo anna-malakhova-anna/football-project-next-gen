@@ -119,7 +119,6 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     n_months = (len(years)) * 12
     fakers = _fakers(cfg)
     mkts = markets_mod.build_markets(cfg)["markets"]
-    M = {m["market_id"]: m for m in mkts}
     hh = _households(people, parts, fc["enroll_month_by_term"])
     n_part = len(hh)
     season = fc["seasonality"]

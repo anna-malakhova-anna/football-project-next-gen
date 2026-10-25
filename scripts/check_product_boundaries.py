@@ -36,7 +36,6 @@ def analyse() -> tuple[list[str], list[tuple[str, str]], dict]:
     shared = yaml.safe_load((PRODUCTS / "shared_reference.yml").read_text(encoding="utf-8"))
     m = json.loads(MANIFEST.read_text())
     models = {k: v for k, v in m["nodes"].items() if v["resource_type"] == "model"}
-    name = {k: v["name"] for k, v in models.items()}
     by_name = {v["name"]: k for k, v in models.items()}
     problems: list[str] = []
 

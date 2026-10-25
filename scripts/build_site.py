@@ -104,10 +104,6 @@ def copy_assets(out: Path) -> None:
         shutil.copy(LOCAL_LOGO, out / "img" / "logo.webp")
 
 
-def kv(data: dict, name: str) -> dict:
-    return {r["measure"]: r for r in data[name]["rows"]}
-
-
 def value_explanation(f: dict) -> str:
     """Plain paragraphs on how the estimates sit against the synthetic truth, direction-aware so they stay honest if the numbers move. The matched estimate (fan_uplift_pct, DID_ADDITIVE) is the canonical one;
     its naive companion is the same kind of household without matching; the pooled naive (every linked account) is analyst detail and is explained by its composition."""

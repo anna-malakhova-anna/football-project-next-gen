@@ -28,7 +28,7 @@ COLUMN_LABELS = {
     "consent_text_version": "Consent wording", "provenance_grade": "Provenance", "consent_events": "Consent events", "form": "Form", "purpose_label": "Purpose", "form_names_purpose": "Named on form",
     "separate_consent_required": "Needs its own consent", "coverage": "Coverage", "mark": "Named", "metric_label": "Figure", "scenario": "Scenario", "change": "Change", "survives": "Within tolerance",
     "participation_year": "Year", "participant_years": "Participant-years", "equivalence_classes": "Classes", "smallest_class": "Smallest class", "average_class_size": "Average class size",
-    "pct_rows_below_k_warn": "Below warning size (%)", "check_name": "Check", "violations": "Violations", "participants_allocated_label": "Participants", "plain_action": "What to do", "rule_label": "Problem", "impact_bar": "Affected (rounded)", "impact_text_x": "Label position", "impact_label": "Affected", "impact_short": "Label", "short_label": "Fields kept", "label_x": "Label position", "x_mid": "Label position", "bar_label": "Label", "amount_label": "Amount", "players_text": "Players", "leagues_text": "Leagues", "range_text": "Range", "reach_text": "Reach", "consent_text": "Consent", "receives_text": "What the club receives", "growth_index": "Index (first year = 100)", "index_low": "Range from", "index_high": "Range to", "slide_title": "Slide", "step_name": "Step", "state_name": "State", "market_no": "Market no.", "state_order": "State order", "dark_rank": "Rank", "slide_no": "Slide", "size_rank": "Size rank", "first_year": "First year", "display_no": "Step no.", "part_order": "Order", "part": "Part", "unit": "Unit", "plain_name": "Market", "status": "Reading", "source_plain": "Source", "purpose_wrapped": "Use", "purpose_wrapped_wide": "Use", "source_wrapped": "Source", "worst_rank": "Rank (worst first)", "source_rank": "Order", "grade_label": "Meaning", "grade_or_na": "Grade", "grade_text": "Grade", "dimension_label": "Check", "dimension_wrapped": "Check", "dimension_order": "Order", "purpose_order": "Order", "source_group": "Group", "lower_limit": "Normal range from", "upper_limit": "to", "status": "Reading", "group_kind": "Group kind", "group_label": "Group", "group_order": "Order", "share_pct": "Share (%)", "share_label": "Share", "measure": "Measure", "channel_plain": "How it sends data", "league_label": "League", "profile_label": "Profile", "fix_no": "Fix", "plain_label": "Problem", "why": "Why", "scale_text": "Scale", "is_no_file": "No file sent", "example_no": "Example", "is_latest": "Latest season",
+    "pct_rows_below_k_warn": "Below warning size (%)", "check_name": "Check", "violations": "Violations", "participants_allocated_label": "Participants", "plain_action": "What to do", "rule_label": "Problem", "impact_bar": "Affected (rounded)", "impact_text_x": "Label position", "impact_label": "Affected", "impact_short": "Label", "short_label": "Fields kept", "label_x": "Label position", "x_mid": "Label position", "bar_label": "Label", "amount_label": "Amount", "players_text": "Players", "leagues_text": "Leagues", "range_text": "Range", "reach_text": "Reach", "consent_text": "Consent", "receives_text": "What the club receives", "growth_index": "Index (first year = 100)", "index_low": "Range from", "index_high": "Range to", "slide_title": "Slide", "step_name": "Step", "state_name": "State", "market_no": "Market no.", "state_order": "State order", "dark_rank": "Rank", "slide_no": "Slide", "size_rank": "Size rank", "first_year": "First year", "display_no": "Step no.", "part_order": "Order", "part": "Part", "plain_name": "Market", "status": "Reading", "source_plain": "Source", "purpose_wrapped": "Use", "purpose_wrapped_wide": "Use", "source_wrapped": "Source", "worst_rank": "Rank (worst first)", "source_rank": "Order", "grade_label": "Meaning", "grade_or_na": "Grade", "grade_text": "Grade", "dimension_label": "Check", "dimension_wrapped": "Check", "dimension_order": "Order", "purpose_order": "Order", "source_group": "Group", "lower_limit": "Normal range from", "upper_limit": "to", "group_kind": "Group kind", "group_label": "Group", "group_order": "Order", "share_pct": "Share (%)", "share_label": "Share", "channel_plain": "How it sends data", "league_label": "League", "profile_label": "Profile", "fix_no": "Fix", "plain_label": "Problem", "why": "Why", "scale_text": "Scale", "is_no_file": "No file sent", "example_no": "Example", "is_latest": "Latest season",
 }
 RATE_COLUMNS = {"cumulative_share", "change", "value_known_only", "bound_low", "bound_high", "precision", "recall", "f1", "fit_for_activate"}
 
@@ -39,8 +39,6 @@ def _src(name):
 
 
 GRADE_SCALE = {"domain": GRADES, "range": GRADE_COLORS}
-NOT_SUPPRESSED_NOTE = "A cell shown as <k has fewer than k_min records behind it and is hidden, never shown as blank."
-
 
 def charts():
     """-> {id: dict(page, title, spec|render, shows, doesnt, question, lens, datasets, ...)} for the four Phase 5 pages."""
@@ -480,15 +478,6 @@ def privacy_cards():
     C["p5_kanon"] = dict(page="privacy", title="How identifying is the analyst share?", datasets=["analyst_k"],
         card=dict(id="P5", datasets=["analyst_k"], thumb=_kanon_spec(True), open_slide=1, slides=one(_kanon_spec)))
     return C
-
-
-def render_fix_card(rows) -> str:
-    from html import escape as e
-    if not rows:
-        return "<p class='note'>No fix list for the latest season.</p>"
-    items = "".join(f"<li><b>{r['rank']}. {e(r['rule_id'])}</b><br>{e(r['fix_guidance'])}<br><span class='note'>{r['records_affected']:,} records affected · about {r['impact_estimate']:.0f} {e(str(r['impact_unit']).lower())} · owner: {e(r['owner_role'])}</span></li>"
-                    for r in rows)
-    return f"<div class='card'><p class='note'><b>{e(rows[0]['organization'])}</b> · what to fix first</p><ol>{items}</ol></div>"
 
 
 PAGE_HEAD = {

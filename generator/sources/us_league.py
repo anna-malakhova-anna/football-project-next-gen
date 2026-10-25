@@ -314,7 +314,6 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         for n, r in enumerate(frows, start=1):
             r["rid"] = f"USR-{tag}-{n:06d}"
         dup_src = [n for n, r in enumerate(frows) if "near_duplicate" not in r["defects"]]
-        n_dup = round(rates["exact_duplicate"] * len(frows))
         dups = sorted(P.pick_weighted(rng, dup_src, {n: P.multiplier(cfg, frows[n]["profile"]) for n in dup_src}, rates["exact_duplicate"], len(frows)))
         # ---- 9. render to strings (once per row, so exact copies are byte-identical) ----
         rendered = []

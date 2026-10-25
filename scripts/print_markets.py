@@ -32,7 +32,7 @@ def main() -> None:
     r = con.execute("""select sum(participants_allocated) filter (where club_market_id not in ('OUTSIDE_US')), sum(participants_unplaced_allocated), sum(participants_allocated) filter (where club_market_id = 'NO_CLUB_MARKET'),
                               sum(participants_outside_us), min(denominator_status) from quality.mart_market_coverage where participation_year = ?""", [y]).fetchone()
     print(f"\n  US participants {r[0]:,.0f} (of which allocated because they have no usable ZIP: {r[1]:,.0f}); in ZIP3s with no club: {r[2]:,.0f}; outside the US: {r[3]:,.0f}. Participation rate: {r[4]}.")
-    print(f"\nSHARED MARKETS: a ZIP3 shared by two markets splits each participant equally (the labelled default)\n")
+    print("\nSHARED MARKETS: a ZIP3 shared by two markets splits each participant equally (the labelled default)\n")
     table(con.execute("select mapping_method, count(distinct zip3) as zip3s, count(distinct club_market_id) as markets from reference.club_market_map group by 1 order by 1").fetchall(), ["method", "ZIP3", "markets"])
     print(f"\nACTIVATION FUNNEL by club market, {y}: households consenting to CLUB_MARKETING (allocated), with the split of the loss\n")
     table(con.execute("""

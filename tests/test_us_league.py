@@ -1,7 +1,6 @@
 import collections
 import csv
 import hashlib
-from pathlib import Path
 
 import pyarrow.parquet as pq
 import pytest

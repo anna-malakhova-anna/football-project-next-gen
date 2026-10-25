@@ -29,9 +29,6 @@ def _D(name, sql, relations, kind, title):
     return {"name": name, "sql": sql.strip(), "relations": set(relations), "kind": kind, "title": title}
 
 
-# state tile grid (column, row) for the 14 states that have a club market; each state cell holds up to four markets in a 2 x 2 block. A layout constant, not a number computed from data.
-TILE = "(values ('WA',0,0),('CA',0,2),('AZ',1,3),('CO',2,2),('TX',3,4),('IL',4,1),('OH',5,1),('PA',6,1),('NY',6,0),('NJ',7,1),('CT',7,0),('MA',8,0),('GA',5,3),('FL',6,4)) t(state, c, r)"
-
 DATASETS = [
     _D("dq_pareto", f"""
         with k as (select cast(value as integer) as k_min from reference.privacy_params where param = 'k_min')
@@ -77,7 +74,7 @@ DATASETS = [
         left join reference.dq_grade_bands b on b.grade = sc.grade
         order by p.purpose, src.source_rank, dm.sort_order""", ["quality.dq_scorecard_source", "reference.source_display", "reference.dq_purposes", "reference.dq_dimensions", "reference.dq_grade_bands"], "approved_aggregate",
        "Grade for each quality check, by source and use, latest season"),
-    _D("dq_trend_lines", f"""
+    _D("dq_trend_lines", """
         with seasons as (select source_system, count(distinct season_year) as n from quality.dq_scorecard_source where dimension = 'PURPOSE_SCORE' and score is not null group by 1)
         select d.plain_name as source_plain, t.purpose, p.plain_label as purpose_label, array_position(['COUNT', 'SEGMENT', 'GEO', 'RETAIN', 'ACTIVATE'], t.purpose) as purpose_order,
                t.season_year, round(t.score, 1) as score,
@@ -181,7 +178,7 @@ DATASETS = [
         from mk cross join p left join m on m.club_market_id = mk.club_market_id
         order by p.purpose_order, state_order, market_no, mk.club_market_id""", ["share_club.share_club__market_year", "reference.club_market_map", "reference.dq_purposes", "reference.privacy_params"], "share_club",
        "Club-market tiles: grade for each use, players and leagues reporting, latest season (all markets, including those with no data yet)"),
-    _D("market_growth", f"""
+    _D("market_growth", """
         with s as (select club_market_id, participation_year, participants_allocated as p, participants_allocated_interval_low as lo, participants_allocated_interval_high as hi
                    from share_club.share_club__market_year where regexp_matches(club_market_id, '^CM-') and suppressed = 'NONE'),
         base as (select club_market_id, arg_min(p, participation_year) as p0, min(participation_year) as first_year, arg_max(p, participation_year) as p_latest from s group by 1),

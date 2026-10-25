@@ -99,7 +99,6 @@ def test_ca_json_kept_whole(loaded):
 def test_intl_rows_incl_junk_and_serials_kept_raw(loaded):
     base, _ = loaded
     cfg = load_config()
-    years, sc = len(cfg["seasons"]["years"]), cfg["sources"]["intl"]
     # title row, blank row, header row and summary row are all present as-is
     assert _q(base, "select c1 from raw.intl_federation_returns where _sheet_name='Germany' and _excel_row=1 and _source_file like '%2024%'")[0][0].startswith("Federation Return")
     germany_years = sum(1 for y in cfg["seasons"]["years"] if y >= int(cfg["markets"]["intl_launch_years"]["DE"]))      # a sheet exists only from the market's launch year

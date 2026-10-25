@@ -55,7 +55,6 @@ def render(con: duckdb.DuckDBPyConnection) -> str:
           "from measurement.mart_participation_global order by 1")
     cur = {r[0]: r for r in g}[year]
     raw_regs = q("select count(*) from marts.bridge_registration_participant")[0][0]
-    survivors = q("select count(*) from identity.idr_input_records")[0][0]
     participants_all = q("select count(*) from marts.dim_participant")[0][0]
     invalid = q("select count(*) from facts.fct_registration where not is_valid_registration")[0][0]
     impossible_valid = q("select count(*) from facts.fct_registration f join intermediate.int_registrations_unioned r using (registration_key) "
@@ -74,7 +73,6 @@ def render(con: duckdb.DuckDBPyConnection) -> str:
     marketing = q("select count(*), count(*) filter (where contact_role = 'GUARDIAN_OF_MINOR') from share_marketing.share_marketing__contact_list")[0]
     emails = q("select count(distinct contact_email) from marts.dim_participant where contact_email is not null")[0][0]
     media = q("select count(*), count(distinct first_name || '|' || last_name) from share_media.share_media__roster")[0]
-    photo = q("select consent_photo, count(*) from marts.dim_participant group by 1")
     kmin = q("select value from reference.privacy_params where param = 'k_min'")[0][0]
     sources = q("select count(*) filter (where onboarding_status in ('Modelled', 'Production')), count(*) from reference.source_registry")[0]
     status_rows = [[y, u, n, r, rea, c] for y, u, _, n, r, rea, c, *_ in g]

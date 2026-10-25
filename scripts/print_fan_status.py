@@ -26,7 +26,6 @@ def main() -> None:
     print(f"   {'observed':22s} {'truth':22s} {'households':>10s}")
     for o, t, n in q("select fan_status, truth_status, households_not_left_censored from evaluation.eval_fan_status where households_not_left_censored > 0 order by 1, 3 desc"):
         print(f"   {o:22s} {t:22s} {n:>10,}")
-    u = q("select count(*) filter (where truth_status <> 'NO_ACCOUNT'), count(*) from evaluation.eval_fan_status where fan_status = 'UNLINKED' and false")
     row = q("select sum(households_not_left_censored) filter (where truth_status <> 'NO_ACCOUNT'), sum(households_not_left_censored) from evaluation.eval_fan_status where fan_status = 'UNLINKED'")[0]
     print(f"\n   Of {int(row[1]):,} UNLINKED households, {int(row[0]):,} ({row[0] / row[1]:.0%}) DO have a fan account under a different email: unlinked is not non-fan.")
 

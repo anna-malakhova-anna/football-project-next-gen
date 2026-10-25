@@ -156,7 +156,6 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         })
     # ---- 1b. structure (phase 5 spec section 3): org profiles, dark clubs, consent wording ----
     prng = random.Random(cfg["seed"] + 52)
-    oq = cfg["org_quality"]
     club_ids = sorted({r["club"]["club_code"] for r in recs})
     province_of = {c["club_code"]: prov for prov, cl in catalog.items() for c in cl}
     counts: dict[str, int] = {}
@@ -240,7 +239,6 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         pages.append(cur)
 
     out = D.SourceOutput(SOURCE)
-    seen: set[str] = set()
     for n, page in enumerate(pages, start=1):
         fname = f"ca_club/page_{n:04d}.json"
         body = []
