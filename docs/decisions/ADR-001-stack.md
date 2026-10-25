@@ -65,6 +65,23 @@ To port: (1) add a Snowflake output in `profiles.yml`; (2) swap the DuckDB-speci
 | `run_query` over a seed at compile time, to turn the `check_sql` text of `p5_dq_rules` into one query | `p5_rule_results` macro | Same dbt macro; needs the seed loaded first (dbt build orders it). The rule SQL itself must stay in the common dialect |
 | `count(distinct x) filter (where ...) over (partition by ...)` | `p5_record_quality` | `COUNT(DISTINCT x)` has no window form in Snowflake: precompute the distinct count in a CTE and join it |
 | `date_trunc('month', d)` on a date; `md5(s)`; `list_filter(list, x -> ...)` and `list_contains` on the registry's failing-rule lists; `count(distinct (a, b, ...))` over a row value | `idr_input_records` (via `macros/minimization.sql`), `mart_minimization_fitness`, `mart_reidentification_risk` | `DATE_TRUNC('MONTH', d)`, `MD5(s)`, `FILTER(array, x -> ...)` and `ARRAY_CONTAINS`, and `COUNT(DISTINCT OBJECT_CONSTRUCT(...))` or a concatenated key |
+| **Added 2026-10-25: constructs from Phases 4 to 6 that were not yet logged** (found by listing every function call in `dbt/models`, `dbt/macros` and `dbt/tests`) | | |
+| `arg_min(x, key)` / `arg_max(x, key)`, including a row-valued key `(round(score, 6), tie_priority)` | `dq_scorecard_source`, `dq_scorecard_org`, `dq_scorecard_market`, `dq_fix_list`, `share_club__chart_insights`, test `consent_purpose_limitation_holds` | `MIN_BY(x, key)` / `MAX_BY(x, key)`; a row-valued key has no equivalent: rank with `QUALIFY ROW_NUMBER() OVER (... ORDER BY round(score, 6), tie_priority) = 1` |
+| `list_sort`, `list_distinct`, `list_slice(list, a, b)`, `list_has_all(a, b)` | `bridge_registration_participant`, `dim_participant`, `fct_participant_year`, `fct_participant_us_season`, `idr_candidate_pairs` and others (10 models); `list_slice` in the three scorecards; `list_has_all` in `name_similarity` | `ARRAY_SORT`, `ARRAY_DISTINCT`, `ARRAY_SLICE` (0-based, end exclusive: DuckDB is 1-based, end inclusive), `ARRAY_SIZE(ARRAY_EXCEPT(b, a)) = 0` |
+| `range(a, b)` and `generate_series(a, b, interval)`, usually unnested to make a row per step | `range`: retention, acquisition, fan DiD and RFM models, `suppress_small_cells` and `phase4_helpers` macros (13 files); `generate_series`: `fct_fan_engagement_month`, `int_household_audience_month`, `mart_opt_out_after_contact` | `ARRAY_GENERATE_RANGE(a, b)` with `LATERAL FLATTEN`; for date series, `TABLE(GENERATOR(ROWCOUNT => n))` with `DATEADD` |
+| `to_months(n)`, `to_days(n)` (interval constructors) | `fct_household_fan_status`, `int_household_funnel_base`, `int_fan_rfm_scores`, `mart_fan_did`, `mart_fan_value_uplift` | `DATEADD(month, n, d)`, `DATEADD(day, n, d)` |
+| `make_timestamp(y, m, d, h, mi, s)` | `int_consent_permissions`, `int_household_year_consent`, test `consent_purpose_limitation_holds` | `TIMESTAMP_FROM_PARTS(y, m, d, h, mi, s)` |
+| `strftime(d, '%Y-%m')` | `dq_standardized_records`, `mart_reidentification_risk`, `stg_fan_consent_events` | `TO_CHAR(d, 'YYYY-MM')` (format tokens differ) |
+| `string_agg(x, sep ORDER BY ...)` | `mart_missingness_bias`, `mart_restatement_log`, `share_exec__roadmap_gates`, `share_ops__league_scorecard` | `LISTAGG(x, sep) WITHIN GROUP (ORDER BY ...)` |
+| `quantile_cont(x, q)` | `int_dark_org_coverage`, `mart_addressable_audience` | `PERCENTILE_CONT(q) WITHIN GROUP (ORDER BY x)` |
+| `jaro_winkler_similarity(a, b)` | `name_similarity` macro | `JAROWINKLER_SIMILARITY(a, b)`, on a 0 to 100 scale: divide by 100 (the `name_fuzzy_*` vars are on DuckDB's 0 to 1 scale) |
+| `sha256(s)` | `pseudonymize` macro, `share_analyst__participant_year` | `SHA2(s, 256)` |
+| `instr(s, sub)` | `dq_rule_measures` | `POSITION(sub IN s)` or `CHARINDEX(sub, s)` |
+| `x = any(list)`, `x <> all(list)` (comparison against a list column) | `fct_fan_consent_history`, `fct_fan_transaction` (the `dq_flags` checks) | `ARRAY_CONTAINS(x::VARIANT, list)` and `NOT ARRAY_CONTAINS(...)` |
+| `hash(s) % n` to draw the u-probability sample | `idr_u_probabilities` | `ABS(HASH(s)) % n`. Snowflake's `HASH` is a different function, so the sampled pairs and the u-probabilities change: re-run the matcher evaluation after a port |
+| `log2(x)`, `pow(x, y)` | `idr_pair_scores_fs` | `LOG(2, x)`, `POWER(x, y)` |
+| `json_object`, `json_array`, `json_group_array`, `to_json`, `struct_pack` | `idr_pair_scores_fs`, `idr_review_queue` | `OBJECT_CONSTRUCT`, `ARRAY_CONSTRUCT`, `ARRAY_AGG`, `TO_JSON`, `OBJECT_CONSTRUCT` |
+| Portable as written (no change needed): `QUALIFY`, `GROUP BY ALL`, `GROUPING SETS`, `ROLLUP`, `grouping()`, `decimal(p, s)` | many models | Same syntax |
 
 ## Consequences
 
