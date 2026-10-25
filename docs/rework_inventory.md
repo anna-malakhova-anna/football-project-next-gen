@@ -1,6 +1,8 @@
 # Rework inventory: Phase 4 against the fan-acquisition rework
 
-> Written for `rework-fan-acquisition-spec.md` section 0. All data is synthetic. **Awaiting Anna's review before any change is made.** Nothing below has been changed yet.
+> **Historical record.** This inventory was written before the rework; all 13 rework steps have since been built (see `README.md` and ADR-009 to ADR-011). It is kept as the baseline the rework started from, not as current status.
+>
+> Written for `rework-fan-acquisition-spec.md` section 0. All data is synthetic.
 
 ## Baseline
 
