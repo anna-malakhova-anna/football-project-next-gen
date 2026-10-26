@@ -36,6 +36,6 @@
 - **Gates:** the five Measured markets meet "C or better". The UK and Japan are at 95% of the C bar (66.7 against 70). Every market with no data is at a known 0.
 
 ## Questions for Anna
-1. The rubric's thresholds and the privacy-risk levels (especially China at 3, and EU/UK/Swiss record-level returns at 4).
+1. ~~The rubric's thresholds and the privacy-risk levels.~~ **Decided by Anna 2026-10-26: the levels stand (China 3; EU, UK and Swiss player-level returns 4).**
 2. ~~Whether Measured markets belong in the ranking at all, or only in MAINTAIN.~~ **Decided by Anna 2026-10-26: Measured markets stay in the ranking.**
-3. The lanes. In particular, Italy (the walkthrough market) is in LATER on its rank. Move it up if the 2026 expansion makes it a priority.
+3. ~~Italy's lane.~~ **Decided by Anna 2026-10-26: Italy moves up one lane, from LATER to NEXT** (new to the program in 2026). Its row is `confirmed` in `gmp_market_roadmap`; its milestone is unchanged (still a club activity return). The other lanes and every score stay drafts.
