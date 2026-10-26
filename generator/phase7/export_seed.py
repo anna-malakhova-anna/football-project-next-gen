@@ -15,6 +15,8 @@ def build_rows(cfg: dict) -> list[dict]:
     rows = [{"param": "measured_min_grade", "value": p7["status"]["measured_min_grade"],
              "description": "phase7.status.measured_min_grade: counting purpose grade at or above this band = Measured, below = Partial (ADR-025)"}]
     rows += [{"param": k, "value": v, "description": f"phase7.direction.{k} in config/generation.yaml (ADR-025)"} for k, v in p7["direction"].items()]
+    rows.append({"param": "priority_rubric_agreed", "value": str(p7["priority"]["rubric_agreed"]).lower(),
+                 "description": "phase7.priority.rubric_agreed: the rubric's market scores are agreed, not drafts (ADR-029)"})
     rows.append({"param": "scenario_label", "value": p7["scenario"]["label"], "description": "phase7.scenario.label: carried on every planning-scenario row"})
     return [{k: str(v) for k, v in r.items()} for r in rows]
 

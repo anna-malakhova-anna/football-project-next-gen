@@ -362,6 +362,8 @@ phase7:
     min_orgs_both_seasons: 3             # fewer organizations reporting in both seasons: "not detectable"
   scenario:
     label: "planning scenario, not a measurement"
+  priority:
+    rubric_agreed: true                  # Anna, 2026-10-26: the rubric's market scores are the agreed scores (ADR-029); a row in gmp_market_priority_overrides still wins
   truth:                                 # dark markets only; read only by dbt/models/evaluation/
     base_participants_median: FROM_DATA  # latest-season true participants of a dark market: lognormal around the median latest-season true size of the INTL_FED markets (read from the person registry, not typed) ...
     base_participants_sigma: 0.9         # ... with this spread (log scale)

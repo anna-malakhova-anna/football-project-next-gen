@@ -1,6 +1,6 @@
 # ADR-031: The Global outlook tab on the results site
 
-- **Status:** Accepted for step 9 of the Phase 7 spec, 2026-10-26. **Copy approved as final by Anna on 2026-10-26** (`site_src/copy/charts.yml`, cards G1 to G5 and the `global` page intro). The market scores and lanes the page shows are still drafts (ADR-029), and card G5 says so.
+- **Status:** Accepted for step 9 of the Phase 7 spec, 2026-10-26. **Copy approved as final by Anna on 2026-10-26** (`site_src/copy/charts.yml`, cards G1 to G5 and the `global` page intro). Card G5's headline and caution were reworded the same day, once Anna accepted the rubric's scores (ADR-029): the scores are agreed, and most lanes are still a plan to review.
 - **Synthetic data.** Flag football only. The markets are the 22 of the NFL Global Markets Program; clubs are anonymous (ADR-024).
 
 ## Decisions
@@ -31,4 +31,4 @@
 - **G2:** none of the 7 shows a change we can tell from noise; a change has to beat 51%.
 - **G3:** a guess for markets with no data was right in 5 of 15, and its direction was wrong in all 15.
 - **G4:** Japan and the UK are each one more club filing away from readable.
-- **G5:** four markets are in the Now lane, and every score is still a draft.
+- **G5:** four markets are in the first lane of the board; scores follow one agreed rule.

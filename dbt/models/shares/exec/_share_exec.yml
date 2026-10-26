@@ -590,8 +590,8 @@ models:
   - name: share_exec__gmp_board
     description: >
       Phase 7 (DP6 port global_priorities, spec section 9): the market Now/Next/Later board with each market's gate (computed progress; PENDING, never 0,
-      when the value is missing) and its priority (value + feasibility + readiness - privacy risk, the data products page's method). Scores, lanes and
-      gates are DRAFTS until Anna sets them (score_status, plan_status).
+      when the value is missing) and its priority (value + feasibility + readiness - privacy risk, the data products page's method). Scores follow the
+      rubric Anna agreed (score_status AGREED_RUBRIC, ADR-029); lanes and gates are drafts except where plan_status says confirmed.
     columns:
       - {name: country_code, meta: {pii: quasi}, data_tests: [unique, not_null]}
       - {name: country_name, meta: {pii: quasi}}
@@ -624,7 +624,7 @@ models:
       - name: score_status
         meta: {pii: none}
         data_tests:
-          - accepted_values: {arguments: {values: [DRAFT, SET_BY_ANNA]}}
+          - accepted_values: {arguments: {values: [DRAFT, AGREED_RUBRIC, SET_BY_ANNA]}}
       - {name: plan_status, meta: {pii: none}}
       - {name: rationale, meta: {pii: none}}
 

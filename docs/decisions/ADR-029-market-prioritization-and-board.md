@@ -1,6 +1,6 @@
 # ADR-029: Market prioritization and the Now/Next/Later board (DRAFT scores and lanes, for Anna to set)
 
-- **Status:** Proposed for step 7 of the Phase 7 spec, 2026-10-26. **The method follows Anna's decision D5. The scores, lanes, actions and gates are drafts by Claude Code: Anna sets them.**
+- **Status:** Accepted, 2026-10-26. The method follows Anna's decision D5. **Anna accepted the rubric's scores as the agreed scores** (she chose not to set her own). Italy's lane and milestone are confirmed; the other lanes, actions and gates are drafts by Claude Code.
 - **Synthetic data.** Privacy-risk scores rest on assumed regimes (`legal_regime`, unverified), not legal findings.
 
 ## Method (D5: the data products page's method)
@@ -34,6 +34,10 @@
   - Measured markets rank high because the method rewards feasibility and readiness, as on the products page.
   - Japan ranks 11th: only one club holds rights there.
 - **Gates:** the five Measured markets meet "C or better". The UK and Japan are at 95% of the C bar (66.7 against 70). Every market with no data is at a known 0.
+
+## Decided by Anna, 2026-10-26
+- **Scores:** the rubric's scores are the agreed scores, not drafts. One setting records it (`phase7.priority.rubric_agreed`, exported to `p7_params`), so no market score is typed. `score_status` reads AGREED_RUBRIC. A row in `gmp_market_priority_overrides` would still replace one score (SET_BY_ANNA).
+- Card G5's headline and caution no longer call the scores drafts. The headline now names the markets in the first lane; the caution says scores follow one agreed rule and most lanes are still a plan to review.
 
 ## Questions for Anna
 1. ~~The rubric's thresholds and the privacy-risk levels.~~ **Decided by Anna 2026-10-26: the levels stand (China 3; EU, UK and Swiss player-level returns 4).**

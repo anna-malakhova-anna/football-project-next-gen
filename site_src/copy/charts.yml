@@ -496,17 +496,17 @@ charts:
       '
   G5:
     status: final
-    headline_template: '{n_now} markets are on the board for now. Every score is still a draft.'
-    fallback_headline: The market board is a draft until its scores are set.
+    headline_template: '{n_now} markets are in the first lane of the board.'
+    fallback_headline: Some markets are in the first lane of the board.
     slide_headline_templates: {}
     question: What do we do next, and how?
     means_club: The board puts each market in a lane, from now to later, with a lane for markets to keep. Each tile names the next step. Canada and Italy show the steps from first contact to data.
     means_privacy: A new market starts with counts only. No child's personal data is asked for.
     action_club: Set the scores and lanes, then ask the markets in the first lane for data.
     action_privacy: Settle the privacy questions for each market before it sends data about players.
-    caution: Lanes and scores are drafts until Anna sets them. Italy's data is a test on a copy, not real.
-    analyst_md: 'Priority = value + feasibility + readiness - privacy risk (the data products page''s method), draft scores from `gmp_priority_rubric`, Anna''s scores in
-      `gmp_market_priority_overrides` (ADR-029). Milestone progress is computed in `mart_gmp_board`. The walkthroughs follow the onboarding playbook; Italy''s
+    caution: Scores follow one agreed rule, and most lanes are still a plan to review. Italy's data is a test on a copy, not real.
+    analyst_md: 'Priority = value + feasibility + readiness - privacy risk (the data products page''s method), scores from `gmp_priority_rubric`, agreed by Anna; a row in
+      `gmp_market_priority_overrides` would replace one (ADR-029). Milestone progress is computed in `mart_gmp_board`. The walkthroughs follow the onboarding playbook; Italy''s
       later stages ran on a copy of the warehouse (ADR-030, `docs/reports/p7_italy_experiment.md`).
 
       '

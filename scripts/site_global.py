@@ -67,7 +67,7 @@ DATASETS = [
                case gate_kind when 'COUNTING_GRADE_AT_LEAST' then 'Counting grade ' || target || ' or better' when 'MIN_RETURN_SEASONS' then 'A first season of counts'
                     else 'Clubs file an activity return' end as gate_label,
                bar_fill_pct as progress_percent, {STATUS_LABEL} as status_label, priority_rank,
-               case score_status when 'DRAFT' then 'Draft score' else 'Set by Anna' end as score_text
+               case score_status when 'DRAFT' then 'Draft score' when 'AGREED_RUBRIC' then 'Agreed rule' else 'Set by Anna' end as score_text
         from share_exec.share_exec__gmp_board order by lane_order, priority_rank""", ["share_exec.share_exec__gmp_board"], "share_exec",
        "The market board: what to do next in each market, with progress (lanes and scores are drafts)"),
     _D("gmp_walkthrough", """

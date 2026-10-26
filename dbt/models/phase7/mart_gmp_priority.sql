@@ -4,7 +4,9 @@
 --                market's status (and whether a national federation exists), readiness from the counting grade, privacy risk from what the market
 --                sends or would send (record-level INTL_FED / CA_CLUB rows, or the aggregate minimum return) and its assumed regime. Nothing here is typed
 --                per market.
---   final scores Anna's score where she has set one (gmp_market_priority_overrides), else the draft; score_status says which.
+--   final scores Anna's score where she has set one (gmp_market_priority_overrides), else the rubric's; score_status says which: SET_BY_ANNA, AGREED_RUBRIC
+--                (p7_params priority_rubric_agreed: Anna accepted the rubric's scores, ADR-029) or DRAFT.
+-- depends_on: {{ ref('p7_params') }}
 with status as (select * from {{ ref('mart_gmp_market_status') }}),
 
 rubric as (select * from {{ ref('gmp_priority_rubric') }}),
@@ -61,7 +63,7 @@ final as (
            coalesce(o.set_feasibility_today, s.suggested_feasibility_today) as feasibility_today,
            coalesce(o.set_data_readiness, s.suggested_data_readiness)       as data_readiness,
            coalesce(o.set_privacy_risk, s.suggested_privacy_risk)           as privacy_risk,
-           case when o.country_code is null then 'DRAFT' else 'SET_BY_ANNA' end as score_status
+           case when o.country_code is not null then 'SET_BY_ANNA' when {{ p7_param('priority_rubric_agreed') }} then 'AGREED_RUBRIC' else 'DRAFT' end as score_status
     from suggested s left join overrides o using (country_code)
 
 )

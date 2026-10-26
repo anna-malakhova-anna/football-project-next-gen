@@ -1,6 +1,6 @@
 {{ config(tags=['phase7']) }}
 -- EXEC share (DP6 port global_priorities, spec section 9): the market Now/Next/Later board, one card per program market: lane, action, gate and its
--- computed progress, and the priority with its four dimension scores (DRAFT until Anna sets them, score_status says which). A planning view across
+-- computed progress, and the priority with its four dimension scores (score_status: DRAFT, AGREED_RUBRIC or SET_BY_ANNA). A planning view across
 -- regimes: it carries nothing beyond the status, grade and clubs already in the regime ports, so it is one port (ADR-029).
 select
     b.country_code, b.country_name, b.lane, b.action, b.gate_kind, b.target, b.target_value, b.current_value, b.gate_status, b.bar_fill_pct,
