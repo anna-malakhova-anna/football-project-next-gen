@@ -6,7 +6,7 @@ input_sources:
 - CA_CLUB
 - GMP_PROXY
 name: Global Markets Outlook
-version: 0.1.0
+version: 0.2.0
 type: insights
 status: proposed
 description: Where flag football is growing in the NFL Global Markets Program's 22 markets, where we cannot tell, and why. Every market has a status (measured,
@@ -25,16 +25,54 @@ owner_role: Data Product Manager, NFL FLAG Insights (fictional)
 steward_role: Data steward, federation returns and club proxy returns (fictional)
 support_contact: 'issues: <repo>/issues (label: dp6)'
 output_ports:
-- name: global_markets
-  model: share_exec__gmp_markets
+- name: global_eu_uk_markets
+  model: share_exec__gmp_markets_eu_uk
   audience: exec
-  grain: program market (latest season)
+  grain: program market (latest season), UK, EU and Switzerland
   refresh: per season close
-- name: global_scenario
-  model: share_exec__gmp_scenario
+  regime_note: "EU GDPR, UK GDPR and the Swiss FADP assumed; questions for the privacy lead: the age of digital consent per EU country (13 to 16), and whether record-level federation returns may leave each country (unverified assumption, not a legal finding)"
+- name: global_eu_uk_quality_trend
+  model: share_exec__gmp_quality_trend_eu_uk
   audience: exec
-  grain: program market with no participation source (latest season)
+  grain: program market with a participation source x season, UK, EU and Switzerland
   refresh: per season close
+  regime_note: "EU GDPR, UK GDPR and the Swiss FADP assumed; questions for the privacy lead: the age of digital consent per EU country (13 to 16), and whether record-level federation returns may leave each country (unverified assumption, not a legal finding)"
+- name: global_eu_uk_scenario
+  model: share_exec__gmp_scenario_eu_uk
+  audience: exec
+  grain: program market with no participation source (latest season), UK, EU and Switzerland
+  refresh: per season close
+  regime_note: "EU GDPR, UK GDPR and the Swiss FADP assumed; questions for the privacy lead: the age of digital consent per EU country (13 to 16), and whether record-level federation returns may leave each country (unverified assumption, not a legal finding)"
+- name: global_canada_markets
+  model: share_exec__gmp_markets_canada
+  audience: exec
+  grain: program market (latest season), Canada
+  refresh: per season close
+  regime_note: "PIPEDA assumed, with Quebec Law 25 for Quebec residents; question for the privacy lead: whether Quebec club records need a separate consent basis (unverified assumption, not a legal finding)"
+- name: global_canada_quality_trend
+  model: share_exec__gmp_quality_trend_canada
+  audience: exec
+  grain: program market with a participation source x season, Canada
+  refresh: per season close
+  regime_note: "PIPEDA assumed, with Quebec Law 25 for Quebec residents; question for the privacy lead: whether Quebec club records need a separate consent basis (unverified assumption, not a legal finding)"
+- name: global_other_markets
+  model: share_exec__gmp_markets_other
+  audience: exec
+  grain: program market (latest season), the other 12 markets
+  refresh: per season close
+  regime_note: "one regime per market assumed (for example Brazil LGPD, Japan APPI, China PIPL); question for the privacy lead: which of these markets can send only aggregate returns (unverified assumption, not a legal finding)"
+- name: global_other_quality_trend
+  model: share_exec__gmp_quality_trend_other
+  audience: exec
+  grain: program market with a participation source x season, the other 12 markets
+  refresh: per season close
+  regime_note: "one regime per market assumed (for example Brazil LGPD, Japan APPI, China PIPL); question for the privacy lead: which of these markets can send only aggregate returns (unverified assumption, not a legal finding)"
+- name: global_other_scenario
+  model: share_exec__gmp_scenario_other
+  audience: exec
+  grain: program market with no participation source (latest season), the other 12 markets
+  refresh: per season close
+  regime_note: "one regime per market assumed (for example Brazil LGPD, Japan APPI, China PIPL); question for the privacy lead: which of these markets can send only aggregate returns (unverified assumption, not a legal finding)"
 - name: federation_report_card
   model: share_partner__federation_report_card
   audience: partner
@@ -44,8 +82,14 @@ input_products:
 - DP3
 - DP4
 sources_lineage:
-  share_exec__gmp_markets: dbt/models/shares/exec/share_exec__gmp_markets.sql
-  share_exec__gmp_scenario: dbt/models/shares/exec/share_exec__gmp_scenario.sql
+  share_exec__gmp_markets_eu_uk: dbt/models/shares/exec/share_exec__gmp_markets_eu_uk.sql
+  share_exec__gmp_quality_trend_eu_uk: dbt/models/shares/exec/share_exec__gmp_quality_trend_eu_uk.sql
+  share_exec__gmp_scenario_eu_uk: dbt/models/shares/exec/share_exec__gmp_scenario_eu_uk.sql
+  share_exec__gmp_markets_canada: dbt/models/shares/exec/share_exec__gmp_markets_canada.sql
+  share_exec__gmp_quality_trend_canada: dbt/models/shares/exec/share_exec__gmp_quality_trend_canada.sql
+  share_exec__gmp_markets_other: dbt/models/shares/exec/share_exec__gmp_markets_other.sql
+  share_exec__gmp_quality_trend_other: dbt/models/shares/exec/share_exec__gmp_quality_trend_other.sql
+  share_exec__gmp_scenario_other: dbt/models/shares/exec/share_exec__gmp_scenario_other.sql
   share_partner__federation_report_card: dbt/models/shares/partner/share_partner__federation_report_card.sql
 quality_indicator:
   from_model: dq_scorecard_source
@@ -96,7 +140,8 @@ health_metrics:
 - privacy
 - cost
 
-# --- Where this product is formed (Phase 6 addendum, section 1). Regime-split ports (global_eu_uk, global_canada, global_other; spec D10) come in step 6.
+# --- Where this product is formed (Phase 6 addendum, section 1). Exec ports are split by the assumed legal regime (spec D10): one macro per kind
+# (dbt/macros/gmp_shares.sql) writes every regime's model; gmp_regime_ports_partition_the_markets checks nothing is lost or doubled.
 internal_models:
 - stg_gmp_proxy
 - mart_gmp_*

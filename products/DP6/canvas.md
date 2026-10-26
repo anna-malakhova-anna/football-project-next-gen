@@ -3,7 +3,7 @@
 > Synthetic project. All roles are fictional. The headings are the same for every product. DRAFT until Anna approves.
 
 ## Customer
-Executives and the international growth lead.
+Executives and the international growth lead. Each federation that sends returns, for its own report card (the partner audience).
 
 ## Problem
 The leagues want a signal for every Global Markets Program market, but seven of the 22 have participation data and fifteen have none. A number for a market with no data would look like a measurement and could point the wrong way.
@@ -12,7 +12,7 @@ The leagues want a signal for every Global Markets Program market, but seven of 
 **Enabler for G1:** it shows which markets can be read, which cannot, and what it would take to read them, so the investment decision rests on what is known.
 
 ## Consumption type
-Internal.
+Internal, plus one external view: a federation's own report card. The exec outputs are split by the legal regime assumed to apply (UK, EU and Switzerland; Canada; the other 12 markets), so each can carry its own access rules once the privacy lead has checked the regimes.
 
 ## Product type
 Insights.
@@ -21,7 +21,7 @@ Insights.
 Data Product Manager, NFL FLAG Insights (fictional). Supporting: international growth, data steward for federation and club proxy returns, privacy lead (regime questions).
 
 ## Key dependencies
-DP3 (participants by country and by organization), DP4 (the country scorecard), the GMP_PROXY contract, the program's market list (ADR-024), the status, direction and scenario rules (ADR-025).
+DP3 (participants by country and by organization), DP4 (the country scorecard), DP1 (each club's fix list, for the report card), the GMP_PROXY contract, the program's market list and assumed regimes (ADR-024), the status, direction and scenario rules (ADR-025), the minimum-return template (ADR-027).
 
 ## What we will NOT do
 No count for a market with no data: those markets get a labelled planning scenario in its own section, never beside measured values. No direction where the change sits inside the noise floor. Club proxy returns are never turned into players.

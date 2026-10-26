@@ -168,7 +168,7 @@ policies (design only; not implemented).
 | `uplift_naive_pct` | DERIVED_RATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
-**`share_exec__gmp_markets`**
+**`share_exec__gmp_markets_canada`**
 
 | Column | Treatment |
 |---|---|
@@ -176,7 +176,8 @@ policies (design only; not implemented).
 | `country_name` | DIMENSION |
 | `region` | DIMENSION |
 | `legal_regime_id` | DIMENSION |
-| `output_port` | DIMENSION |
+| `regime_name` | DIMENSION |
+| `regime_verification` | CAVEAT_LABEL |
 | `status_on_page` | DIMENSION |
 | `season_year` | DIMENSION |
 | `status` | DERIVED |
@@ -190,12 +191,59 @@ policies (design only; not implemented).
 | `proxy_agreement` | DERIVED |
 | `growth_rank` | DERIVED |
 
-**`share_exec__gmp_quality_trend`**
+**`share_exec__gmp_markets_eu_uk`**
 
 | Column | Treatment |
 |---|---|
 | `country_code` | DIMENSION |
 | `country_name` | DIMENSION |
+| `region` | DIMENSION |
+| `legal_regime_id` | DIMENSION |
+| `regime_name` | DIMENSION |
+| `regime_verification` | CAVEAT_LABEL |
+| `status_on_page` | DIMENSION |
+| `season_year` | DIMENSION |
+| `status` | DERIVED |
+| `status_reason` | CAVEAT_LABEL |
+| `counting_grade` | DERIVED |
+| `clubs_with_rights` | AGGREGATE_BY_ORGANIZATION |
+| `participation_direction` | DERIVED |
+| `growth_pct` | DERIVED_RATE_SUPPRESSED |
+| `minimum_detectable_change_pct` | DERIVED |
+| `proxy_direction` | DERIVED |
+| `proxy_agreement` | DERIVED |
+| `growth_rank` | DERIVED |
+
+**`share_exec__gmp_markets_other`**
+
+| Column | Treatment |
+|---|---|
+| `country_code` | DIMENSION |
+| `country_name` | DIMENSION |
+| `region` | DIMENSION |
+| `legal_regime_id` | DIMENSION |
+| `regime_name` | DIMENSION |
+| `regime_verification` | CAVEAT_LABEL |
+| `status_on_page` | DIMENSION |
+| `season_year` | DIMENSION |
+| `status` | DERIVED |
+| `status_reason` | CAVEAT_LABEL |
+| `counting_grade` | DERIVED |
+| `clubs_with_rights` | AGGREGATE_BY_ORGANIZATION |
+| `participation_direction` | DERIVED |
+| `growth_pct` | DERIVED_RATE_SUPPRESSED |
+| `minimum_detectable_change_pct` | DERIVED |
+| `proxy_direction` | DERIVED |
+| `proxy_agreement` | DERIVED |
+| `growth_rank` | DERIVED |
+
+**`share_exec__gmp_quality_trend_canada`**
+
+| Column | Treatment |
+|---|---|
+| `country_code` | DIMENSION |
+| `country_name` | DIMENSION |
+| `legal_regime_id` | DIMENSION |
 | `season_year` | DIMENSION |
 | `counting_score` | DERIVED |
 | `counting_grade` | DERIVED |
@@ -203,14 +251,66 @@ policies (design only; not implemented).
 | `clubs_known` | AGGREGATE_BY_ORGANIZATION |
 | `clubs_filed` | AGGREGATE_BY_ORGANIZATION |
 
-**`share_exec__gmp_scenario`**
+**`share_exec__gmp_quality_trend_eu_uk`**
+
+| Column | Treatment |
+|---|---|
+| `country_code` | DIMENSION |
+| `country_name` | DIMENSION |
+| `legal_regime_id` | DIMENSION |
+| `season_year` | DIMENSION |
+| `counting_score` | DERIVED |
+| `counting_grade` | DERIVED |
+| `limiting_dimension` | DIMENSION |
+| `clubs_known` | AGGREGATE_BY_ORGANIZATION |
+| `clubs_filed` | AGGREGATE_BY_ORGANIZATION |
+
+**`share_exec__gmp_quality_trend_other`**
+
+| Column | Treatment |
+|---|---|
+| `country_code` | DIMENSION |
+| `country_name` | DIMENSION |
+| `legal_regime_id` | DIMENSION |
+| `season_year` | DIMENSION |
+| `counting_score` | DERIVED |
+| `counting_grade` | DERIVED |
+| `limiting_dimension` | DIMENSION |
+| `clubs_known` | AGGREGATE_BY_ORGANIZATION |
+| `clubs_filed` | AGGREGATE_BY_ORGANIZATION |
+
+**`share_exec__gmp_scenario_eu_uk`**
 
 | Column | Treatment |
 |---|---|
 | `country_code` | DIMENSION |
 | `country_name` | DIMENSION |
 | `region` | DIMENSION |
-| `output_port` | DIMENSION |
+| `legal_regime_id` | DIMENSION |
+| `regime_name` | DIMENSION |
+| `regime_verification` | CAVEAT_LABEL |
+| `status` | DERIVED |
+| `season_year` | DIMENSION |
+| `clubs_with_rights` | AGGREGATE_BY_ORGANIZATION |
+| `comparable_basis` | DERIVED |
+| `comparable_markets` | DIMENSION |
+| `n_comparables` | DERIVED |
+| `single_comparable` | DERIVED |
+| `scenario_low` | DERIVED |
+| `scenario_high` | DERIVED |
+| `scenario_direction` | DERIVED |
+| `scenario_label` | CAVEAT_LABEL |
+
+**`share_exec__gmp_scenario_other`**
+
+| Column | Treatment |
+|---|---|
+| `country_code` | DIMENSION |
+| `country_name` | DIMENSION |
+| `region` | DIMENSION |
+| `legal_regime_id` | DIMENSION |
+| `regime_name` | DIMENSION |
+| `regime_verification` | CAVEAT_LABEL |
 | `status` | DERIVED |
 | `season_year` | DIMENSION |
 | `clubs_with_rights` | AGGREGATE_BY_ORGANIZATION |
