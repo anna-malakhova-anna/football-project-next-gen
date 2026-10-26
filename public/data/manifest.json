@@ -256,7 +256,7 @@
    "name": "audience_matrix",
    "source": "reference.audience_column_policy",
    "kind": "governance",
-   "rows": 7
+   "rows": 8
   },
   {
    "name": "restatement_log",
@@ -496,7 +496,7 @@
    "name": "product_health",
    "source": "phase6.mart_product_health",
    "kind": "approved_aggregate",
-   "rows": 48
+   "rows": 49
   },
   {
    "name": "product_adoption",
