@@ -1,6 +1,6 @@
 # ADR-031: The Global outlook tab on the results site
 
-- **Status:** Accepted for step 9 of the Phase 7 spec, 2026-10-26. **All copy is `status: draft` until Anna approves it** (`site_src/copy/charts.yml`, cards G1 to G5 and the `global` page intro).
+- **Status:** Accepted for step 9 of the Phase 7 spec, 2026-10-26. **Copy approved as final by Anna on 2026-10-26** (`site_src/copy/charts.yml`, cards G1 to G5 and the `global` page intro). The market scores and lanes the page shows are still drafts (ADR-029), and card G5 says so.
 - **Synthetic data.** Flag football only. The markets are the 22 of the NFL Global Markets Program; clubs are anonymous (ADR-024).
 
 ## Decisions
@@ -26,7 +26,7 @@
 5. **The partner report card is not on the site.** Each federation receives only its own card (ADR-027). G4 explains this and works out "one more club" from exec data (each market's trend and the grade band).
 6. **`scripts/site_check.py` checks the page** (layout at three widths, the copy rules, the viewer). It is in the CI page list, and it reads the new insight export when it checks headline numbers.
 
-## What the page says today (drafts)
+## What the page says today
 - **G1:** we can read 7 of 22 markets; 6 send nothing.
 - **G2:** none of the 7 shows a change we can tell from noise; a change has to beat 51%.
 - **G3:** a guess for markets with no data was right in 5 of 15, and its direction was wrong in all 15.

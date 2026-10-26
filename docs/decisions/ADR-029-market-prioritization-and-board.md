@@ -37,5 +37,5 @@
 
 ## Questions for Anna
 1. The rubric's thresholds and the privacy-risk levels (especially China at 3, and EU/UK/Swiss record-level returns at 4).
-2. Whether Measured markets belong in the ranking at all, or only in MAINTAIN, so the ranking reads as "where to invest next".
+2. ~~Whether Measured markets belong in the ranking at all, or only in MAINTAIN.~~ **Decided by Anna 2026-10-26: Measured markets stay in the ranking.**
 3. The lanes. In particular, Italy (the walkthrough market) is in LATER on its rank. Move it up if the 2026 expansion makes it a priority.

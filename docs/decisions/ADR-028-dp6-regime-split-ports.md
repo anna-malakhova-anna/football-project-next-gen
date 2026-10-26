@@ -18,6 +18,9 @@
 5. **`gmp_regime_ports_partition_the_markets`**, a dbt test, checks that every one of the 22 markets is in exactly one market port, every market without data is in exactly one scenario port, and no row sits in another regime's port.
 6. The partner report card (ADR-027) stays one port. Each card already belongs to one federation.
 
+## Decided by Anna, 2026-10-26
+The regimes stay **unverified assumptions with no source links**. That is acceptable for this project. The privacy lead's questions stay in each port's `regime_note`, and every row keeps saying `UNVERIFIED`.
+
 ## Consequences
 - DP6 moves to version 0.2.0. The site tab (step 9) will read the three market ports and show them as one map, without recomputing anything.
 - The split is a design for the access rules the privacy lead may set. Until then, it changes who could be given what, not what anyone sees.

@@ -429,9 +429,9 @@ charts:
     analyst_md: |
       From `docs/product/feedback-loop.md` and `products/CHANGELOG.md`. The simulation is `make fix-list-demo`.
 
-  # ---- Phase 7: the Global outlook tab (scripts/site_global.py). DRAFT: Anna reviews every word before it is final.
+  # ---- Phase 7: the Global outlook tab (scripts/site_global.py). Approved as final by Anna 2026-10-26.
   G1:
-    status: draft
+    status: final
     headline_template: 'We can read {n_readable} of {n_markets} markets. {n_dark} send us nothing at all.'
     fallback_headline: We can read only some of the program's markets.
     slide_headline_templates: {}
@@ -447,7 +447,7 @@ charts:
 
       '
   G2:
-    status: draft
+    status: final
     headline_template: '{n_moving} of {n_with_data} markets show a change we can tell from noise.'
     fallback_headline: No market shows a change we can tell from noise yet.
     slide_headline_templates: {}
@@ -463,7 +463,7 @@ charts:
 
       '
   G3:
-    status: draft
+    status: final
     headline_template: 'A guess for markets with no data was right in {n_inside} of {n_markets}.'
     fallback_headline: A guess for markets with no data was mostly wrong.
     slide_headline_templates: {}
@@ -479,7 +479,7 @@ charts:
 
       '
   G4:
-    status: draft
+    status: final
     headline_template: '{close_markets} are close: {clubs_needed_text} filing each would make them readable.'
     fallback_headline: Some markets would be readable if more of their clubs sent a file.
     slide_headline_templates: {}
@@ -495,7 +495,7 @@ charts:
 
       '
   G5:
-    status: draft
+    status: final
     headline_template: '{n_now} markets are on the board for now. Every score is still a draft.'
     fallback_headline: The market board is a draft until its scores are set.
     slide_headline_templates: {}
@@ -546,7 +546,7 @@ pages:
 # The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf): a vertical story, one section per tab component.
 # Headlines are the tab's own sentences; the one plain sentence under each is new draft copy for Anna. {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py).
   global:
-    status: draft
+    status: final
     intro_template: 'We can read {G1.n_readable} of the {G1.n_markets} markets where NFL clubs hold rights, and none shows a change we can tell from noise. Markets with no data get a plan, not a number.'
     fallback_intro: We can read only some of the markets where NFL clubs hold rights. Markets with no data get a plan, not a number.
     demo_text: See which markets we can read, why growth is hard to tell, what a guess would have said, then the plan.
