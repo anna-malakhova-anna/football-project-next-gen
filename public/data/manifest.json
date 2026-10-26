@@ -244,13 +244,13 @@
    "name": "contract_status",
    "source": "quality.dq_contract_results",
    "kind": "governance",
-   "rows": 15
+   "rows": 16
   },
   {
    "name": "source_status",
    "source": "reference.source_registry",
    "kind": "governance",
-   "rows": 12
+   "rows": 13
   },
   {
    "name": "audience_matrix",
@@ -262,7 +262,7 @@
    "name": "restatement_log",
    "source": "measurement.mart_restatement_log",
    "kind": "governance",
-   "rows": 0
+   "rows": 1
   },
   {
    "name": "dq_pareto",
@@ -424,7 +424,7 @@
    "name": "glossary_rules",
    "source": "reference.dq_rule_registry",
    "kind": "governance",
-   "rows": 141
+   "rows": 148
   },
   {
    "name": "chart_insights_eval",
