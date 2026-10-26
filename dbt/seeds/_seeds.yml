@@ -35,7 +35,7 @@ seeds:
       - name: country_code
         data_tests:
           - not_null
-          - accepted_values: {arguments: {values: [US, CA, MX, GB, JP, DE, AT, PA]}}
+          - accepted_values: {arguments: {values: [US, CA, MX, GB, JP, DE, AT, ES]}}
 
   - name: gender_map
     description: >
@@ -636,3 +636,58 @@ seeds:
         data_tests: [not_null]
       - name: jurisdiction
         data_tests: [not_null]
+
+  - name: gmp_markets
+    description: >-
+      The 22 markets of the NFL Global Markets Program as listed on the public program page (read 2026-10-25), with a project region and the legal regime
+      assumed to apply (Phase 7). Flag football only: the program also covers games, events and commercial work, which this project uses only as proxy signals.
+      Region grouping is a project choice.
+    config:
+      tags: [phase7]
+    columns:
+      - name: country_code
+        data_tests: [unique, not_null]
+      - name: region
+        data_tests:
+          - accepted_values: {arguments: {values: ['Europe', 'North America', 'Latin America', 'Asia-Pacific', 'Middle East and Africa']}}
+      - name: legal_regime_id
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: ref('legal_regime'), field: legal_regime_id}}
+      - name: status_on_page
+        data_tests:
+          - accepted_values: {arguments: {values: ['NEW', 'EXISTING']}}
+
+  - name: gmp_club_rights
+    description: >-
+      Which markets each club holds Global Markets Program rights in, from the public program page (read 2026-10-25), one row per club and country (Phase 7).
+      Clubs are ANONYMOUS ("Club 01" to "Club 32", labels shuffled with the global seed); real club names are not stored anywhere in the project.
+      Clubs with rights per market are counted in SQL from this table, never typed.
+    config:
+      tags: [phase7]
+    columns:
+      - name: club_id
+        data_tests: [not_null]
+      - name: country_code
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: ref('gmp_markets'), field: country_code}}
+      - name: status_on_page
+        data_tests:
+          - accepted_values: {arguments: {values: ['NEW', 'EXISTING']}}
+
+  - name: legal_regime
+    description: >-
+      The data-protection regime assumed to apply in each program market, and the DP6 output port it falls under (Phase 7). Every row is an ASSUMPTION for
+      design, not a legal finding; source_url stays empty until Anna or the privacy lead verifies it. The US row is the domestic reference only (DP4).
+    config:
+      tags: [phase7]
+    columns:
+      - name: legal_regime_id
+        data_tests: [unique, not_null]
+      - name: output_port
+        data_tests:
+          - accepted_values: {arguments: {values: ['global_eu_uk', 'global_canada', 'global_other', 'domestic_reference']}}
+      - name: verification_status
+        data_tests:
+          - accepted_values: {arguments: {values: ['UNVERIFIED', 'VERIFIED']}}

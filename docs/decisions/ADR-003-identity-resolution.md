@@ -42,7 +42,7 @@
 ```
 int_registrations_unioned
   -> idr_input_records          exact duplicates collapsed, impossible DOBs nulled, keys carried
-  -> idr_deterministic_links    same member_uuid (CA); same Player ID (INTL, except Panama via a dbt var)
+  -> idr_deterministic_links    same member_uuid (CA); same Player ID (INTL, except Spain via a dbt var)
   -> idr_blocking_keys -> idr_candidate_pairs -> idr_pair_features        (levels, not scores)
   -> idr_pair_scores_rules  |  idr_u_probabilities -> idr_pair_scores_fs  (three matchers)
   -> idr_match_edges -> idr_clusters (recursive CTE) -> idr_cluster_integrity, idr_review_queue

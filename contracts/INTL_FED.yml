@@ -17,7 +17,7 @@ primary_key: [_source_file, c1]
 person_identifier:
   quality: partial
   field: "c1 (Player ID)"
-  note: "federation-local and stable across years, except Panama, which reissues it every year; a changed family name also brings a new ID."
+  note: "federation-local and stable across years, except Spain, which reissues it every year; a changed family name also brings a new ID."
 minors_present: true
 consent_fields:
   - column: c9
@@ -40,4 +40,4 @@ quality:
   - {rule: max_nonmatching_rate, column: Date of Birth, pattern: '^(\d{2}/\d{2}/\d{4}|\d{5})$', threshold: 0.01}
   - {rule: max_invalid_rate, column: Gender, allowed_values: [W, M, F, Mujer, Hombre], threshold: 0.0}
   # federations are held to one Country spelling (the ISO alpha-3 code): a known upstream defect
-  - {rule: max_invalid_rate, column: Country, allowed_values: [MEX, GBR, JPN, DEU, AUT, PAN], threshold: 0.10}
+  - {rule: max_invalid_rate, column: Country, allowed_values: [MEX, GBR, JPN, DEU, AUT, ESP], threshold: 0.10}

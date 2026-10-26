@@ -60,7 +60,7 @@ need the strictest handling (Phase 3).
 | `registration_key` | same rule | same rule | same rule |
 | `source_system` | 'US_LEAGUE' | 'CA_CLUB' | 'INTL_FED' |
 | `source_record_id` | registration_id | member_uuid \| season_year (the API has no record id) | Player ID \| season year (from the file name) |
-| `source_person_id` | none (NULL) | member_uuid (changes if the player switches clubs) | Player ID (reissued each year in Panama) |
+| `source_person_id` | none (NULL) | member_uuid (changes if the player switches clubs) | Player ID (reissued each year in Spain) |
 | `season_label` | season (e.g. 'Spring 2024') | season_year as text | year taken from the workbook file name |
 | `season_year` | 4-digit year in season | season_year | file name |
 | `season_term` | first word of season | 'ANNUAL' | 'ANNUAL' |

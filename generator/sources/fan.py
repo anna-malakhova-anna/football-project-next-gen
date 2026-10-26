@@ -42,7 +42,7 @@ ACCOUNT_COLUMNS = ["account_id", "email", "phone", "postal_prefix", "country", "
 TERM_ORDER = {"SPRING": 1, "ANNUAL": 2, "FALL": 3}
 DOMAINS = ["example.com", "example.net", "example.org"]
 CHANNELS = ["email", "sms", "push"]
-CC = {"US": "1", "CA": "1", "MX": "52", "GB": "44", "JP": "81", "DE": "49", "AT": "43", "PA": "507"}
+CC = {"US": "1", "CA": "1", "MX": "52", "GB": "44", "JP": "81", "DE": "49", "AT": "43", "ES": "34"}
 
 
 def _sigmoid(x: float) -> float:

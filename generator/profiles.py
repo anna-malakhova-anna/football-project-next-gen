@@ -13,6 +13,8 @@ from __future__ import annotations
 import math
 import random
 
+from generator.draw_order import org_key
+
 PROFILES = ["DISCIPLINED", "TYPICAL", "STRUGGLING", "MANUAL"]
 
 
@@ -28,7 +30,7 @@ def assign_profiles(rng: random.Random, orgs: list[dict], cfg: dict) -> dict[str
         small = 1 - (math.log(n) - lo) / (hi - lo) if hi > lo else 0.5          # 1 = smallest
         score = q["size_weight"] * small + q["region_weight"] * (o["region"] in risky) + q["noise"] * rng.random()
         scored.append((score, o["org_id"]))
-    scored.sort(reverse=True)                                                    # riskiest first
+    scored.sort(key=lambda t: (t[0], org_key(t[1])), reverse=True)                                                    # riskiest first
     n = len(scored)
     k_manual = max(round(mix["MANUAL"] * n), 1 if mix["MANUAL"] > 0 and n >= 10 else 0)
     k_struggling = round(mix["STRUGGLING"] * n)
@@ -87,7 +89,7 @@ def pick_unreporting(rng: random.Random, existing: dict[int, list[str]], cfg: di
     lo, hi = cfg["org_quality"]["unreporting"]["share_range"]
     out = {}
     for y in sorted(existing):
-        orgs = sorted(existing[y])
+        orgs = sorted(existing[y], key=org_key)
         out[y] = set(rng.sample(orgs, round(rng.uniform(lo, hi) * len(orgs)))) if orgs else set()
     return out
 
@@ -98,7 +100,7 @@ def fix_list_adopters(cfg: dict, profiles: dict[str, str]) -> set[str]:
     a = cfg["org_quality"].get("fix_list_adoption") or {}
     if not a.get("enabled"):
         return set()
-    struggling = sorted(o for o, p in profiles.items() if p == "STRUGGLING")
+    struggling = sorted((o for o, p in profiles.items() if p == "STRUGGLING"), key=org_key)
     k = round(float(a["share_of_struggling_orgs"]) * len(struggling))
     rng = random.Random(cfg["seed"] + 53)
     return set(rng.sample(struggling, k)) if k else set()

@@ -24,7 +24,7 @@ consent_exempt_reason: "institutional aggregate counts, no individual; small pro
 schema:
   - {column: district, raw: district, type: string, required: true, pii: quasi}
   - {column: school_or_program, raw: school_or_program, type: string, required: true, pii: quasi}
-  - {column: country, raw: country, type: string, required: true, pii: none, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA]}
+  - {column: country, raw: country, type: string, required: true, pii: none, allowed_values: [US, CA, MX, GB, JP, DE, AT, ES]}
   - {column: region, raw: region, type: string, required: false, pii: quasi}
   - {column: program_type, raw: program_type, type: string, required: true, pii: none, allowed_values: [PE_UNIT, INTRAMURAL, AFTER_SCHOOL]}
   - {column: grade_band, raw: grade_band, type: string, required: false, pii: none, allowed_values: [K-2, 3-5, 6-8, 9-12]}
@@ -39,7 +39,7 @@ quality:
   - {rule: max_nonmatching_rate, column: total_count, pattern: '^\d+$', threshold: 0.0}
   - {rule: max_nonmatching_rate, column: report_date, pattern: '^\d{4}-\d{2}-\d{2}$', threshold: 0.0}
   - {rule: max_invalid_rate, column: program_type, allowed_values: [PE_UNIT, INTRAMURAL, AFTER_SCHOOL], threshold: 0.0}
-  - {rule: max_invalid_rate, column: country, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA], threshold: 0.0}
+  - {rule: max_invalid_rate, column: country, allowed_values: [US, CA, MX, GB, JP, DE, AT, ES], threshold: 0.0}
   - {rule: max_duplicate_rate, key: [district, school_or_program, _source_file], threshold: 0.01}
   # the arithmetic the partner is held to: the total is the sum of girls and boys, and totals are counts, not round estimates
   - {rule: max_expression_rate, name: total_equals_girls_plus_boys, threshold: 0.05,

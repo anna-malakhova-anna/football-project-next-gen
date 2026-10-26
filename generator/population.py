@@ -21,6 +21,8 @@ import pyarrow.parquet as pq
 import yaml
 from faker import Faker
 
+from generator.draw_order import country_key
+
 from generator import markets as markets_mod
 from text_unidecode import unidecode
 
@@ -56,9 +58,9 @@ CA_POSTAL_LETTERS = {
 CA_FR_REGIONS = [("QC", 70), ("NB", 15), ("ON", 15)]
 CA_EN_REGIONS = [("ON", 45), ("BC", 20), ("AB", 20), ("NS", 8), ("MB", 7)]
 
-INTL_LANG = {"MX": "es", "GB": "en", "JP": "ja", "DE": "de", "AT": "de", "PA": "es"}
+INTL_LANG = {"MX": "es", "GB": "en", "JP": "ja", "DE": "de", "AT": "de", "ES": "es"}
 INTL_PHONE_PREFIX = {"MX": ("+52", 10), "GB": ("+44", 10), "JP": ("+81", 10),
-                     "DE": ("+49", 10), "AT": ("+43", 10), "PA": ("+507", 8)}
+                     "DE": ("+49", 10), "AT": ("+43", 10), "ES": ("+34", 8)}  # Spain: 8 digits (Panama's length) so the renamed population draws the same numbers
 EMAIL_DOMAINS = ["example.com", "example.org", "example.net"]  # reserved, never real inboxes
 
 REGISTRY_FIELDS = [
@@ -376,7 +378,7 @@ class _Builder:
 
         # International: adults are individuals, youth come in households
         shares = self.pop["intl_country_shares"]
-        countries = sorted(shares)
+        countries = sorted(shares, key=country_key)
         n_intl_adult = round(n_intl * self.pop["intl_adult_share"])
         for _ in range(n_intl_adult):
             c = r.choices(countries, weights=[shares[x] for x in countries])[0]
@@ -387,7 +389,7 @@ class _Builder:
         for _ in range(n_intl - n_intl_adult):
             c = r.choices(countries, weights=[shares[x] for x in countries])[0]
             intl_youth_by_country[c] = intl_youth_by_country.get(c, 0) + 1
-        for c in sorted(intl_youth_by_country):
+        for c in sorted(intl_youth_by_country, key=country_key):
             for k in self._household_sizes(intl_youth_by_country[c]):
                 for p in self._youth_household(c, k):
                     p["segment"] = "INTL"

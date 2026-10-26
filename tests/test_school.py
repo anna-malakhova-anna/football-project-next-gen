@@ -40,7 +40,7 @@ def test_program_types_and_countries_are_the_documented_values(run):
     _, base, _ = run
     rows = _rows(base)
     assert {r["program_type"] for r in rows} == {"PE_UNIT", "INTRAMURAL", "AFTER_SCHOOL"}
-    assert {r["country"] for r in rows} <= {"US", "CA", "MX", "GB", "JP", "DE", "AT", "PA"}
+    assert {r["country"] for r in rows} <= {"US", "CA", "MX", "GB", "JP", "DE", "AT", "ES"}
     assert all(r["region"] == "" for r in rows if r["country"] not in ("US", "CA"))
 
 

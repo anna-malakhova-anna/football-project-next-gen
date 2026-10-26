@@ -83,7 +83,7 @@ def test_country_inconsistency_and_label_variety(run):
     assert {r[8] for r in rows} == {"Yes", "No", None}
 
 
-def test_japan_family_name_first_and_panama_ids_reissued(run):
+def test_japan_family_name_first_and_spain_ids_reissued(run):
     _, base, out = run
     reg = {p["true_person_id"]: p for p in pq.read_table(base / "truth" / "person_registry.parquet").to_pylist()}
     truth = {t["source_record_id"]: t["true_person_id"] for t in out.truth}
@@ -99,12 +99,12 @@ def test_japan_family_name_first_and_panama_ids_reissued(run):
             else:
                 assert r[1] == f"{p['given_name']} {family}"
     multi = [(k, v) for k, v in ids_by_person.items()]
-    # Panama: a returning player gets a new id each year; all other countries keep one
+    # Spain: a returning player gets a new id each year; all other countries keep one
     changers = {pid for pid, p in reg.items() if p["name_change_season"]}
     for (name, pid), ids in multi:
-        if name != "Panama" and pid not in changers:
+        if name != "Spain" and pid not in changers:
             assert len(ids) == 1
-    assert any(len(ids) > 1 for (name, _), ids in multi if name == "Panama")
+    assert any(len(ids) > 1 for (name, _), ids in multi if name == "Spain")
 
 
 def test_player_ids_unique_within_sheet_and_truth_complete(run):
@@ -131,7 +131,7 @@ def test_categories_known_and_minor_email_mostly_blank(run):
 def test_junk_rows_in_manifest(run):
     cfg, _, out = run
     counts = collections.Counter(m["defect_id"] for m in out.manifest)
-    # a country has a worksheet only in the years its market has launched, so the expected counts come from the config's launch years (DE + AT titles; MX, GB, DE, PA totals)
+    # a country has a worksheet only in the years its market has launched, so the expected counts come from the config's launch years (DE + AT titles; MX, GB, DE, ES totals)
     assert counts["junk_title_row"] == counts["junk_blank_row"] == ecs._structural_count(cfg, "junk_title_row")
     assert counts["junk_summary_row"] == ecs._structural_count(cfg, "junk_summary_row")
 

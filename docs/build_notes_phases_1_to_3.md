@@ -119,7 +119,7 @@ phase-1-spec.md, phase-2-spec.md   the build specs
 
 **What "not detectable" means.** Nine injected defects cannot be seen in staged data alone: US name typos,
 nickname use, changed guardian emails and swapped day/month DOBs; CA accent stripping and off-by-one birth years;
-Japan's name order (a sheet rule), Panama's reissued IDs, and (added in Phase 2) a changed family name. They appear in `dq_summary` with their configured rate
+Japan's name order (a sheet rule), Spain's reissued IDs, and (added in Phase 2) a changed family name. They appear in `dq_summary` with their configured rate
 and no observed value. Reading the ground truth to fill them in would break the quarantine rule, so they are the
 evaluation targets for Phase 2.
 

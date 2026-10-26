@@ -51,7 +51,7 @@ models:
           nullable: "Yes (always NULL for US_LEAGUE)"
           pii: Direct identifier
           derivation: "Passed through."
-          source_mapping: {US_LEAGUE: "none (NULL)", CA_CLUB: "member_uuid (changes if the player switches clubs)", INTL_FED: "Player ID (reissued each year in Panama)"}
+          source_mapping: {US_LEAGUE: "none (NULL)", CA_CLUB: "member_uuid (changes if the player switches clubs)", INTL_FED: "Player ID (reissued each year in Spain)"}
       - name: season_label
         data_type: varchar
         description: Season label exactly as the source expresses it.

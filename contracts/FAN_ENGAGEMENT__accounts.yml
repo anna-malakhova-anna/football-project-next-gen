@@ -27,7 +27,7 @@ schema:
   - {column: email, raw: email, type: string, required: true, pii: direct}
   - {column: phone, raw: phone, type: string, required: false, pii: direct}
   - {column: postal_prefix, raw: postal_prefix, type: string, required: false, pii: quasi}
-  - {column: country, raw: country, type: string, required: true, pii: quasi, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA]}
+  - {column: country, raw: country, type: string, required: true, pii: quasi, allowed_values: [US, CA, MX, GB, JP, DE, AT, ES]}
   - {column: created_at, raw: created_at, type: timestamp, required: true, pii: none, pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'}
   - {column: acquisition_source, raw: acquisition_source, type: string, required: true, pii: none, allowed_values: [organic, ticketing, app_store, partner_referral, flag_registration_prompt]}
   - {column: birth_year, raw: birth_year, type: integer, required: true, pii: quasi, pattern: '^\d{4}$'}
@@ -35,7 +35,7 @@ quality:
   - {rule: max_null_rate, column: email, threshold: 0.0}
   - {rule: max_invalid_rate, column: acquisition_source, allowed_values: [organic, ticketing, app_store, partner_referral, flag_registration_prompt], threshold: 0.0}
   - {rule: max_nonmatching_rate, column: created_at, pattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', threshold: 0.0}
-  - {rule: max_invalid_rate, column: country, allowed_values: [US, CA, MX, GB, JP, DE, AT, PA], threshold: 0.0}
+  - {rule: max_invalid_rate, column: country, allowed_values: [US, CA, MX, GB, JP, DE, AT, ES], threshold: 0.0}
   - {rule: max_duplicate_rate, key: [account_id], threshold: 0.0}
   # GUARDIANS ONLY (rework spec principle 4): the holder is an adult when the account is opened. A minor holder would put a child's data in a fan output: ERROR.
   - {rule: max_expression_rate, name: holder_is_an_adult_at_signup, threshold: 0.0, severity: ERROR,

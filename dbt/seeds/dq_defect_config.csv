@@ -37,7 +37,7 @@ INTL_FED,junk_summary_row,structural,,16,structural,trailing 'Total: N' rows,tru
 INTL_FED,junk_header_row,structural,,21,structural,one header row per sheet,true,"The column header row, landed as data by the raw loader; dropped in staging."
 INTL_FED,name_order_inverted,structural,,,structural,all rows on family-name-first sheets (JP),false,"Family name precedes given name (Japan). Handled by sheet rule in staging; a configuration, not a data signal."
 INTL_FED,family_name_change,structural,,,structural,records of adult women after a change of family name,false,"Family name differs from the same player's earlier registrations, and a new Player ID is issued. Needs identity matching (Phase 2)."
-INTL_FED,player_id_reissued,structural,,,structural,all rows on unstable-ID sheets (PA),false,Player ID is reissued each year (Panama). Needs identity matching to see (Phase 2).
+INTL_FED,player_id_reissued,structural,,,structural,all rows on unstable-ID sheets (ES),false,Player ID is reissued each year (Spain). Needs identity matching to see (Phase 2).
 INTL_FED,unmapped_division,zero,0.0,,rows,all rows,true,Category label is missing from division_map.
 INTL_FED,unmapped_gender,zero,0.0,,rows,all rows,true,Gender value missing from gender_map.
 INTL_FED,unmapped_country,zero,0.0,,rows,all rows,true,Country value missing from country_map.

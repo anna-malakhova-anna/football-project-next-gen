@@ -20,6 +20,7 @@ from pathlib import Path
 from faker import Faker
 
 from generator import defects as D
+from generator.draw_order import country_key
 
 SOURCE = "SCHOOL_AGGREGATES"
 COLUMNS = ["district", "school_or_program", "country", "region", "program_type", "grade_band", "girls_count", "boys_count",
@@ -27,7 +28,7 @@ COLUMNS = ["district", "school_or_program", "country", "region", "program_type",
 REPORTERS = ["District PE Coordinator", "Principal's office", "Recreation department coordinator", "Teacher in charge", "Program administrator"]
 DISTRICT_SUFFIX = {"US": ["Unified School District", "Independent School District"], "CA": ["District School Board", "School Division"],
                    "MX": ["Distrito Escolar"], "GB": ["Local Authority Schools"], "JP": ["Board of Education"],
-                   "DE": ["Schulamt"], "AT": ["Bezirksschulrat"], "PA": ["Distrito Escolar"]}
+                   "DE": ["Schulamt"], "AT": ["Bezirksschulrat"], "ES": ["Dirección Provincial de Educación"]}
 SCHOOL_WORD = {"K-2": "Elementary School", "3-5": "Elementary School", "6-8": "Middle School", "9-12": "High School"}
 
 
@@ -35,7 +36,7 @@ def _fakers(cfg: dict) -> dict[str, Faker]:
     out = {}
     for code, locale in cfg["population"]["locales"].items():
         fk = Faker(locale)
-        fk.seed_instance(cfg["seed"] + 40 + sum(map(ord, code)))
+        fk.seed_instance(cfg["seed"] + 40 + sum(map(ord, country_key(code))))
         out[code] = fk
     return out
 
@@ -62,7 +63,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
         age = year - by_id[pid]["dob"].year
         if 5 <= age <= 17:
             youth.setdefault((year, r["country_code"], r["region_code"]), []).append({"pid": pid, "age": age, "sex": by_id[pid]["sex"]})
-    places = sorted({(c, g) for (_, c, g) in youth}, key=lambda t: (t[0], t[1] or ""))
+    places = sorted({(c, g) for (_, c, g) in youth}, key=lambda t: (country_key(t[0]), t[1] or ""))
 
     # ---- stable programs, placed where registered youth live ----
     types, weights = zip(*sorted(sc["program_types"].items()))

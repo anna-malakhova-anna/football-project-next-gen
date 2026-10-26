@@ -89,10 +89,10 @@ Country totals in the presence view add up to **more** than the global number wh
 | AT | 214 | 214 |
 | CA | 1,884 | 1,902 |
 | DE | 204 | 204 |
+| ES | 155 | 156 |
 | GB | 242 | 243 |
 | JP | 330 | 330 |
 | MX | 325 | 326 |
-| PA | 155 | 156 |
 | US | 5,605 | 5,653 |
 
 Attributed sums to 8,959, equal to the global figure; present sums to 9,028, 69 more (people counted in two countries).

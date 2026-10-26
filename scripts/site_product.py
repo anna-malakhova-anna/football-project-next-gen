@@ -302,7 +302,7 @@ def unverified_html(rules: list[dict]) -> str:
     for r in rules:
         if r["verified"] != "Y":
             by.setdefault(r["jurisdiction"], []).append(f"{r['age_min']} to {r['age_max']}")
-    names = {"US_FED": "United States (federal)", "US_CA": "California", "CA_QC": "Quebec", "CA_OTHER": "Canada (other)", "EU": "EU countries (Austria, Germany)", "GB": "United Kingdom", "DEFAULT": "Everywhere else (Mexico, Japan, Panama)"}
+    names = {"US_FED": "United States (federal)", "US_CA": "California", "CA_QC": "Quebec", "CA_OTHER": "Canada (other)", "EU": "EU countries (Austria, Germany, Spain)", "GB": "United Kingdom", "DEFAULT": "Everywhere else (Mexico, Japan)"}
     items = "".join(f"<li><b>{e(names.get(j, j))}:</b> unverified \u2014 strictest rule applies (ages {e(', '.join(a))})</li>" for j, a in by.items())
     n_yes = sum(1 for r in rules if r["verified"] == "Y")
     return ("<div class='vproduct'><h4>Open items: rules not yet verified</h4>"

@@ -58,6 +58,8 @@ INTL_FED,Masters,ADULT_MIXED,"Masters (adults 40+, either sex); no separate cano
 INTL_FED,Juvenil,U17,"Junior/youth category, ages 15-17"
 INTL_FED,Senior Femenil,ADULT_W,Senior women
 INTL_FED,Senior Varonil,ADULT_M,Senior men
+INTL_FED,Senior Femenino,ADULT_W,Senior women (Spain sheet)
+INTL_FED,Senior Masculino,ADULT_M,Senior men (Spain sheet)
 INTL_FED,Junioren,U17,"Junior/youth category, ages 15-17"
 INTL_FED,Damen,ADULT_W,Senior women
 INTL_FED,Herren,ADULT_M,Senior men

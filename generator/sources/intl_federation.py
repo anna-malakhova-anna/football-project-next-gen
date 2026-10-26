@@ -5,7 +5,7 @@ Grain: one row per registered player per season. A record is identified by
 (Player ID, season): truth/manifest `source_record_id` is "<Player ID>|<season_year>".
 
 Structural defects (config `sources.intl`): title row + blank row above the header (DE, AT),
-trailing "Total: N" row on some sheets, Japanese sheet gives family name first, Panama reissues
+trailing "Total: N" row on some sheets, Japanese sheet gives family name first, Spain reissues
 Player IDs every year. Rate defects: UK DOB as Excel serial (20% of UK DOBs), inconsistent Country
 values (25% of rows). Minors' email is usually blank. Rate denominators are all rows on the sheet
 (UK DOB) or all rows (country, media consent).
@@ -23,19 +23,20 @@ from openpyxl import Workbook
 
 from generator import defects as D
 from generator import profiles as P
+from generator.draw_order import org_key
 
 SOURCE = "INTL_FED"
 COLUMNS = ["Player ID", "Full Name", "Date of Birth", "Gender", "Category", "Club", "Country", "Email", "Media Consent"]
-COUNTRY_ORDER = ["MX", "GB", "JP", "DE", "AT", "PA"]
-SHEET_NAME = {"MX": "Mexico", "GB": "United Kingdom", "JP": "Japan", "DE": "Germany", "AT": "Austria", "PA": "Panama"}
-ISO3 = {"MX": "MEX", "GB": "GBR", "JP": "JPN", "DE": "DEU", "AT": "AUT", "PA": "PAN"}
+COUNTRY_ORDER = ["MX", "GB", "JP", "DE", "AT", "ES"]
+SHEET_NAME = {"MX": "Mexico", "GB": "United Kingdom", "JP": "Japan", "DE": "Germany", "AT": "Austria", "ES": "Spain"}
+ISO3 = {"MX": "MEX", "GB": "GBR", "JP": "JPN", "DE": "DEU", "AT": "AUT", "ES": "ESP"}
 # Alternative Country spellings used by the 25% inconsistency defect (base spelling is ISO-3).
 COUNTRY_ALT = {
     "MX": ["MX", "Mexico", "México"], "GB": ["GB", "United Kingdom", "UK"], "JP": ["JP", "Japan", "Nippon"],
-    "DE": ["DE", "Germany", "Deutschland"], "AT": ["AT", "Austria", "Österreich"], "PA": ["PA", "Panama", "Panamá"],
+    "DE": ["DE", "Germany", "Deutschland"], "AT": ["AT", "Austria", "Österreich"], "ES": ["ES", "Spain", "España"],
 }
 GENDER_LABELS = {  # per sheet: (F label, M label)
-    "MX": ("Mujer", "Hombre"), "PA": ("Mujer", "Hombre"), "GB": ("F", "M"),
+    "MX": ("Mujer", "Hombre"), "ES": ("Mujer", "Hombre"), "GB": ("F", "M"),
     "JP": ("F", "M"), "DE": ("W", "M"), "AT": ("W", "M"),
 }
 # Category labels per country. Seeds must map every label; notes on boundaries live in division_map.
@@ -43,7 +44,7 @@ CATEGORY_LABELS = {
     "default": {"U8": "U8", "U10": "U10", "U12": "U12", "U14": "U15", "U17": "Juniors",
                 "ADULT_W": "Senior Women", "ADULT_M": "Senior Men", "ADULT_MIXED": "Masters"},
     "MX": {"U17": "Juvenil", "ADULT_W": "Senior Femenil", "ADULT_M": "Senior Varonil"},
-    "PA": {"U17": "Juvenil", "ADULT_W": "Senior Femenil", "ADULT_M": "Senior Varonil"},
+    "ES": {"U17": "Juvenil", "ADULT_W": "Senior Femenino", "ADULT_M": "Senior Masculino"},
     "DE": {"U17": "Junioren", "ADULT_W": "Damen", "ADULT_M": "Herren"},
     "AT": {"U17": "Junioren", "ADULT_W": "Damen", "ADULT_M": "Herren"},
 }
@@ -53,7 +54,7 @@ CLUB_PLACES = {
     "JP": ["Tokyo", "Osaka", "Nagoya", "Fukuoka", "Sapporo", "Kobe"],
     "DE": ["Berlin", "Hamburg", "München", "Köln", "Frankfurt", "Dresden"],
     "AT": ["Wien", "Graz", "Linz", "Salzburg", "Innsbruck"],
-    "PA": ["Panamá", "Colón", "David", "Chitré"],
+    "ES": ["Valencia", "Córdoba", "Madrid", "Bilbao"],  # chosen so the club names sort like Panama's did (same draw order)
 }
 CLUB_STYLES = ["{p} Flag Club", "{p} Titans", "Club Flag {p}", "{p} Vipers"]
 EXCEL_EPOCH = dt.date(1899, 12, 30)
@@ -137,7 +138,7 @@ def generate(people: list[dict], parts: list[dict], cfg: dict) -> D.SourceOutput
     # ---- 2b. structure (phase 5 spec section 3): org profiles, dark clubs ----
     prng = random.Random(cfg["seed"] + 53)
     org = lambda r: f"{r['country']}|{r['club']}"           # noqa: E731  the organization id staging derives (country | club name)
-    club_ids = sorted({org(r) for r in rows})
+    club_ids = sorted({org(r) for r in rows}, key=org_key)
     country_of = {org(r): r["country"] for r in rows}
     name_of = {org(r): r["club"] for r in rows}
     counts: dict[str, int] = {}

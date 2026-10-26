@@ -1,0 +1,23 @@
+country_code,country_name,region,legal_regime_id,status_on_page,source_url,read_date,notes
+AR,Argentina,Latin America,AR_PDPL,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+AU,Australia,Asia-Pacific,AU_PRIVACY_ACT,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+AT,Austria,Europe,EU_GDPR,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+BR,Brazil,Latin America,BR_LGPD,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+CA,Canada,North America,CA_PIPEDA,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+CN,China,Asia-Pacific,CN_PIPL,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+CO,Colombia,Latin America,CO_LAW_1581,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+FR,France,Europe,EU_GDPR,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+DE,Germany,Europe,EU_GDPR,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+GH,Ghana,Middle East and Africa,GH_DPA,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+GR,Greece,Europe,EU_GDPR,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+IE,Ireland,Europe,EU_GDPR,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,"The page lists both Ireland and the Island of Ireland (one club); both are counted here as IE. Northern Ireland is UK territory: a question, not resolved."
+IT,Italy,Europe,EU_GDPR,NEW,https://www.nfl.com/international/global-markets-program,2026-10-25,First listed in the 2026 expansion.
+JP,Japan,Asia-Pacific,JP_APPI,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+MX,Mexico,Latin America,MX_LFPDPPP,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+NZ,New Zealand,Asia-Pacific,NZ_PRIVACY_ACT,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+NG,Nigeria,Middle East and Africa,NG_NDPA,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+KR,South Korea,Asia-Pacific,KR_PIPA,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+ES,Spain,Europe,EU_GDPR,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+CH,Switzerland,Europe,CH_FADP,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+AE,United Arab Emirates,Middle East and Africa,AE_PDPL,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
+GB,United Kingdom,Europe,UK_GDPR,EXISTING,https://www.nfl.com/international/global-markets-program,2026-10-25,
