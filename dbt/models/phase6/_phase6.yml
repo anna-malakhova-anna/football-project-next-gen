@@ -6,6 +6,7 @@ models:
   - name: int_participant_age_tier
     description: >
       RESTRICTED. Participant x participation year: age tier (U13, 13_15, 16_17, ADULT, UNKNOWN) from the Dec 31 age convention (ADR-002), and the age-rule jurisdiction from the participant's country and region.
+      When the participant's registrations disagree on the birth year, the youngest age they support is used (an age in doubt gets the stricter rule; unit test age_in_doubt_takes_the_younger_tier).
     columns:
       - {name: participant_id, data_tests: [not_null]}
       - {name: participation_year, data_tests: [not_null]}
@@ -70,6 +71,45 @@ models:
           - accepted_values: {arguments: {values: [MEASURED, SUPPRESSED, NOT_MEASURABLE_BY_DESIGN]}}
 
 unit_tests:
+  # Hand-built participants. Q1's two registrations disagree on the birth year (2006 in 2022, 2005 in 2023, a year typed off by one) and the survivorship birth year is the later 2005, so the
+  # resolved age says 18 in 2023. The tier must use the younger age the records support: 16_17, not ADULT. Q2 has one plausible birth year and does turn 18 (an invalid registration and an impossible age of -5 raise no doubt). Q3 has no age at all: UNKNOWN.
+  - name: age_in_doubt_takes_the_younger_tier
+    model: int_participant_age_tier
+    given:
+      - input: ref('fct_participant_year')
+        rows:
+          - {participant_id: Q1, participation_year: 2022, age_at_cutoff: 17, attributed_country_code: CA}
+          - {participant_id: Q1, participation_year: 2023, age_at_cutoff: 18, attributed_country_code: CA}
+          - {participant_id: Q2, participation_year: 2022, age_at_cutoff: 17, attributed_country_code: CA}
+          - {participant_id: Q2, participation_year: 2023, age_at_cutoff: 18, attributed_country_code: CA}
+          - {participant_id: Q3, participation_year: 2023, age_at_cutoff: null, attributed_country_code: CA}
+      - input: ref('fct_registration')
+        rows:
+          - {participant_id: Q1, participation_year: 2022, age_at_cutoff: 16, is_valid_registration: true}
+          - {participant_id: Q1, participation_year: 2023, age_at_cutoff: 18, is_valid_registration: true}
+          - {participant_id: Q2, participation_year: 2022, age_at_cutoff: 17, is_valid_registration: true}
+          - {participant_id: Q2, participation_year: 2023, age_at_cutoff: 18, is_valid_registration: true}
+          - {participant_id: Q2, participation_year: 2023, age_at_cutoff: 10, is_valid_registration: false}
+          - {participant_id: Q2, participation_year: 2023, age_at_cutoff: -5, is_valid_registration: true}
+      - input: ref('dim_participant')
+        rows:
+          - {participant_id: Q1, home_region_code: 'ON'}
+          - {participant_id: Q2, home_region_code: 'ON'}
+          - {participant_id: Q3, home_region_code: 'ON'}
+      - input: ref('age_consent_jurisdiction_map')
+        rows:
+          - {country_code: CA, region_code: '', jurisdiction: CA_OTHER}
+      - input: ref('p5_params')
+        rows:
+          - {param: youth_min_age, value: '4'}
+    expect:
+      rows:
+        - {participant_id: Q1, participation_year: 2022, age_at_cutoff: 16, age_tier: '16_17', jurisdiction: CA_OTHER}
+        - {participant_id: Q1, participation_year: 2023, age_at_cutoff: 17, age_tier: '16_17', jurisdiction: CA_OTHER}
+        - {participant_id: Q2, participation_year: 2022, age_at_cutoff: 17, age_tier: '16_17', jurisdiction: CA_OTHER}
+        - {participant_id: Q2, participation_year: 2023, age_at_cutoff: 18, age_tier: ADULT, jurisdiction: CA_OTHER}
+        - {participant_id: Q3, participation_year: 2023, age_at_cutoff: null, age_tier: UNKNOWN, jurisdiction: CA_OTHER}
+
   # Hand-built participants. P1 ages out of a household that has a fan link: the violation. P2 is the same but its household is adult-only. P3 stays a minor. P4 was never a minor. P5 ages out but has no link.
   - name: age_out_carryover_is_caught
     model: int_age_out_carryover_check

@@ -1,0 +1,25 @@
+unit_tests:
+  - name: dq_trend_flag_agrees_with_the_published_limits
+    description: >
+      One prior season at 90.00 and 50 records this season give a raw lower limit of 77.2721, published as 77.27. O1 scores exactly the published limit: it is ON the limit as shown, so it is
+      not flagged (compared with the unrounded limit it was flagged BELOW, a flag the published numbers contradict). O2 scores 77.26, below the limit as shown: flagged BELOW.
+    model: dq_trend
+    config:
+      tags: [phase5]
+    given:
+      - input: ref('dq_scorecard_source')
+        rows: []
+      - input: ref('dq_scorecard_org')
+        rows:
+          - {org_id: O1, source_system: US_LEAGUE, org_name: One, season_year: 2023, purpose: RETAIN, dimension: PURPOSE_SCORE, score: 90.0, record_count: 20, grade: GOOD}
+          - {org_id: O1, source_system: US_LEAGUE, org_name: One, season_year: 2024, purpose: RETAIN, dimension: PURPOSE_SCORE, score: 77.27, record_count: 50, grade: FAIR}
+          - {org_id: O2, source_system: US_LEAGUE, org_name: Two, season_year: 2023, purpose: RETAIN, dimension: PURPOSE_SCORE, score: 90.0, record_count: 20, grade: GOOD}
+          - {org_id: O2, source_system: US_LEAGUE, org_name: Two, season_year: 2024, purpose: RETAIN, dimension: PURPOSE_SCORE, score: 77.26, record_count: 50, grade: FAIR}
+      - input: ref('privacy_params')
+        rows: []
+    expect:
+      rows:
+        - {entity_id: O1, season_year: 2023, lcl: 0.0, out_of_control: false, direction: null}
+        - {entity_id: O1, season_year: 2024, lcl: 77.27, out_of_control: false, direction: null}
+        - {entity_id: O2, season_year: 2023, lcl: 0.0, out_of_control: false, direction: null}
+        - {entity_id: O2, season_year: 2024, lcl: 77.27, out_of_control: true, direction: BELOW}
