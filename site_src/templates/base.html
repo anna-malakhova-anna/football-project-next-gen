@@ -8,13 +8,14 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@600;700{% if extra_css %}&family=Inter:wght@400;500;600;700{% endif %}&display=swap">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/site.css">
 <link rel="stylesheet" href="assets/viewer.css">
 <script>try{var t=localStorage.getItem("cff-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}</script>
-</head>
-<body>
+{% if extra_css %}<style>{{ extra_css | safe }}</style>
+{% endif %}</head>
+<body{% if body_class %} class="{{ body_class }}"{% endif %}>
 <a class="skip" href="#main">Skip to the content</a>
 <div class="notice" id="notice" role="note">
   <div class="notice-inner">
@@ -39,11 +40,11 @@
     </div>
   </div>
 </header>
-<div class="page-head">
+{% if hero %}{{ hero | safe }}{% else %}<div class="page-head">
   <h1>{{ title }}</h1>
   <p class="page-question">{{ question }}</p>
   {% block season %}{% endblock %}
-</div>
+</div>{% endif %}
 <main id="main">
 {{ body | safe }}
 </main>

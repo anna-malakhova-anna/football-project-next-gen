@@ -562,11 +562,26 @@ pages:
 # The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf): a vertical story, one section per tab component.
 # Headlines are the tab's own sentences; the one plain sentence under each is new draft copy for Anna. {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py).
   global:
-    status: final
+    status: draft    # the banner, numbers and section labels are new (ADR-033); the intro is unchanged
     intro_template: 'We can read {G1.n_readable} of the {G1.n_markets} markets where NFL clubs hold rights, and none shows a change we can tell from noise. Markets with no data get a plan, not a number.'
     fallback_intro: We can read only some of the markets where NFL clubs hold rights. Markets with no data get a plan, not a number.
     demo_text: See which markets we can read, why growth is hard to tell, what a guess would have said, then the plan.
-    demo_slide: G1-1
+    demo_slide: G0-1
+    hero_eyebrow: 'Global outlook · {G0.n_markets} NFL program markets · synthetic data'
+    hero_title: 'Flag football abroad: what we can read'
+    hero_badge: Synthetic data
+    record:
+      - {value: '{G0.n_markets}', label: Markets}
+      - {value: '{G1.n_readable}', label: Markets we can read}
+      - {value: '{G2.mdc_pct}', label: Change needed to tell}
+      - {value: '{G5.n_now}', label: Markets in the first lane}
+    sections:
+      - {card: G0, id: map, tab: Map}
+      - {card: G1, id: markets, tab: Markets}
+      - {card: G2, id: growth, tab: Growth}
+      - {card: G3, id: guess, tab: The guess}
+      - {card: G4, id: quality, tab: Quality}
+      - {card: G5, id: next, tab: Next steps}
 
 summary:
   status: draft

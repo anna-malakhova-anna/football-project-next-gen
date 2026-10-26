@@ -23,6 +23,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -80,15 +81,16 @@ def memo_version() -> str:
     return m.group(1) if m else "unknown"
 
 
-def render_page(slug: str, body: str, built: str, version: str) -> str:
-    """Render one page through the Jinja base template (site_src/templates/base.html)."""
+def render_page(slug: str, body: str, built: str, version: str, hero: str | None = None, body_class: str | None = None, extra_css: str | None = None) -> str:
+    """Render one page through the Jinja base template (site_src/templates/base.html). A page may bring its own full-width banner (`hero`, shown in place
+    of the plain title), a body class and a style block: the Global outlook uses them to take the Data product summary's look (ADR-033)."""
     from jinja2 import Environment, FileSystemLoader, StrictUndefined
     env = Environment(loader=FileSystemLoader(str(SRC / "templates")), autoescape=True, undefined=StrictUndefined)
     title, question = PAGE_HEAD[slug]
     body = site_tables.enhance(body)
     return env.get_template("base.html").render(title=title, question=question, body=body, built=built, version=version, libs=LIBS,
                                                 nav_groups=[{"label": g, "items": items, "current": any(sl == slug for _h, _l, sl in items)} for g, items in NAV_GROUPS], current=slug, appendix=True,
-                                                logo=LOCAL_LOGO.exists(), memo_version=memo_version())
+                                                logo=LOCAL_LOGO.exists(), memo_version=memo_version(), hero=hero, body_class=body_class, extra_css=extra_css)
 
 
 def copy_assets(out: Path) -> None:
@@ -252,6 +254,36 @@ def group_cards(blocks: list[str]) -> str:
     return "".join(out)
 
 
+GLOBAL_CSS_EXTRA = """
+/* Global outlook in the Data product summary's look (ADR-033): each numbered section holds one card; the section title is the card's question,
+   so the card's own question line is kept for screen readers and the page check but not shown twice */
+body.summary .ps-sec .vcard{margin:0}
+body.summary .ps-sec .vcard-question{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+body.summary .ps-tabs{top:0}
+body.summary main{padding-top:0}
+body.summary .lens-toggle,body.summary .demo-path{margin-top:24px}
+"""
+
+
+def global_hero(pg: dict) -> str:
+    """The Global outlook's banner and section bar, built like the Data product summary's: every number is an insight value filled by site_cards.fill."""
+    record = "".join(f"<div class='ps-rec'><div class='n'>{esc(site_cards.fill(r['value'], None, None))}</div><div class='l'>{esc(r['label'])}</div></div>" for r in pg["record"])
+    tabs = "".join(f"<a href='#s-{esc(s['id'])}'{' class=on' if i == 0 else ''}>{esc(s['tab'])}</a>" for i, s in enumerate(pg["sections"]))
+    return (f"<header class='ps-hero'><div class='ps-inner'><p class='ps-eyebrow'>{esc(site_cards.fill(pg['hero_eyebrow'], None, None))}</p><h1>{esc(pg['hero_title'])}</h1>"
+            f"<span class='ps-badge'>{esc(pg['hero_badge'])}</span><p class='ps-pitch'>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</p>"
+            f"<div class='ps-record'>{record}</div></div></header><nav class='ps-tabs' aria-label='Sections'><div class='ps-inner'>{tabs}</div></nav>")
+
+
+def global_sections(blocks: list[str], pg: dict, copy: dict) -> str:
+    """One numbered section per card, in the order of the page copy; the section title is the card's question."""
+    by_card = {re.search(r'data-card="([A-Z][0-9])"', b).group(1): b for b in blocks}
+    out = []
+    for i, s in enumerate(pg["sections"], 1):
+        out.append(f"<section class='ps-sec' id='s-{esc(s['id'])}'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>{i} · {esc(s['tab'])}</p>"
+                   f"<h2>{esc(copy[s['card']]['question'])}</h2></div></header>{by_card[s['card']]}</section>")
+    return "".join(out)
+
+
 def phase5_pages(blocks: dict, data: dict) -> dict:
     out = {}
     pages = site_cards.load_pages()
@@ -263,6 +295,9 @@ def phase5_pages(blocks: dict, data: dict) -> dict:
         default = "privacy" if slug in ("privacy",) else "club"
         title = PAGE_HEAD[slug][0]
         pg = pages[slug]
+        if slug == "global":       # the summary look: the banner carries the intro, the sections carry the cards (ADR-033)
+            out[slug] = (title, lens_scope(global_sections(blocks[slug], pg, site_cards.load_copy()), "club", pg["demo_text"], pg["demo_slide"]))
+            continue
         intro = f"<p class='note intro'><b>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</b></p>"
         if slug == "product":
             intro += f"<p class='note'><a class='summary-link' href='{site_summary.SLUG}.html'>One-page summary &rarr;</a></p>"
@@ -356,8 +391,9 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     copy_assets(out)
     (out / G.GEO_URL).parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(ROOT / G.GEO_SOURCE, out / G.GEO_URL)
+    extras = {"global": dict(hero=global_hero(site_cards.load_pages()["global"]), body_class="summary", extra_css=site_summary.CSS + GLOBAL_CSS_EXTRA)}
     for slug, (_title, body) in build_pages(data, chart_defs, facts).items():
-        (out / f"{slug}.html").write_text(render_page(slug, body, stamp, version), encoding="utf-8")
+        (out / f"{slug}.html").write_text(render_page(slug, body, stamp, version, **extras.get(slug, {})), encoding="utf-8")
     (out / f"{site_summary.SLUG}.html").write_text(site_summary.render(data, version)[0], encoding="utf-8")      # the one-page summary of the Data product tab
     problems = check_brand_boundary(out, local_logo=LOCAL_LOGO.exists())
     if problems:
