@@ -346,3 +346,31 @@ org_quality:
     enabled: false
     share_of_struggling_orgs: 0.5
     final_season_improves_to: TYPICAL
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------
+# Phase 7: Global outlook (22 NFL Global Markets Program markets, flag football only). SYNTHETIC. Rules fixed in ADR-025 BEFORE any Phase 7 truth exists.
+# Isolated scope: Phase 7 truth and proxies use their own random stream (seed + seed_offset), so no Phase 1-6 file or number changes.
+# Every value is a DRAFT for Anna. Truth and proxy parameters are ASSUMPTIONS about how real markets might behave, not facts about them.
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------
+phase7:
+  seed_offset: 700
+  status:
+    measured_min_grade: C                # counting purpose grade at or above this band (dq_grade_bands) = Measured; below = Partial
+  direction:
+    z: 2.0                               # growing / shrinking only beyond z x the pooled noise floor ("twice the usual wobble")
+    min_pooled_pairs: 6                  # fewer like-for-like season pairs than this in the pool: every market reads "not detectable"
+    min_orgs_both_seasons: 3             # fewer organizations reporting in both seasons: "not detectable"
+  scenario:
+    label: "planning scenario, not a measurement"
+  truth:                                 # dark markets only; read only by dbt/models/evaluation/
+    base_participants_median: 400        # latest-season true participants of a dark market: lognormal around this median ...
+    base_participants_sigma: 0.9         # ... with this spread (log scale)
+    level_club_correlation: 0.2          # weak: clubs with rights say little about how many people play
+    growth_mean: 0.05                    # true season-on-season growth: normal(mean, sd) ...
+    growth_sd: 0.12
+    share_against_comparables: 0.4       # of dark markets: true direction set against their region-and-regime comparables (the risk Anna named)
+  proxy:                                 # GMP_PROXY: club fan events, games in market, federation exists (all markets, all seasons)
+    events_per_club_mean: 2.0            # club fan events per club with rights per season (Poisson mean) ...
+    events_truth_weight: 0.2             # ... nudged only weakly by true participation (0 = unrelated, 1 = proportional)
+    games_market_share: 0.25             # chance a market hosts a game in a season
+    federation_exists_share: 0.6         # of dark markets: a national flag federation exists (all seven markets with data have one)
