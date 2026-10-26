@@ -92,11 +92,11 @@ models:
   - name: mart_restatement_log
     description: >
       KPIs whose current value differs from the latest published snapshot, with old value, new value, delta, likely cause
-      (NEW_SOURCE_DATA, IDENTITY_CHANGE, METHODOLOGY_CHANGE, DEFINITION_CHANGED, NEW_KPI, UNKNOWN) and whether ADR-007's threshold requires a restatement.
+      (SOURCE_REGISTRY_CHANGE, NEW_SOURCE_DATA, IDENTITY_CHANGE, METHODOLOGY_CHANGE, DEFINITION_CHANGED, NEW_KPI, UNKNOWN) and whether ADR-007's threshold requires a restatement.
       Empty when nothing published has changed.
     columns:
       - name: likely_cause
         data_tests:
           - accepted_values:
               arguments:
-                values: [NEW_SOURCE_DATA, IDENTITY_CHANGE, METHODOLOGY_CHANGE, DEFINITION_CHANGED, NEW_KPI, UNKNOWN]
+                values: [SOURCE_REGISTRY_CHANGE, NEW_SOURCE_DATA, IDENTITY_CHANGE, METHODOLOGY_CHANGE, DEFINITION_CHANGED, NEW_KPI, UNKNOWN]

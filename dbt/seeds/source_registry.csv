@@ -11,3 +11,4 @@ pop_warner_feed,Contracted,Channel feed (ASSUMED shape): association feed with t
 pal_chapter_csv,Contracted,Channel feed (ASSUMED shape): chapter spreadsheet uploads; contracted and scored but NOT counted
 school_program,Contracted,Channel feed (ASSUMED shape): school roster export; contracted and scored but NOT counted
 parent_revocations,Contracted,Consent-side input (ASSUMED shape): parent revocation requests; never names a child
+GMP_PROXY,Contracted,"Global Markets Program proxy returns (CSV, Phase 7): club fan events, games in market, federation exists; aggregate-only, NOT participation"

@@ -1,0 +1,41 @@
+# Data contract: Global Markets Program proxy returns (Phase 7, ADR-025). Synthetic data.
+# AGGREGATE-ONLY and NOT PARTICIPATION: club fan events, games in the market and whether a national flag federation exists, per program market and
+# season. Never counted as players and never added to participant counts. Used only for market status (proxy-only vs dark) and the proxy direction.
+# Every detail of how clubs would file such a return is an ASSUMPTION; nothing here describes a real NFL or club system.
+source_system: GMP_PROXY
+version: 1.0.0
+effective_date: 2026-10-25
+owner_role: "International growth lead (fictional)"
+partner_type: "club with Global Markets Program rights"
+delivery:
+  format: CSV
+  mechanism: "one file per season (data/raw/gmp_proxy/proxy_returns_<year>.csv), one row per market per filing club"
+  cadence: "annual, after the season"
+grain: "one row per program market x season x filing club (a market filed by two clubs appears twice)"
+raw:
+  table: raw.gmp_proxy
+  row_filter: null
+primary_key: [market, season]
+person_identifier:
+  quality: none
+  field: null
+  note: "there are no individuals in this source: counts of club events and games, and a yes/no on the national federation"
+minors_present: false
+consent_fields: []
+consent_exempt_reason: "club activity counts per market, no individual and no count of people"
+schema:
+  - {column: market, raw: market, type: string, required: true, pii: none, allowed_values: ["Argentina", "Australia", "Austria", "Brazil", "Canada", "China", "Colombia", "France", "Germany", "Ghana", "Greece", "Ireland", "Italy", "Japan", "Mexico", "New Zealand", "Nigeria", "South Korea", "Spain", "Switzerland", "United Arab Emirates", "United Kingdom"]}
+  - {column: season, raw: season, type: integer, required: true, pii: none, pattern: '^\d{4}$'}
+  - {column: club_events, raw: club_events, type: integer, required: false, pii: none, pattern: '^\d+$'}
+  - {column: games_in_market, raw: games_in_market, type: integer, required: true, pii: none, allowed_values: ['0', '1']}
+  - {column: federation_exists, raw: federation_exists, type: string, required: true, pii: none, allowed_values: ['Y', 'N']}
+  - {column: reported_by, raw: reported_by, type: string, required: true, pii: none, pattern: '^Club \d{2}$'}
+  - {column: report_date, raw: report_date, type: date, required: true, pii: none, pattern: '^\d{4}-\d{2}-\d{2}$'}
+quality:
+  - {rule: max_null_rate, column: club_events, threshold: 0.02}
+  - {rule: max_nonmatching_rate, column: season, pattern: '^\d{4}$', threshold: 0.0}
+  - {rule: max_nonmatching_rate, column: report_date, pattern: '^\d{4}-\d{2}-\d{2}$', threshold: 0.0}
+  - {rule: max_invalid_rate, column: market, allowed_values: ["Argentina", "Australia", "Austria", "Brazil", "Canada", "China", "Colombia", "France", "Germany", "Ghana", "Greece", "Ireland", "Italy", "Japan", "Mexico", "New Zealand", "Nigeria", "South Korea", "Spain", "Switzerland", "United Arab Emirates", "United Kingdom"], threshold: 0.0}
+  - {rule: max_invalid_rate, column: games_in_market, allowed_values: ['0', '1'], threshold: 0.0}
+  - {rule: max_invalid_rate, column: federation_exists, allowed_values: ['Y', 'N'], threshold: 0.0}
+  - {rule: max_duplicate_rate, key: [market, season], threshold: 0.01}

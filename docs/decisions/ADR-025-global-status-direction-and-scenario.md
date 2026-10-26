@@ -56,6 +56,13 @@ Stated now, so the evaluation's conditions are on record before its result:
 - **Proxy agreement:** how often proxy direction matches true direction.
 - **Reported as they come out.** There is no pass threshold, because a good result is not the goal: the result is the evidence for or against publishing a number. A dbt test only checks that the summary exists and that its counts add up.
 
+## Addendum, 2026-10-25 (before any truth was generated)
+Approved by Anna when step 3 began. These values were set **after looking at the existing person registry** (the seven markets with data), but **before any Phase 7 truth or result existed**:
+- **Dark-market size:** the approved median of 400 was well above the seven markets with data (156 to 330 players in 2025, apart from Canada). With that median, the scenario would undershoot mostly because of the size choice itself. The median is now **read from the data**: the median latest-season true size of the six `INTL_FED` markets (`base_participants_median: FROM_DATA`).
+- **True direction:** a true change within ±3% is flat (`truth.flat_band`).
+- **Proxy reporting:** every market has clubs with rights, so without a reporting rule almost no market would be dark. Clubs file a proxy return for 60% of dark markets (`proxy.reporting_share_dark`); the rest file none. Italy is forced dark for the walkthrough (`proxy.force_dark`, spec D8).
+- **Comparables in the generator:** the generator does not know the dbt grades, so "against comparables" is set against the true direction of the **markets with data**, using the same region-and-regime fallback as section 3. If the build makes some of those Partial, the scenario's comparables can differ from the generator's. That difference is reported, not corrected.
+
 ## Consequences
 - Status, direction and scenario are separate models with separate share models (step 4). The scenario model reads no evaluation and no truth, and `check_eval_isolation` enforces this.
 - If Anna changes a rule after seeing the evaluation, that is a new ADR that names the evaluation it saw, not an edit to this one.

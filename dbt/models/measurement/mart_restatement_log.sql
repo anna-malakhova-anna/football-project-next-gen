@@ -3,6 +3,7 @@
 --   DEFINITION_CHANGED  the methodology version differs AND the catalog says this KPI's definition changed in a version after the published one
 --   METHODOLOGY_CHANGE  the methodology version differs (the definition did not change; the value moved under the new version)
 --   NEW_KPI             the KPI did not exist in the published snapshot of that year (an addition, never a restatement)
+--   SOURCE_REGISTRY_CHANGE  a KPI counted from the source registry alone (sources known, sources onboarded) moved: a source was added or changed status
 --   NEW_SOURCE_DATA     the raw row counts of the sources differ (new or late files)
 --   IDENTITY_CHANGE     the registration -> participant assignment differs (new links, a steward decision, a new run)
 --   UNKNOWN             none of the above explains it
@@ -50,6 +51,7 @@ changed_values as (
                  and {{ version_num('m.definition_changed_in') }} > {{ version_num('l.methodology_version') }}
                  and {{ version_num('m.definition_changed_in') }} <= {{ version_num('c.methodology_version') }} then 'DEFINITION_CHANGED'
             when l.methodology_version <> c.methodology_version then 'METHODOLOGY_CHANGE'
+            when c.kpi_id in ('sources_known', 'sources_onboarded') then 'SOURCE_REGISTRY_CHANGE'   -- counted from source_registry and nothing else
             when (l.raw_rows_us, l.raw_rows_ca, l.raw_rows_intl) <> (n.raw_rows_us, n.raw_rows_ca, n.raw_rows_intl) then 'NEW_SOURCE_DATA'
             when l.identity_fingerprint <> n.identity_fingerprint then 'IDENTITY_CHANGE'
             else 'UNKNOWN'

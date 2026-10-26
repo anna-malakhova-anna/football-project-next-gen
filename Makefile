@@ -1,4 +1,4 @@
-.PHONY: acquisition all all-phases audience build clean consent contracts copy-review docs dq eval eval-measure fan fan-status fan-value fix-list-demo funnel generate id-stability idr isolation linkage load load-eval markets measure minimize nuance one-pager p5-demo p5-feeds p5-minimization p5-retention p5-score phase2 phase3 phase4 phase5 phase5-experiments product public publish report retention retention-vs-deletion setup shares site site-check site-check-ci steward-demo steward-reset test test-phase2 test-phase3 test-phase4
+.PHONY: p7-data acquisition all all-phases audience build clean consent contracts copy-review docs dq eval eval-measure fan fan-status fan-value fix-list-demo funnel generate id-stability idr isolation linkage load load-eval markets measure minimize nuance one-pager p5-demo p5-feeds p5-minimization p5-retention p5-score phase2 phase3 phase4 phase5 phase5-experiments product public publish report retention retention-vs-deletion setup shares site site-check site-check-ci steward-demo steward-reset test test-phase2 test-phase3 test-phase4
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -79,6 +79,11 @@ p5-feeds:
 	$(PY) -m generator.phase5.feeds
 	$(PY) -m generator.phase5.export_seed
 	$(PY) -m loader.load_phase5
+
+# Phase 7: the dark-market answer key (evaluation only) and the GMP_PROXY club returns (ADR-025). Reads the existing truth; changes no other file.
+p7-data:
+	$(PY) -m generator.phase7.gmp
+	$(PY) -m loader.load_phase7
 
 # Phase 5, step 2: staging, resolution, the rules-as-data scorecard, fix list and their tests (needs `make p5-feeds`, `make load-eval`, and the Phase 1 to 4 build for reference seeds)
 p5-score: dbt/profiles.yml
@@ -282,6 +287,8 @@ all-phases: dbt/profiles.yml
 	$(PY) -m generator.phase5.feeds
 	$(PY) -m generator.phase5.export_seed
 	$(PY) -m loader.load_phase5
+	$(PY) -m generator.phase7.gmp
+	$(PY) -m loader.load_phase7
 	$(PY) -m scripts.validate_contracts
 	$(DBT) seed --profiles-dir .
 	$(DBT) run --profiles-dir .
