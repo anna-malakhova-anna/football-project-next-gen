@@ -33,7 +33,7 @@ def test_health_covers_every_product_with_quality_privacy_and_trust():
     areas = {}
     for p, a in rows:
         areas.setdefault(p, set()).add(a)
-    assert set(areas) == {"DP1", "DP2", "DP3", "DP4", "DP5"}
+    assert set(areas) == set(vp.load())                                                   # every product spec, DP6 included
     assert all({"quality", "privacy", "pipeline", "cost"} <= a for a in areas.values())      # build time is still measured locally
     assert all("trust" in areas[p] for p in ("DP2", "DP3", "DP4", "DP5"))
 

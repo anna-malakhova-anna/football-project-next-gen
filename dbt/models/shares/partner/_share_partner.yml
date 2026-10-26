@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: share_partner__federation_report_card
+    description: >
+      Phase 7 (DP6, spec section 7): each federation's report card for the latest season: counting grade and its change, clubs that filed, how many more
+      would have to file for the market to read MEASURED, and the top three fixes (from each club's ranked fix list, a fix that moves the counting grade
+      first). One federation sees only its own rows (`federation` is the row scope). No person, record id or club name; small cells hidden.
+    columns:
+      - {name: federation, meta: {pii: quasi}, data_tests: [not_null]}
+      - {name: federation_name, meta: {pii: quasi}}
+      - {name: season_year, meta: {pii: none}}
+      - {name: status, meta: {pii: none}}
+      - {name: counting_grade, meta: {pii: none}}
+      - {name: previous_counting_grade, meta: {pii: none}}
+      - {name: counting_score, meta: {pii: none}}
+      - {name: counting_score_change, meta: {pii: none}}
+      - {name: limiting_dimension, meta: {pii: none}}
+      - {name: clubs_known, meta: {pii: none}}
+      - {name: clubs_filed, meta: {pii: none}}
+      - {name: clubs_to_file_for_measured, meta: {pii: none}}
+      - {name: fix_rank, meta: {pii: none}}
+      - {name: fix_guidance, meta: {pii: none}}
+      - {name: fix_dimension, meta: {pii: none}}
+      - {name: moves_counting_grade, meta: {pii: none}}
+      - {name: clubs_affected, meta: {pii: none}}
+      - {name: records_affected, meta: {pii: none}}
+      - name: suppressed
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NONE, PRIMARY]}}

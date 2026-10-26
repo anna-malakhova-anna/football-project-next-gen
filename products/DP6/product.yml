@@ -19,6 +19,8 @@ consumers:
   use_case: See which program markets can be read, which cannot, and what it would take to read them
 - role: International growth lead
   use_case: Decide which markets to onboard next
+- role: Federation data lead (partner)
+  use_case: See its own report card and which fixes move its market's status
 owner_role: Data Product Manager, NFL FLAG Insights (fictional)
 steward_role: Data steward, federation returns and club proxy returns (fictional)
 support_contact: 'issues: <repo>/issues (label: dp6)'
@@ -33,12 +35,18 @@ output_ports:
   audience: exec
   grain: program market with no participation source (latest season)
   refresh: per season close
+- name: federation_report_card
+  model: share_partner__federation_report_card
+  audience: partner
+  grain: federation x top-three fix (latest season)
+  refresh: per season close
 input_products:
 - DP3
 - DP4
 sources_lineage:
   share_exec__gmp_markets: dbt/models/shares/exec/share_exec__gmp_markets.sql
   share_exec__gmp_scenario: dbt/models/shares/exec/share_exec__gmp_scenario.sql
+  share_partner__federation_report_card: dbt/models/shares/partner/share_partner__federation_report_card.sql
 quality_indicator:
   from_model: dq_scorecard_source
   purpose: COUNT
@@ -95,4 +103,5 @@ internal_models:
 gate: DP3's participation ports and DP4's country scorecard; the GMP_PROXY contract
 share_models:
 - share_exec__gmp_*
+- share_partner__federation_report_card
 aggregate_ports: []

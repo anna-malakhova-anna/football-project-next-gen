@@ -119,6 +119,9 @@ Methodology version: **1.0** at the time of the first metric; *Since* is the met
 | `gate_countries_at_grade_b` | Release gate N: countries reporting at counting grade B | Countries whose counting score is grade B or better. A country's score is the weaker of the share of its known organizations that sent a file and its weakest reporting organization. Approximate: no country scorecard exists. Draft. | gate (current season) | `NON_ADDITIVE` | count | Program Insights Lead | 2.0 |
 | `gate_known_consent_provenance_pct` | Release gate Z_ANALYTICS: known consent provenance | Share of households in the latest year with a consent event whose what, when and which purpose are all known. Analytics-only gate for the fans-created view. Draft. | gate (current season) | `NON_ADDITIVE` | percent | Program Insights Lead | 2.0 |
 | `gate_known_optin_provenance_pct` | Release gate Z_ACTIVATION: known provenance on marketing opt-ins | Share of households with a marketing opt-in on record whose opt-in has fully known provenance. Definition chosen by Claude Code, to confirm. Gate for contact by clubs. Draft. | gate (current season) | `NON_ADDITIVE` | percent | Program Insights Lead | 2.0 |
+| `counting_score` | Counting score | The market's COUNT purpose score (0 to 100): dq_scorecard_source's method grouped by country, the minimum of its dimension scores (ADR-014, ADR-025). | program market x season | `NON_ADDITIVE` | rate | Flag Football Data Lead | 2.0 |
+| `clubs_known` | Clubs known | Organizations in the market's participation source known that season (the registry), whether or not they filed. | program market x season | `ADDITIVE` | count | Flag Football Data Lead | 2.0 |
+| `clubs_filed` | Clubs that filed | Known organizations that sent a file that season; clubs_filed / clubs_known is the market's timeliness. | program market x season | `ADDITIVE` | count | Flag Football Data Lead | 2.0 |
 
 ## Supporting metrics
 

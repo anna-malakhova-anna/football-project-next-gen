@@ -1,0 +1,50 @@
+# TEMPLATE contract: the minimum return a program market's federation can send (Phase 7, spec section 7). Synthetic project.
+# AGGREGATE-ONLY: counts of teams and players by region, age band and sex. No individual, no contact details, no consent field: nothing in it is a
+# minor's personal data, which is why it is the first thing to ask a market with no data for (ADR-025; regime questions stay with the privacy lead).
+# Copy to contracts/<SOURCE_SYSTEM>.yml (renaming source_system) when a federation agrees to send it; the checks below are the ones the federation runs BEFORE sending
+# (docs/playbook/templates/gmp_minimum_return_example.csv passes every one; tests/test_minimum_return_template.py proves the checks bite).
+# The minimum roster of 5 assumes 5-on-5 flag football: an ASSUMPTION to confirm with each federation.
+source_system: GMP_MINIMUM_RETURN
+version: 1.0.0
+effective_date: 2026-10-26
+owner_role: "International growth lead (fictional)"
+partner_type: "national flag football federation"
+delivery:
+  format: CSV
+  mechanism: "one file per season, one row per region x age band"
+  cadence: "annual, after the season"
+grain: "one row per season x region x age band"
+raw:
+  table: raw.gmp_minimum_return
+  row_filter: null
+primary_key: [season, region, age_band]
+person_identifier:
+  quality: none
+  field: null
+  note: "there are no individuals in this return: counts only"
+minors_present: true     # as counts of children only
+consent_fields: []
+consent_exempt_reason: "aggregate counts by region, age band and sex, no individual; small cells are suppressed wherever shared"
+schema:
+  - {column: season, raw: season, type: integer, required: true, pii: none, pattern: '^\d{4}$'}
+  - {column: region, raw: region, type: string, required: true, pii: quasi}
+  - {column: age_band, raw: age_band, type: string, required: true, pii: none, allowed_values: [U8, U10, U12, U14, U17, ADULT]}
+  - {column: teams, raw: teams, type: integer, required: true, pii: none, pattern: '^\d+$'}
+  - {column: girls, raw: girls, type: integer, required: true, pii: none, pattern: '^\d+$'}
+  - {column: boys, raw: boys, type: integer, required: true, pii: none, pattern: '^\d+$'}
+  - {column: sex_not_recorded, raw: sex_not_recorded, type: integer, required: true, pii: none, pattern: '^\d+$'}
+  - {column: players, raw: players, type: integer, required: true, pii: none, pattern: '^\d+$'}
+quality:
+  - {rule: max_null_rate, column: players, threshold: 0.0}
+  - {rule: max_null_rate, column: region, threshold: 0.0}
+  - {rule: max_nonmatching_rate, column: season, pattern: '^\d{4}$', threshold: 0.0}
+  - {rule: max_nonmatching_rate, column: players, pattern: '^\d+$', threshold: 0.0}
+  - {rule: max_invalid_rate, column: age_band, allowed_values: [U8, U10, U12, U14, U17, ADULT], threshold: 0.0}
+  - {rule: max_duplicate_rate, key: [season, region, age_band], threshold: 0.0}
+  # the arithmetic the federation checks before sending
+  - {rule: max_expression_rate, name: players_equals_girls_boys_and_not_recorded, threshold: 0.0,
+     expression: "try_cast(girls as integer) + try_cast(boys as integer) + try_cast(sex_not_recorded as integer) <> try_cast(players as integer)"}
+  - {rule: max_expression_rate, name: every_team_has_a_minimum_roster, threshold: 0.0,
+     expression: "try_cast(players as integer) < 5 * try_cast(teams as integer)"}
+  - {rule: max_expression_rate, name: players_is_not_a_round_estimate, threshold: 0.0,
+     expression: "try_cast(players as integer) >= 50 and try_cast(players as integer) % 50 = 0"}

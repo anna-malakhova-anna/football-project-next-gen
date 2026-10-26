@@ -132,6 +132,9 @@ models:
         +schema: share_privacy
       media:
         +schema: share_media
+      partner:
+        # Phase 7: data partners (federations) see their own report card only; aggregates, no person, no club name
+        +schema: share_partner
 
 seeds:
   counting_flag_football:

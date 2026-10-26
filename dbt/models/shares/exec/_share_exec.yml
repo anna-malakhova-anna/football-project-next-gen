@@ -424,3 +424,17 @@ models:
         data_tests:
           - accepted_values: {arguments: {values: [GROWING, FLAT, SHRINKING, MIXED]}}
       - {name: scenario_label, meta: {pii: none}, data_tests: [not_null]}
+
+  - name: share_exec__gmp_quality_trend
+    description: >
+      Phase 7 (DP6, spec section 7): counting score and grade of each program market with a participation source, per season, with what limits it and
+      how many of its clubs filed. Clubs appear only as counts; no count of people.
+    columns:
+      - {name: country_code, meta: {pii: quasi}, data_tests: [not_null]}
+      - {name: country_name, meta: {pii: quasi}}
+      - {name: season_year, meta: {pii: none}}
+      - {name: counting_score, meta: {pii: none}}
+      - {name: counting_grade, meta: {pii: none}}
+      - {name: limiting_dimension, meta: {pii: none}}
+      - {name: clubs_known, meta: {pii: none}}
+      - {name: clubs_filed, meta: {pii: none}}

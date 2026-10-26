@@ -45,3 +45,12 @@ models:
         data_tests: [unique, not_null]
       - name: scenario_label
         data_tests: [not_null]
+
+  - name: mart_gmp_federation_report
+    description: >
+      The federation report card (spec section 7), one row per federation and top-three fix: counting grade and change, clubs known and filed, clubs that
+      would have to file for MEASURED (only when timeliness alone holds the grade back), and fixes from DP1's dq_fix_list summed over the federation's
+      clubs, a fix that moves the counting grade first, then by records affected (no household-linked impact: ADR-009).
+    columns:
+      - name: country_code
+        data_tests: [not_null]

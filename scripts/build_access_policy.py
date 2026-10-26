@@ -18,6 +18,7 @@ AUDIENCES = [  # audience, purpose, grain, identifiers, rows
     ("marketing", "Outreach", "Contact list (one row per email)", "Contact email; first name only for a sole adult player", "Only addresses where EVERY participant sharing it has marketing consent TRUE (NULL is not consent); never a minor's own details; clusters with an open integrity issue excluded"),
     ("club", "Club market view (Phase 5)", "Club market x year aggregates", "None: no participant, household, child or record key, no organization id", "Aggregates only; primary and secondary small-cell suppression; derived columns hide with the count they come from; reads only approved aggregate marts"),
     ("privacy", "Privacy and compliance review (Phase 5)", "Aggregates and configuration", "None", "Aggregates only: consent provenance, purpose coverage, minimization risk, retention versus deletion, share-policy results, analyst-share k-anonymity"),
+    ("partner", "A data partner's own report card (Phase 7)", "Federation x fix (latest season)", "None: no person, no record id, no club name; the federation is the row scope", "Only the federation's own rows; records affected below the small-cell size hidden"),
     ("media", "Photo and video clearance", "Roster", "Name, organization, season", "Only participants whose most recent captured photo consent is TRUE; the list means cleared, anyone absent is NOT cleared, including NULL; clusters with an open integrity issue excluded"),
 ]
 ENFORCED = [
@@ -28,6 +29,7 @@ ENFORCED = [
     ("Only consented contacts are shared", "`share_marketing_only_consented_contacts` re-derives eligibility from `dim_participant`"),
     ("Only cleared participants are on the roster", "`share_media_only_cleared_participants` re-derives the roster from `dim_participant` and the facts"),
     ("No direct or quasi-identifying column in the club and privacy shares; the club share reads only approved aggregate marts; every metric column is in the catalog", "`scripts/check_share_policy.py` (QUASI_IN_CLUB_PRIVACY, CLUB_LINEAGE, METRIC_NOT_IN_CATALOG); `share_club_obeys_suppression_rules` re-derives the suppression independently"),
+    ("A partner sees only its own federation, with no small cell", "`share_partner_rows_are_scoped_to_one_federation`; `scripts/check_share_policy.py` (no direct identifier in `share_partner`)"),
     ("The analyst share has no direct identifiers, names or DOB", "`share_analyst_has_no_direct_identifiers`; `share_analyst_k_anonymity_warning` warns about re-identification risk"),
 ]
 

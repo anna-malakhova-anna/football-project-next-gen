@@ -215,7 +215,7 @@ seeds:
     columns:
       - name: audience
         data_tests:
-          - accepted_values: {arguments: {values: [exec, analyst, ops, marketing, media, club, privacy]}}
+          - accepted_values: {arguments: {values: [exec, analyst, ops, marketing, media, club, privacy, partner]}}
       - name: allowed
         data_tests:
           - accepted_values: {arguments: {values: ['Y', 'N']}}

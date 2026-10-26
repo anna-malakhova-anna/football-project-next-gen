@@ -36,7 +36,7 @@ POLICY = ROOT / "dbt" / "seeds" / "audience_column_policy.csv"
 MANIFEST = ROOT / "dbt" / "target" / "manifest.json"
 COMPILED = ROOT / "dbt" / "target" / "compiled" / "counting_flag_football" / "models" / "shares"
 SOURCE = ROOT / "dbt" / "models" / "shares"
-NO_DIRECT = {"share_exec", "share_analyst"}
+NO_DIRECT = {"share_exec", "share_analyst", "share_partner"}
 NO_IDENTIFYING = {"share_club", "share_privacy"}                  # neither direct nor quasi identifiers
 CATALOG = ROOT / "dbt" / "seeds" / "metric_catalog.csv"
 # The only models a share_club model may read directly: aggregate marts built for it (spec section 11). Row-level or linkage models are never on this list.
