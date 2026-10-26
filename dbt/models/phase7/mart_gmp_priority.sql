@@ -2,7 +2,8 @@
 -- 5 is riskiest), priority = value + feasibility + readiness - privacy risk, as in product_prioritization.
 --   suggested_*  the DRAFT score from the rubric (gmp_priority_rubric): value from clubs with rights (+1 if new to the program), feasibility from the
 --                market's status (and whether a national federation exists), readiness from the counting grade, privacy risk from what the market
---                would send (record-level today, or the aggregate minimum return) and its assumed regime. Nothing here is typed per market.
+--                sends or would send (record-level INTL_FED / CA_CLUB rows, or the aggregate minimum return) and its assumed regime. Nothing here is typed
+--                per market.
 --   final scores Anna's score where she has set one (gmp_market_priority_overrides), else the draft; score_status says which.
 with status as (select * from {{ ref('mart_gmp_market_status') }}),
 
@@ -22,8 +23,8 @@ keys as (
     select s.country_code, s.clubs_with_rights, s.status_on_page = 'NEW' as is_new, s.status, s.counting_grade, s.participation_source, s.output_port, s.legal_regime_id,
            case when s.status = 'PROXY_ONLY' and coalesce(f.federation_exists, false) then 'PROXY_ONLY_WITH_FEDERATION' else s.status end as feasibility_key,
            coalesce(s.counting_grade, 'NONE') as readiness_key,
-           case when s.participation_source is not null and s.output_port = 'global_eu_uk' then 'RECORD_LEVEL_EU_UK_CH'
-                when s.participation_source is not null then 'RECORD_LEVEL_OTHER'
+           case when s.participation_source in ('INTL_FED', 'CA_CLUB') and s.output_port = 'global_eu_uk' then 'RECORD_LEVEL_EU_UK_CH'   -- player-level sources
+                when s.participation_source in ('INTL_FED', 'CA_CLUB') then 'RECORD_LEVEL_OTHER'
                 when s.legal_regime_id = 'CN_PIPL' then 'REGIME_CN_PIPL'
                 else 'AGGREGATE_ONLY' end as privacy_key
     from status s left join federation f using (country_code)

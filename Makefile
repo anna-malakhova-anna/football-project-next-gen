@@ -1,4 +1,4 @@
-.PHONY: p7-data acquisition all all-phases audience build clean consent contracts copy-review docs dq eval eval-measure fan fan-status fan-value fix-list-demo funnel generate id-stability idr isolation linkage load load-eval markets measure minimize nuance one-pager p5-demo p5-feeds p5-minimization p5-retention p5-score phase2 phase3 phase4 phase5 phase5-experiments product public publish report retention retention-vs-deletion setup shares site site-check site-check-ci steward-demo steward-reset test test-phase2 test-phase3 test-phase4
+.PHONY: p7-data p7-italy-experiment acquisition all all-phases audience build clean consent contracts copy-review docs dq eval eval-measure fan fan-status fan-value fix-list-demo funnel generate id-stability idr isolation linkage load load-eval markets measure minimize nuance one-pager p5-demo p5-feeds p5-minimization p5-retention p5-score phase2 phase3 phase4 phase5 phase5-experiments product public publish report retention retention-vs-deletion setup shares site site-check site-check-ci steward-demo steward-reset test test-phase2 test-phase3 test-phase4
 
 PY  := uv run python
 DBT := cd dbt && uv run dbt
@@ -81,6 +81,10 @@ p5-feeds:
 	$(PY) -m loader.load_phase5
 
 # Phase 7: the dark-market answer key (evaluation only) and the GMP_PROXY club returns (ADR-025). Reads the existing truth; changes no other file.
+# Phase 7 step 8: Italy's first minimum return on a COPY of the warehouse (ADR-030); the published warehouse is never written
+p7-italy-experiment: dbt/profiles.yml
+	$(PY) -m scripts.p7_italy_experiment
+
 p7-data:
 	$(PY) -m generator.phase7.gmp
 	$(PY) -m generator.phase7.export_seed

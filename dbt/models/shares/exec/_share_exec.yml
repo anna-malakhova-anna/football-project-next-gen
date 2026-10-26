@@ -627,3 +627,21 @@ models:
           - accepted_values: {arguments: {values: [DRAFT, SET_BY_ANNA]}}
       - {name: plan_status, meta: {pii: none}}
       - {name: rationale, meta: {pii: none}}
+
+  - name: share_exec__gmp_walkthrough
+    description: >
+      Phase 7 (DP6 port global_walkthroughs, spec section 10): the Canada and Italy onboarding walkthroughs, one row per playbook stage, with state
+      (DONE, EXPERIMENT on a copy of the warehouse, NOT_STARTED), artifact and what happened, plus each market's live status and counting grade.
+    columns:
+      - {name: country_code, meta: {pii: quasi}, data_tests: [not_null]}
+      - {name: country_name, meta: {pii: quasi}}
+      - {name: stage_order, meta: {pii: none}}
+      - {name: stage, meta: {pii: none}}
+      - name: state
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [DONE, EXPERIMENT, NOT_STARTED]}}
+      - {name: artifact, meta: {pii: none}}
+      - {name: what_happened, meta: {pii: none}}
+      - {name: market_status_now, meta: {pii: none}}
+      - {name: counting_grade_now, meta: {pii: none}}

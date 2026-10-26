@@ -78,6 +78,11 @@ output_ports:
   audience: exec
   grain: "program market (latest season), every regime: a planning view"
   refresh: per season close
+- name: global_walkthroughs
+  model: share_exec__gmp_walkthrough
+  audience: exec
+  grain: market x playbook stage (Canada and Italy)
+  refresh: when a stage changes
 - name: federation_report_card
   model: share_partner__federation_report_card
   audience: partner
@@ -96,6 +101,7 @@ sources_lineage:
   share_exec__gmp_quality_trend_other: dbt/models/shares/exec/share_exec__gmp_quality_trend_other.sql
   share_exec__gmp_scenario_other: dbt/models/shares/exec/share_exec__gmp_scenario_other.sql
   share_exec__gmp_board: dbt/models/shares/exec/share_exec__gmp_board.sql
+  share_exec__gmp_walkthrough: dbt/models/shares/exec/share_exec__gmp_walkthrough.sql
   share_partner__federation_report_card: dbt/models/shares/partner/share_partner__federation_report_card.sql
 quality_indicator:
   from_model: dq_scorecard_source
@@ -150,6 +156,7 @@ health_metrics:
 # (dbt/macros/gmp_shares.sql) writes every regime's model; gmp_regime_ports_partition_the_markets checks nothing is lost or doubled.
 internal_models:
 - stg_gmp_proxy
+- stg_gmp_minimum_return
 - mart_gmp_*
 gate: DP3's participation ports and DP4's country scorecard; the GMP_PROXY contract
 share_models:

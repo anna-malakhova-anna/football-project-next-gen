@@ -350,6 +350,20 @@ policies (design only; not implemented).
 | `scenario_direction` | DERIVED |
 | `scenario_label` | CAVEAT_LABEL |
 
+**`share_exec__gmp_walkthrough`**
+
+| Column | Treatment |
+|---|---|
+| `country_code` | DIMENSION |
+| `country_name` | DIMENSION |
+| `stage_order` | DIMENSION |
+| `stage` | DIMENSION |
+| `state` | DIMENSION |
+| `artifact` | DIMENSION |
+| `what_happened` | CAVEAT_LABEL |
+| `market_status_now` | DERIVED |
+| `counting_grade_now` | DERIVED |
+
 **`share_exec__household_link_rate`**
 
 | Column | Treatment |

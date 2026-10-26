@@ -17,7 +17,7 @@ from scripts.common import ROOT
 MANIFEST = ROOT / "dbt" / "target" / "manifest.json"
 
 # models built from aggregate-only sources
-AGGREGATE_ONLY = {"stg_school_headcounts", "fct_reported_headcount", "stg_gmp_proxy"}
+AGGREGATE_ONLY = {"stg_school_headcounts", "fct_reported_headcount", "stg_gmp_proxy", "stg_gmp_minimum_return"}
 # models that may depend on both: they combine as bounded ranges and are reviewed as such
 REPORTING = {"mart_reported_headcount", "mart_kpi_scorecard", "mart_restatement_log", "eval_headcount_overlap"}
 # directories whose models count or identify people

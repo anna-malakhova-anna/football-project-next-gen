@@ -51,3 +51,8 @@ sources:
           Global Markets Program proxy returns (CSV, GMP_PROXY, Phase 7): one row per program market per season per filing club: club fan events,
           games in the market, whether a national flag federation exists. NO individuals and NOT participation (ADR-025). Every column is VARCHAR;
           `_row_number` is the 1-based data row index. Loaded by loader/load_phase7.py.
+      - name: gmp_minimum_return
+        description: >
+          Minimum returns from program-market federations (CSV, Phase 7, contracts/templates/GMP_MINIMUM_RETURN.yml): counts of teams and players by
+          region, age band and sex, one file per market and season (minimum_return_<country>_<season>.csv). NO individuals. EMPTY in the published
+          build (no federation has sent one); the Italy experiment lands one on a copy of the warehouse (ADR-030). Every column is VARCHAR.

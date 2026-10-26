@@ -70,3 +70,8 @@ models:
     columns:
       - name: country_code
         data_tests: [unique, not_null]
+
+  - name: stg_gmp_minimum_return
+    description: >
+      Minimum returns (ADR-030): typed rows with the market from the file name and the template's checks as flags (fails_total, fails_roster,
+      fails_age_band). Aggregate-only. Empty in the published build; the Italy experiment fills it on a copy of the warehouse.

@@ -1,0 +1,24 @@
+measure,before_published,after_on_copy
+status,DARK,PARTIAL
+status_reason,no participation source and no proxy signal,minimum return received for the latest season (counts only): no counting grade or like-for-like direction yet
+participation_source,,GMP_MINIMUM_RETURN
+participation_direction,NOT_MEASURED,NOT_DETECTABLE
+proxy_direction,NO_PROXY,NO_PROXY
+scenario_low,29,
+scenario_high,79,
+scenario_direction,FLAT,
+scenario_comparables,AT|DE|ES,
+board_lane,LATER,LATER
+board_gate,PROXY_RETURN,PROXY_RETURN
+board_gate_status,NOT_YET,NOT_YET
+feasibility_today,1,4
+data_readiness,1,1
+priority_score,3,6
+priority_rank,16,7
+markets_measured,5,5
+markets_partial,2,3
+markets_proxy_only,9,9
+markets_dark,6,5
+players_reported_in_return,,396
+true_participants_answer_key,396,396
+template_checks_passed,,10 of 10

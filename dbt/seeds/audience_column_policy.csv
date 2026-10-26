@@ -633,3 +633,12 @@ exec,share_exec__gmp_board,priority_rank,Y,DERIVED
 exec,share_exec__gmp_board,score_status,Y,CAVEAT_LABEL
 exec,share_exec__gmp_board,plan_status,Y,CAVEAT_LABEL
 exec,share_exec__gmp_board,rationale,Y,CAVEAT_LABEL
+exec,share_exec__gmp_walkthrough,country_code,Y,DIMENSION
+exec,share_exec__gmp_walkthrough,country_name,Y,DIMENSION
+exec,share_exec__gmp_walkthrough,stage_order,Y,DIMENSION
+exec,share_exec__gmp_walkthrough,stage,Y,DIMENSION
+exec,share_exec__gmp_walkthrough,state,Y,DIMENSION
+exec,share_exec__gmp_walkthrough,artifact,Y,DIMENSION
+exec,share_exec__gmp_walkthrough,what_happened,Y,CAVEAT_LABEL
+exec,share_exec__gmp_walkthrough,market_status_now,Y,DERIVED
+exec,share_exec__gmp_walkthrough,counting_grade_now,Y,DERIVED

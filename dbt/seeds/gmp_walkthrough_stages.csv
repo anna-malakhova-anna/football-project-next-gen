@@ -1,0 +1,13 @@
+country_code,stage_order,stage,state,artifact,what_happened
+CA,1,Discovery,DONE,docs/source_inventory.md,"The Canadian club platform was named as the partner, with an owner, a purpose and its consent fields identified. Minors are present."
+CA,2,Profiling,DONE,dbt/models/quality/dq_source_profile.sql,"The raw API dump was landed as-is and profiled. Issues found: repeated records across pages, and a new member id when a player switches clubs."
+CA,3,Contracted,DONE,contracts/CA_CLUB.yml,"The contract fixes the schema, keys, personal-data classes, consent fields and quality thresholds."
+CA,4,Staged,DONE,dbt/models/staging/stg_ca_registrations.sql,"Staging dedupes the repeated pages and types every field; contract validation passes or each warning is accepted in writing."
+CA,5,Modelled,DONE,dbt/models/measurement/mart_participation_by_org.sql,"Records are resolved into people and counted by club, so Canada can be read like for like."
+CA,6,Production,DONE,dbt/models/phase7/mart_gmp_market_status.sql,"Canada has a status, a counting grade and a direction on the Global outlook tab."
+IT,1,Discovery,DONE,docs/playbook/onboarding_log_IT_minimum_return.md,"Decided before any data: Italy is asked for the minimum return (counts only), never for player-level records. Regime questions go to the privacy lead."
+IT,2,Profiling,EXPERIMENT,docs/reports/p7_italy_experiment.md,"On a copy of the warehouse: a synthetic first return for the latest season is landed as-is."
+IT,3,Contracted,DONE,contracts/templates/GMP_MINIMUM_RETURN.yml,"The template contract is ready to copy for Italy's federation, with the checks it runs before sending."
+IT,4,Staged,EXPERIMENT,dbt/models/phase7/stg_gmp_minimum_return.sql,"On the copy: the return passes every template check and is typed in staging."
+IT,5,Modelled,EXPERIMENT,dbt/models/phase7/mart_gmp_market_status.sql,"On the copy: Italy moves from dark to partial, and its planning scenario is retired."
+IT,6,Production,NOT_STARTED,,"Waits for a real return from Italy's federation. The published tab keeps Italy dark."
