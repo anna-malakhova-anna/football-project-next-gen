@@ -213,3 +213,8 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 
 .vcard[data-card="D10"] { grid-column: 1 / -1; }
 .vrhead { display: flex; gap: 6px; align-items: flex-start; justify-content: space-between; } .vrhead .vrchip { white-space: nowrap; flex: none; }
+
+/* Phase 7: a market's walk through the onboarding playbook (Global outlook, card G5) */
+.vsteps { margin: 8px 0; padding-left: 1.4em; line-height: 1.45; }
+.vsteps li { margin: 0 0 8px; }
+.vsteps code { font-size: .75rem; color: var(--text-muted); }

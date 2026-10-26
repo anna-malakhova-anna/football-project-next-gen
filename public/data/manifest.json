@@ -430,7 +430,7 @@
    "name": "chart_insights_eval",
    "source": "evaluation.eval_chart_insights",
    "kind": "evaluation",
-   "rows": 3
+   "rows": 9
   },
   {
    "name": "analyst_k",
@@ -443,6 +443,54 @@
    "source": "share_privacy.share_privacy__policy_checks",
    "kind": "share_privacy",
    "rows": 14
+  },
+  {
+   "name": "gmp_markets",
+   "source": "share_exec.share_exec__gmp_markets_canada, share_exec.share_exec__gmp_markets_eu_uk, share_exec.share_exec__gmp_markets_other",
+   "kind": "share_exec",
+   "rows": 22
+  },
+  {
+   "name": "gmp_growth",
+   "source": "share_exec.share_exec__gmp_markets_canada, share_exec.share_exec__gmp_markets_eu_uk, share_exec.share_exec__gmp_markets_other",
+   "kind": "share_exec",
+   "rows": 7
+  },
+  {
+   "name": "gmp_eval",
+   "source": "evaluation.eval_gmp_scenario, reference.gmp_markets",
+   "kind": "evaluation",
+   "rows": 15
+  },
+  {
+   "name": "gmp_eval_summary",
+   "source": "evaluation.eval_gmp_scenario_summary",
+   "kind": "evaluation",
+   "rows": 3
+  },
+  {
+   "name": "gmp_trend",
+   "source": "reference.dq_grade_bands, reference.p7_params, share_exec.share_exec__gmp_quality_trend_canada, share_exec.share_exec__gmp_quality_trend_eu_uk, share_exec.share_exec__gmp_quality_trend_other",
+   "kind": "share_exec",
+   "rows": 26
+  },
+  {
+   "name": "gmp_board",
+   "source": "share_exec.share_exec__gmp_board",
+   "kind": "share_exec",
+   "rows": 22
+  },
+  {
+   "name": "gmp_walkthrough",
+   "source": "share_exec.share_exec__gmp_walkthrough",
+   "kind": "share_exec",
+   "rows": 12
+  },
+  {
+   "name": "chart_insights_exec_global",
+   "source": "share_exec.share_exec__gmp_chart_insights",
+   "kind": "share_exec",
+   "rows": 13
   },
   {
    "name": "product_prioritization",
