@@ -1,0 +1,23 @@
+country_code,lane,action,gate_kind,target,status,rationale
+MX,MAINTAIN,Keep the counting grade at C or better,COUNTING_GRADE_AT_LEAST,C,draft,Measured today: keep it there
+CA,MAINTAIN,Keep the counting grade at C or better,COUNTING_GRADE_AT_LEAST,C,draft,Measured today: keep it there
+DE,MAINTAIN,Keep the counting grade at C or better,COUNTING_GRADE_AT_LEAST,C,draft,Measured today: keep it there
+AT,MAINTAIN,Keep the counting grade at C or better,COUNTING_GRADE_AT_LEAST,C,draft,Measured today: keep it there
+ES,MAINTAIN,Keep the counting grade at C or better,COUNTING_GRADE_AT_LEAST,C,draft,Measured today: keep it there
+GB,NOW,Get the missing clubs to file,COUNTING_GRADE_AT_LEAST,C,draft,Partial and close to Measured: the federation report card names the fix
+JP,NOW,Get the missing clubs to file,COUNTING_GRADE_AT_LEAST,C,draft,Partial and close to Measured: the federation report card names the fix
+AU,NOW,Ask the clubs with rights who runs flag football there,MIN_RETURN_SEASONS,1,draft,Highest-ranked market with no data
+BR,NOW,Ask the clubs with rights who runs flag football there,MIN_RETURN_SEASONS,1,draft,Highest-ranked market with no data
+CH,NEXT,Find a contact and ask for the minimum return,MIN_RETURN_SEASONS,1,draft,Next-ranked market with no data
+IE,NEXT,Find a contact and ask for the minimum return,MIN_RETURN_SEASONS,1,draft,Next-ranked market with no data
+AE,NEXT,Find a contact and ask for the minimum return,MIN_RETURN_SEASONS,1,draft,Next-ranked market with no data
+AR,NEXT,Ask the national federation for the minimum return,MIN_RETURN_SEASONS,1,draft,Next-ranked market with no data; a federation exists to ask
+CO,NEXT,Ask the national federation for the minimum return,MIN_RETURN_SEASONS,1,draft,Next-ranked market with no data; a federation exists to ask
+GR,NEXT,Ask the national federation for the minimum return,MIN_RETURN_SEASONS,1,draft,Next-ranked market with no data; a federation exists to ask
+IT,LATER,Ask the clubs with rights to file a proxy return first,PROXY_RETURN,1,draft,Lower-ranked; the onboarding walkthrough market (spec D8)
+NG,LATER,Ask the national federation for the minimum return,MIN_RETURN_SEASONS,1,draft,Lower-ranked; a federation exists to ask
+NZ,LATER,Ask the clubs with rights to file a proxy return first,PROXY_RETURN,1,draft,Lower-ranked; nothing arrives yet
+GH,LATER,Ask the clubs with rights whether a federation exists,MIN_RETURN_SEASONS,1,draft,Lower-ranked; no federation to ask yet
+KR,LATER,Ask the clubs with rights whether a federation exists,MIN_RETURN_SEASONS,1,draft,Lower-ranked; no federation to ask yet
+CN,LATER,Settle the data-localization question before asking,MIN_RETURN_SEASONS,1,draft,Lowest-ranked; regime questions come first (assumed)
+FR,LATER,Ask the club with rights to file a proxy return first,PROXY_RETURN,1,draft,Lowest-ranked; nothing arrives yet

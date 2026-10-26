@@ -586,3 +586,44 @@ models:
         meta: {pii: none}
         data_tests:
           - not_null
+
+  - name: share_exec__gmp_board
+    description: >
+      Phase 7 (DP6 port global_priorities, spec section 9): the market Now/Next/Later board with each market's gate (computed progress; PENDING, never 0,
+      when the value is missing) and its priority (value + feasibility + readiness - privacy risk, the data products page's method). Scores, lanes and
+      gates are DRAFTS until Anna sets them (score_status, plan_status).
+    columns:
+      - {name: country_code, meta: {pii: quasi}, data_tests: [unique, not_null]}
+      - {name: country_name, meta: {pii: quasi}}
+      - name: lane
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [NOW, NEXT, LATER, MAINTAIN]}}
+      - {name: action, meta: {pii: none}}
+      - name: gate_kind
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [COUNTING_GRADE_AT_LEAST, MIN_RETURN_SEASONS, PROXY_RETURN]}}
+      - {name: target, meta: {pii: none}}
+      - {name: target_value, meta: {pii: none}}
+      - {name: current_value, meta: {pii: none}}
+      - name: gate_status
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [MET, NOT_YET, PENDING]}}
+      - {name: bar_fill_pct, meta: {pii: none}}
+      - {name: status, meta: {pii: none}}
+      - {name: counting_grade, meta: {pii: none}}
+      - {name: clubs_with_rights, meta: {pii: none}}
+      - {name: value_to_goals, meta: {pii: none}}
+      - {name: feasibility_today, meta: {pii: none}}
+      - {name: data_readiness, meta: {pii: none}}
+      - {name: privacy_risk, meta: {pii: none}}
+      - {name: priority_score, meta: {pii: none}}
+      - {name: priority_rank, meta: {pii: none}}
+      - name: score_status
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [DRAFT, SET_BY_ANNA]}}
+      - {name: plan_status, meta: {pii: none}}
+      - {name: rationale, meta: {pii: none}}

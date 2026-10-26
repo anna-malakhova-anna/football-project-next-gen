@@ -700,3 +700,46 @@ seeds:
     columns:
       - name: param
         data_tests: [unique, not_null]
+
+  - name: gmp_priority_rubric
+    description: >-
+      The DRAFT scoring rubric for market prioritization (Phase 7, spec section 9; D5: the data products page's four dimensions). mart_gmp_priority applies it
+      to every market, so no market score is typed; Anna's scores, where set, live in gmp_market_priority_overrides and win.
+    config:
+      tags: [phase7]
+      column_types: {min_value: integer, score: integer}
+    columns:
+      - name: dimension
+        data_tests:
+          - accepted_values: {arguments: {values: [value_to_goals, feasibility_today, data_readiness, privacy_risk]}}
+      - name: score
+        data_tests: [not_null]
+
+  - name: gmp_market_priority_overrides
+    description: Anna's market scores (Phase 7). Empty until she sets them; a row replaces the rubric's draft for that market and dimension.
+    config:
+      tags: [phase7]
+      column_types: {country_code: varchar, dimension: varchar, score: integer, set_on: date, rationale: varchar}
+    columns:
+      - name: dimension
+        data_tests:
+          - accepted_values: {arguments: {values: [value_to_goals, feasibility_today, data_readiness, privacy_risk]}}
+
+  - name: gmp_market_roadmap
+    description: >-
+      The market Now/Next/Later board (Phase 7, spec section 9): lane, action and gate per program market. DRAFT, proposed by Claude Code from the priority
+      ranking; Anna sets it. Rationales give the reason for the lane only; the facts on the board are computed (mart_gmp_board).
+    config:
+      tags: [phase7]
+    columns:
+      - name: country_code
+        data_tests:
+          - unique
+          - not_null
+          - relationships: {arguments: {to: ref('gmp_markets'), field: country_code}}
+      - name: lane
+        data_tests:
+          - accepted_values: {arguments: {values: [NOW, NEXT, LATER, MAINTAIN]}}
+      - name: status
+        data_tests:
+          - accepted_values: {arguments: {values: [draft, confirmed]}}

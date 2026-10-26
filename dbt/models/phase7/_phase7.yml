@@ -54,3 +54,19 @@ models:
     columns:
       - name: country_code
         data_tests: [not_null]
+
+  - name: mart_gmp_priority
+    description: >
+      Market prioritization (spec section 9, D5): rubric draft scores for value, feasibility, readiness and privacy risk; Anna's overrides where set;
+      priority = value + feasibility + readiness - privacy risk; rank with ties broken by country code.
+    columns:
+      - name: country_code
+        data_tests: [unique, not_null]
+
+  - name: mart_gmp_board
+    description: >
+      The market Now/Next/Later board: lane, action and gate from gmp_market_roadmap; the gate's current value, status and bar fill computed from the data
+      (PENDING, never 0, when a value is missing).
+    columns:
+      - name: country_code
+        data_tests: [unique, not_null]

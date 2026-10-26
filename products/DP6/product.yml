@@ -73,6 +73,11 @@ output_ports:
   grain: program market with no participation source (latest season), the other 12 markets
   refresh: per season close
   regime_note: "one regime per market assumed (for example Brazil LGPD, Japan APPI, China PIPL); question for the privacy lead: which of these markets can send only aggregate returns (unverified assumption, not a legal finding)"
+- name: global_priorities
+  model: share_exec__gmp_board
+  audience: exec
+  grain: "program market (latest season), every regime: a planning view"
+  refresh: per season close
 - name: federation_report_card
   model: share_partner__federation_report_card
   audience: partner
@@ -90,6 +95,7 @@ sources_lineage:
   share_exec__gmp_markets_other: dbt/models/shares/exec/share_exec__gmp_markets_other.sql
   share_exec__gmp_quality_trend_other: dbt/models/shares/exec/share_exec__gmp_quality_trend_other.sql
   share_exec__gmp_scenario_other: dbt/models/shares/exec/share_exec__gmp_scenario_other.sql
+  share_exec__gmp_board: dbt/models/shares/exec/share_exec__gmp_board.sql
   share_partner__federation_report_card: dbt/models/shares/partner/share_partner__federation_report_card.sql
 quality_indicator:
   from_model: dq_scorecard_source

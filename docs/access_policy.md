@@ -168,6 +168,33 @@ policies (design only; not implemented).
 | `uplift_naive_pct` | DERIVED_RATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
+**`share_exec__gmp_board`**
+
+| Column | Treatment |
+|---|---|
+| `country_code` | DIMENSION |
+| `country_name` | DIMENSION |
+| `lane` | DIMENSION |
+| `action` | DIMENSION |
+| `gate_kind` | DIMENSION |
+| `target` | DIMENSION |
+| `target_value` | DERIVED |
+| `current_value` | DERIVED |
+| `gate_status` | DERIVED |
+| `bar_fill_pct` | DERIVED |
+| `status` | DERIVED |
+| `counting_grade` | DERIVED |
+| `clubs_with_rights` | AGGREGATE_BY_ORGANIZATION |
+| `value_to_goals` | DERIVED |
+| `feasibility_today` | DERIVED |
+| `data_readiness` | DERIVED |
+| `privacy_risk` | DERIVED |
+| `priority_score` | DERIVED |
+| `priority_rank` | DERIVED |
+| `score_status` | CAVEAT_LABEL |
+| `plan_status` | CAVEAT_LABEL |
+| `rationale` | CAVEAT_LABEL |
+
 **`share_exec__gmp_markets_canada`**
 
 | Column | Treatment |
