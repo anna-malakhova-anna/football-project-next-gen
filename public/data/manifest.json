@@ -496,19 +496,19 @@
    "name": "product_health",
    "source": "phase6.mart_product_health",
    "kind": "approved_aggregate",
-   "rows": 42
+   "rows": 48
   },
   {
    "name": "product_adoption",
    "source": "phase6.mart_product_adoption",
    "kind": "approved_aggregate",
-   "rows": 25
+   "rows": 30
   },
   {
    "name": "product_specs",
    "source": "products/*/product.yml, quality scorecards",
    "kind": "governance",
-   "rows": 5
+   "rows": 6
   }
  ]
 }
