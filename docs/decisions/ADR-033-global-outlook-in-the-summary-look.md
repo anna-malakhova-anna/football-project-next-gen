@@ -1,6 +1,6 @@
 # ADR-033: The Global outlook tab takes the Data product summary's look
 
-- **Status:** Accepted, 2026-10-26, at Anna's request ("the style similar to the Data product summary page"), applied to the tab itself rather than as a separate summary page (her choice). **The new banner text, headline-number labels and section labels are `status: draft`** (`pages.global` in `site_src/copy/charts.yml`); the cards' text is unchanged and final.
+- **Status:** Accepted, 2026-10-26, at Anna's request ("the style similar to the Data product summary page"), applied to the tab itself rather than as a separate summary page (her choice). **The new banner text, headline-number labels and section labels were approved as final by Anna the same day** (`pages.global` in `site_src/copy/charts.yml`); the cards' text is unchanged.
 
 ## Decisions
 1. **Same parts, same styles, no copy of the CSS.** The page reuses `site_summary.CSS`, the summary page's stylesheet, scoped to `body.summary`:
