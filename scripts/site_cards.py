@@ -124,7 +124,7 @@ def card_block(cid: str, ch: dict, data: dict, table_html) -> str:
                        f'{thumb_inner}</div><button type="button" class="vexpand" data-open="{open_id}" aria-label="Expand: {e(cp["question"])}">Expand ⤢</button></div>')
     tag = '<span class="tag">Synthetic evaluation — not observable in production</span>' if ch.get("evaluation") else ""
     return (
-        f'<article class="vcard" id="card-{card["id"]}" data-card="{card["id"]}" data-slides="{n}">'
+        f'<article class="vcard" id="card-{card["id"]}" data-card="{card["id"]}" data-slides="{n}"{" data-wide=\"true\"" if card.get("wide") else ""}>'
         f'<div class="vcard-copy"><h3 class="vcard-headline">{e(headline)}{tag}</h3><p class="vcard-question">{e(cp["question"])}</p></div>'
         f'{pre}{thumb_block}'
         f'<div class="vcard-notes">'

@@ -67,7 +67,7 @@ def test_every_chart_reads_a_registered_dataset_and_never_inline_numbers():
 
 def test_every_defined_chart_passes_the_checks_and_has_a_shows_and_a_does_not_show_sentence():
     names = {d["name"] for d in bs.DATASETS} | {"product_specs"}            # product_specs is built in Python from products/*/product.yml
-    known = {f"data/{n}.json" for n in names}
+    known = {f"data/{n}.json" for n in names} | {bs.G.GEO_URL}             # plus the country outlines, as in the build (ADR-032)
     for cid, ch in bs.charts().items():
         assert ch.get("spec") is None or bs.check_spec(ch["spec"], known, cid) == [], cid
         assert ch.get("spec") or ch.get("render") or ch.get("card"), cid

@@ -430,6 +430,22 @@ charts:
       From `docs/product/feedback-loop.md` and `products/CHANGELOG.md`. The simulation is `make fix-list-demo`.
 
   # ---- Phase 7: the Global outlook tab (scripts/site_global.py). Approved as final by Anna 2026-10-26.
+  G0:
+    status: draft
+    headline_template: 'NFL clubs hold rights in {n_markets} markets on {n_continents} continents.'
+    fallback_headline: NFL clubs hold rights in markets on several continents.
+    slide_headline_templates: {}
+    question: Where do NFL clubs hold rights?
+    means_club: Each coloured country is a market where NFL clubs hold rights. Blue to red is the grade of markets that send data. Grey-blue means clubs report activity. White with a dashed edge means nothing arrives.
+    means_privacy: Only the countries with a grade send any data about players.
+    action_club: Open a continent to see its markets by name, then use the board on this page.
+    action_privacy: Settle each country's privacy questions before it sends data about players.
+    caution: This is flag football only. The borders come from a public map and say nothing about who holds which rights.
+    analyst_md: 'Country outlines: world-atlas 2.0.2 (Natural Earth 1:50m, public domain), vendored in `site_src/geo/` with its licence. Each market''s label point is the
+      centroid of its largest polygon (`scripts/build_gmp_map_points.py`, seed `gmp_map_points`). Colours are the tiles'' grade colours; the map draws, it computes
+      nothing (ADR-032).
+
+      '
   G1:
     status: final
     headline_template: 'We can read {n_readable} of {n_markets} markets. {n_dark} send us nothing at all.'

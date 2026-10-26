@@ -1,5 +1,5 @@
 {{ config(tags=['phase7']) }}
--- EXEC share (DP6, Phase 7 step 9): the numbers inside the headline sentences of the Global outlook cards (G1, G2, G4, G5), in the long shape of the other
+-- EXEC share (DP6, Phase 7 step 9): the numbers inside the headline sentences of the Global outlook cards (G0, G1, G2, G4, G5), in the long shape of the other
 -- chart-insight shares. Every value is rounded and worded here, never in the browser. G3's numbers read the answer key, so they live in eval_chart_insights.
 with m as (
     select country_code, country_name, status, participation_direction, minimum_detectable_change_pct, season_year from {{ ref('share_exec__gmp_markets_eu_uk') }}
@@ -36,12 +36,18 @@ one_club as (
     from close
 ),
 
+continents as (
+    select count(distinct continent) as n_continents from {{ ref('gmp_map_points') }}
+),
+
 now_lane as (
     select count(*) as n_now from {{ ref('share_exec__gmp_board') }} where lane = 'NOW'
 ),
 
 rows_ as (
-    select 'G1' as chart_id, 'both' as lens, 'n_markets' as field, cast(n_markets as varchar) as value_display, n_markets * 1.0 as value_raw from counts
+    select 'G0' as chart_id, 'both' as lens, 'n_markets' as field, cast(n_markets as varchar) as value_display, n_markets * 1.0 as value_raw from counts
+    union all select 'G0', 'both', 'n_continents', cast(n_continents as varchar), n_continents * 1.0 from continents
+    union all select 'G1', 'both', 'n_markets', cast(n_markets as varchar), n_markets * 1.0 from counts
     union all select 'G1', 'both', 'n_readable', cast(n_measured + n_partial as varchar), (n_measured + n_partial) * 1.0 from counts
     union all select 'G1', 'both', 'n_measured', cast(n_measured as varchar), n_measured * 1.0 from counts
     union all select 'G1', 'both', 'n_partial', cast(n_partial as varchar), n_partial * 1.0 from counts

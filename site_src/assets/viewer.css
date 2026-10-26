@@ -218,3 +218,5 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 .vsteps { margin: 8px 0; padding-left: 1.4em; line-height: 1.45; }
 .vsteps li { margin: 0 0 8px; }
 .vsteps code { font-size: .75rem; color: var(--text-muted); }
+/* Phase 7: a wide card takes the whole row (the Global outlook map, card G0) */
+.vgrid > .vcard[data-wide] { grid-column: 1 / -1; }

@@ -312,7 +312,7 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     finally:
         con.close()
     chart_defs = charts()
-    known = {f"data/{n}.json" for n in data}
+    known = {f"data/{n}.json" for n in data} | {G.GEO_URL}       # plus the country outlines (shapes only, no figures: ADR-032)
     problems = [p for cid, ch in chart_defs.items() if ch.get("spec") for p in check_spec(ch["spec"], known, cid)]
     for cid, ch in chart_defs.items():
         if ch.get("card"):
@@ -354,6 +354,8 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     stamp = (dt.datetime.fromtimestamp(int(epoch), dt.timezone.utc) if epoch else dt.datetime.now(dt.timezone.utc)).strftime("%Y-%m-%d")
     version = con_version
     copy_assets(out)
+    (out / G.GEO_URL).parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(ROOT / G.GEO_SOURCE, out / G.GEO_URL)
     for slug, (_title, body) in build_pages(data, chart_defs, facts).items():
         (out / f"{slug}.html").write_text(render_page(slug, body, stamp, version), encoding="utf-8")
     (out / f"{site_summary.SLUG}.html").write_text(site_summary.render(data, version)[0], encoding="utf-8")      # the one-page summary of the Data product tab

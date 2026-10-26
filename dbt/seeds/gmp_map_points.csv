@@ -1,0 +1,23 @@
+country_code,iso_numeric,continent,label_lon,label_lat
+AE,784,Middle East and Africa,54.31,23.90
+AR,032,Americas,-65.16,-35.18
+AT,040,Europe,14.13,47.59
+AU,036,Asia-Pacific,134.36,-25.57
+BR,076,Americas,-53.12,-10.84
+CA,124,Americas,-102.37,57.93
+CH,756,Europe,8.21,46.80
+CN,156,Asia-Pacific,103.80,36.62
+CO,170,Americas,-73.08,3.91
+DE,276,Europe,10.37,51.09
+ES,724,Europe,-3.56,40.40
+FR,250,Europe,2.45,46.62
+GB,826,Europe,-2.51,53.94
+GH,288,Middle East and Africa,-1.22,7.95
+GR,300,Europe,22.58,39.48
+IE,372,Europe,-8.13,53.17
+IT,380,Europe,12.15,43.53
+JP,392,Asia-Pacific,137.99,36.65
+KR,410,Asia-Pacific,127.87,36.46
+MX,484,Americas,-102.51,23.94
+NG,566,Middle East and Africa,8.09,9.60
+NZ,554,Asia-Pacific,170.53,-43.97

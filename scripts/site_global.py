@@ -12,7 +12,10 @@ from html import escape as e
 SHARE_MARKETS = ["share_exec.share_exec__gmp_markets_eu_uk", "share_exec.share_exec__gmp_markets_canada", "share_exec.share_exec__gmp_markets_other"]
 SHARE_TREND = ["share_exec.share_exec__gmp_quality_trend_eu_uk", "share_exec.share_exec__gmp_quality_trend_canada", "share_exec.share_exec__gmp_quality_trend_other"]
 EVAL = {"evaluation.eval_gmp_scenario", "evaluation.eval_gmp_scenario_summary"}
-GOVERNANCE = {"reference.gmp_markets", "reference.dq_grade_bands", "reference.p7_params"}
+GOVERNANCE = {"reference.gmp_markets", "reference.dq_grade_bands", "reference.p7_params", "reference.gmp_map_points"}
+# Country outlines for the map (ADR-032): world-atlas 2.0.2 from Natural Earth (public domain), vendored with its licence. Shapes only, no figures.
+GEO_SOURCE = "site_src/geo/countries-50m.json"
+GEO_URL = "geo/countries.json"
 STATUS_LABEL = ("case status when 'MEASURED' then 'Measured' when 'PARTIAL' then 'Partial' when 'PROXY_ONLY' then 'Clubs report activity' else 'Nothing arrives' end")
 STATUS_ORDER = "case status when 'MEASURED' then 1 when 'PARTIAL' then 2 when 'PROXY_ONLY' then 3 else 4 end"
 DIRECTION_LABEL = ("case participation_direction when 'GROWING' then 'Growing' when 'SHRINKING' then 'Shrinking' when 'FLAT' then 'No change we can tell' "
@@ -33,6 +36,15 @@ DATASETS = [
         select country_code, country_name, region, status, {STATUS_LABEL} as status_label, {STATUS_ORDER} as status_order,
                coalesce(counting_grade, '') as grade, {DIRECTION_LABEL} as direction_label, clubs_with_rights, regime_name
         from m order by status_order, country_name""", SHARE_MARKETS, "share_exec", "The 22 program markets: what we can read in each (latest season)"),
+    _D("gmp_map", f"""
+        with m as ({_union(SHARE_MARKETS)})
+        select m.country_name, p.iso_numeric, p.continent, p.label_lon, p.label_lat, {STATUS_LABEL} as status_label,
+               -- short names keep map labels apart; Korea's label sits left of its point, clear of Japan's (presentation only)
+               case m.country_name when 'United Kingdom' then 'UK' when 'United Arab Emirates' then 'UAE' when 'South Korea' then 'S. Korea' else m.country_name end as map_label,
+               case m.country_name when 'South Korea' then 'right' else 'center' end as label_align,
+               case when coalesce(m.counting_grade, '') <> '' then 'Grade ' || m.counting_grade else {STATUS_LABEL} end as fill_key, {DIRECTION_LABEL} as direction_label
+        from m join reference.gmp_map_points p using (country_code) order by p.continent, m.country_name""", SHARE_MARKETS + ["reference.gmp_map_points"], "share_exec",
+       "The 22 program markets on the map: what we can read in each, with the label point taken from its outline"),
     _D("gmp_growth", f"""
         with m as ({_union(SHARE_MARKETS)})
         select country_name, {STATUS_LABEL} as status_label, growth_pct as growth_percent, minimum_detectable_change_pct as change_needed,
@@ -87,7 +99,7 @@ COLUMN_LABELS = {
     "counting_score": "Counting score", "counting_grade": "Counting grade", "clubs_filed": "Clubs that sent a file", "clubs_known": "Clubs known", "clubs_text": "Clubs that sent a file",
     "measured_bar": "Bar for Measured", "lane_label": "Lane", "lane_order": "Order", "action": "What to do", "gate_text": "Progress", "gate_label": "Milestone",
     "progress_percent": "Progress (%)", "priority_rank": "Priority rank", "score_text": "Score", "stage_order": "Step", "stage": "Stage", "state_label": "State",
-    "artifact": "Evidence", "what_happened": "What happened", "country_name": "Market", "region": "Region", "grade": "Grade", "lane": "Lane",
+    "artifact": "Evidence", "what_happened": "What happened", "iso_numeric": "Map id", "continent": "Continent", "label_lon": "Label longitude", "label_lat": "Label latitude", "fill_key": "Colour", "map_label": "Label", "label_align": "Label side", "country_name": "Market", "region": "Region", "grade": "Grade", "lane": "Lane",
 }
 
 
@@ -143,6 +155,45 @@ def render_walkthrough(rows, market: str) -> str:
     return f"<ol class='vsteps'>{items}</ol>"
 
 
+FILL_DOMAIN = ["Grade A", "Grade B", "Grade C", "Grade D", "Clubs report activity", "Nothing arrives"]
+FILL_RANGE = ["#2166ac", "#92c5de", "#f4a582", "#b2182b", "#B8C4D0", "#FFFFFF"]     # the grade colours of the tiles, then the two no-data states
+# Continent views: the longitude and latitude box each view fits to the card (a frame for the drawing, not data)
+VIEWS = [("Europe", (-12.0, 34.0, 32.0, 61.0)), ("Americas", (-130.0, -56.0, -34.0, 64.0)), ("Asia-Pacific", (95.0, -48.0, 180.0, 47.0)),
+         ("Middle East and Africa", (-20.0, -8.0, 62.0, 34.0))]
+
+
+def _box(lon0, lat0, lon1, lat1):
+    # clockwise ring: on the sphere an anticlockwise ring means "everything but the box", and the view would fit the whole world
+    return {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[lon0, lat0], [lon0, lat1], [lon1, lat1], [lon1, lat0], [lon0, lat0]]]}, "properties": {}}
+
+
+def _map_spec(view=None, thumb=False):
+    """Countries where NFL clubs hold rights, coloured like the tiles; other countries pale. A view is one continent, fitted to the card; the thumbnail is the world."""
+    geo = {"url": GEO_URL, "format": {"type": "topojson", "feature": "countries"}}
+    lookup = {"lookup": "id", "from": {"data": _src("gmp_map"), "key": "iso_numeric", "fields": ["fill_key", "country_name", "status_label", "direction_label"]}}
+    projection = {"type": "equalEarth"} if view is None else {"type": "mercator", "fit": _box(*dict(VIEWS)[view])}
+    where = f"datum.continent === '{view}' && " if view else ""
+
+    def labels(align, dx):
+        """A white halo under dark text, so a label reads on a dark grade colour and on pale land alike."""
+        enc = {"longitude": {"field": "label_lon", "type": "quantitative"}, "latitude": {"field": "label_lat", "type": "quantitative"}, "text": {"field": "map_label"}}
+        flt = [{"filter": f"{where}datum.label_align === '{align}'"}]
+        text = {"type": "text", "fontSize": 12, "fontWeight": 600, "align": align, "dx": dx, "clip": True}
+        return [{"data": _src("gmp_map"), "transform": flt, "mark": {**text, "color": "#FFFFFF", "stroke": "#FFFFFF", "strokeWidth": 3, "strokeJoin": "round"}, "encoding": enc},
+                {"data": _src("gmp_map"), "transform": flt, "mark": {**text, "color": "#1B2733"}, "encoding": enc}]
+    layers = [
+        {"data": geo, "mark": {"type": "geoshape", "fill": "#ECEAE4", "stroke": "#FFFFFF", "strokeWidth": 0.5, "clip": True}},
+        {"data": geo, "transform": [lookup, {"filter": "datum.fill_key != null"}],
+         "mark": {"type": "geoshape", "strokeWidth": 0.8, "clip": True},
+         "encoding": {"color": {"field": "fill_key", "type": "nominal", "title": None, "scale": {"domain": FILL_DOMAIN, "range": FILL_RANGE}, "legend": None if thumb else {"orient": "bottom", "columns": 3, "symbolStrokeColor": "#5B6B7B", "symbolStrokeWidth": 1}},
+                      "stroke": {"condition": {"test": "datum.fill_key === 'Nothing arrives'", "value": "#5B6B7B"}, "value": "#FFFFFF"},
+                      "strokeDash": {"condition": {"test": "datum.fill_key === 'Nothing arrives'", "value": [3, 2]}, "value": [1, 0]},
+                      "tooltip": [{"field": "country_name", "title": "Market"}, {"field": "status_label", "title": "What we can read"}, {"field": "direction_label", "title": "Direction"}]}}]
+    if not thumb:
+        layers += labels("center", 0) + labels("right", -6)
+    return {"width": "container", "height": 300 if thumb else "container", "autosize": {"type": "fit", "contains": "padding"}, "projection": projection, "layer": layers}
+
+
 def _growth_spec(thumb):
     y = {"field": "country_name", "type": "nominal", "title": None, "sort": {"field": "growth_percent", "order": "descending"}, "axis": {"labelFontSize": 12 if thumb else 14}}
     return {"data": _src("gmp_growth"), "width": "container", "height": 200 if thumb else "container", "autosize": {"type": "fit", "contains": "padding"},
@@ -183,6 +234,9 @@ def _trend_spec(thumb):
 def charts():
     """-> {id: chart def} for the Global outlook page: one card per question of the Phase 7 spec."""
     C = {}
+    C["g0_map"] = dict(page="global", title="Where do NFL clubs hold rights?", datasets=["gmp_map"],
+        card=dict(id="G0", datasets=["gmp_map"], wide=True, thumb=_map_spec(thumb=True), open_slide=1,
+                  slides=[dict(title=view, key=view.upper().replace(" ", "_").replace("-", "_"), spec=_map_spec(view)) for view, _ in VIEWS]))
     C["g1_markets"] = dict(page="global", title="Which markets can we read?", datasets=["gmp_markets"],
         card=dict(id="G1", datasets=["gmp_markets"], thumb_html=lambda d: render_markets(d["gmp_markets"]["rows"], True), open_slide=1,
                   slides=[dict(title="All 22 markets", key="ALL", html=lambda d: render_markets(d["gmp_markets"]["rows"]))]))
