@@ -17,12 +17,12 @@ from scripts.common import ROOT
 MANIFEST = ROOT / "dbt" / "target" / "manifest.json"
 
 # models built from aggregate-only sources
-AGGREGATE_ONLY = {"stg_school_headcounts", "fct_reported_headcount"}
+AGGREGATE_ONLY = {"stg_school_headcounts", "fct_reported_headcount", "stg_gmp_proxy"}
 # models that may depend on both: they combine as bounded ranges and are reviewed as such
 REPORTING = {"mart_reported_headcount", "mart_kpi_scorecard", "mart_restatement_log", "eval_headcount_overlap"}
 # directories whose models count or identify people
 PARTICIPANT_DIRS = ("models/identity/", "models/marts/", "models/facts/", "models/staging/", "models/intermediate/")
-PARTICIPANT_NAMES = {"mart_participation_global", "mart_participation_by_country", "mart_participation_segments", "mart_identity_uncertainty"}
+PARTICIPANT_NAMES = {"mart_participation_global", "mart_participation_by_country", "mart_participation_segments", "mart_participation_by_org", "mart_identity_uncertainty"}
 
 
 def _is_participant_side(name: str, path: str) -> bool:

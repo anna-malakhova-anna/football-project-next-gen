@@ -1,0 +1,6 @@
+param,value,description
+measured_min_grade,C,"phase7.status.measured_min_grade: counting purpose grade at or above this band = Measured, below = Partial (ADR-025)"
+z,2.0,phase7.direction.z in config/generation.yaml (ADR-025)
+min_pooled_pairs,6,phase7.direction.min_pooled_pairs in config/generation.yaml (ADR-025)
+min_orgs_both_seasons,3,phase7.direction.min_orgs_both_seasons in config/generation.yaml (ADR-025)
+scenario_label,"planning scenario, not a measurement",phase7.scenario.label: carried on every planning-scenario row

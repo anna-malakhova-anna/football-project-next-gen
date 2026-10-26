@@ -18,6 +18,7 @@ def _manifest(extra=None, patch=None):
         "model.p.mart_kpi_scorecard": _model("mart_kpi_scorecard", "models/measurement/mart_kpi_scorecard.sql", ["model.p.mart_reported_headcount"]),
         "model.p.mart_restatement_log": _model("mart_restatement_log", "models/measurement/mart_restatement_log.sql"),
         "model.p.eval_headcount_overlap": _model("eval_headcount_overlap", "models/evaluation/eval_headcount_overlap.sql"),
+        "model.p.stg_gmp_proxy": _model("stg_gmp_proxy", "models/phase7/stg_gmp_proxy.sql"),
     }
     nodes.update(extra or {})
     m = {"nodes": nodes, "sources": {}}

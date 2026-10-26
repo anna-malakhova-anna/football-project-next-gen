@@ -691,3 +691,12 @@ seeds:
       - name: verification_status
         data_tests:
           - accepted_values: {arguments: {values: ['UNVERIFIED', 'VERIFIED']}}
+
+  - name: p7_params
+    description: Phase 7 rule parameters (ADR-025), exported from config/generation.yaml phase7 by generator/phase7/export_seed.py. No global-outlook model hard-codes a threshold.
+    config:
+      tags: [phase7]
+      column_types: {param: varchar, value: varchar, description: varchar}
+    columns:
+      - name: param
+        data_tests: [unique, not_null]

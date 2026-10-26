@@ -9,6 +9,7 @@ import re
 from html import escape as e
 from pathlib import Path
 
+import yaml
 
 from scripts import site_cards as sc
 from scripts import validate_products as vp
@@ -67,7 +68,10 @@ def md_table(path: Path) -> list[list[str]]:
 
 
 def products() -> dict[str, dict]:
-    return vp.load()
+    """The portfolio as the tab draws it: every spec whose product has tab copy (charts.yml summary.product_names). A spec without copy yet (DP6 until its
+    copy is written and approved, Phase 7) stays off the tab rather than being half-drawn; validate_products still checks every spec."""
+    shown = yaml.safe_load((ROOT / "site_src" / "copy" / "charts.yml").read_text(encoding="utf-8"))["summary"]["product_names"]
+    return {pid: spec for pid, spec in vp.load().items() if pid in shown}
 
 
 # ---------------------------------------------------------------- D1 goals to products

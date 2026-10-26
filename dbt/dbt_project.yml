@@ -110,6 +110,11 @@ models:
       restricted:
         # participant- and household-keyed policy models: restricted zone. Only counts leave it (mart_conversion_funnel_by_tier).
         +schema: phase6_restricted
+    phase7:
+      # Global outlook (DP6, ADR-025): aggregates only; the GMP_PROXY staging and the market status, direction and scenario marts
+      +materialized: table
+      +schema: phase7
+      +tags: ['phase7']
     shares:
       +materialized: table
       +tags: ['phase3']

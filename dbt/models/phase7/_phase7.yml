@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: stg_gmp_proxy
+    description: >
+      GMP_PROXY staging (Phase 7): one row per landed club return, typed, market resolved to its country code. A market-season filed twice keeps the latest
+      report (is_superseded marks the other). Aggregate-only and never participation (scripts/check_lineage.py).
+    columns:
+      - name: country_code
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: ref('gmp_markets'), field: country_code}}
+      - name: season_year
+        data_tests: [not_null]
+
+  - name: mart_gmp_market_status
+    description: >
+      Status of each of the 22 program markets in the latest observed season (ADR-025 section 1): MEASURED, PARTIAL, PROXY_ONLY or DARK, with the reason,
+      the counting grade (dq_scorecard_country, COUNT purpose), clubs with rights and the regime port.
+    columns:
+      - name: country_code
+        data_tests: [unique, not_null]
+      - name: status
+        data_tests:
+          - not_null
+          - accepted_values: {arguments: {values: [MEASURED, PARTIAL, PROXY_ONLY, DARK]}}
+
+  - name: mart_gmp_direction
+    description: >
+      Direction per program market (ADR-025 section 2): like-for-like growth over organizations in both seasons, the pooled noise floor and the minimum
+      detectable change, the participation direction label, and the club proxy direction beside it (never combined).
+    columns:
+      - name: country_code
+        data_tests: [unique, not_null]
+      - name: participation_direction
+        data_tests:
+          - accepted_values: {arguments: {values: [GROWING, FLAT, SHRINKING, NOT_DETECTABLE, NOT_MEASURED]}}
+
+  - name: mart_gmp_scenario
+    description: >
+      The planning scenario for PROXY_ONLY and DARK markets (ADR-025 section 3): comparables, per-club rate range times clubs with rights, comparables'
+      direction. NOT a measurement; every row carries scenario_label. Reads no truth.
+    columns:
+      - name: country_code
+        data_tests: [unique, not_null]
+      - name: scenario_label
+        data_tests: [not_null]

@@ -115,5 +115,6 @@ share_models:
 - share_exec__reported_headcount
 aggregate_ports:
 - int_dark_org_coverage
+- mart_participation_by_org
 - mart_uncertainty_decomposition
 - mart_missingness_bias

@@ -83,6 +83,7 @@ p5-feeds:
 # Phase 7: the dark-market answer key (evaluation only) and the GMP_PROXY club returns (ADR-025). Reads the existing truth; changes no other file.
 p7-data:
 	$(PY) -m generator.phase7.gmp
+	$(PY) -m generator.phase7.export_seed
 	$(PY) -m loader.load_phase7
 
 # Phase 5, step 2: staging, resolution, the rules-as-data scorecard, fix list and their tests (needs `make p5-feeds`, `make load-eval`, and the Phase 1 to 4 build for reference seeds)
@@ -288,6 +289,7 @@ all-phases: dbt/profiles.yml
 	$(PY) -m generator.phase5.export_seed
 	$(PY) -m loader.load_phase5
 	$(PY) -m generator.phase7.gmp
+	$(PY) -m generator.phase7.export_seed
 	$(PY) -m loader.load_phase7
 	$(PY) -m scripts.validate_contracts
 	$(DBT) seed --profiles-dir .

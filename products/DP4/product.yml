@@ -122,6 +122,7 @@ internal_models:
 - mart_market_coverage
 - dq_rule_results
 - dq_scorecard_source
+- dq_scorecard_country
 - dq_scorecard_org
 - dq_scorecard_market
 - dq_trend
@@ -139,6 +140,7 @@ share_models:
 aggregate_ports:
 - mart_market_coverage
 - dq_scorecard_source
+- dq_scorecard_country
 - dq_scorecard_org
 - dq_scorecard_market
 - dq_trend

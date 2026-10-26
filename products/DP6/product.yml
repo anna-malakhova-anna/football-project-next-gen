@@ -1,0 +1,98 @@
+# DP6 product spec (Phase 7): the product's machine-readable label. Validated by scripts/validate_products.py. DRAFT: scores, targets and copy wait for Anna.
+# Synthetic project; every role is fictional. quality_indicator is read from the scorecards at build time, never typed.
+id: DP6
+input_sources:
+- INTL_FED
+- CA_CLUB
+- GMP_PROXY
+name: Global Markets Outlook
+version: 0.1.0
+type: insights
+status: proposed
+description: Where flag football is growing in the NFL Global Markets Program's 22 markets, where we cannot tell, and why. Every market has a status (measured,
+  partial, proxy-only, dark) and a direction read like for like against the noise floor; markets with no data get a labelled planning scenario, never a count.
+goals:
+- G1
+value_proposition: enabler
+consumers:
+- role: Executive
+  use_case: See which program markets can be read, which cannot, and what it would take to read them
+- role: International growth lead
+  use_case: Decide which markets to onboard next
+owner_role: Data Product Manager, NFL FLAG Insights (fictional)
+steward_role: Data steward, federation returns and club proxy returns (fictional)
+support_contact: 'issues: <repo>/issues (label: dp6)'
+output_ports:
+- name: global_markets
+  model: share_exec__gmp_markets
+  audience: exec
+  grain: program market (latest season)
+  refresh: per season close
+- name: global_scenario
+  model: share_exec__gmp_scenario
+  audience: exec
+  grain: program market with no participation source (latest season)
+  refresh: per season close
+input_products:
+- DP3
+- DP4
+sources_lineage:
+  share_exec__gmp_markets: dbt/models/shares/exec/share_exec__gmp_markets.sql
+  share_exec__gmp_scenario: dbt/models/shares/exec/share_exec__gmp_scenario.sql
+quality_indicator:
+  from_model: dq_scorecard_source
+  purpose: COUNT
+  filter:
+    source_system: INTL_FED
+  aggregate: grade
+metrics: []
+classification: aggregate per market, no count of people on the market view; small-cell growth hidden; no direct or quasi identifier of a participant
+privacy:
+  min_cell_size: from privacy_params.k_min
+  age_rules: dbt/seeds/age_consent_rules.csv
+  prohibited_uses:
+  - use: publishing a planning scenario as a measurement, or beside measured values
+    enforced_by:
+    - kind: dbt_test
+      name: gmp_every_market_has_one_status_and_scenarios_only_where_unmeasured
+    - kind: script
+      name: check_share_policy
+  - use: grading or tuning the scenario against the answer key outside evaluation
+    enforced_by:
+    - kind: script
+      name: check_eval_isolation
+  - use: counting club proxy returns as players
+    enforced_by:
+    - kind: script
+      name: check_lineage
+terms_of_use: docs/product/terms/DP6.md
+geographic_coverage: the 22 markets of the NFL Global Markets Program (public page, read 2026-10-25); flag football only
+tags:
+- global
+- markets
+- uncertainty
+- exec
+recommended_products:
+- DP3
+- DP4
+feedback: https://github.com/anna-malakhova-anna/football-project-next-gen/issues/new?template=data-product-feedback.md
+shelf_life: medium-term (reviewed each season; status and direction recomputed at season close)
+decommission_plan: docs/product/decommission-example.md
+pricing: Internal. No chargeback.
+health_metrics:
+- quality
+- freshness
+- contract_status
+- pipeline
+- trust
+- privacy
+- cost
+
+# --- Where this product is formed (Phase 6 addendum, section 1). Regime-split ports (global_eu_uk, global_canada, global_other; spec D10) come in step 6.
+internal_models:
+- stg_gmp_proxy
+- mart_gmp_*
+gate: DP3's participation ports and DP4's country scorecard; the GMP_PROXY contract
+share_models:
+- share_exec__gmp_*
+aggregate_ports: []

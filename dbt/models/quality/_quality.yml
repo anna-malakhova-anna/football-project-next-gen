@@ -104,6 +104,16 @@ models:
     description: Source x season x purpose x dimension scores and grades, by the same method, pooled over the source's organizations; contract quality rules count in every season (includes_contract_rules says so).
     config:
       tags: [phase5]
+  - name: dq_scorecard_country
+    description: >-
+      Country x season x purpose x dimension scores and grades (Phase 7, ADR-025): dq_scorecard_source's exact method, grouped by the country of each
+      organization (US league = US, Canadian clubs = CA, federation sheets = their country). Timeliness is the share of the country's known organizations
+      that filed. DP4's aggregate port for market status; dq_scorecard_country_matches_source keeps the two models in step.
+    config:
+      tags: [phase7]
+    columns:
+      - name: country_code
+        data_tests: [not_null]
   - name: dq_trend
     description: PURPOSE_SCORE over time for each source and organization with P-chart control limits (and mean +/- 3 sd from three prior seasons); out_of_control flags a shift against the entity's own history.
     config:

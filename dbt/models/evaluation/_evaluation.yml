@@ -170,3 +170,22 @@ models:
     description: >
       EVALUATION. The numbers inside headline sentences of the cards graded against the synthetic answer key (long format, like the share chart_insights models): how many year-by-method checks
       had the truth inside the range, and what the data standard's field choice costs in matching accuracy.
+
+  - name: eval_gmp_scenario
+    description: >
+      GROUND TRUTH (evaluation only, synthetic; Phase 7, ADR-025). Per program market with no participation source: the planning scenario's range and
+      direction against the true latest-season participants and direction, the club proxy direction against the truth, and whether dbt's comparables
+      differ from the generator's. The answer key's against-the-comparables share is an assumption.
+    columns:
+      - name: country_code
+        data_tests: [unique, not_null]
+  - name: eval_gmp_scenario_summary
+    description: >
+      GROUND TRUTH (evaluation only, synthetic; Phase 7, ADR-025 section 6). Coverage, direction error and proxy agreement of the planning scenario, for all
+      markets with no participation source and split by whether the answer key set them against their comparables. NO pass threshold: reported as it
+      comes out, as the evidence for or against publishing a number for a dark market.
+    columns:
+      - name: market_group
+        data_tests:
+          - unique
+          - accepted_values: {arguments: {values: [ALL, WITH_COMPARABLES, SET_AGAINST_COMPARABLES]}}

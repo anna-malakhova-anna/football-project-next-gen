@@ -356,3 +356,71 @@ models:
         meta: {pii: none}
         data_tests:
           - accepted_values: {arguments: {values: [MET, NOT_YET, PENDING]}}
+
+  - name: share_exec__gmp_markets
+    description: >
+      Phase 7 (DP6, ADR-025): one row per NFL Global Markets Program market (22): status (MEASURED, PARTIAL, PROXY_ONLY, DARK) with its reason, the
+      counting grade, clubs with rights, the like-for-like participation direction against the pooled noise floor, and the club proxy direction shown
+      beside it (never combined). No count of people; growth_pct is hidden when the earlier season's base is a small cell. Flag football only.
+    columns:
+      - {name: country_code, meta: {pii: quasi}, data_tests: [unique, not_null]}
+      - {name: country_name, meta: {pii: quasi}}
+      - {name: region, meta: {pii: none}}
+      - {name: legal_regime_id, meta: {pii: none}}
+      - {name: output_port, meta: {pii: none}}
+      - {name: status_on_page, meta: {pii: none}}
+      - {name: season_year, meta: {pii: none}}
+      - name: status
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [MEASURED, PARTIAL, PROXY_ONLY, DARK]}}
+      - {name: status_reason, meta: {pii: none}}
+      - {name: counting_grade, meta: {pii: none}}
+      - {name: clubs_with_rights, meta: {pii: none}}
+      - name: participation_direction
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [GROWING, FLAT, SHRINKING, NOT_DETECTABLE, NOT_MEASURED]}}
+      - {name: growth_pct, meta: {pii: none}}
+      - {name: minimum_detectable_change_pct, meta: {pii: none}}
+      - name: proxy_direction
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [GROWING, FLAT, SHRINKING, UNKNOWN, NO_PROXY]}}
+      - name: proxy_agreement
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [AGREE, DISAGREE, NO_PROXY, NOT_APPLICABLE]}}
+      - {name: growth_rank, meta: {pii: none}}
+
+  - name: share_exec__gmp_scenario
+    description: >
+      Phase 7 (DP6, ADR-025 section 3): the PLANNING SCENARIO for program markets with no participation source. NOT a measurement: a range from the
+      per-club rates of comparable MEASURED markets times the market's clubs with rights, and the comparables' direction if they agree. Every row
+      carries scenario_label; the site shows it in its own section, never beside or summed with measured values. Graded against the synthetic answer
+      key only in eval_gmp_scenario_summary.
+    columns:
+      - {name: country_code, meta: {pii: quasi}, data_tests: [unique, not_null]}
+      - {name: country_name, meta: {pii: quasi}}
+      - {name: region, meta: {pii: none}}
+      - {name: output_port, meta: {pii: none}}
+      - name: status
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [PROXY_ONLY, DARK]}}
+      - {name: season_year, meta: {pii: none}}
+      - {name: clubs_with_rights, meta: {pii: none}}
+      - name: comparable_basis
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [REGION_AND_REGIME, REGION, ALL]}}
+      - {name: comparable_markets, meta: {pii: none}}
+      - {name: n_comparables, meta: {pii: none}}
+      - {name: single_comparable, meta: {pii: none}}
+      - {name: scenario_low, meta: {pii: none}}
+      - {name: scenario_high, meta: {pii: none}}
+      - name: scenario_direction
+        meta: {pii: none}
+        data_tests:
+          - accepted_values: {arguments: {values: [GROWING, FLAT, SHRINKING, MIXED]}}
+      - {name: scenario_label, meta: {pii: none}, data_tests: [not_null]}

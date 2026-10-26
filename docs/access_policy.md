@@ -167,6 +167,48 @@ policies (design only; not implemented).
 | `uplift_naive_pct` | DERIVED_RATE_SUPPRESSED |
 | `suppressed` | SUPPRESSION_FLAG |
 
+**`share_exec__gmp_markets`**
+
+| Column | Treatment |
+|---|---|
+| `country_code` | DIMENSION |
+| `country_name` | DIMENSION |
+| `region` | DIMENSION |
+| `legal_regime_id` | DIMENSION |
+| `output_port` | DIMENSION |
+| `status_on_page` | DIMENSION |
+| `season_year` | DIMENSION |
+| `status` | DERIVED |
+| `status_reason` | CAVEAT_LABEL |
+| `counting_grade` | DERIVED |
+| `clubs_with_rights` | AGGREGATE_BY_ORGANIZATION |
+| `participation_direction` | DERIVED |
+| `growth_pct` | DERIVED_RATE_SUPPRESSED |
+| `minimum_detectable_change_pct` | DERIVED |
+| `proxy_direction` | DERIVED |
+| `proxy_agreement` | DERIVED |
+| `growth_rank` | DERIVED |
+
+**`share_exec__gmp_scenario`**
+
+| Column | Treatment |
+|---|---|
+| `country_code` | DIMENSION |
+| `country_name` | DIMENSION |
+| `region` | DIMENSION |
+| `output_port` | DIMENSION |
+| `status` | DERIVED |
+| `season_year` | DIMENSION |
+| `clubs_with_rights` | AGGREGATE_BY_ORGANIZATION |
+| `comparable_basis` | DERIVED |
+| `comparable_markets` | DIMENSION |
+| `n_comparables` | DERIVED |
+| `single_comparable` | DERIVED |
+| `scenario_low` | DERIVED |
+| `scenario_high` | DERIVED |
+| `scenario_direction` | DERIVED |
+| `scenario_label` | CAVEAT_LABEL |
+
 **`share_exec__household_link_rate`**
 
 | Column | Treatment |

@@ -46,3 +46,8 @@ sources:
           blank, header and summary rows, as positional columns c1..c9 (Player ID, Full Name,
           Date of Birth, Gender, Category, Club, Country, Email, Media Consent). `_excel_row` is
           the 1-based worksheet row; Excel date serials stay as their raw numeric string.
+      - name: gmp_proxy
+        description: >
+          Global Markets Program proxy returns (CSV, GMP_PROXY, Phase 7): one row per program market per season per filing club: club fan events,
+          games in the market, whether a national flag federation exists. NO individuals and NOT participation (ADR-025). Every column is VARCHAR;
+          `_row_number` is the 1-based data row index. Loaded by loader/load_phase7.py.

@@ -42,3 +42,7 @@ sources:
         description: >
           One row per minimization variant and matcher: the identity-resolution accuracy measured against the answer key with that variant applied to the matcher's input. Written by
           scripts/p5_minimization_runs.py (make minimize), not by the generator; may be missing until that has run, which eval_minimization_tradeoff tolerates.
+      - name: gmp_market_truth
+        description: >
+          Phase 7 answer key (ADR-025): true participants and true direction per season for the 15 program markets with no participation source, and
+          whether the latest direction was set against the comparables (an assumption). Written by generator/phase7/gmp.py (make p7-data).
