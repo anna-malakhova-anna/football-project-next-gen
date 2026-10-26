@@ -14,7 +14,7 @@ AE,NEXT,Find a contact and ask for the minimum return,MIN_RETURN_SEASONS,1,draft
 AR,NEXT,Ask the national federation for the minimum return,MIN_RETURN_SEASONS,1,draft,Next-ranked market with no data; a federation exists to ask
 CO,NEXT,Ask the national federation for the minimum return,MIN_RETURN_SEASONS,1,draft,Next-ranked market with no data; a federation exists to ask
 GR,NEXT,Ask the national federation for the minimum return,MIN_RETURN_SEASONS,1,draft,Next-ranked market with no data; a federation exists to ask
-IT,NEXT,Ask the clubs with rights to file a proxy return first,PROXY_RETURN,1,confirmed,Moved up from Later by Anna: new to the program in 2026 and the onboarding walkthrough market (spec D8)
+IT,NEXT,Find a contact and ask for the minimum return,MIN_RETURN_SEASONS,1,confirmed,Moved up from Later by Anna: new to the program in 2026 and the onboarding walkthrough market (spec D8)
 NG,LATER,Ask the national federation for the minimum return,MIN_RETURN_SEASONS,1,draft,Lower-ranked; a federation exists to ask
 NZ,LATER,Ask the clubs with rights to file a proxy return first,PROXY_RETURN,1,draft,Lower-ranked; nothing arrives yet
 GH,LATER,Ask the clubs with rights whether a federation exists,MIN_RETURN_SEASONS,1,draft,Lower-ranked; no federation to ask yet

@@ -29,6 +29,8 @@ REPORT = ROOT / "docs" / "reports" / "p7_italy_experiment.md"
 CSV_OUT = ROOT / "docs" / "eval" / "p7_italy_experiment.csv"
 TEMPLATE = ROOT / "contracts" / "templates" / "GMP_MINIMUM_RETURN.yml"
 COUNTRY = "IT"
+GATE = {"MIN_RETURN_SEASONS": "a first season of counts", "PROXY_RETURN": "clubs file an activity return", "COUNTING_GRADE_AT_LEAST": "a counting grade of C or better"}
+STATE = {"MET": "met", "NOT_YET": "not yet met", "PENDING": "waiting for data"}
 
 
 def snapshot(db: Path) -> dict:
@@ -104,7 +106,8 @@ def main() -> int:
         f"| Participation source | {before['participation_source'] or 'none'} | {after['participation_source'] or 'none'} |",
         f"| Participation direction | {before['participation_direction']} | {after['participation_direction']} |",
         f"| Planning scenario | {low} to {high} players, {before['scenario_direction']} | {'none (the market now has data)' if after['scenario_low'] is None else str(after['scenario_low']) + ' to ' + str(after['scenario_high'])} |",
-        f"| Board | {before['board_lane']}, gate {before['board_gate']}: {before['board_gate_status']} | {after['board_lane']}, gate {after['board_gate']}: {after['board_gate_status']} |",
+        f"| Board | {before['board_lane'].title()}, {GATE.get(before['board_gate'], before['board_gate'])}: {STATE.get(before['board_gate_status'], before['board_gate_status'])} | "
+        f"{after['board_lane'].title()}, {GATE.get(after['board_gate'], after['board_gate'])}: {STATE.get(after['board_gate_status'], after['board_gate_status'])} |",
         f"| Priority (feasibility, readiness, score, rank) | {before['feasibility_today']}, {before['data_readiness']}, {before['priority_score']}, {before['priority_rank']} | {after['feasibility_today']}, {after['data_readiness']}, {after['priority_score']}, {after['priority_rank']} |",
         f"| Markets measured / partial / proxy-only / dark | {before['markets_measured']} / {before['markets_partial']} / {before['markets_proxy_only']} / {before['markets_dark']} | {after['markets_measured']} / {after['markets_partial']} / {after['markets_proxy_only']} / {after['markets_dark']} |", "",
         "## What the first return says against the planning scenario", "",
@@ -115,7 +118,8 @@ def main() -> int:
         "organization-level filings (ADR-025).", "",
         "## What the experiment does not show", "",
         "- A real federation's return would carry its own errors. This one is built to pass every check, so the walkthrough shows the path, not the friction.",
-        "- The board still names the gate it had (a proxy return). Once a first return arrives, the gate Anna sets for Italy should move to seasons of minimum return.",
+        f"- Italy's board milestone is {GATE.get(before['board_gate'], before['board_gate'])}: {STATE.get(before['board_gate_status'], before['board_gate_status'])} in the published build, "
+        f"{STATE.get(after['board_gate_status'], after['board_gate_status'])} on the copy.",
     ]
     REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Italy: {before['status']} -> {after['status']}; return {reported} players; scenario {low} to {high}; truth {truth}; wrote {REPORT.relative_to(ROOT)}")

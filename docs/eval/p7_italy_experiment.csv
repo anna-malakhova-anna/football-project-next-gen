@@ -8,9 +8,9 @@ scenario_low,29,
 scenario_high,79,
 scenario_direction,FLAT,
 scenario_comparables,AT|DE|ES,
-board_lane,LATER,LATER
-board_gate,PROXY_RETURN,PROXY_RETURN
-board_gate_status,NOT_YET,NOT_YET
+board_lane,NEXT,NEXT
+board_gate,MIN_RETURN_SEASONS,MIN_RETURN_SEASONS
+board_gate_status,NOT_YET,MET
 feasibility_today,1,4
 data_readiness,1,1
 priority_score,3,6

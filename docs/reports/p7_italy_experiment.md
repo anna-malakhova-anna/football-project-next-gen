@@ -15,7 +15,7 @@ minimum-return template with the same validator as every contract, and the globa
 | Participation source | none | GMP_MINIMUM_RETURN |
 | Participation direction | NOT_MEASURED | NOT_DETECTABLE |
 | Planning scenario | 29 to 79 players, FLAT | none (the market now has data) |
-| Board | LATER, gate PROXY_RETURN: NOT_YET | LATER, gate PROXY_RETURN: NOT_YET |
+| Board | Next, a first season of counts: not yet met | Next, a first season of counts: met |
 | Priority (feasibility, readiness, score, rank) | 1, 1, 3, 16 | 4, 1, 6, 7 |
 | Markets measured / partial / proxy-only / dark | 5 / 2 / 9 / 6 | 5 / 3 / 9 / 5 |
 
@@ -30,4 +30,4 @@ organization-level filings (ADR-025).
 ## What the experiment does not show
 
 - A real federation's return would carry its own errors. This one is built to pass every check, so the walkthrough shows the path, not the friction.
-- The board still names the gate it had (a proxy return). Once a first return arrives, the gate Anna sets for Italy should move to seasons of minimum return.
+- Italy's board milestone is a first season of counts: not yet met in the published build, met on the copy.

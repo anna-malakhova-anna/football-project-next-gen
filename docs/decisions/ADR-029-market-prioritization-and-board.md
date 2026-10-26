@@ -38,4 +38,4 @@
 ## Questions for Anna
 1. ~~The rubric's thresholds and the privacy-risk levels.~~ **Decided by Anna 2026-10-26: the levels stand (China 3; EU, UK and Swiss player-level returns 4).**
 2. ~~Whether Measured markets belong in the ranking at all, or only in MAINTAIN.~~ **Decided by Anna 2026-10-26: Measured markets stay in the ranking.**
-3. ~~Italy's lane.~~ **Decided by Anna 2026-10-26: Italy moves up one lane, from LATER to NEXT** (new to the program in 2026). Its row is `confirmed` in `gmp_market_roadmap`; its milestone is unchanged (still a club activity return). The other lanes and every score stay drafts.
+3. ~~Italy's lane.~~ **Decided by Anna 2026-10-26: Italy moves up one lane, from LATER to NEXT** (new to the program in 2026). Its row is `confirmed` in `gmp_market_roadmap`. Its milestone now matches the other dark markets in Next: a first season of counts (the minimum return), with the action "find a contact and ask for the minimum return". A minimum-return season now counts toward that milestone in `mart_gmp_board`, as well as a season of player-level filings. The other lanes and every score stay drafts.

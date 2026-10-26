@@ -36,4 +36,4 @@ Italy's Discovery decision is to ask only for the minimum return: counts by regi
 - **Scenario:** retired, since the market now has data.
 - **Priority:** the draft rose from 3 (rank 16) to 6 (rank 7), with feasibility going from 1 to 4.
 - **Size:** the return reports **396 players**. Italy's planning scenario was **29 to 79**, so the scenario missed by a factor of about 5. This is the same story as the evaluation (ADR-026), told for one market.
-- **Not shown:** a real federation's return would carry its own errors. This one is built to pass, so the walkthrough shows the path, not the friction. Italy's board gate stays "proxy return filed" until Anna moves it to "seasons of minimum return".
+- **Not shown:** a real federation's return would carry its own errors. This one is built to pass, so the walkthrough shows the path, not the friction. Italy's board milestone was later set to "a first season of counts" (Anna, 2026-10-26; ADR-029). A minimum-return season counts toward it, so on the copy the milestone is met.

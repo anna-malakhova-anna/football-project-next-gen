@@ -2,7 +2,8 @@
 -- gate from gmp_market_roadmap (a DRAFT until Anna sets it), its priority from mart_gmp_priority, and the gate's current value, status and bar fill
 -- computed here from the data, never typed:
 --   COUNTING_GRADE_AT_LEAST  the counting score against the lowest score of the target grade band
---   MIN_RETURN_SEASONS       seasons in which a participation source filed for the market (0 when the market has none: a known zero)
+--   MIN_RETURN_SEASONS       seasons in which a participation source filed for the market, or a minimum return arrived (ADR-030); 0 when the market has
+--                            neither (a known zero)
 --   PROXY_RETURN             1 when clubs filed a proxy return for the market in the latest season, else 0
 -- gate_status is MET, NOT_YET, or PENDING when the value the gate needs is missing (never shown as 0).
 with roadmap as (select * from {{ ref('gmp_market_roadmap') }}),
@@ -11,8 +12,14 @@ status as (select * from {{ ref('mart_gmp_market_status') }}),
 
 seasons as (
 
-    select country_code, count(distinct season_year) filter (where reporting_orgs > 0) as seasons_filed
-    from {{ ref('dq_scorecard_country') }} where purpose = 'COUNT' and dimension = 'PURPOSE_SCORE' group by 1
+    select country_code, count(distinct season_year) as seasons_filed
+    from (
+        select country_code, season_year from {{ ref('dq_scorecard_country') }}
+        where purpose = 'COUNT' and dimension = 'PURPOSE_SCORE' and reporting_orgs > 0
+        union
+        select country_code, season_year from {{ ref('stg_gmp_minimum_return') }}
+    )
+    group by 1
 
 ),
 
