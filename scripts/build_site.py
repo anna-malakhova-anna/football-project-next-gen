@@ -224,7 +224,7 @@ def lens_scope(inner: str, default: str, demo: str, demo_slide: str = "") -> str
               f'<button type="button" data-set-lens="club" aria-pressed="{"true" if default == "club" else "false"}">Club lens</button>'
               f'<button type="button" data-set-lens="privacy" aria-pressed="{"true" if default == "privacy" else "false"}">Privacy lens</button></div>')
     go = f' <a class="demo-go" href="#view={esc(demo_slide)}">Start the 5-minute path \u2192</a>' if demo_slide else ""
-    path = f'<aside class="demo-path"><span><b>5-minute path.</b> {esc(demo)}</span>{go}</aside>'
+    path = f'<aside class="demo-path"><span><b>5-minute path.</b> {esc(demo)}</span>{go}</aside>' if demo else ""      # a page may have no slide tour (Global outlook: ADR-034)
     return f'{path}{toggle}<div class="lens-scope" data-lens-active="{default}">{inner}</div>'
 
 
@@ -262,16 +262,31 @@ body.summary .ps-sec .vcard-question{position:absolute;width:1px;height:1px;marg
 body.summary .ps-tabs{top:0}
 body.summary main{padding-top:0}
 body.summary .lens-toggle,body.summary .demo-path{margin-top:24px}
+/* the five-minute overview (ADR-034): the summary page's stat cards, five across on a wide screen */
+body.summary .g-takeaways{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+body.summary a.g-take{display:block;text-decoration:none;color:var(--s-text)}
+body.summary a.g-take:hover{box-shadow:var(--s-shadow)}
+body.summary a.g-take .n{font-size:56px}
+body.summary .g-more{font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-accent-ink)}
+body.summary #s-overview{margin-top:32px}
 """
 
 
 def global_hero(pg: dict) -> str:
     """The Global outlook's banner and section bar, built like the Data product summary's: every number is an insight value filled by site_cards.fill."""
     record = "".join(f"<div class='ps-rec'><div class='n'>{esc(site_cards.fill(r['value'], None, None))}</div><div class='l'>{esc(r['label'])}</div></div>" for r in pg["record"])
-    tabs = "".join(f"<a href='#s-{esc(s['id'])}'{' class=on' if i == 0 else ''}>{esc(s['tab'])}</a>" for i, s in enumerate(pg["sections"]))
+    tabs = "<a href='#s-overview' class=on>Overview</a>" + "".join(f"<a href='#s-{esc(s['id'])}'>{esc(s['tab'])}</a>" for s in pg["sections"])
     return (f"<header class='ps-hero'><div class='ps-inner'><p class='ps-eyebrow'>{esc(site_cards.fill(pg['hero_eyebrow'], None, None))}</p><h1>{esc(pg['hero_title'])}</h1>"
             f"<span class='ps-badge'>{esc(pg['hero_badge'])}</span><p class='ps-pitch'>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</p>"
             f"<div class='ps-record'>{record}</div></div></header><nav class='ps-tabs' aria-label='Sections'><div class='ps-inner'>{tabs}</div></nav>")
+
+
+def global_overview(pg: dict) -> str:
+    """The five-minute overview (ADR-034): one stat card per question, its key number and what it means, linking down to its section. Numbers are insight values."""
+    cards = "".join(f"<a class='ps-leader g-take' href='#s-{esc(t['section'])}'><div class='lab'>{esc(t['label'])}</div><div class='n'>{esc(site_cards.fill(t['stat'], None, None))}</div>"
+                    f"<p>{esc(site_cards.fill(t['text'], None, None))}</p><span class='g-more'>See the detail &darr;</span></a>" for t in pg["overview"])
+    return (f"<section class='ps-sec' id='s-overview'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>{esc(pg['overview_kicker'])}</p>"
+            f"<h2>{esc(pg['overview_h2'])}</h2></div></header><div class='ps-leaders g-takeaways'>{cards}</div></section>")
 
 
 def global_sections(blocks: list[str], pg: dict, copy: dict) -> str:
@@ -296,7 +311,7 @@ def phase5_pages(blocks: dict, data: dict) -> dict:
         title = PAGE_HEAD[slug][0]
         pg = pages[slug]
         if slug == "global":       # the summary look: the banner carries the intro, the sections carry the cards (ADR-033)
-            out[slug] = (title, lens_scope(global_sections(blocks[slug], pg, site_cards.load_copy()), "club", pg["demo_text"], pg["demo_slide"]))
+            out[slug] = (title, global_overview(pg) + lens_scope(global_sections(blocks[slug], pg, site_cards.load_copy()), "club", pg["demo_text"], pg["demo_slide"]))
             continue
         intro = f"<p class='note intro'><b>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</b></p>"
         if slug == "product":

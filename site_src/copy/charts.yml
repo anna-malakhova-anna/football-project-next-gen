@@ -562,11 +562,11 @@ pages:
 # The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf): a vertical story, one section per tab component.
 # Headlines are the tab's own sentences; the one plain sentence under each is new draft copy for Anna. {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py).
   global:
-    status: final    # banner, numbers and section labels approved by Anna 2026-10-26 (ADR-033)
+    status: draft    # the five-minute overview is new (ADR-034); banner and section labels were approved 2026-10-26 (ADR-033)
     intro_template: 'We can read {G1.n_readable} of the {G1.n_markets} markets where NFL clubs hold rights, and none shows a change we can tell from noise. Markets with no data get a plan, not a number.'
     fallback_intro: We can read only some of the markets where NFL clubs hold rights. Markets with no data get a plan, not a number.
-    demo_text: See which markets we can read, why growth is hard to tell, what a guess would have said, then the plan.
-    demo_slide: G0-1
+    demo_text: ''          # no slide tour on this tab: the five-minute overview below the banner replaces it (ADR-034)
+    demo_slide: ''
     hero_eyebrow: 'Global outlook · {G0.n_markets} NFL program markets · synthetic data'
     hero_title: 'Flag football abroad: what we can read'
     hero_badge: Synthetic data
@@ -575,6 +575,14 @@ pages:
       - {value: '{G1.n_readable}', label: Markets we can read}
       - {value: '{G2.mdc_pct}', label: Change needed to tell}
       - {value: '{G5.n_now}', label: Markets in the first lane}
+    overview_kicker: In five minutes
+    overview_h2: What the global outlook says
+    overview:
+      - {section: markets, label: Markets we can read, stat: '{G1.n_readable} of {G0.n_markets}', text: '{G1.n_proxy_only} more only report club activity, and {G1.n_dark} send nothing at all.'}
+      - {section: growth, label: Change needed to tell, stat: '{G2.mdc_pct}', text: '{G2.n_moving} of {G2.n_with_data} markets show growth we can tell from noise. More clubs filing every season is what would change that.'}
+      - {section: guess, label: Guesses right in our test, stat: '{G3.n_inside} of {G3.n_markets}', text: 'A number for a market with no data would mostly be wrong. So those markets get a plan, not a number.'}
+      - {section: quality, label: Markets close to readable, stat: '{G4.n_close}', text: '{G4.close_markets} are {G4.clubs_needed_text} filing each away from being readable.'}
+      - {section: next, label: Markets in the first lane, stat: '{G5.n_now}', text: 'Ask them for data now. A market with none starts with one season of counts.'}
     sections:
       - {card: G0, id: map, tab: Map}
       - {card: G1, id: markets, tab: Markets}
