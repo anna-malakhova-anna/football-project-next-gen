@@ -428,6 +428,89 @@ charts:
     caution: "The fourth step is a simulation on a copy, and the last step is only a proposal."
     analyst_md: |
       From `docs/product/feedback-loop.md` and `products/CHANGELOG.md`. The simulation is `make fix-list-demo`.
+
+  # ---- Phase 7: the Global outlook tab (scripts/site_global.py). DRAFT: Anna reviews every word before it is final.
+  G1:
+    status: draft
+    headline_template: 'We can read {n_readable} of {n_markets} markets. {n_dark} send us nothing at all.'
+    fallback_headline: We can read only some of the program's markets.
+    slide_headline_templates: {}
+    question: Which markets can we read?
+    means_club: Each tile is a market where NFL clubs hold rights. A coloured tile has player data and shows its grade. An outline means clubs report activity but no players. A dashed outline means nothing arrives.
+    means_privacy: Only the coloured tiles send any data about players. The other markets send nothing about people at all.
+    action_club: Use the board on this page to pick the next markets to ask for data.
+    action_privacy: Check which privacy law applies before a market sends data about players. Start with counts only.
+    caution: This is flag football only. A market with no data is not a market with no players.
+    analyst_md: 'Status per market for the latest season (ADR-025): MEASURED needs a participation source that filed and a counting grade of C or better
+      (`dq_scorecard_country`, COUNT purpose); PARTIAL has a source but a lower grade, no filing, or only a minimum return (ADR-030); PROXY_ONLY has a club
+      activity return with a signal; DARK has nothing. The markets are the 22 of the public Global Markets Program page; clubs are anonymous (ADR-024).
+
+      '
+  G2:
+    status: draft
+    headline_template: '{n_moving} of {n_with_data} markets show a change we can tell from noise.'
+    fallback_headline: No market shows a change we can tell from noise yet.
+    slide_headline_templates: {}
+    question: Is any market growing?
+    means_club: Each bar is one market's growth since last season, counting only clubs that sent a file both times. The dashed lines show the change needed to count, {mdc_pct} up or down.
+    means_privacy: Growth is read from counts per club. No child's record is needed to read it.
+    action_club: To read growth, get more clubs in each market to send a file every season.
+    action_privacy: No action. These figures hold no data about any person.
+    caution: With so few clubs per market, one season's change is mostly noise. Wait for more seasons before you act on it.
+    analyst_md: 'Like-for-like growth over organizations with participants in both seasons (`mart_participation_by_org`). The noise floor is the pooled sample
+      standard deviation of like-for-like growth over every Measured market and earlier season pair; a market is growing or shrinking only beyond z = 2 times it
+      (ADR-025, ADR-026). The club proxy direction is computed separately and never combined.
+
+      '
+  G3:
+    status: draft
+    headline_template: 'A guess for markets with no data was right in {n_inside} of {n_markets}.'
+    fallback_headline: A guess for markets with no data was mostly wrong.
+    slide_headline_templates: {}
+    question: What would a number for a dark market have said?
+    means_club: Each bar is the guess we would have made from similar markets. The dot is the true number in our made-up test world. The guessed direction was wrong in {n_direction_wrong} of {n_markets}.
+    means_privacy: The guess uses no data from the market itself. That is exactly why it cannot be trusted.
+    action_club: Do not quote a number for a market that sends no data. Ask it for one season of counts instead.
+    action_privacy: No action. The test uses made-up data only.
+    caution: The test world makes some markets move against their neighbours on purpose. It shows what could go wrong, not what will.
+    analyst_md: 'Planning scenario (ADR-025 section 3): comparables are Measured markets in the same region and legal regime (else region, else all); the range is
+      the lowest to highest per-club rate times the market''s clubs with rights. Graded against the synthetic answer key in `eval_gmp_scenario_summary`, with no
+      pass threshold (ADR-026). The table below also grades the club activity direction against the truth.
+
+      '
+  G4:
+    status: draft
+    headline_template: '{close_markets} are close: {clubs_needed_text} filing each would make them readable.'
+    fallback_headline: Some markets would be readable if more of their clubs sent a file.
+    slide_headline_templates: {}
+    question: How do we make a market readable?
+    means_club: Each line is one market's counting score by season. The dashed line is the bar a market must clear to be read. Scores drop when clubs do not send a file.
+    means_privacy: Each federation gets its own report card with its top fixes. It never sees another market's data.
+    action_club: Ask the federations below the bar to get their missing clubs to send a file.
+    action_privacy: Send each report card only to its own federation.
+    caution: A score above the bar means the data can be counted. It does not mean every player is in it.
+    analyst_md: 'Counting score per market and season from `dq_scorecard_country` (the source scorecard''s method grouped by country). Timeliness, the share of known
+      clubs that filed, holds most markets back. The partner report card (`share_partner__federation_report_card`, ADR-027) is not on this site: each federation
+      receives only its own.
+
+      '
+  G5:
+    status: draft
+    headline_template: '{n_now} markets are on the board for now. Every score is still a draft.'
+    fallback_headline: The market board is a draft until its scores are set.
+    slide_headline_templates: {}
+    question: What do we do next, and how?
+    means_club: The board puts each market in a lane, from now to later, with a lane for markets to keep. Each tile names the next step. Canada and Italy show the steps from first contact to data.
+    means_privacy: A new market starts with counts only. No child's personal data is asked for.
+    action_club: Set the scores and lanes, then ask the markets in the first lane for data.
+    action_privacy: Settle the privacy questions for each market before it sends data about players.
+    caution: Lanes and scores are drafts until Anna sets them. Italy's data is a test on a copy, not real.
+    analyst_md: 'Priority = value + feasibility + readiness - privacy risk (the data products page''s method), draft scores from `gmp_priority_rubric`, Anna''s scores in
+      `gmp_market_priority_overrides` (ADR-029). Milestone progress is computed in `mart_gmp_board`. The walkthroughs follow the onboarding playbook; Italy''s
+      later stages ran on a copy of the warehouse (ADR-030, `docs/reports/p7_italy_experiment.md`).
+
+      '
+
 pages:
   quality:
     status: final
@@ -462,6 +545,13 @@ pages:
 
 # The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf): a vertical story, one section per tab component.
 # Headlines are the tab's own sentences; the one plain sentence under each is new draft copy for Anna. {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py).
+  global:
+    status: draft
+    intro_template: 'We can read {G1.n_readable} of the {G1.n_markets} markets where NFL clubs hold rights, and none shows a change we can tell from noise. Markets with no data get a plan, not a number.'
+    fallback_intro: We can read only some of the markets where NFL clubs hold rights. Markets with no data get a plan, not a number.
+    demo_text: See which markets we can read, why growth is hard to tell, what a guess would have said, then the plan.
+    demo_slide: G1-1
+
 summary:
   status: draft
   title: "Flag Football: a data product, end to end"

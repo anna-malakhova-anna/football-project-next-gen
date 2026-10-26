@@ -22,9 +22,9 @@ PUBLIC = ROOT / "public"
 SITE = ROOT / "site"
 COPY = ROOT / "site_src" / "copy" / "charts.yml"
 OUT = ROOT / "docs" / "product" / "copy-review.md"
-PAGES = [("quality", "Data quality"), ("sure", "How sure are we?"), ("markets", "Club markets"), ("privacy", "Privacy by design"), ("product", "Data product")]
+PAGES = [("quality", "Data quality"), ("sure", "How sure are we?"), ("markets", "Club markets"), ("privacy", "Privacy by design"), ("product", "Data product"), ("global", "Global outlook")]
 # The 5-minute path of each page = the charts its `demo_text` in charts.yml names, in order (checked by hand against the text printed beside each page below).
-DEMO = {"quality": ["Q1", "Q3"], "sure": ["U1", "U3"], "markets": ["M1", "M3", "M5"], "privacy": ["P3", "P1"], "product": ["D1", "D2", "D4", "D6", "D7"]}
+DEMO = {"quality": ["Q1", "Q3"], "sure": ["U1", "U3"], "markets": ["M1", "M3", "M5"], "privacy": ["P3", "P1"], "product": ["D1", "D2", "D4", "D6", "D7"], "global": ["G1", "G2", "G3", "G4", "G5"]}
 SLOTS = [("headline", "headline_template"), ("question", "question"), ("means_club", "means_club"), ("means_privacy", "means_privacy"),
          ("action_club", "action_club"), ("action_privacy", "action_privacy"), ("caution", "caution")]
 LIMIT = 9.0

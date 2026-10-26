@@ -21,6 +21,10 @@ cost as (
     select 100 * ((select f1 from f order by variant_id limit 1) - (select f1 from f where in_standard limit 1)) as pts
 ),
 
+gmp as (
+    select * from {{ ref('eval_gmp_scenario_summary') }} where market_group = 'ALL'
+),
+
 rows_ as (
     select 'U3' as chart_id, 'both' as lens, 'n_checks' as field, cast(n_checks as varchar) as value_display, n_checks * 1.0 as value_raw from checks
     union all select 'U3', 'both', 'n_inside', cast(n_inside as varchar), n_inside * 1.0 from checks
@@ -32,4 +36,14 @@ rows_ as (
            round(pts, 2) from cost
 )
 
-select chart_id, lens, field, value_display, value_raw, 'NONE' as suppressed from rows_ order by chart_id, field
+, gmp_rows as (
+    -- Phase 7 (G3): the planning scenario graded against the synthetic answer key (ADR-026)
+    select 'G3' as chart_id, 'both' as lens, 'n_markets' as field, cast(markets as varchar) as value_display, markets * 1.0 as value_raw from gmp
+    union all select 'G3', 'both', 'n_inside', cast(truth_in_range as varchar), truth_in_range * 1.0 from gmp
+    union all select 'G3', 'both', 'n_above', cast(truth_above_range as varchar), truth_above_range * 1.0 from gmp
+    union all select 'G3', 'both', 'n_direction_wrong', cast(direction_wrong as varchar), direction_wrong * 1.0 from gmp
+    union all select 'G3', 'both', 'n_proxy_known', cast(proxy_direction_known as varchar), proxy_direction_known * 1.0 from gmp
+    union all select 'G3', 'both', 'n_proxy_right', cast(proxy_direction_right as varchar), proxy_direction_right * 1.0 from gmp
+)
+
+select chart_id, lens, field, value_display, value_raw, 'NONE' as suppressed from (select * from rows_ union all select * from gmp_rows) order by chart_id, field

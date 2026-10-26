@@ -3,13 +3,14 @@ import ast
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
-LAYERS = ["site_p5_data", "site_data", "site_render", "site_rules", "site_charts", "site_phase5", "build_site"]
+LAYERS = ["site_global", "site_p5_data", "site_data", "site_render", "site_rules", "site_charts", "site_phase5", "build_site"]
 LOWER_ONLY = {   # module -> the site modules it may import
+    "site_global": set(),
     "site_p5_data": set(),
-    "site_data": {"site_p5_data"},
-    "site_render": {"site_phase5", "site_p5_data", "site_cards"},
+    "site_data": {"site_p5_data", "site_global"},
+    "site_render": {"site_phase5", "site_p5_data", "site_cards", "site_global"},
     "site_rules": {"site_p5_data", "site_data", "site_render"},
-    "site_charts": {"site_phase5", "site_product", "site_render"},
+    "site_charts": {"site_phase5", "site_product", "site_render", "site_global"},
     "site_phase5": {"site_p5_data"},
 }
 

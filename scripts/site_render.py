@@ -8,7 +8,7 @@ import decimal
 import html
 import json
 
-from scripts import site_cards, site_phase5 as P5
+from scripts import site_cards, site_global as G, site_phase5 as P5
 
 
 # Plain labels for code names. Values are relabelled in the exported rows (so charts and tables agree); headers are relabelled when a table is drawn.
@@ -86,6 +86,7 @@ COLUMN_LABELS = {
     "true_survival": "True",
 }
 COLUMN_LABELS.update(P5.COLUMN_LABELS)
+COLUMN_LABELS.update({k: v for k, v in G.COLUMN_LABELS.items() if k not in COLUMN_LABELS})
 VALUE_LABELS.update(P5.VALUE_LABELS)
 ID_COLUMNS = {"participation_year", "entry_year", "years_since_entry", "years_since_launch", "months_since_event", "months_since_origin", "horizon_months", "step"}
 RATE_COLUMNS = P5.RATE_COLUMNS | {"girls_share_of_youth", "km_survival", "km_survival_ci_low", "km_survival_ci_high", "cohort_retention_pct", "cohort_retention_among_eligible_pct", "household_link_rate",

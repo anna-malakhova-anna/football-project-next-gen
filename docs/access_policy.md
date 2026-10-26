@@ -195,6 +195,17 @@ policies (design only; not implemented).
 | `plan_status` | CAVEAT_LABEL |
 | `rationale` | CAVEAT_LABEL |
 
+**`share_exec__gmp_chart_insights`**
+
+| Column | Treatment |
+|---|---|
+| `chart_id` | DIMENSION |
+| `lens` | DIMENSION |
+| `field` | DIMENSION |
+| `value_display` | DIMENSION |
+| `value_raw` | DERIVED |
+| `suppressed` | SUPPRESSION_FLAG |
+
 **`share_exec__gmp_markets_canada`**
 
 | Column | Treatment |

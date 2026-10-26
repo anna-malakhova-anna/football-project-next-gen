@@ -4,7 +4,7 @@ Split out of scripts/build_site.py without changing a line. A spec may not calcu
 """
 from __future__ import annotations
 
-from scripts import site_phase5 as P5, site_product
+from scripts import site_global as G, site_phase5 as P5, site_product
 from scripts.site_render import esc
 
 
@@ -294,6 +294,7 @@ def charts():
                                               "A flat pre-period therefore rests on a single point.")
     C["market_quadrants"]["note"] = note_market_quadrants
     C.update(P5.charts())
+    C.update(G.charts())
     C.update(site_product.charts())
     return C
 

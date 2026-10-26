@@ -18,8 +18,8 @@ from playwright.sync_api import sync_playwright
 
 from scripts.site_shots import SITE, pdf_pages, serve
 
-PAGES = ["product", "quality", "sure", "markets", "privacy"]
-CI_PAGES = ["quality", "markets", "product"]
+PAGES = ["product", "quality", "sure", "markets", "privacy", "global"]
+CI_PAGES = ["quality", "markets", "product", "global"]
 MAX_PRINT_PAGES = 12
 MAX_THUMB_PX = 320
 BANNED = ["interval", "lower bound", "upper bound", "p-chart", "control limit", "sigma", "dimension", "registry", "cumulative share", "additive", "allocated", "attribution", "imputation",
@@ -299,7 +299,7 @@ def check_roadmap(page, base: str) -> list[str]:
 
 def load_insights() -> set[str]:
     out: set[str] = set()
-    for name in ("chart_insights_club", "chart_insights_privacy", "chart_insights_eval"):
+    for name in ("chart_insights_club", "chart_insights_privacy", "chart_insights_eval", "chart_insights_exec_global"):
         for r in json.loads((SITE / "data" / f"{name}.json").read_text())["rows"]:
             out.add(str(r["value_display"]))
     return out

@@ -29,7 +29,7 @@ from pathlib import Path
 
 import duckdb
 
-from scripts import site_cards, site_phase5 as P5, site_product, site_summary, site_tables
+from scripts import site_cards, site_global as G, site_phase5 as P5, site_product, site_summary, site_tables
 from scripts.common import DB, ROOT
 from scripts.site_charts import charts
 from scripts.site_rules import check_brand_boundary, check_dataset, check_spec
@@ -42,7 +42,7 @@ LIBS = ["https://cdn.jsdelivr.net/npm/vega@5", "https://cdn.jsdelivr.net/npm/veg
 
 
 # ------------------------------------------------------------------ pages
-PAGES = [("product", "Data product"), ("index", "Overview"), ("acquisition", "Acquisition"), ("value", "Value"), ("audience", "Audience"), ("participation", "Participation"), *P5.PAGES, ("trust", "Trust")]
+PAGES = [("product", "Data product"), ("index", "Overview"), ("acquisition", "Acquisition"), ("value", "Value"), ("audience", "Audience"), ("participation", "Participation"), *P5.PAGES, *G.PAGES, ("trust", "Trust")]
 # page title (display type) and the one-sentence question under it (ui-spec section 5)
 PAGE_HEAD = {
     "index": ("Counting flag football's fans", "What this project is and how to read it."),
@@ -53,6 +53,7 @@ PAGE_HEAD = {
     "trust": ("Data trust and governance", "Why can these numbers be trusted?"),
     "product": ("Data product", "Given these business goals, what data products would you build, in what order, for whom, under what privacy rules, and how would you know they are working?"),
     **P5.PAGE_HEAD,
+    **G.PAGE_HEAD,
     "glossary": ("Glossary", "What each plain term on this site means, and what analysts call it."),
     "appendix": ("Appendix: school and recreation programs", "A stretch source: how many children do schools and recreation departments report?"),
 }
@@ -64,6 +65,7 @@ APPENDIX = [("appendix", "Appendix"), ("glossary", "Glossary")]          # a str
 
 NAV_GROUPS = [
     ("Data product", [("product.html", "Data product", "product")]),
+    ("Global outlook", [("global.html", "Global outlook", "global")]),
     ("Results", [("participation.html", "Participation", "participation"), ("sure.html", "How sure", "sure"), ("acquisition.html", "Acquisition", "acquisition"), ("audience.html", "Audience", "audience")]),
     ("Data quality", [("quality.html", "Data quality", "quality"), ("markets.html", "Club markets", "markets")]),
     ("Privacy", [("privacy.html", "Privacy by design", "privacy"), ("trust.html", "Trust and governance", "trust")]),
@@ -253,7 +255,7 @@ def group_cards(blocks: list[str]) -> str:
 def phase5_pages(blocks: dict, data: dict) -> dict:
     out = {}
     pages = site_cards.load_pages()
-    for slug in ("product", "quality", "sure", "markets", "privacy"):
+    for slug in ("product", "quality", "sure", "markets", "privacy", "global"):
         inner = ("<ul class='vgoals'>" + "".join(f"<li><b>{g}</b> {esc(t)}</li>" for g, t in site_product.GOALS.items()) + "</ul>" if slug == "product" else "") + group_cards(blocks[slug])
         if slug == "privacy":
             inner += ("<h2>Share-policy check</h2>" + table_html(data["policy_results"])
@@ -339,7 +341,7 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
                   "audience_month": str(max(r["month"] for r in rows("audience_series")))[:7]})
     diag = {r["measure"]: r["value"] for r in rows("fan_diagnostics")}
     facts.update({"fandom_treated": diag["fandom_matched_treated"], "fandom_comparison": diag["fandom_matched_comparison"]})
-    site_cards.configure(data["chart_insights_club"]["rows"] + data["chart_insights_privacy"]["rows"] + data["chart_insights_eval"]["rows"])
+    site_cards.configure(data["chart_insights_club"]["rows"] + data["chart_insights_privacy"]["rows"] + data["chart_insights_eval"]["rows"] + data["chart_insights_exec_global"]["rows"])
     relabel(data)                       # plain labels for every code name, after the facts above have used the codes
     if out.exists():
         shutil.rmtree(out)

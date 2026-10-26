@@ -645,3 +645,15 @@ models:
       - {name: what_happened, meta: {pii: none}}
       - {name: market_status_now, meta: {pii: none}}
       - {name: counting_grade_now, meta: {pii: none}}
+
+  - name: share_exec__gmp_chart_insights
+    description: >
+      Phase 7 (DP6, step 9): the numbers inside the Global outlook cards' headline sentences (G1, G2, G4, G5), one row per chart and field, rounded and
+      worded in SQL. G3 reads the answer key, so its numbers are in eval_chart_insights.
+    columns:
+      - {name: chart_id, meta: {pii: none}, data_tests: [not_null]}
+      - {name: lens, meta: {pii: none}}
+      - {name: field, meta: {pii: none}}
+      - {name: value_display, meta: {pii: none}}
+      - {name: value_raw, meta: {pii: none}}
+      - {name: suppressed, meta: {pii: none}}

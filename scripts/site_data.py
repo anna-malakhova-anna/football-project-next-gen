@@ -5,7 +5,7 @@ analyst aggregate, a whitelisted evaluation summary or governance metadata; `sit
 """
 from __future__ import annotations
 
-from scripts import site_p5_data as P5
+from scripts import site_global as G, site_p5_data as P5
 
 APPROVED_AGGREGATES = {"share_analyst.share_analyst__fan_event_study", "share_analyst.share_analyst__fan_acquisition_event_study"}
 EVAL_WHITELIST = {
@@ -22,6 +22,9 @@ APPROVED_AGGREGATES |= P5.APPROVED
 APPROVED_AGGREGATES |= {"phase6.mart_goal_scorecard", "phase6.mart_product_health", "phase6.mart_product_adoption"}
 EVAL_WHITELIST |= P5.EVAL
 GOVERNANCE_WHITELIST |= P5.GOVERNANCE
+# Phase 7: the Global outlook tab reads DP6's exec ports, its own evaluation summaries and the program's market list (scripts/site_global.py)
+EVAL_WHITELIST |= G.EVAL
+GOVERNANCE_WHITELIST |= G.GOVERNANCE
 GOVERNANCE_WHITELIST |= {"reference.product_prioritization", "reference.product_targets", "reference.age_consent_rules", "reference.product_roadmap", "reference.roadmap_gap_links", "reference.dq_grade_bands"}
 
 def _D(name, sql, relations, kind, title):
@@ -203,6 +206,7 @@ DATASETS = [
 ]
 
 DATASETS += P5.DATASETS
+DATASETS += G.DATASETS
 DATASETS += [
     _D("product_prioritization", """
         select product_id, product_name, value_to_goals, feasibility_today, data_readiness, privacy_risk, value_to_goals + feasibility_today + data_readiness - privacy_risk as total,

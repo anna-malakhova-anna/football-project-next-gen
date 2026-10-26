@@ -642,3 +642,9 @@ exec,share_exec__gmp_walkthrough,artifact,Y,DIMENSION
 exec,share_exec__gmp_walkthrough,what_happened,Y,CAVEAT_LABEL
 exec,share_exec__gmp_walkthrough,market_status_now,Y,DERIVED
 exec,share_exec__gmp_walkthrough,counting_grade_now,Y,DERIVED
+exec,share_exec__gmp_chart_insights,chart_id,Y,DIMENSION
+exec,share_exec__gmp_chart_insights,lens,Y,DIMENSION
+exec,share_exec__gmp_chart_insights,field,Y,DIMENSION
+exec,share_exec__gmp_chart_insights,value_display,Y,DIMENSION
+exec,share_exec__gmp_chart_insights,value_raw,Y,DERIVED
+exec,share_exec__gmp_chart_insights,suppressed,Y,SUPPRESSION_FLAG
