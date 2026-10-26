@@ -431,7 +431,7 @@ charts:
 
   # ---- Phase 7: the Global outlook tab (scripts/site_global.py). Approved as final by Anna 2026-10-26.
   G0:
-    status: draft
+    status: final
     headline_template: 'NFL clubs hold rights in {n_markets} markets on {n_continents} continents.'
     fallback_headline: NFL clubs hold rights in markets on several continents.
     slide_headline_templates: {}

@@ -1,6 +1,6 @@
 # ADR-032: A map of the program markets at the top of the Global outlook tab
 
-- **Status:** Accepted, 2026-10-26, at Anna's request: a map at the top of the tab, with the countries where NFL clubs hold rights highlighted and named, in the site's colours, and a view per continent. **The card's copy (G0) is `status: draft` until Anna approves it.**
+- **Status:** Accepted, 2026-10-26, at Anna's request: a map at the top of the tab, with the countries where NFL clubs hold rights highlighted and named, in the site's colours, and a view per continent. **The card's copy (G0) was approved as final by Anna the same day.**
 - **Synthetic data.** The statuses and grades on the map are the project's synthetic results; the country outlines are real public geography.
 
 ## Decisions
