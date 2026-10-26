@@ -451,6 +451,12 @@
    "rows": 22
   },
   {
+   "name": "gmp_map",
+   "source": "reference.gmp_map_points, share_exec.share_exec__gmp_markets_canada, share_exec.share_exec__gmp_markets_eu_uk, share_exec.share_exec__gmp_markets_other",
+   "kind": "share_exec",
+   "rows": 22
+  },
+  {
    "name": "gmp_growth",
    "source": "share_exec.share_exec__gmp_markets_canada, share_exec.share_exec__gmp_markets_eu_uk, share_exec.share_exec__gmp_markets_other",
    "kind": "share_exec",
@@ -490,7 +496,7 @@
    "name": "chart_insights_exec_global",
    "source": "share_exec.share_exec__gmp_chart_insights",
    "kind": "share_exec",
-   "rows": 13
+   "rows": 15
   },
   {
    "name": "product_prioritization",
