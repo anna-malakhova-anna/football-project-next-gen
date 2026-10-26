@@ -1,6 +1,6 @@
 # ADR-034: The Global outlook's five-minute read is an overview, not a slide tour
 
-- **Status:** Accepted, 2026-10-26, at Anna's request: she found the page itself better than the "5-minute path", and wanted the five-minute read to be an overview that synthesizes the tab rather than a more detailed walk. **The overview's text is `status: draft`** (`pages.global` in `site_src/copy/charts.yml`).
+- **Status:** Accepted, 2026-10-26, at Anna's request: she found the page itself better than the "5-minute path", and wanted the five-minute read to be an overview that synthesizes the tab rather than a more detailed walk. **The overview's text was approved as final by Anna the same day** (`pages.global` in `site_src/copy/charts.yml`).
 
 ## Context
 On every card page, "Start the 5-minute path" opens the full-screen viewer and steps through every slide. On the Global outlook that meant 11 slides: four continent maps and two step-by-step walkthroughs among them. That is the detail, not a summary of it.

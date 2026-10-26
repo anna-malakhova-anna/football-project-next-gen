@@ -562,7 +562,7 @@ pages:
 # The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf): a vertical story, one section per tab component.
 # Headlines are the tab's own sentences; the one plain sentence under each is new draft copy for Anna. {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py).
   global:
-    status: draft    # the five-minute overview is new (ADR-034); banner and section labels were approved 2026-10-26 (ADR-033)
+    status: final    # banner and section labels approved 2026-10-26 (ADR-033); five-minute overview approved 2026-10-26 (ADR-034)
     intro_template: 'We can read {G1.n_readable} of the {G1.n_markets} markets where NFL clubs hold rights, and none shows a change we can tell from noise. Markets with no data get a plan, not a number.'
     fallback_intro: We can read only some of the markets where NFL clubs hold rights. Markets with no data get a plan, not a number.
     demo_text: ''          # no slide tour on this tab: the five-minute overview below the banner replaces it (ADR-034)

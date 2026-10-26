@@ -551,7 +551,7 @@ Page: **Data product** · Chart ID: **D9** · Demo path: **no** (not on the demo
 | Club markets | 15 of 24 markets can be counted reliably, but only about 540 of about 6,790 families can be contacted by their club. The markets are made-up groups of ZIP code areas, not any club's territory. | `pages.markets.intro_template` | Find a market, see why families are not reached, then compare the two lenses. | `final` | [x] approved (final) &nbsp; [ ] edit: |
 | Privacy by design | Asking for birth year instead of full birth date cuts unique records from 99% to 57%. 67% of consent records show exactly what the family agreed to. No legal conclusion is drawn about any organization. | `pages.privacy.intro_template` | See what each field costs, then what is on record about consent. | `final` | [x] approved (final) &nbsp; [ ] edit: |
 | Data product | Three goals become five data products, and each has an owner, a label, health measures and a retirement plan. The first to build is US growth, with intake as its foundation. This tab shows the method using this project's own build, on made-up data. | `pages.product.intro_template` | Goals to products, the method, the first build, children's privacy, and whether it works. | `final` | [x] approved (final) &nbsp; [ ] edit: |
-| Global outlook |  | `pages.global.intro_template` |  | `draft` | [ ] approve &nbsp; [ ] edit: |
+| Global outlook |  | `pages.global.intro_template` |  | `final` | [x] approved (final) &nbsp; [ ] edit: |
 
 ## 4. Roadmap rows
 
