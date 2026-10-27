@@ -49,7 +49,9 @@ DATASETS = [
         with m as ({_union(SHARE_MARKETS)})
         select country_name, {STATUS_LABEL} as status_label, growth_pct as growth_percent, minimum_detectable_change_pct as change_needed,
                -minimum_detectable_change_pct as change_needed_down, {DIRECTION_LABEL} as direction_label,
-               case when growth_pct is null then 'hidden' else cast(growth_pct as varchar) || '%' end as growth_text
+               case when growth_pct is null then 'hidden' else cast(growth_pct as varchar) || '%' end as growth_text,
+               case when status = 'MEASURED' then 'Readable' else 'Data we cannot read yet' end as readable_label,
+               '±' || cast(round(minimum_detectable_change_pct) as bigint) || '%: change needed to count' as line_label
         from m where status in ('MEASURED', 'PARTIAL') order by growth_pct desc nulls last, country_name""", SHARE_MARKETS, "share_exec",
        "Like-for-like growth since the previous season, against the change needed to tell growth from noise"),
     _D("gmp_eval", """
@@ -196,26 +198,34 @@ def _map_spec(view=None, thumb=False):
 
 def _growth_spec(thumb):
     y = {"field": "country_name", "type": "nominal", "title": None, "sort": {"field": "growth_percent", "order": "descending"}, "axis": {"labelFontSize": 12 if thumb else 14}}
+    rule = {"type": "rule", "strokeDash": [4, 3], "color": "#B2182B"}
+    label = {"type": "text", "color": "#B2182B", "fontSize": 11 if thumb else 12, "baseline": "bottom", "dy": -2}
     return {"data": _src("gmp_growth"), "width": "container", "height": 200 if thumb else "container", "autosize": {"type": "fit", "contains": "padding"},
             "layer": [
-                {"mark": {"type": "bar", "color": "#3D7CC9", "height": {"band": 0.6}},
+                # pale bars: Partial markets, whose data we cannot read yet (ADR-039); both dashed lines always on the axis, labelled once above the plot
+                {"mark": {"type": "bar", "height": {"band": 0.6}},
                  "encoding": {"x": {"field": "growth_percent", "type": "quantitative", "title": None if thumb else "Growth since last season, same clubs (%)"}, "y": y,
-                              "tooltip": [{"field": "country_name", "title": "Market"}, {"field": "growth_text", "title": "Growth"}, {"field": "direction_label", "title": "Reading"}]}},
-                {"mark": {"type": "rule", "strokeDash": [4, 3], "color": "#B2182B"}, "encoding": {"x": {"field": "change_needed", "type": "quantitative"}}},
-                {"mark": {"type": "rule", "strokeDash": [4, 3], "color": "#B2182B"}, "encoding": {"x": {"field": "change_needed_down", "type": "quantitative"}}}]}
+                              "color": {"field": "readable_label", "type": "nominal", "title": None, "scale": {"domain": ["Readable", "Data we cannot read yet"], "range": ["#3D7CC9", "#A9C8EA"]},
+                                        "legend": {"orient": "bottom"}},
+                              "tooltip": [{"field": "country_name", "title": "Market"}, {"field": "growth_text", "title": "Growth"}, {"field": "readable_label", "title": "Status"}, {"field": "direction_label", "title": "Reading"}]}},
+                {"mark": rule, "encoding": {"x": {"field": "change_needed", "type": "quantitative"}}},
+                {"mark": rule, "encoding": {"x": {"field": "change_needed_down", "type": "quantitative"}}},
+                {"mark": {**label, "align": "right", "dx": 0}, "encoding": {"x": {"field": "change_needed", "type": "quantitative"}, "y": {"value": -4}, "text": {"field": "line_label"}}}]}
 
 
 def _eval_spec(thumb):
     y = {"field": "country_name", "type": "nominal", "title": None, "sort": {"field": "true_participants", "order": "descending"}, "axis": {"labelFontSize": 11 if thumb else 13}}
     x = {"field": "scenario_low", "type": "quantitative", "scale": {"type": "log"}, "title": None if thumb else "Players (log scale)"}
-    return {"data": _src("gmp_eval"), "width": "container", "height": 230 if thumb else "container", "autosize": {"type": "fit", "contains": "padding"},
+    return {"data": _src("gmp_eval"), "width": "container", "height": 260 if thumb else "container", "autosize": {"type": "fit", "contains": "padding"},
             "layer": [
                 {"mark": {"type": "rule", "strokeWidth": 6, "strokeCap": "round", "color": "#92C5DE"}, "encoding": {"x": x, "x2": {"field": "scenario_high"}, "y": y,
                     "tooltip": [{"field": "country_name", "title": "Market"}, {"field": "scenario_low", "title": "Guess, low"}, {"field": "scenario_high", "title": "Guess, high"}]}},
+                # a guess resting on one market is a single number (low = high): a tick, so it is not invisible
+                {"mark": {"type": "tick", "thickness": 3, "size": 14, "color": "#4A90C8"}, "encoding": {"x": x, "y": y}},
                 {"mark": {"type": "point", "filled": True, "size": 70},
                  "encoding": {"x": {"field": "true_participants", "type": "quantitative", "scale": {"type": "log"}}, "y": y,
                               "color": {"field": "truth_label", "type": "nominal", "title": None, "scale": {"domain": ["Inside the guess", "Above the guess", "Below the guess"], "range": ["#2166AC", "#B2182B", "#F4A582"]},
-                                        "legend": None if thumb else {"orient": "bottom"}},
+                                        "legend": {"orient": "bottom", "title": "True number"}},
                               "tooltip": [{"field": "country_name", "title": "Market"}, {"field": "true_participants", "title": "True players"}, {"field": "truth_label", "title": "Truth"}]}}]}
 
 

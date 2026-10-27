@@ -452,7 +452,7 @@ charts:
     fallback_headline: We can read only some of the program's markets.
     slide_headline_templates: {}
     question: Which markets can we read?
-    means_club: Each tile is a market where NFL clubs hold rights. A coloured tile has player data and shows its grade. An outline means clubs report activity but no players. A dashed outline means nothing arrives.
+    means_club: Each tile is a market where NFL clubs hold rights. A coloured tile has player data and shows its counting grade. We can read a market graded A to C; a D means data we cannot read yet. An outline means clubs report activity but no players. A dashed outline means nothing arrives.
     means_privacy: Only the coloured tiles send any data about players. The other markets send nothing about people at all.
     action_club: Use the board on this page to pick the next markets to ask for data.
     action_privacy: Check which privacy law applies before a market sends data about players. Start with counts only.
@@ -464,11 +464,11 @@ charts:
       '
   G2:
     status: final
-    headline_template: '{n_moving} of {n_with_data} markets show a change we can tell from noise.'
+    headline_template: '{n_moving} of {n_with_data} markets with player data show a change we can tell from noise.'
     fallback_headline: No market shows a change we can tell from noise yet.
     slide_headline_templates: {}
     question: Is any market growing?
-    means_club: Each bar is one market's growth since last season, counting only clubs that sent a file both times. The dashed lines show the change needed to count, {mdc_pct} up or down.
+    means_club: Each bar is one market's growth since last season, counting only clubs that sent a file both times. Pale bars are markets whose data we cannot read yet. The dashed lines show the change needed to count, {mdc_pct} up or down. {n_up} of the {n_with_data} point up. That is weak evidence of a shared trend. But no single market can be read yet, and a common shock could move them all at once.
     means_privacy: Growth is read from counts per club. No child's record is needed to read it.
     action_club: To read growth, get more clubs in each market to send a file every season.
     action_privacy: No action. These figures hold no data about any person.
@@ -480,11 +480,11 @@ charts:
       '
   G3:
     status: final
-    headline_template: 'A guess for markets with no data was right in {n_inside} of {n_markets}.'
+    headline_template: 'The true number fell inside the guessed range in {n_inside} of {n_markets} markets.'
     fallback_headline: A guess for markets with no data was mostly wrong.
     slide_headline_templates: {}
     question: What would a number for a dark market have said?
-    means_club: Each bar is the guess we would have made from similar markets. The dot is the true number in our made-up test world. The guessed direction was wrong in {n_direction_wrong} of {n_markets}.
+    means_club: Each bar is the range we would have guessed from similar markets. A short tick means the guess rests on one market, so it is one number. The dot is the true number in our made-up test world, dark blue inside the range, red above it, light red below it. For every market, the guess said there was no change we can tell. In the test world every market really moved up or down. So the guessed direction was wrong in {n_direction_wrong} of {n_markets}.
     means_privacy: The guess uses no data from the market itself. That is exactly why it cannot be trusted.
     action_club: Do not quote a number for a market that sends no data. Ask it for one season of counts instead.
     action_privacy: No action. The test uses made-up data only.
@@ -520,7 +520,7 @@ charts:
     means_privacy: A new market starts with counts only. No child's personal data is asked for.
     action_club: Set the scores and lanes, then ask the markets in the first lane for data.
     action_privacy: Settle the privacy questions for each market before it sends data about players.
-    caution: Scores follow one agreed rule, and most lanes are still a plan to review. Italy's data is a test on a copy, not real.
+    caution: Scores follow one agreed rule, and most lanes are still a plan to review. Italy sends no data yet; its walkthrough uses a test copy to show the onboarding steps, and no count or grade comes from it.
     analyst_md: 'Priority = value + feasibility + readiness - privacy risk (the data products page''s method), scores from `gmp_priority_rubric`, agreed by Anna; a row in
       `gmp_market_priority_overrides` would replace one (ADR-029). Milestone progress is computed in `mart_gmp_board`. The walkthroughs follow the onboarding playbook; Italy''s
       later stages ran on a copy of the warehouse (ADR-030, `docs/reports/p7_italy_experiment.md`).
@@ -578,9 +578,9 @@ pages:
     overview_kicker: In five minutes
     overview_h2: What the global outlook says
     overview:
-      - {section: markets, label: Markets we can read, stat: '{G1.n_readable} of {G0.n_markets}', text: '{G1.n_proxy_only} more only report club activity, and {G1.n_dark} send nothing at all.'}
+      - {section: markets, label: Markets we can read, stat: '{G1.n_readable} of {G0.n_markets}', text: '{G1.n_partial} more send player data we cannot read yet, {G1.n_proxy_only} only report club activity, and {G1.n_dark} send nothing at all.'}
       - {section: growth, label: Change needed to tell, stat: '{G2.mdc_pct}', text: '{G2.n_moving} of {G2.n_with_data} markets show growth we can tell from noise. More clubs filing every season is what would change that.'}
-      - {section: guess, label: Guesses right in our test, stat: '{G3.n_inside} of {G3.n_markets}', text: 'A number for a market with no data would mostly be wrong. So those markets get a plan, not a number.'}
+      - {section: guess, label: Guesses that held the truth, stat: '{G3.n_inside} of {G3.n_markets}', text: 'The true number fell inside the guessed range in so few markets that those markets get a plan, not a number.'}
       - {section: quality, label: Markets close to readable, stat: '{G4.n_close}', text: '{G4.close_markets} are {G4.clubs_needed_text} filing each away from being readable.'}
       - {section: next, label: Markets in the first lane, stat: '{G5.n_now}', text: 'Ask them for data now. A market with none starts with one season of counts.'}
     sections:
@@ -756,9 +756,9 @@ landing:
       title: What can we read in the program markets abroad?
       line: Find the signal in messy data from the {G0.n_markets} markets where NFL clubs hold rights, and plan for the ones that send nothing.
       takeaways:
-        - '**We can read {G1.n_readable} of the {G1.n_markets} markets.** {G1.n_proxy_only} only report club activity, and {G1.n_dark} send nothing at all.'
+        - '**We can read {G1.n_readable} of the {G1.n_markets} markets.** {G1.n_partial} more send player data we cannot read yet, {G1.n_proxy_only} only report club activity, and {G1.n_dark} send nothing at all.'
         - '**None shows a change we can tell from noise.** A market would have to move about {G2.mdc_pct} before we could say so.'
-        - '**A guess for a market with no data would mostly be wrong:** {G3.n_inside} of {G3.n_markets} were right in our test. Those markets get a plan, not a number.'
+        - '**A guess for a market with no data would mostly be wrong:** the true number fell inside the guessed range in {G3.n_inside} of {G3.n_markets} in our test. Those markets get a plan, not a number.'
         - '**{G4.close_markets} are {G4.clubs_needed_text} filing away** from being readable.'
         - '**{G5.n_now} markets are in the first lane:** ask them for data now.'
       links:

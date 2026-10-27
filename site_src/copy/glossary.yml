@@ -111,8 +111,9 @@ domains:
     line: Reading the markets abroad where NFL clubs hold rights.
     terms:
       - {term: "Program market", definition: "A country where an NFL club holds marketing rights through the Global Markets Program.", technical: "GMP market"}
-      - {term: "Measured", definition: "Player data arrived this season and its counting grade is C or better, so we can read it.", technical: "market status MEASURED (ADR-025)"}
-      - {term: "Partial", definition: "Some player data exists, but not enough to read: its counting grade is D, no file arrived this season, or it sends counts only.", technical: "market status PARTIAL"}
+      - {term: "Readable market", definition: "A market whose player data has a counting grade of C or better. It is the only kind we read; every count of markets we can read uses this rule.", technical: "market status MEASURED (ADR-025, ADR-039)"}
+      - {term: "Measured", definition: "Player data arrived this season and its counting grade is C or better, so it is readable.", technical: "market status MEASURED (ADR-025)"}
+      - {term: "Partial", definition: "Some player data exists, but we cannot read it yet: its counting grade is D, no file arrived this season, or it sends counts only.", technical: "market status PARTIAL"}
       - {term: "Club activity only", definition: "No player data, but clubs report activity in the market, such as fan events and games. It is never counted as players.", technical: "market status PROXY_ONLY"}
       - {term: "Sends nothing", definition: "No player data and no club activity reported.", technical: "market status DARK"}
       - {term: "Counting grade", definition: "The data-quality grade for the counting use, A to D. It decides whether a market can be read.", technical: "COUNT purpose grade"}

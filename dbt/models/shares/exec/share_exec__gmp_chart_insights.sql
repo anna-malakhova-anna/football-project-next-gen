@@ -2,9 +2,9 @@
 -- EXEC share (DP6, Phase 7 step 9): the numbers inside the headline sentences of the Global outlook cards (G0, G1, G2, G4, G5), in the long shape of the other
 -- chart-insight shares. Every value is rounded and worded here, never in the browser. G3's numbers read the answer key, so they live in eval_chart_insights.
 with m as (
-    select country_code, country_name, status, participation_direction, minimum_detectable_change_pct, season_year from {{ ref('share_exec__gmp_markets_eu_uk') }}
-    union all select country_code, country_name, status, participation_direction, minimum_detectable_change_pct, season_year from {{ ref('share_exec__gmp_markets_canada') }}
-    union all select country_code, country_name, status, participation_direction, minimum_detectable_change_pct, season_year from {{ ref('share_exec__gmp_markets_other') }}
+    select country_code, country_name, status, participation_direction, minimum_detectable_change_pct, growth_pct, season_year from {{ ref('share_exec__gmp_markets_eu_uk') }}
+    union all select country_code, country_name, status, participation_direction, minimum_detectable_change_pct, growth_pct, season_year from {{ ref('share_exec__gmp_markets_canada') }}
+    union all select country_code, country_name, status, participation_direction, minimum_detectable_change_pct, growth_pct, season_year from {{ ref('share_exec__gmp_markets_other') }}
 ),
 
 counts as (
@@ -12,6 +12,7 @@ counts as (
            count(*) filter (where status = 'MEASURED') as n_measured, count(*) filter (where status = 'PARTIAL') as n_partial,
            count(*) filter (where status = 'PROXY_ONLY') as n_proxy_only, count(*) filter (where status = 'DARK') as n_dark,
            count(*) filter (where participation_direction in ('GROWING', 'SHRINKING')) as n_moving,
+           count(*) filter (where status in ('MEASURED', 'PARTIAL') and growth_pct > 0) as n_up,
            max(minimum_detectable_change_pct) as mdc_pct
     from m
 ),
@@ -48,7 +49,8 @@ rows_ as (
     select 'G0' as chart_id, 'both' as lens, 'n_markets' as field, cast(n_markets as varchar) as value_display, n_markets * 1.0 as value_raw from counts
     union all select 'G0', 'both', 'n_continents', cast(n_continents as varchar), n_continents * 1.0 from continents
     union all select 'G1', 'both', 'n_markets', cast(n_markets as varchar), n_markets * 1.0 from counts
-    union all select 'G1', 'both', 'n_readable', cast(n_measured + n_partial as varchar), (n_measured + n_partial) * 1.0 from counts
+    -- readable = Measured (counting grade C or better, ADR-025); a Partial market sends player data we cannot read yet (ADR-039)
+    union all select 'G1', 'both', 'n_readable', cast(n_measured as varchar), n_measured * 1.0 from counts
     union all select 'G1', 'both', 'n_measured', cast(n_measured as varchar), n_measured * 1.0 from counts
     union all select 'G1', 'both', 'n_partial', cast(n_partial as varchar), n_partial * 1.0 from counts
     union all select 'G1', 'both', 'n_proxy_only', cast(n_proxy_only as varchar), n_proxy_only * 1.0 from counts
@@ -56,6 +58,7 @@ rows_ as (
     union all select 'G2', 'both', 'mdc_pct', cast(round(mdc_pct) as bigint) || '%', mdc_pct from counts
     union all select 'G2', 'both', 'n_moving', cast(n_moving as varchar), n_moving * 1.0 from counts
     union all select 'G2', 'both', 'n_with_data', cast(n_measured + n_partial as varchar), (n_measured + n_partial) * 1.0 from counts
+    union all select 'G2', 'both', 'n_up', cast(n_up as varchar), n_up * 1.0 from counts
     union all select 'G4', 'both', 'n_close', cast(n_close as varchar), n_close * 1.0 from one_club
     union all select 'G4', 'both', 'close_markets', close_markets, null from one_club
     union all select 'G4', 'both', 'clubs_needed_text', case max_clubs_needed when 1 then 'one more club' else cast(max_clubs_needed as varchar) || ' more clubs' end, max_clubs_needed * 1.0 from one_club
