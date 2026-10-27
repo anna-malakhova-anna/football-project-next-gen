@@ -51,7 +51,7 @@ def write_phase2_results(con) -> Path:
     head_cols, head_rows = [d[0] for d in cur.description], cur.fetchall()
     blocking = dict((n, v) for n, v in q("select name, value from evaluation.eval_blocking where section = 'overall'"))
     thr = q("select matcher_version, t_auto, t_review, prior_odds from reference.match_thresholds order by 1")
-    errors = q("select matcher, error_type, likely_cause, count(*) from evaluation.eval_errors where stage = 'PRE_REVIEW' group by all order by 1, 2, 3")
+    errors = q("select matcher, error_type, likely_cause, record_pairs from evaluation.eval_error_categories where stage = 'PRE_REVIEW' order by 1, 2, 3")    # every error, not the capped list
     queue = q("select item_type, suggested_action, count(*) from identity.idr_review_queue group by all order by 1, 2")
     integrity = q("select count(*) from identity.idr_cluster_integrity")[0][0]
     decided = q("select count(*) from reference.review_decisions")[0][0]
@@ -87,9 +87,9 @@ steward (`make steward-demo`) uses the answer key; its rows are never matcher pe
 
 ## Errors at the AUTO scope (before review)
 
-{_md_table(errors, ['matcher', 'error_type', 'likely_cause', 'pairs'])}
+{_md_table(errors, ['matcher', 'error_type', 'likely_cause', 'record_pairs'])}
 
-`fs_naive` false positives are capped at the first 200 pairs per kind.
+Every error is counted (`eval_error_categories`); the unit is record pairs, so a false merge of two children with several records each counts several times. `eval_errors` lists only the first 200 of each kind.
 
 ## Review queue and cluster integrity
 

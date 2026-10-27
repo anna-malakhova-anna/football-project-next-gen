@@ -52,19 +52,33 @@ def charts():
              "y": {"field": "reported_headcount", "type": "quantitative"}}}]},
         shows="The reported headcount from schools and recreation departments (line) and the range for participants plus that headcount (band): the low end assumes as much overlap as is possible, the high end none.",
         doesnt="A single combined number: aggregates cannot be matched to people, so some children are counted twice, and a PE unit is exposure, not participation. Programs are small cells and are suppressed where few.")
+    # the final matcher's chosen thresholds, read from reference.match_thresholds (never typed here): a line at T_auto and the probable band [T_review, T_auto) sent for review
+    thr_x = {"type": "quantitative", "scale": {"domain": [0.5, 1.0]}}
+
+    def thr_layers(label_y):
+        """Band, line and labels; the threshold label sits where the chart's own lines leave room (pixels from the top, or "height" for the bottom)."""
+        return [
+            {"data": _src("match_threshold"), "mark": {"type": "rect", "color": "#8A96A3", "opacity": 0.14},
+             "encoding": {"x": {"field": "t_review", **thr_x}, "x2": {"field": "t_auto"}}},
+            {"data": _src("match_threshold"), "mark": {"type": "rule", "color": "#1B2733", "strokeDash": [5, 3], "strokeWidth": 1.5},
+             "encoding": {"x": {"field": "t_auto", **thr_x}}},
+            {"data": _src("match_threshold"), "mark": {"type": "text", "align": "right", "baseline": "bottom" if label_y == "height" else "top", "dx": -5, "dy": -4 if label_y == "height" else 4, "fontSize": 11, "fontWeight": 600, "color": "#1B2733"},
+             "encoding": {"x": {"field": "t_auto", **thr_x}, "y": {"value": label_y}, "text": {"field": "auto_label"}}}]   # the band is named in each chart's caption: a label in it does not fit a phone
     C["threshold"] = dict(
-        page="trust", title="Threshold sweep: precision and recall of the final matcher", datasets=["threshold_sweep"], evaluation=True,
-        spec={"data": _src("threshold_sweep"), "width": "container", "height": 300, "mark": {"type": "line", "point": True},
-              "encoding": {"x": {"field": "threshold", "type": "quantitative", "title": "Match probability threshold"},
-              "y": {"field": "value", "type": "quantitative", "scale": {"domain": [0.9, 1.0]}, "title": "Pairwise precision / recall"},
-              "color": {"field": "measure", "type": "nominal", "title": None}}},
-        shows="How pairwise precision and recall move as the automatic-merge threshold changes, graded against the synthetic answer key.",
+        page="trust", title="Threshold sweep: pairwise precision and recall of the final matcher, automatic merges only", datasets=["threshold_sweep", "match_threshold"], evaluation=True,
+        spec={"width": "container", "height": 300, "layer": thr_layers("height")[:1] + [
+            {"data": _src("threshold_sweep"), "mark": {"type": "line", "point": True},
+             "encoding": {"x": {"field": "threshold", **thr_x, "title": "Match probability threshold"},
+                          "y": {"field": "value", "type": "quantitative", "scale": {"domain": [0.9, 1.0]}, "title": "Pairwise precision / recall (record pairs)"},
+                          "color": {"field": "measure", "type": "nominal", "title": None, "legend": {"orient": "bottom"}}}}] + thr_layers("height")[1:]},
+        shows="How pairwise precision and recall of the final probabilistic matcher move as the automatic-merge threshold changes, counting record pairs merged automatically (before any steward review), graded against the synthetic answer key. The dashed line is the chosen threshold; the shaded band is the probable range sent for review.",
         doesnt="Performance on real data. The population is synthetic: phone numbers never change and one nickname list covers every nickname, so real data would score lower. The threshold was chosen once, before this chart.")
     C["siblings"] = dict(
-        page="trust", title="Sibling and twin false merges by threshold", datasets=["sibling_merges_by_threshold"], evaluation=True,
-        spec={"data": _src("sibling_merges_by_threshold"), "width": "container", "height": 240, "mark": {"type": "bar"},
-              "encoding": {"x": {"field": "threshold", "type": "ordinal", "title": "Match probability threshold"},
-              "y": {"field": "sibling_or_twin_false_merges", "type": "quantitative", "title": "Sibling / twin false merges"}}})
+        page="trust", title="Sibling and twin false merges by threshold: final matcher, automatic merges, counted as clusters", datasets=["sibling_merges_by_threshold", "match_threshold"], evaluation=True,
+        spec={"width": "container", "height": 240, "layer": thr_layers(0)[:1] + [
+            {"data": _src("sibling_merges_by_threshold"), "mark": {"type": "line", "interpolate": "step-after", "point": True},
+             "encoding": {"x": {"field": "threshold", **thr_x, "title": "Match probability threshold"},
+                          "y": {"field": "sibling_or_twin_false_merges", "type": "quantitative", "title": "False merges (clusters)"}}}] + thr_layers(0)[1:]})
     C["retention_km"] = dict(
         page="participation", title="Retention by entry age band (Kaplan-Meier, with 95% intervals)", datasets=["retention_km_age"],
         spec={"data": _src("retention_km_age"), "width": "container", "height": 320, "layer": [
@@ -279,9 +293,9 @@ def charts():
             doesnt="Real churn: the truth here is the generator's own parameters, so this shows the rule works on known data, not what real players do.",
         ),
         "siblings": dict(
-            shows="In plain terms: merging siblings is not just a counting error; it mixes two children's personal data, which is a privacy incident. The chart counts how many times two different children of one household were merged at each threshold.",
-            decision="The final matcher has a household guard against sibling merges, and a data steward reviews the borderline \"probable\" pairs.",
-            doesnt="That a merge is harmless, or real-world performance: the sibling and twin merges that remain are the incidents that matter.",
+            shows="In plain terms: merging siblings is not just a counting error; it mixes two children's personal data, which is a privacy incident. The chart counts, at each threshold, the predicted people (clusters) that wrongly hold two children of one household, for the final matcher's automatic merges. The dashed line is the chosen threshold; the shaded band is the probable range sent for review.",
+            decision="The final matcher has a household guard against sibling merges, and a data steward reviews the borderline \"probable\" pairs. The threshold was chosen once, before this chart.",
+            doesnt="Record pairs: one wrongly merged person counts once here, but once per pair of records in the error table below. Nor that a merge is harmless, or real-world performance: the sibling and twin merges that remain are the incidents that matter.",
         ),
     }
     for cid, d in DESCRIPTIONS.items():

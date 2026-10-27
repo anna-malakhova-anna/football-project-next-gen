@@ -38,7 +38,7 @@ steward (`make steward-demo`) uses the answer key; its rows are never matcher pe
 
 ## Errors at the AUTO scope (before review)
 
-| matcher | error_type | likely_cause | pairs |
+| matcher | error_type | likely_cause | record_pairs |
 |---|---|---|---|
 | fs | FALSE_NEGATIVE | BELOW_THRESHOLD | 7 |
 | fs | FALSE_NEGATIVE | BLOCKING_MISS | 62 |
@@ -47,14 +47,16 @@ steward (`make steward-demo`) uses the answer key; its rows are never matcher pe
 | fs | FALSE_POSITIVE | TRANSITIVE_CHAIN | 8 |
 | fs | FALSE_POSITIVE | TWIN | 38 |
 | fs_naive | FALSE_NEGATIVE | BLOCKING_MISS | 60 |
-| fs_naive | FALSE_POSITIVE | SIBLING | 38 |
-| fs_naive | FALSE_POSITIVE | TWIN | 162 |
-| rules | FALSE_NEGATIVE | BELOW_THRESHOLD | 189 |
-| rules | FALSE_NEGATIVE | BLOCKING_MISS | 7 |
-| rules | FALSE_NEGATIVE | GUARD_OVERRIDE | 3 |
-| rules | FALSE_NEGATIVE | NAME_CHANGE | 1 |
+| fs_naive | FALSE_POSITIVE | OTHER | 40 |
+| fs_naive | FALSE_POSITIVE | SIBLING | 677 |
+| fs_naive | FALSE_POSITIVE | TRANSITIVE_CHAIN | 16 |
+| fs_naive | FALSE_POSITIVE | TWIN | 239 |
+| rules | FALSE_NEGATIVE | BELOW_THRESHOLD | 2518 |
+| rules | FALSE_NEGATIVE | BLOCKING_MISS | 81 |
+| rules | FALSE_NEGATIVE | GUARD_OVERRIDE | 18 |
+| rules | FALSE_NEGATIVE | NAME_CHANGE | 4 |
 
-`fs_naive` false positives are capped at the first 200 pairs per kind.
+Every error is counted (`eval_error_categories`); the unit is record pairs, so a false merge of two children with several records each counts several times. `eval_errors` lists only the first 200 of each kind.
 
 ## Review queue and cluster integrity
 

@@ -9,13 +9,14 @@ from scripts import site_global as G, site_p5_data as P5
 
 APPROVED_AGGREGATES = {"share_analyst.share_analyst__fan_event_study", "share_analyst.share_analyst__fan_acquisition_event_study"}
 EVAL_WHITELIST = {
-    "evaluation.eval_threshold_sweep", "evaluation.eval_pairwise", "evaluation.eval_clusters", "evaluation.eval_errors",
+    "evaluation.eval_threshold_sweep", "evaluation.eval_pairwise", "evaluation.eval_clusters", "evaluation.eval_errors", "evaluation.eval_error_categories",
     "evaluation.eval_participation_accuracy", "evaluation.eval_retention", "evaluation.eval_fan_effect",
     "evaluation.eval_fan_matching_diagnostics", "evaluation.eval_headcount_overlap", "evaluation.eval_household_linkage",
     "evaluation.eval_acquisition", "evaluation.eval_acquisition_event_study",
 }
 GOVERNANCE_WHITELIST = {
     "quality.dq_contract_results", "reference.audience_column_policy", "reference.source_registry", "measurement.mart_restatement_log",
+    "reference.match_thresholds",       # the matcher's chosen thresholds, drawn as reference lines on the trust charts
 }
 # Phase 5 (spec 12): share_club and share_privacy, aggregate quality marts, label-free uncertainty marts, whitelisted evaluation summaries (see scripts/site_phase5.py)
 APPROVED_AGGREGATES |= P5.APPROVED
@@ -86,17 +87,21 @@ DATASETS = [
     _D("threshold_sweep", """
         select threshold, 'precision' as measure, precision as value from evaluation.eval_threshold_sweep where matcher = 'fs'
         union all select threshold, 'recall', recall from evaluation.eval_threshold_sweep where matcher = 'fs' order by 2, 1""",
-       ["evaluation.eval_threshold_sweep"], "evaluation", "Threshold sweep: precision and recall of the final matcher"),
+       ["evaluation.eval_threshold_sweep"], "evaluation", "Threshold sweep: pairwise precision and recall of the final matcher, automatic merges only"),
     _D("sibling_merges_by_threshold", "select threshold, sibling_or_twin_false_merges, review_items_if_review from evaluation.eval_threshold_sweep where matcher = 'fs' order by 1",
-       ["evaluation.eval_threshold_sweep"], "evaluation", "Sibling and twin false merges by threshold"),
+       ["evaluation.eval_threshold_sweep"], "evaluation", "Sibling and twin false merges by threshold: final matcher, automatic merges, clusters"),
     _D("matcher_comparison", """
-        select p.matcher, p.scope, p.precision, p.recall, p.f1, c.sibling_or_twin_false_merges as sibling_twin_merges,
+        select p.matcher, p.scope, p.precision, p.recall, p.f1, c.sibling_or_twin_false_merges as sibling_twin_merges, c.twin_false_merges as twin_merges,
                c.predicted_participants, c.true_participants
         from evaluation.eval_pairwise p join evaluation.eval_clusters c using (matcher, stage, scope)
         where p.stage = 'PRE_REVIEW' order by p.matcher desc, p.scope""",
        ["evaluation.eval_pairwise", "evaluation.eval_clusters"], "evaluation", "Rules vs probabilistic matcher (before any steward review)"),
-    _D("error_categories", "select matcher, error_type, likely_cause, count(*) as pairs from evaluation.eval_errors where stage = 'PRE_REVIEW' group by all order by 1, 2, 3",
-       ["evaluation.eval_errors"], "evaluation", "Error categories at the automatic scope"),
+    _D("error_categories", "select matcher, scope, error_type, likely_cause, record_pairs from evaluation.eval_error_categories where stage = 'PRE_REVIEW' order by 1, 3, 4",
+       ["evaluation.eval_error_categories"], "evaluation", "Error categories at the automatic scope (record pairs, every error counted)"),
+    _D("match_threshold", """
+        select t_auto, t_review, 'chosen threshold (' || t_auto || ')' as auto_label
+        from reference.match_thresholds where matcher_version = 'fs'""",
+       ["reference.match_thresholds"], "governance", "The final matcher's chosen thresholds"),
     _D("identity_truth_check", "select participation_year, true_participants, participants_low, participants_point, participants_high, truth_within_range "
        "from evaluation.eval_participation_accuracy where grain = 'GLOBAL' order by 1",
        ["evaluation.eval_participation_accuracy"], "evaluation", "Identity bounds vs the synthetic truth"),

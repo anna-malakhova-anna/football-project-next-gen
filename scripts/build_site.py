@@ -191,12 +191,16 @@ linked to fan accounts under a restricted-zone policy, shared by audience with s
     built["appendix"] = ("Appendix", "<p class='note'>A <b>stretch</b> source: school districts and recreation departments report how many "
                          "children are in their programs. The counts have no people in them, so they are never added to participants.</p>" + "".join(blocks["appendix"])
                          + "<h2>Against the synthetic truth</h2>" + table_html(data["reach_vs_truth"]))
+    idr = facts["idr"]
     built["trust"] = ("Trust", f"""<h2>Identity: can the numbers be trusted?</h2>
 <p class='note'>Matching people across sources is the hard part. The generator's answer key grades it; real projects have no key.</p>
 {"".join(blocks["trust"])}
 <h3>Rules vs probabilistic, before any steward review</h3>{table_html(data["matcher_comparison"])}
-<p class="note"><b>What this shows.</b> A rules baseline, a literal Fellegi-Sunter matcher (fs_naive) and the corrected one (fs) on the same data. <b>What it does not show.</b> Real-world accuracy; the sibling and twin merges are the incidents that matter.</p>
-<h3>Error categories</h3>{table_html(data["error_categories"])}
+<p class="note"><b>What this shows.</b> A rules baseline, a literal Fellegi-Sunter matcher (fs_naive) and the corrected one (fs) on the same data. The false-merge columns count <b>clusters</b>: predicted people who wrongly hold two children of one household, once each. <b>What it does not show.</b> Real-world accuracy; the sibling and twin merges are the incidents that matter.</p>
+<h3>Error categories, automatic merges only</h3>{table_html(data["error_categories"])}
+<p class="note"><b>What this shows.</b> Every wrong record pair at the automatic scope, by likely cause; every error is counted. <b>How it matches the table above.</b> This table counts <b>record pairs</b>: merging one child's <i>a</i> records with another child's <i>b</i> records makes <i>a</i> &times; <i>b</i> wrong pairs, but one wrongly merged cluster.
+The final matcher's {fmt_cell(idr['fs_clusters'])} household clusters at the automatic scope ({fmt_cell(idr['fs_twin_clusters'])} of them twins) hold {fmt_cell(idr['fs_twin_pairs'])} twin pairs and {fmt_cell(idr['fs_sibling_pairs'])} sibling pairs; the uncorrected matcher's {fmt_cell(idr['naive_clusters'])} hold {fmt_cell(idr['naive_sibling_pairs'])} sibling pairs and {fmt_cell(idr['naive_twin_pairs'])} twin pairs.
+The {fmt_cell(idr['fs_ap_clusters'])} in the first table is the final matcher with probable pairs merged too, a scope this table does not cover. The other false-merge rows (a chain of matches, other) are children from different households. <b>What it does not show.</b> Errors with probable pairs merged too, or real-world errors: the population is synthetic.</p>
 <h3>Identity bounds against the synthetic truth</h3>{table_html(data["identity_truth_check"])}
 <h3>Household linkage precision and recall against the synthetic truth</h3>{table_html(data["household_linkage_vs_truth"])}
 <h2>Who sees what</h2>{table_html(data['audience_matrix'])}
@@ -246,7 +250,7 @@ SUMMARY_CSS_EXTRA = """
 /* Every tab in the Data products summary's look (ADR-033, ADR-035): each numbered section holds one card, chart or table; the section title is the
    card's question or the chart's title, so the card's own question line and the chart's own title are kept for screen readers and the page check but not shown twice */
 body.summary .ps-sec .vcard,body.summary .ps-sec section.chart{margin:0}
-body.summary .ps-sec .vcard-question,body.summary .ps-sec>section.chart>h3:first-child{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+body.summary .ps-sec .vcard-question,body.summary .ps-one>section.chart>h3:first-child{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 body.summary .ps-tabs{top:0}
 body.summary main{padding-top:32px}
 body.summary .lens-toggle,body.summary .demo-path{margin-top:24px}
@@ -339,7 +343,7 @@ def sectionize(slug: str, html: str, labels: dict) -> tuple[str, list[tuple[str,
         else:
             card = re.search(r'data-card="([^"]+)"', block)
             title = re.search(r'<p class="vcard-question">(.*?)</p>', block, re.S) if card else re.search(r"<h3>(.*?)</h3>", block, re.S)
-            secs.append({"key": card.group(1) if card else re.search(r'id="sec-([^"]+)"', block).group(1), "title": title.group(1), "sid": None, "body": [block]})
+            secs.append({"key": card.group(1) if card else re.search(r'id="sec-([^"]+)"', block).group(1), "title": title.group(1), "sid": None, "body": [block], "one": True})
         pos = end
     (cur["body"] if cur else secs[-1]["body"] if secs else lead).append(html[pos:])
     page = labels.get(slug) or {}
@@ -350,7 +354,7 @@ def sectionize(slug: str, html: str, labels: dict) -> tuple[str, list[tuple[str,
     for i, s in enumerate(secs, 1):
         sid = s["sid"] or f"s-{s['key'].lower()}"
         tabs.append((sid, page[s["key"]]))
-        out.append(f"<section class='ps-sec' id='{esc(sid)}'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>{i} · {esc(page[s['key']])}</p>"
+        out.append(f"<section class='ps-sec{' ps-one' if s.get('one') else ''}' id='{esc(sid)}'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>{i} · {esc(page[s['key']])}</p>"
                    f"<h2>{s['title']}</h2></div></header>{''.join(s['body'])}</section>")
     return "".join(lead) + "".join(out), tabs
 
@@ -464,6 +468,11 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     facts.update({"incremental": round(acq["1"]["estimate"]), "inc_low": round(acq["1"]["ci_low"]), "inc_high": round(acq["1"]["ci_high"]), "naive_scaled": round(acq["2"]["estimate"]),
                   "contactable": aud["audience_contactable"], "registered": aud["audience_registered"], "gap": aud["consent_gap_households"], "gap_share": aud["consent_gap_share_of_active"],
                   "audience_month": str(max(r["month"] for r in rows("audience_series")))[:7]})
+    mc = {(r["matcher"], r["scope"]): r for r in rows("matcher_comparison")}
+    ec = {(r["matcher"], r["likely_cause"]): r["record_pairs"] for r in rows("error_categories") if r["error_type"] == "FALSE_POSITIVE"}
+    facts["idr"] = {"fs_clusters": mc[("fs", "AUTO")]["sibling_twin_merges"], "fs_twin_clusters": mc[("fs", "AUTO")]["twin_merges"], "fs_ap_clusters": mc[("fs", "AUTO_PLUS_PROBABLE")]["sibling_twin_merges"],
+                    "fs_twin_pairs": ec.get(("fs", "TWIN"), 0), "fs_sibling_pairs": ec.get(("fs", "SIBLING"), 0),
+                    "naive_clusters": mc[("fs_naive", "AUTO")]["sibling_twin_merges"], "naive_twin_pairs": ec.get(("fs_naive", "TWIN"), 0), "naive_sibling_pairs": ec.get(("fs_naive", "SIBLING"), 0)}
     diag = {r["measure"]: r["value"] for r in rows("fan_diagnostics")}
     facts.update({"fandom_treated": diag["fandom_matched_treated"], "fandom_comparison": diag["fandom_matched_comparison"]})
     site_cards.configure(data["chart_insights_club"]["rows"] + data["chart_insights_privacy"]["rows"] + data["chart_insights_eval"]["rows"] + data["chart_insights_exec_global"]["rows"])

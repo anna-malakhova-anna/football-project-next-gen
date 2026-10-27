@@ -38,7 +38,9 @@ VALUE_LABELS = {
     "error_categories": {"matcher": {"rules": "Rules only", "fs_naive": "Probabilistic, uncorrected", "fs": "Probabilistic, final"},
                          "error_type": {"FALSE_NEGATIVE": "Missed match", "FALSE_POSITIVE": "False merge"},
                          "likely_cause": {"BELOW_THRESHOLD": "Below the threshold", "BLOCKING_MISS": "Never compared", "GUARD_OVERRIDE": "Blocked by the household guard",
-                                          "NAME_CHANGE": "Name changed", "OTHER": "Other", "TRANSITIVE_CHAIN": "Joined through a chain of matches", "TWIN": "Twins or siblings"}},
+                                          "NAME_CHANGE": "Name changed", "OTHER": "Other", "TRANSITIVE_CHAIN": "Joined through a chain of matches", "TWIN": "Twins",
+                                          "SIBLING": "Siblings (not twins)"},
+                         "scope": {"AUTO": "Automatic merges only"}},
     "fan_diagnostics": {"measure": {
         "comparison_contamination": "Comparison households that later registered a child (share)",
         "fandom_matched_comparison": "Underlying fandom, matched comparison households",
@@ -64,8 +66,8 @@ COLUMN_LABELS = {
     "cohort_retention_among_eligible_pct": "Still registered, excluding age-outs", "estimator": "Method", "fan_uplift_pct": "Uplift", "fan_uplift_ci_low_pct": "Interval, low",
     "fan_uplift_ci_high_pct": "Interval, high", "fan_treated_households": "Households", "caveat": "Caveat", "program_households": "Participant households",
     "linked_households": "Linked households", "household_link_rate": "Link rate", "months_since_event": "Months since registration", "group_name": "Group", "mean_events": "Events per household-month",
-    "effect": "Participants vs comparisons", "threshold": "Threshold", "measure": "Measure", "value": "Value", "sibling_or_twin_false_merges": "Sibling or twin false merges",
-    "review_items_if_review": "Items for review", "matcher": "Matcher", "scope": "Scope", "precision": "Precision", "recall": "Recall", "f1": "F1", "sibling_twin_merges": "Sibling or twin false merges",
+    "effect": "Participants vs comparisons", "threshold": "Threshold", "measure": "Measure", "value": "Value", "sibling_or_twin_false_merges": "Sibling or twin false merges (clusters)",
+    "review_items_if_review": "Items for review", "matcher": "Matcher", "scope": "Scope", "precision": "Precision", "recall": "Recall", "f1": "F1", "sibling_twin_merges": "Sibling or twin false merges (clusters)", "twin_merges": "Of which twins (clusters)", "record_pairs": "Record pairs",
     "predicted_participants": "Participants found", "true_participants": "True participants", "error_type": "Error", "likely_cause": "Likely cause", "pairs": "Pairs",
     "participants_low": "Low", "participants_point": "Point", "participants_high": "High", "truth_within_range": "Truth inside range", "curve": "Curve", "survival": "Still registered",
     "estimate_pct": "Estimate", "ci_low_pct": "Interval, low", "ci_high_pct": "Interval, high", "true_effect_pct": "True effect", "true_uplift_parameter": "Built-in uplift",
@@ -93,7 +95,16 @@ RATE_COLUMNS = P5.RATE_COLUMNS | {"girls_share_of_youth", "km_survival", "km_sur
                 "survival", "rate", "rfm_share", "fan_survival", "fan_survival_ci_low", "fan_survival_ci_high", "consent_gap_share_of_active", "consent_opt_in_rate", "conversion"}
 
 
+# Columns whose every code must have a plain label: an unmapped code stops the build instead of reaching the page as a raw enum.
+STRICT_LABELS = {("matcher_comparison", "matcher"), ("matcher_comparison", "scope"), ("error_categories", "matcher"), ("error_categories", "scope"),
+                 ("error_categories", "error_type"), ("error_categories", "likely_cause"), ("restatement_log", "likely_cause")}
+
+
 def relabel(data: dict) -> None:
+    missing = sorted({f"{name}.{c} = {r[c]}" for name, cols in VALUE_LABELS.items() for r in data[name]["rows"] for c, mapping in cols.items()
+                      if (name, c) in STRICT_LABELS and r[c] is not None and r[c] not in mapping})
+    if missing:
+        raise SystemExit("SITE BUILD REFUSED: codes with no plain label (add them to VALUE_LABELS in scripts/site_render.py):\n  " + "\n  ".join(missing))
     for name, cols in VALUE_LABELS.items():
         for r in data[name]["rows"]:
             for c, mapping in cols.items():

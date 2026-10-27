@@ -45,10 +45,30 @@ models:
       GROUND TRUTH. Pairwise recall by source pair, by injected defect type and by situation (near-duplicate,
       multi-league same season), plus precision by source pair, per matcher, stage and scope.
 
+  - name: eval_errors_all
+    description: >
+      GROUND TRUTH. Every false positive and false negative record pair at the AUTO scope, per matcher and stage, with a
+      SQL-assigned likely_cause. Not capped: eval_error_categories counts it, eval_errors lists the first 200 of each kind.
+    columns:
+      - name: likely_cause
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [TWIN, SIBLING, TRANSITIVE_CHAIN, NAME_CHANGE, BLOCKING_MISS, GUARD_OVERRIDE, BELOW_THRESHOLD, OTHER]
+
+  - name: eval_error_categories
+    description: >
+      GROUND TRUTH. Record pairs each matcher got wrong at the AUTO scope, by stage, kind and likely cause, counted over
+      every error (eval_errors_all), never the capped list. The unit is record pairs, not clusters (eval_clusters).
+    columns:
+      - name: record_pairs
+        data_tests: [not_null]
+
   - name: eval_errors
     description: >
-      GROUND TRUTH. Every false positive and false negative pair at the AUTO scope (first 200 of each kind per matcher
-      and stage) with a SQL-assigned likely_cause. Feeds the error analysis.
+      GROUND TRUTH. The first 200 false positive and false negative pairs of each kind per matcher and stage at the AUTO
+      scope (highest match probability first), from eval_errors_all. Feeds the error analysis. CAPPED: never count it;
+      counts come from eval_error_categories.
     columns:
       - name: likely_cause
         data_tests:
