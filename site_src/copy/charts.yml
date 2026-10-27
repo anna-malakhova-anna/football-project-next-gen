@@ -706,7 +706,7 @@ page_sections:
 # The landing page (index.html): a five-minute overview of the three phases and of trust and governance. {name} is a value from the results build
 # (participants, incremental, ...); {X1.field} is an insight value, as in every card headline. Nothing here is typed as a number.
 landing:
-  status: draft
+  status: final    # approved by Anna 2026-10-27 (ADR-038)
   record:
     - {value: '{incremental}', label: Fan accounts added by flag}
     - {value: '{participants}', label: 'Children who played in {latest_year}'}

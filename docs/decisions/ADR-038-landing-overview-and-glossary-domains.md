@@ -1,6 +1,6 @@
 # ADR-038: The landing page is an overview of the site; the glossary is grouped by domain
 
-- **Status:** Accepted, 2026-10-27, at Anna's request. **The landing copy is `status: draft`** (`landing` in `site_src/copy/charts.yml`), and so are the new glossary terms (`site_src/copy/glossary.yml`).
+- **Status:** Accepted, 2026-10-27, at Anna's request. **The landing copy and the new glossary terms were approved as final by Anna the same day** (`landing` in `site_src/copy/charts.yml`, `site_src/copy/glossary.yml`).
 
 ## Decisions
 1. **The landing page (`index.html`) gives a five-minute overview of the whole site.** It replaces the old headline table and link list.
