@@ -166,3 +166,18 @@ code { overflow-wrap: break-word; } .note, main p, main li { overflow-wrap: brea
   table[data-stack] td.c-short { white-space: normal; }
   table[data-stack] th[scope='row'] { display: block; font-weight: 600; color: var(--text); }
 }
+
+/* Phones (ADR-037): every control is at least 44px tall to tap, and no reading text is below 12px. Inline text links are exempt (they sit in sentences). */
+@media (max-width: 719px) {
+  .notice button { min-height: 40px; padding: 0 14px; }
+  .menu-btn { min-height: 44px; }
+  main button, .vexpand, .lens-toggle button { min-height: 44px; }
+  .demo-path .demo-go { display: inline-flex; align-items: center; min-height: 44px; }
+  main summary, .site-footer summary { padding: 11px 0; }
+  body .vrcard { min-height: 44px; }
+  body .mtile .mname, body .vtiles-compact .mtile .mname { font-size: .8125rem; }
+  body .vthumb-html .vmatrix, body .vthumb-html .vtable, body .vcompact .vpersona, body .vlabel-small, body .vr-colhead, body .vr-nlabel, body .vgoal, body .vproduct table { font-size: .75rem; }
+  body .vstage, body .vstage p, body .vthumb-html .vstage { font-size: .75rem; }
+  .site-footer a, .summary-link, main ol.tour a { display: inline-block; padding: 10px 0; }
+  body .vrchip, body .vr-type, body .vr-goal, body .vr-colhead { font-size: .75rem; }
+}

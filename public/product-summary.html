@@ -167,6 +167,9 @@ body.summary .ps-foot a{color:var(--s-accent-2);text-decoration:none;font-weight
   body.summary .ps-inner,body.summary .ps-story{padding-left:16px;padding-right:16px}
 }
 @page{size:letter portrait;margin:.5in}
+/* phones (ADR-037): taps at least 44px tall, reading text at least 12px */
+@media (max-width:719px){body.summary .ps-see{display:inline-flex;align-items:center;min-height:44px}body.summary .vrgap,body.summary .ps-tagchip{display:inline-flex;align-items:center;min-height:44px}
+  body.summary .ps-sec .vtable thead th,body.summary .ps-sec .vmatrix thead th,body.summary .vm-pill,body.summary .vpersona .note,body.summary .ps-tag,body.summary .ps-hs,body.summary .ps-pos,body.summary .ps-tagchip{font-size:12px}body.summary .ps-foot a{display:inline-block;padding:10px 0}}
 @media print{
   body.summary{--pz1:.63;--pz2:.54;--pz3:.46;--ph:250px;--pf:80px;-webkit-print-color-adjust:exact;print-color-adjust:exact;--s-bg:#fff;--s-card:#fff;--s-text:#1B2733;--s-muted:#4A5866;--s-line:#D5DBE1;--s-zebra:#f0f2f5;--s-ink-hero:#0b1726;--s-hero-ink:#fff;--s-hero-muted:#b4c0d0;--s-accent:#19b37a;--s-accent-ink:#0b7a52;--s-arrow:#0b1726;color-scheme:light}
   body.summary .ps-tabs,body.summary .ps-see,body.summary .ps-screen-only{display:none}
