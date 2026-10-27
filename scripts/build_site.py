@@ -69,7 +69,7 @@ NAV_GROUPS = [
     ("Data products", [("product.html", "Data products", "product")]),
     ("Global outlook", [("global.html", "Global outlook", "global")]),
     ("Trust and governance", [("quality.html", "Data quality", "quality"), ("sure.html", "How sure", "sure"), ("privacy.html", "Privacy by design", "privacy"), ("trust.html", "Identity and governance", "trust")]),
-    ("About", [("index.html", "Overview", "index"), ("trust.html#documents", "Methodology", "methodology"), ("glossary.html", "Glossary", "glossary")]),
+    ("Glossary", [("glossary.html", "Glossary", "glossary")]),      # the overview stays at index.html, linked from the wordmark and the notice
 ]
 
 
