@@ -43,6 +43,10 @@
     }, { rootMargin: "300px" });
     thumbs.forEach(function (c) { thumbObs.observe(c); });
   } else { thumbs.forEach(renderThumb); }
+  // the rest render once the page is idle, and all of them before printing, so a printout or a PDF never has an empty chart (ADR-039)
+  function renderAll() { thumbs.forEach(renderThumb); }
+  window.addEventListener("load", function () { (window.requestIdleCallback || function (f) { return setTimeout(f, 800); })(renderAll); });
+  window.addEventListener("beforeprint", renderAll);
 
   // segmented control (tile map): shows one of the precomputed panels
   document.querySelectorAll(".vseg").forEach(function (seg) {

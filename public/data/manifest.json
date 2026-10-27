@@ -502,7 +502,7 @@
    "name": "chart_insights_exec_global",
    "source": "share_exec.share_exec__gmp_chart_insights",
    "kind": "share_exec",
-   "rows": 15
+   "rows": 16
   },
   {
    "name": "product_prioritization",

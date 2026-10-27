@@ -65,7 +65,9 @@ body.summary .lens-scope>.ps-sec:first-of-type,body.summary .lens-scope>.vgoals+
 @media (min-width:701px) and (max-width:1100px){body.summary .ps-sec table[data-wide]{display:block;overflow-x:auto}}
 /* the full-screen slides keep the site's own type, so their tables fit a phone as before */
 body.summary dialog.viewer{--font-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font:400 1rem/1.55 var(--font-body)}
-@media print{body.summary .ps-tabs{display:none}body.summary .ps-hero{padding:16px 0 12px}body.summary .ps-sec{break-inside:auto;margin-bottom:24px}}
+body.summary .ps-rec .n{white-space:nowrap}
+/* print: the site's banners keep their natural size (the one-page summary's print rules fit a letter page and would crop them), four numbers in a row */
+@media print{body.summary .ps-tabs{display:none}body.summary .ps-hero{zoom:1;width:auto;height:auto;overflow:visible;padding:16px 0 12px}body.summary .ps-record{grid-template-columns:repeat(4,minmax(0,1fr))}body.summary .ps-rec .n{font-size:36px}body.summary .ps-sec{break-inside:auto;margin-bottom:24px}}
 /* the five-minute overview (ADR-034): the summary page's stat cards, five across on a wide screen */
 body.summary .g-takeaways{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
 body.summary a.g-take{display:block;text-decoration:none;color:var(--s-text)}
