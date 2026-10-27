@@ -65,9 +65,9 @@ APPENDIX = [("appendix", "Appendix"), ("glossary", "Glossary")]          # a str
 
 
 NAV_GROUPS = [
+    ("High-level analysis", [("participation.html", "Participation", "participation"), ("sure.html", "How sure", "sure"), ("acquisition.html", "Acquisition", "acquisition"), ("audience.html", "Audience", "audience")]),
     ("Data product", [("product.html", "Data product", "product")]),
     ("Global outlook", [("global.html", "Global outlook", "global")]),
-    ("Results", [("participation.html", "Participation", "participation"), ("sure.html", "How sure", "sure"), ("acquisition.html", "Acquisition", "acquisition"), ("audience.html", "Audience", "audience")]),
     ("Data quality", [("quality.html", "Data quality", "quality"), ("markets.html", "Club markets", "markets")]),
     ("Privacy", [("privacy.html", "Privacy by design", "privacy"), ("trust.html", "Trust and governance", "trust")]),
     ("About", [("index.html", "Overview", "index"), ("trust.html#documents", "Methodology", "methodology"), ("glossary.html", "Glossary", "glossary")]),
