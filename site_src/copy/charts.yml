@@ -596,7 +596,7 @@ summary:
   title: "Flag Football: a data product, end to end"
   pitch: "Three business goals, turned into five data products that are owned, measured and safe for kids."
   synthetic_badge: "Synthetic data"
-  eyebrow: "Data product · {year} season · Synthetic data"
+  eyebrow: "Data products · {year} season · Synthetic data"
   record_labels: {products: "Products", gates: "Gates met", fans: "New fans", breaks: "Boundary breaks"}
   tabs:
     - {id: s-matrix, label: "Overview"}
@@ -680,5 +680,5 @@ summary:
     - "Youth records past 18"
   working_sub: "{year}, synthetic"
   footer: "All figures synthetic, built to test the method"
-  footer_link: "Full detail: Data product tab"
+  footer_link: "Full detail: Data products tab"
   methodology: "Methodology {version}"

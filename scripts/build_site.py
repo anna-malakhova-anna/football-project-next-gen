@@ -43,7 +43,7 @@ LIBS = ["https://cdn.jsdelivr.net/npm/vega@5", "https://cdn.jsdelivr.net/npm/veg
 
 
 # ------------------------------------------------------------------ pages
-PAGES = [("product", "Data product"), ("index", "Overview"), ("acquisition", "Acquisition"), ("value", "Value"), ("audience", "Audience"), ("participation", "Participation"), *P5.PAGES, *G.PAGES, ("trust", "Trust")]
+PAGES = [("product", "Data products"), ("index", "Overview"), ("acquisition", "Acquisition"), ("value", "Value"), ("audience", "Audience"), ("participation", "Participation"), *P5.PAGES, *G.PAGES, ("trust", "Trust")]
 # page title (display type) and the one-sentence question under it (ui-spec section 5)
 PAGE_HEAD = {
     "index": ("Counting flag football's fans", "What this project is and how to read it."),
@@ -52,7 +52,7 @@ PAGE_HEAD = {
     "audience": ("Audience and consent", "How many can we reach, and what are we missing?"),
     "participation": ("Participation", "How many play, and how sure are we?"),
     "trust": ("Data trust and governance", "Why can these numbers be trusted?"),
-    "product": ("Data product", "Given these business goals, what data products would you build, in what order, for whom, under what privacy rules, and how would you know they are working?"),
+    "product": ("Data products", "Given these business goals, what data products would you build, in what order, for whom, under what privacy rules, and how would you know they are working?"),
     **P5.PAGE_HEAD,
     **G.PAGE_HEAD,
     "glossary": ("Glossary", "What each plain term on this site means, and what analysts call it."),
@@ -66,7 +66,7 @@ APPENDIX = [("appendix", "Appendix"), ("glossary", "Glossary")]          # a str
 
 NAV_GROUPS = [
     ("High-level analysis", [("participation.html", "Participation", "participation"), ("sure.html", "How sure", "sure"), ("acquisition.html", "Acquisition", "acquisition"), ("audience.html", "Audience", "audience")]),
-    ("Data product", [("product.html", "Data product", "product")]),
+    ("Data products", [("product.html", "Data products", "product")]),
     ("Global outlook", [("global.html", "Global outlook", "global")]),
     ("Data quality", [("quality.html", "Data quality", "quality"), ("markets.html", "Club markets", "markets")]),
     ("Privacy", [("privacy.html", "Privacy by design", "privacy"), ("trust.html", "Trust and governance", "trust")]),
