@@ -111,6 +111,7 @@ ol.tour li { margin: 8px 0; }
 .nav-trigger:hover, .nav-group.open .nav-trigger { opacity: 1; }
 .nav-group.is-current .nav-trigger { border-bottom-color: var(--series-turf); opacity: 1; font-weight: 500; }
 :root[data-theme="dark"] .nav-group.is-current .nav-trigger, :root:not([data-theme="light"]) .nav-group.is-current .nav-trigger { border-bottom-color: #4C9A73; }
+@media (min-width: 1021px) and (max-width: 1180px) { .nav { gap: 4px; } .nav-trigger { padding: 3px 8px 0; } }   /* six menu labels: tighter spacing just above the collapse point, so the bar fits at 1024px */
 .nav-trigger .caret { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid currentColor; }
 .nav-menu { display: none; position: absolute; top: 100%; left: 0; min-width: 220px; background: var(--topbar-bg); box-shadow: var(--shadow-float); z-index: 30; padding: 6px 0; border-radius: 0 0 var(--r-card) var(--r-card); }
 .nav-group.open .nav-menu { display: block; }
