@@ -25,7 +25,7 @@
 </div>
 <header class="topbar" id="topbar">
   <div class="topbar-inner">
-    <a class="wordmark" href="index.html">{% if logo %}<img class="wordmark-logo" src="img/logo.webp" alt="" width="36" height="36">{% else %}<svg class="wordmark-mark" data-mark="project" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Flag Football Project mark"><rect width="32" height="32" fill="#2F6B4F"/><rect x="4" y="14" width="24" height="4" fill="#F2C230"/></svg>{% endif %}Flag Football Project</a>
+    <a class="wordmark" href="index.html">{% if logo %}<img class="wordmark-logo" src="img/logo.webp" alt="" width="36" height="36">{% else %}<svg class="wordmark-mark" data-mark="project" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Flag Football Project mark">{{ mark | safe }}</svg>{% endif %}Flag Football Project</a>
     <button type="button" class="icon-btn menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav">Menu</button>
     <nav class="nav" id="site-nav" aria-label="Pages">
       {% for g in nav_groups %}{% if g["items"]|length == 1 %}<div class="nav-group nav-single{% if g.current %} is-current{% endif %}"><a class="nav-trigger nav-link" href="{{ g['items'][0][0] }}"{% if g.current %} aria-current="page"{% endif %}>{{ g.label }}</a></div>{% else %}<div class="nav-group{% if g.current %} is-current{% endif %}">

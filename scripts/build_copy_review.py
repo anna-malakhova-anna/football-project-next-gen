@@ -23,7 +23,7 @@ SITE = ROOT / "site"
 COPY = ROOT / "site_src" / "copy" / "charts.yml"
 OUT = ROOT / "docs" / "product" / "copy-review.md"
 PAGES = [("quality", "Data quality"), ("sure", "How sure are we?"), ("markets", "Club markets"), ("privacy", "Privacy by design"), ("product", "Data products"), ("global", "Global outlook")]
-# The 5-minute path of each page = the charts its `demo_text` in charts.yml names, in order (checked by hand against the text printed beside each page below).
+# The detailed walkthrough of each page (the slide tour; called the 5-minute path before 2026-10-27) = the charts its `demo_text` in charts.yml names, in order (checked by hand against the text printed beside each page below).
 DEMO = {"quality": ["Q1", "Q3"], "sure": ["U1", "U3"], "markets": ["M1", "M3", "M5"], "privacy": ["P3", "P1"], "product": ["D1", "D2", "D4", "D6", "D7"], "global": ["G0", "G1", "G2", "G3", "G4", "G5"]}
 SLOTS = [("headline", "headline_template"), ("question", "question"), ("means_club", "means_club"), ("means_privacy", "means_privacy"),
          ("action_club", "action_club"), ("action_privacy", "action_privacy"), ("caution", "caution")]
@@ -136,7 +136,7 @@ def main() -> int:
         gc, gp = all_grades[cid]
         out.append(f"| {i} | {cid} | {title} | {'yes, step ' + str(demo_rank[cid]) if cid in demo_rank else 'no'} | {c['question']} | {flag(gc)} / {flag(gp)} | `{status[cid]}` |")
     out += ["", "## 1. Demo-path charts", "",
-            "These are the charts the 5-minute path on each page walks through, in order. The path text on each page is in section 3 (`demo_text`).", ""]
+            "These are the charts the detailed walkthrough on each page steps through, in order. The path text on each page is in section 3 (`demo_text`).", ""]
     for cid in demo_ids:
         out.append(card_section(cid, found[cid][0], found[cid][1], status[cid], demo_rank[cid]))
     out += ["## 2. Other charts", ""]

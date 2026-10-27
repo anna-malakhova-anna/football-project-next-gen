@@ -170,5 +170,9 @@ def chart_block(cid: str, ch: dict, data: dict) -> str:
             f'{script}</section>')
 
 
-FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#2F6B4F"/>'
-           '<rect x="4" y="14" width="24" height="4" fill="#F2C230"/></svg>')
+# The project's own mark: an American football with white laces on turf green, drawn here (no third-party mark). One source for the top bar and the favicon.
+MARK = ('<rect width="32" height="32" rx="6" fill="#2F6B4F"/><g transform="rotate(-35 16 16)">'
+        '<path d="M3.5 16C8 8 24 8 28.5 16C24 24 8 24 3.5 16Z" fill="#8A4B2A" stroke="#5E3119" stroke-width=".8"/>'
+        '<path d="M8.6 13.3v5.4M23.4 13.3v5.4" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>'
+        '<path d="M11.5 16h9M13 14.4v3.2M15 14.4v3.2M17 14.4v3.2M19 14.4v3.2" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round"/></g>')
+FAVICON = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">{MARK}</svg>'

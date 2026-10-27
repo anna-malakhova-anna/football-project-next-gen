@@ -35,7 +35,7 @@ from scripts.common import DB, ROOT
 from scripts.site_charts import charts
 from scripts.site_rules import check_brand_boundary, check_dataset, check_spec
 from scripts.site_data import DATASETS
-from scripts.site_render import FAVICON, chart_block, esc, fmt_cell, relabel, table_html
+from scripts.site_render import FAVICON, MARK, chart_block, esc, fmt_cell, relabel, table_html
 
 OUT = ROOT / "site"
 
@@ -90,7 +90,7 @@ def render_page(slug: str, body: str, built: str, version: str, hero: str | None
     body = site_tables.enhance(body)
     return env.get_template("base.html").render(title=title, question=question, body=body, built=built, version=version, libs=LIBS,
                                                 nav_groups=[{"label": g, "items": items, "current": any(sl == slug for _h, _l, sl in items)} for g, items in NAV_GROUPS], current=slug, appendix=True,
-                                                logo=LOCAL_LOGO.exists(), memo_version=memo_version(), hero=hero, body_class=body_class, extra_css=extra_css)
+                                                logo=LOCAL_LOGO.exists(), memo_version=memo_version(), hero=hero, body_class=body_class, extra_css=extra_css, mark=MARK)
 
 
 def copy_assets(out: Path) -> None:
@@ -224,8 +224,8 @@ def lens_scope(inner: str, default: str, demo: str, demo_slide: str = "") -> str
     toggle = ('<div class="lens-toggle" role="group" aria-label="Choose a lens"><span class="note">Lens</span>'
               f'<button type="button" data-set-lens="club" aria-pressed="{"true" if default == "club" else "false"}">Club lens</button>'
               f'<button type="button" data-set-lens="privacy" aria-pressed="{"true" if default == "privacy" else "false"}">Privacy lens</button></div>')
-    go = f' <a class="demo-go" href="#view={esc(demo_slide)}">Start the 5-minute path \u2192</a>' if demo_slide else ""
-    path = f'<aside class="demo-path"><span><b>5-minute path.</b> {esc(demo)}</span>{go}</aside>' if demo else ""      # a page may have no slide tour (Global outlook: ADR-034)
+    go = f' <a class="demo-go" href="#view={esc(demo_slide)}">Open the detailed walkthrough \u2192</a>' if demo_slide else ""
+    path = f'<aside class="demo-path"><span><b>Detailed walkthrough.</b> {esc(demo)}</span>{go}</aside>' if demo else ""      # a page may have no slide tour (Global outlook: ADR-034)
     return f'{path}{toggle}<div class="lens-scope" data-lens-active="{default}">{inner}</div>'
 
 
