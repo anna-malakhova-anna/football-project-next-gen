@@ -456,6 +456,7 @@ body.summary .ps-foot a{color:var(--s-accent-2);text-decoration:none;font-weight
   body.summary{--pz1:.63;--pz2:.54;--pz3:.46;--ph:250px;--pf:80px;-webkit-print-color-adjust:exact;print-color-adjust:exact;--s-bg:#fff;--s-card:#fff;--s-text:#1B2733;--s-muted:#4A5866;--s-line:#D5DBE1;--s-zebra:#f0f2f5;--s-ink-hero:#0b1726;--s-hero-ink:#fff;--s-hero-muted:#b4c0d0;--s-accent:#19b37a;--s-accent-ink:#0b7a52;--s-arrow:#0b1726;color-scheme:light}
   body.summary .ps-tabs,body.summary .ps-see,body.summary .ps-screen-only{display:none}
   body.summary table.ps-print-only{display:table}
+  body.summary .vm-link{display:none}
   body.summary .ps-hero{zoom:var(--pz1);width:calc(720px / var(--pz1));height:var(--ph);overflow:hidden;padding:20px 0 0}
   body.summary .ps-hero .ps-inner,body.summary .ps-story{max-width:none;padding-left:0;padding-right:0}
   body.summary .ps-hero h1{font-size:44px}

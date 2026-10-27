@@ -90,7 +90,8 @@ def matrix_html(ps: dict, compact: bool = False, static: dict | None = None) -> 
         if static:      # a coloured pill only where the product serves the goal
             cells = "".join(f"<td><span class='vm-pill vm-{p['value_proposition']}'>{VALUE_WORD[p['value_proposition']]}</span></td>" if g in p["goals"] else "<td>&nbsp;</td>" for p in ps.values())
         label = static["goals"][g] if static else (SHORT_GOALS[g] if compact else text)
-        body += f"<tr><th scope='row'><b>{g}</b> {e(label)}</th>{cells}</tr>"
+        more = "<br><a class='vm-link' href='global.html'>DP3 market by market: Global outlook &rarr;</a>" if g == "G1" and not compact else ""     # G1 -> DP3 -> Global outlook
+        body += f"<tr><th scope='row'><b>{g}</b> {e(label)}{more}</th>{cells}</tr>"
     note = "" if compact and not static else "<p class='note'>Driver: moves the goal directly. Enabler: makes other products possible. Utility: keeps things running.</p>"
     return f"<div class='vproduct'><table class='vmatrix'><thead><tr><th>Goal</th>{head}</tr></thead><tbody>{body}</tbody></table>{note}</div>"
 

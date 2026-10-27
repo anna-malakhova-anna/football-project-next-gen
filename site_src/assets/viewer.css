@@ -123,6 +123,10 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 /* the Data product tab */
 .vgoals { list-style: none; padding: 0; margin: 12px 0 20px; display: grid; gap: 6px; }
 .vgoals li { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--turf); border-radius: var(--r-chip); padding: 8px 12px; }
+/* G1 -> DP3 -> Global outlook: the link from the goal list and the goal matrix */
+.vgoal-link, .vm-link { display: inline-block; font-size: .875rem; font-weight: 500; color: var(--link); }
+.vgoal-link { margin-left: 4px; } .vm-link { margin-top: 4px; font-weight: 600; }
+@media (max-width: 719px) { .vgoal-link, .vm-link { display: block; margin: 6px 0 0; padding: 6px 0; } }
 .vproduct { font-size: .9375rem; }
 .vproduct h4 { margin: 0 0 4px; font-size: 1rem; }
 .vproduct h5 { margin: 10px 0 2px; font-size: .9rem; }

@@ -571,6 +571,9 @@ pages:
     hero_eyebrow: 'Global outlook · {G0.n_markets} NFL program markets · synthetic data'
     hero_title: 'Flag football abroad: what we can read'
     hero_badge: Synthetic data
+    product_link_label: DP3's view of the program markets.
+    product_link_text: "Goal G1, growing the NFL's presence abroad, is driven by data product DP3. This tab applies DP3's player counts and the quality grades to the {G0.n_markets} markets where NFL clubs hold rights, including those that send no data. In the code it is its own product, DP6."
+    product_link_button: See G1 and DP3 on Data products
     record:
       - {value: '{G0.n_markets}', label: Markets}
       - {value: '{G1.n_readable}', label: Markets we can read}

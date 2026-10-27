@@ -458,7 +458,8 @@ def phase5_pages(blocks: dict, data: dict, labels: dict) -> dict:
     out = {}
     pages = site_cards.load_pages()
     for slug in ("product", "quality", "sure", "markets", "privacy", "global"):
-        inner = ("<ul class='vgoals'>" + "".join(f"<li><b>{g}</b> {esc(t)}</li>" for g, t in site_product.GOALS.items()) + "</ul>" if slug == "product" else "") + "".join(blocks[slug])
+        g1 = " <a class='vgoal-link' href='global.html'>DP3 drives it; see it market by market on the Global outlook &rarr;</a>"      # the story G1 -> DP3 -> Global outlook
+        inner = ("<ul class='vgoals'>" + "".join(f"<li><b>{g}</b> {esc(t)}{g1 if g == 'G1' else ''}</li>" for g, t in site_product.GOALS.items()) + "</ul>" if slug == "product" else "") + "".join(blocks[slug])
         if slug == "privacy":
             inner += ("<h2>Share-policy check</h2>" + table_html(data["policy_results"])
                       + "<p class='note'>Violations found on the last run of the check that guards every share (no direct or quasi identifier in the club or privacy shares, only approved aggregate marts upstream, every metric in the catalog). Zero is the expected result.</p>")
@@ -466,7 +467,9 @@ def phase5_pages(blocks: dict, data: dict, labels: dict) -> dict:
         title = PAGE_HEAD[slug][0]
         pg = pages[slug]
         if slug == "global":       # the summary look: the banner carries the intro, the sections carry the cards (ADR-033)
-            out[slug] = (title, global_overview(pg) + lens_scope(global_sections(blocks[slug], pg, site_cards.load_copy()), "club", pg["demo_text"], pg["demo_slide"]), None)
+            dp3 = (f'<aside class="demo-path"><span><b>{esc(pg["product_link_label"])}</b> {esc(site_cards.fill(pg["product_link_text"], None, None))}</span>'
+                   f' <a class="demo-go" href="product.html">{esc(pg["product_link_button"])} \u2192</a></aside>')      # the story G1 -> DP3 -> Global outlook
+            out[slug] = (title, dp3 + global_overview(pg) + lens_scope(global_sections(blocks[slug], pg, site_cards.load_copy()), "club", pg["demo_text"], pg["demo_slide"]), None)
             continue
         intro = f"<p class='note intro'><b>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</b></p>"
         if slug == "product":
