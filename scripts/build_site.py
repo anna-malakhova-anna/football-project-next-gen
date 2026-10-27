@@ -148,7 +148,7 @@ def g3_frame(facts: dict) -> str:
     return esc(G3_FRAME.format(uplift=f"{round(facts['did_pct'] * 100):.0f}%", fans=r10(facts["incremental"]), per100=f"{facts['per100']:.0f}"))
 
 
-def build_pages(data: dict, chart_defs: dict, facts: dict) -> dict[str, tuple[str, str]]:
+def build_pages(data: dict, chart_defs: dict, facts: dict, labels: dict) -> dict[str, tuple[str, str, list]]:
     built = {}
     blocks = {p: [] for p, _ in PAGES + APPENDIX}
     for cid, ch in chart_defs.items():
@@ -213,8 +213,9 @@ linked to fan accounts under a restricted-zone policy, shared by audience with s
 <li><code>docs/decisions/</code>: ADR-001 to ADR-011, including the linkage governance decision (ADR-009), the fandom design (ADR-010) and the acquisition measurement design (ADR-011)</li>
 <li><code>docs/playbook/onboard-a-source.md</code>: how a source is onboarded, with the logs for the two Phase 4 sources</li>
 <li><code>docs/access_policy.md</code>, <code>docs/metrics.md</code>, <code>docs/data_dictionary.md</code></li></ul>""")
-    built.update(phase5_pages(blocks, data))
     built["glossary"] = ("Glossary", glossary_body(data))
+    built = {slug: (title, *sectionize(slug, body, labels)) for slug, (title, body) in built.items()}       # the summary look on every tab (ADR-035)
+    built.update(phase5_pages(blocks, data, labels))
     return built
 
 
@@ -240,45 +241,119 @@ def glossary_body(data: dict) -> str:
             f"<details><summary>Every problem we check ({len(data['glossary_rules']['rows'])})</summary><table><thead><tr><th>Problem</th><th>What to do</th><th>Code</th></tr></thead><tbody>{rules}</tbody></table></details>")
 
 
-def group_cards(blocks: list[str]) -> str:
-    """Consecutive chart cards go into one responsive grid (2 columns at 1100 px and wider); other blocks pass through."""
-    out, run = [], []
-    for b in blocks + [""]:
-        if b.startswith('<article class="vcard"'):
-            run.append(b)
-            continue
-        if run:
-            out.append('<div class="vgrid">' + "".join(run) + "</div>")
-            run = []
-        out.append(b)
-    return "".join(out)
+SUMMARY_FRAME_CSS = site_summary.CSS[:site_summary.CSS.index("/* standings tables */")]     # colours, type, banner, section bar and sections: not the summary's restyled tables, roadmap or personas
 
-
-GLOBAL_CSS_EXTRA = """
-/* Global outlook in the Data product summary's look (ADR-033): each numbered section holds one card; the section title is the card's question,
-   so the card's own question line is kept for screen readers and the page check but not shown twice */
-body.summary .ps-sec .vcard{margin:0}
-body.summary .ps-sec .vcard-question{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+SUMMARY_CSS_EXTRA = """
+/* Every tab in the Data products summary's look (ADR-033, ADR-035): each numbered section holds one card, chart or table; the section title is the
+   card's question or the chart's title, so the card's own question line and the chart's own title are kept for screen readers and the page check but not shown twice */
+body.summary .ps-sec .vcard,body.summary .ps-sec section.chart{margin:0}
+body.summary .ps-sec .vcard-question,body.summary .ps-sec>section.chart>h3:first-child{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 body.summary .ps-tabs{top:0}
-body.summary main{padding-top:0}
+body.summary main{padding-top:32px}
 body.summary .lens-toggle,body.summary .demo-path{margin-top:24px}
+body.summary .lens-scope>.ps-sec:first-of-type,body.summary .lens-scope>.vgoals+.ps-sec{margin-top:32px}
+@media (max-width:719px){body.summary .ps-hero h1{font-size:44px}body.summary .ps-sec h2{font-size:28px}}
+/* a table with seven or more columns scrolls inside its section between the phone layout (stacked rows) and a wide screen */
+@media (min-width:701px) and (max-width:1100px){body.summary .ps-sec table[data-wide]{display:block;overflow-x:auto}}
+/* the full-screen slides keep the site's own type, so their tables fit a phone as before */
+body.summary dialog.viewer{--font-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font:400 1rem/1.55 var(--font-body)}
+@media print{body.summary .ps-tabs{display:none}body.summary .ps-hero{padding:16px 0 12px}body.summary .ps-sec{break-inside:auto;margin-bottom:24px}}
 /* the five-minute overview (ADR-034): the summary page's stat cards, five across on a wide screen */
 body.summary .g-takeaways{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
 body.summary a.g-take{display:block;text-decoration:none;color:var(--s-text)}
 body.summary a.g-take:hover{box-shadow:var(--s-shadow)}
 body.summary a.g-take .n{font-size:56px}
 body.summary .g-more{font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-accent-ink)}
-body.summary #s-overview{margin-top:32px}
 """
 
 
+def summary_hero(eyebrow: str, title: str, badge: str, pitch: str, tabs: list[tuple[str, str]], record: str = "") -> str:
+    """A banner and sticky section bar in the Data products summary's look. Arguments are escaped text; `record` is ready HTML (the Global outlook's headline numbers)."""
+    bar = "".join(f"<a href='#{esc(sid)}'{' class=on' if i == 0 else ''}>{esc(label)}</a>" for i, (sid, label) in enumerate(tabs))
+    return (f"<header class='ps-hero'><div class='ps-inner'><p class='ps-eyebrow'>{esc(eyebrow)}</p><h1>{esc(title)}</h1><span class='ps-badge'>{esc(badge)}</span>"
+            f"<p class='ps-pitch'>{esc(pitch)}</p>{f'<div class=ps-record>{record}</div>' if record else ''}</div></header>"
+            + (f"<nav class='ps-tabs' aria-label='Sections'><div class='ps-inner'>{bar}</div></nav>" if bar else ""))
+
+
 def global_hero(pg: dict) -> str:
-    """The Global outlook's banner and section bar, built like the Data product summary's: every number is an insight value filled by site_cards.fill."""
+    """The Global outlook's banner and section bar: every number is an insight value filled by site_cards.fill."""
     record = "".join(f"<div class='ps-rec'><div class='n'>{esc(site_cards.fill(r['value'], None, None))}</div><div class='l'>{esc(r['label'])}</div></div>" for r in pg["record"])
-    tabs = "<a href='#s-overview' class=on>Overview</a>" + "".join(f"<a href='#s-{esc(s['id'])}'>{esc(s['tab'])}</a>" for s in pg["sections"])
-    return (f"<header class='ps-hero'><div class='ps-inner'><p class='ps-eyebrow'>{esc(site_cards.fill(pg['hero_eyebrow'], None, None))}</p><h1>{esc(pg['hero_title'])}</h1>"
-            f"<span class='ps-badge'>{esc(pg['hero_badge'])}</span><p class='ps-pitch'>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</p>"
-            f"<div class='ps-record'>{record}</div></div></header><nav class='ps-tabs' aria-label='Sections'><div class='ps-inner'>{tabs}</div></nav>")
+    tabs = [("s-overview", "Overview")] + [(f"s-{s['id']}", s["tab"]) for s in pg["sections"]]
+    return summary_hero(site_cards.fill(pg["hero_eyebrow"], None, None), pg["hero_title"], pg["hero_badge"], site_cards.fill(pg["intro_template"], None, pg.get("fallback_intro")), tabs, record)
+
+
+def page_hero(slug: str, tabs: list[tuple[str, str]], labels: dict) -> str:
+    """Every other tab's banner (ADR-035): its menu group as the eyebrow, its title, the synthetic-data badge and its one-sentence question. No headline numbers."""
+    title, question = PAGE_HEAD[slug]
+    group = next((g for g, items in NAV_GROUPS if any(sl == slug for _h, _l, sl in items)), None)
+    return summary_hero(group if group and group != title else "Flag Football Project", title, labels["badge"], question, tabs)
+
+
+def load_page_sections() -> dict:
+    """The short section-bar labels for every tab but the Global outlook (`page_sections` in site_src/copy/charts.yml)."""
+    import yaml
+    sections = yaml.safe_load((SRC / "copy" / "charts.yml").read_text(encoding="utf-8"))["page_sections"]
+    if sections.get("status") == "draft":
+        print("WARNING: the section labels (`page_sections` in site_src/copy/charts.yml) are still `status: draft`; Anna reviews them before the final build.", file=sys.stderr)
+    return sections
+
+
+UNIT = re.compile(r'<article class="vcard"|<section class="chart"|<h2\b')
+H2 = re.compile(r"<h2([^>]*)>(.*?)</h2>", re.S)
+
+
+def _block_end(html: str, start: int, tag: str) -> int:
+    """The end of the element opened at `start`, counting nested elements of the same tag."""
+    depth = 0
+    for m in re.finditer(rf"<{tag}\b|</{tag}>", html[start:]):
+        depth += -1 if m.group(0).startswith("</") else 1
+        if depth == 0:
+            return start + m.end()
+    raise SystemExit(f"SITE BUILD REFUSED: unclosed <{tag}> at {start}")
+
+
+def _plain(fragment: str) -> str:
+    import html as h
+    return h.unescape(re.sub(r"<[^>]+>", "", fragment)).strip()
+
+
+def sectionize(slug: str, html: str, labels: dict) -> tuple[str, list[tuple[str, str]]]:
+    """Split a tab's content into numbered sections in the summary look (ADR-035), without changing the content:
+    a card or chart before the first heading is a section of its own (titled by its question or chart title); a heading starts a section that runs to the next
+    heading. What comes before the first of these stays above the sections. Each section's short bar label is copy (`page_sections`); a missing one stops the build."""
+    lead, secs, cur, pos = [], [], None, 0
+    while (m := UNIT.search(html, pos)):
+        (cur["body"] if cur else secs[-1]["body"] if secs else lead).append(html[pos:m.start()])
+        if html.startswith("<h2", m.start()):
+            h = H2.match(html, m.start())
+            anchor = re.search(r'id="([^"]+)"', h.group(1))
+            cur = {"key": anchor.group(1) if anchor else re.sub(r"[^a-z0-9]+", "-", _plain(h.group(2)).lower()).strip("-"), "title": h.group(2),
+                   "sid": anchor.group(1) if anchor else None, "body": []}
+            secs.append(cur)
+            pos = h.end()
+            continue
+        tag = "article" if html.startswith("<article", m.start()) else "section"
+        end = _block_end(html, m.start(), tag)
+        block = html[m.start():end]
+        if cur:
+            cur["body"].append(block)
+        else:
+            card = re.search(r'data-card="([^"]+)"', block)
+            title = re.search(r'<p class="vcard-question">(.*?)</p>', block, re.S) if card else re.search(r"<h3>(.*?)</h3>", block, re.S)
+            secs.append({"key": card.group(1) if card else re.search(r'id="sec-([^"]+)"', block).group(1), "title": title.group(1), "sid": None, "body": [block]})
+        pos = end
+    (cur["body"] if cur else secs[-1]["body"] if secs else lead).append(html[pos:])
+    page = labels.get(slug) or {}
+    missing = [s["key"] for s in secs if s["key"] not in page]
+    if missing:
+        raise SystemExit(f"SITE BUILD REFUSED: {slug} has sections with no label in page_sections ({', '.join(missing)})")
+    out, tabs = [], []
+    for i, s in enumerate(secs, 1):
+        sid = s["sid"] or f"s-{s['key'].lower()}"
+        tabs.append((sid, page[s["key"]]))
+        out.append(f"<section class='ps-sec' id='{esc(sid)}'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>{i} · {esc(page[s['key']])}</p>"
+                   f"<h2>{s['title']}</h2></div></header>{''.join(s['body'])}</section>")
+    return "".join(lead) + "".join(out), tabs
 
 
 def global_overview(pg: dict) -> str:
@@ -299,11 +374,11 @@ def global_sections(blocks: list[str], pg: dict, copy: dict) -> str:
     return "".join(out)
 
 
-def phase5_pages(blocks: dict, data: dict) -> dict:
+def phase5_pages(blocks: dict, data: dict, labels: dict) -> dict:
     out = {}
     pages = site_cards.load_pages()
     for slug in ("product", "quality", "sure", "markets", "privacy", "global"):
-        inner = ("<ul class='vgoals'>" + "".join(f"<li><b>{g}</b> {esc(t)}</li>" for g, t in site_product.GOALS.items()) + "</ul>" if slug == "product" else "") + group_cards(blocks[slug])
+        inner = ("<ul class='vgoals'>" + "".join(f"<li><b>{g}</b> {esc(t)}</li>" for g, t in site_product.GOALS.items()) + "</ul>" if slug == "product" else "") + "".join(blocks[slug])
         if slug == "privacy":
             inner += ("<h2>Share-policy check</h2>" + table_html(data["policy_results"])
                       + "<p class='note'>Violations found on the last run of the check that guards every share (no direct or quasi identifier in the club or privacy shares, only approved aggregate marts upstream, every metric in the catalog). Zero is the expected result.</p>")
@@ -311,12 +386,13 @@ def phase5_pages(blocks: dict, data: dict) -> dict:
         title = PAGE_HEAD[slug][0]
         pg = pages[slug]
         if slug == "global":       # the summary look: the banner carries the intro, the sections carry the cards (ADR-033)
-            out[slug] = (title, global_overview(pg) + lens_scope(global_sections(blocks[slug], pg, site_cards.load_copy()), "club", pg["demo_text"], pg["demo_slide"]))
+            out[slug] = (title, global_overview(pg) + lens_scope(global_sections(blocks[slug], pg, site_cards.load_copy()), "club", pg["demo_text"], pg["demo_slide"]), None)
             continue
         intro = f"<p class='note intro'><b>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</b></p>"
         if slug == "product":
             intro += f"<p class='note'><a class='summary-link' href='{site_summary.SLUG}.html'>One-page summary &rarr;</a></p>"
-        out[slug] = (title, intro + lens_scope(inner, default, pg["demo_text"], pg["demo_slide"]))
+        inner, tabs = sectionize(slug, inner, labels)
+        out[slug] = (title, intro + lens_scope(inner, default, pg["demo_text"], pg["demo_slide"]), tabs)
     return out
 
 
@@ -406,9 +482,10 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     copy_assets(out)
     (out / G.GEO_URL).parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(ROOT / G.GEO_SOURCE, out / G.GEO_URL)
-    extras = {"global": dict(hero=global_hero(site_cards.load_pages()["global"]), body_class="summary", extra_css=site_summary.CSS + GLOBAL_CSS_EXTRA)}
-    for slug, (_title, body) in build_pages(data, chart_defs, facts).items():
-        (out / f"{slug}.html").write_text(render_page(slug, body, stamp, version, **extras.get(slug, {})), encoding="utf-8")
+    labels = load_page_sections()
+    for slug, (_title, body, tabs) in build_pages(data, chart_defs, facts, labels).items():      # every tab in the summary look (ADR-033, ADR-035)
+        hero = global_hero(site_cards.load_pages()["global"]) if slug == "global" else page_hero(slug, tabs, labels)
+        (out / f"{slug}.html").write_text(render_page(slug, body, stamp, version, hero=hero, body_class="summary", extra_css=(site_summary.CSS if slug == "global" else SUMMARY_FRAME_CSS) + SUMMARY_CSS_EXTRA), encoding="utf-8")
     (out / f"{site_summary.SLUG}.html").write_text(site_summary.render(data, version)[0], encoding="utf-8")      # the one-page summary of the Data product tab
     problems = check_brand_boundary(out, local_logo=LOCAL_LOGO.exists())
     if problems:

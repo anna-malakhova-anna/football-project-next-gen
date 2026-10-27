@@ -682,3 +682,24 @@ summary:
   footer: "All figures synthetic, built to test the method"
   footer_link: "Full detail: Data products tab"
   methodology: "Methodology {version}"
+
+# Section-bar labels for every tab but the Global outlook (ADR-035): each tab is in the Data products summary's look, one numbered section per card, chart or
+# heading. Keys are the card code, the chart's id or the heading's id; the build stops if a section has no label. The section title itself is the card's question
+# or the chart's or heading's existing title, so no other text is new.
+page_sections:
+  status: draft
+  badge: Synthetic data
+  index: {headline: Headline, a-five-minute-tour: Tour}
+  participation: {participation_trend: Players, country: Countries, girls: Girls, retention_km: Who stays, retention_sex: By sex, cohorts: Cohorts, naive_vs_censored: Teen test}
+  acquisition: {acq_estimates: Fans added, drive: The drive, funnel_status: Fan status, funnel_rates: Funnel, acq_event_study: Market launches}
+  value: {fan_estimates: Engagement, event_study: Around signup, event_study_effect: By month, rfm: Segments, fan_survival: Staying active, fan_ltv: Value, uplift_events: Events, uplift_spend: Spend,
+          why-the-matched-engagement-estimate-is-where-it-is: Why}
+  audience: {audience: Audience, consent_capture: Consent, market_quadrants: Markets, latest-month-by-household-group: Latest month, markets-per-quadrant: Quadrants, who-can-be-linked: Linking}
+  appendix: {reach: Reach, against-the-synthetic-truth: Truth test}
+  trust: {identity-can-the-numbers-be-trusted: Identity, who-sees-what: Who sees what, suppression-example: Small numbers, data-contracts-per-source: Contracts, onboarding-status: Onboarding,
+          what-changed-after-publishing: Changes, documents: Documents}
+  product: {D1: Build, D2: Goals to products, D3: Users, D4: Order, D10: Gates, D5: Promises, D6: Kids' privacy, D7: Health, D8: Rules, D9: Watching}
+  quality: {Q1: Trust, Q2: Trend, Q3: Top fixes, Q4: Who, Q5: Ask a league}
+  sure: {U1: Range, U2: Girls' trend, U3: Methods, U4: Fix early}
+  markets: {M1: My market, M2: Real growth, M3: Reach, M4: Unseen, M5: Two views}
+  privacy: {P3: Fields, P1: Agreements, P2: Purposes, P4: Deletion, P5: Analyst share, share-policy-check: Policy check}
