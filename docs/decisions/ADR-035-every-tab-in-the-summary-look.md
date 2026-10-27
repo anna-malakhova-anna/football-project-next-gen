@@ -1,6 +1,6 @@
 # ADR-035: Every tab takes the Data products summary's look
 
-- **Status:** Accepted, 2026-10-27, at Anna's request ("apply the same style as in Data Products and Global outlook to the rest of the pages"). Anna chose the **look only**, with no new headline numbers or overviews, and asked for the Data products tab itself to be included. **The section-bar labels are `status: draft`** (`page_sections` in `site_src/copy/charts.yml`).
+- **Status:** Accepted, 2026-10-27, at Anna's request ("apply the same style as in Data Products and Global outlook to the rest of the pages"). Anna chose the **look only**, with no new headline numbers or overviews, and asked for the Data products tab itself to be included. **The section-bar labels were approved as final by Anna the same day** (`page_sections` in `site_src/copy/charts.yml`).
 
 ## Decisions
 1. **Every page gets the Global outlook's frame (ADR-033):** the dark banner, the sticky section bar and numbered sections with green-edged headings. This covers every tab, the appendix and the glossary. The one-page summary is unchanged.

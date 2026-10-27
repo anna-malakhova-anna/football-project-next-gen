@@ -687,7 +687,7 @@ summary:
 # heading. Keys are the card code, the chart's id or the heading's id; the build stops if a section has no label. The section title itself is the card's question
 # or the chart's or heading's existing title, so no other text is new.
 page_sections:
-  status: draft
+  status: final    # approved by Anna 2026-10-27 (ADR-035)
   badge: Synthetic data
   index: {headline: Headline, a-five-minute-tour: Tour}
   participation: {participation_trend: Players, country: Countries, girls: Girls, retention_km: Who stays, retention_sex: By sex, cohorts: Cohorts, naive_vs_censored: Teen test}
