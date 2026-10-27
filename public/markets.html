@@ -60,7 +60,7 @@ body.summary .ps-tabs{top:0}
 body.summary main{padding-top:32px}
 body.summary .lens-toggle,body.summary .demo-path{margin-top:24px}
 body.summary .lens-scope>.ps-sec:first-of-type,body.summary .lens-scope>.vgoals+.ps-sec{margin-top:32px}
-@media (max-width:719px){body.summary .ps-hero h1{font-size:44px}body.summary .ps-sec h2{font-size:28px}}
+@media (max-width:719px){body.summary .ps-hero h1{font-size:44px}body.summary .ps-sec h2{font-size:28px}body.summary .ps-record{grid-template-columns:repeat(2,minmax(0,1fr))}body.summary .ps-rec .n{font-size:44px}body.summary .ps-rec:nth-child(odd){border-left:0;padding-left:0}}
 /* a table with seven or more columns scrolls inside its section between the phone layout (stacked rows) and a wide screen */
 @media (min-width:701px) and (max-width:1100px){body.summary .ps-sec table[data-wide]{display:block;overflow-x:auto}}
 /* the full-screen slides keep the site's own type, so their tables fit a phone as before */
@@ -72,6 +72,32 @@ body.summary a.g-take{display:block;text-decoration:none;color:var(--s-text)}
 body.summary a.g-take:hover{box-shadow:var(--s-shadow)}
 body.summary a.g-take .n{font-size:56px}
 body.summary .g-more{font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-accent-ink)}
+/* the landing page (ADR-038): takeaways as cards with a green edge (trust and governance in blue: it runs through every phase), and page links as pills */
+body.summary #s-tour{margin-bottom:24px}
+body.summary .l-takes{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:10px;max-width:none}
+body.summary .l-takes li{background:var(--s-card);border:1px solid var(--s-line);border-left:4px solid var(--s-accent);border-radius:4px;padding:12px 16px;line-height:1.5}
+body.summary .l-takes b{color:var(--s-text)}
+body.summary .l-trust .ps-sh{border-left-color:var(--s-accent-2)}
+body.summary .l-trust .l-takes li{border-left-color:var(--s-accent-2)}
+body.summary .l-links{display:flex;flex-wrap:wrap;gap:8px}
+body.summary a.l-go{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:1px solid var(--s-accent-ink);border-radius:999px;color:var(--s-accent-ink);text-decoration:none;font-weight:600}
+body.summary a.l-go:hover{background:var(--s-accent-ink);color:#fff}
+/* the glossary (ADR-038): each domain has its own colour on the section edge, the term name and the card edge; the analysts' name is a small grey code tag */
+body.summary .gdom{--gd:var(--s-accent)}
+body.summary .gd-reading{--gd:#5B6B7C}body.summary .gd-counting{--gd:#2F6B4F}body.summary .gd-fans{--gd:#D9622B}body.summary .gd-matching{--gd:#3D7CC9}
+body.summary .gd-quality{--gd:#A8893F}body.summary .gd-privacy{--gd:#7D4E8E}body.summary .gd-governance{--gd:#1F4E79}body.summary .gd-products{--gd:#13856A}body.summary .gd-global{--gd:#B5475D}
+@media (prefers-color-scheme:dark){html:not([data-theme="light"]) body.summary .gdom{--gd-text:color-mix(in srgb,var(--gd) 55%,#ffffff)}}
+html[data-theme="dark"] body.summary .gdom{--gd-text:color-mix(in srgb,var(--gd) 55%,#ffffff)}
+body.summary .gdom .ps-sh{border-left-color:var(--gd)}
+body.summary .gterms{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin:0 0 16px}
+body.summary .gterm{background:var(--s-card);border:1px solid var(--s-line);border-top:3px solid var(--gd);border-radius:4px;padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+body.summary .gterm dt{font:700 20px/1.15 "Barlow Condensed",sans-serif;letter-spacing:.01em;color:var(--gd-text,var(--gd));margin:0}
+body.summary .gterm dd{margin:0;display:flex;flex-direction:column;gap:8px;flex:1}
+body.summary .gdef{color:var(--s-text);line-height:1.5}
+body.summary .gtech{margin-top:auto;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--s-muted)}
+body.summary .gtech-l{display:block;font:600 11px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+body.summary .gsub{font:700 20px/1.2 "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.02em;margin:24px 0 10px;color:var(--s-text)}
+@media (max-width:719px){body.summary .gterms{grid-template-columns:1fr}body.summary .gtech-l{font-size:12px}}
 </style>
 </head>
 <body class="summary">
