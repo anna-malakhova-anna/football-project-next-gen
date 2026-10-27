@@ -8,13 +8,73 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/site.css">
 <link rel="stylesheet" href="assets/viewer.css">
 <script>try{var t=localStorage.getItem("cff-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}</script>
+<style>
+body.summary{--s-ink-hero:#0b1726;--s-hero-ink:#ffffff;--s-hero-muted:#b4c0d0;--s-accent:#19b37a;--s-accent-ink:#0b7a52;--s-accent-2:#7aa7ff;--s-bg:#f4f5f7;--s-card:#ffffff;--s-line:#e1e4e8;
+  --s-text:#1b2733;--s-muted:#4f5b68;--s-zebra:#f0f2f5;--s-arrow:#0b1726;--s-ok-bg:#d8f3e7;--s-ok:#0b5f41;--s-watch-bg:#fde9c8;--s-watch:#7a4a00;--s-alert-bg:#fbdada;--s-alert:#9b1c1c;--s-shadow:0 6px 16px rgba(11,23,38,.14)}
+@media (prefers-color-scheme:dark){html:not([data-theme="light"]) body.summary{--s-ink-hero:#070e18;--s-hero-ink:#eef2f7;--s-hero-muted:#a9b6c7;--s-accent:#3fd39a;--s-accent-ink:#5fe0b0;--s-accent-2:#9dbdff;--s-bg:#0f141b;--s-card:#161d26;--s-line:#26303b;
+  --s-text:#e6ebf1;--s-muted:#a9b4c0;--s-zebra:#1a222c;--s-arrow:#cfd8e3;--s-ok-bg:#0f3a2a;--s-ok:#7ee3b8;--s-watch-bg:#3a2a0c;--s-watch:#f0c070;--s-alert-bg:#3d1717;--s-alert:#ff9a9a;--s-shadow:0 6px 16px rgba(0,0,0,.5)}}
+html[data-theme="dark"] body.summary{--s-ink-hero:#070e18;--s-hero-ink:#eef2f7;--s-hero-muted:#a9b6c7;--s-accent:#3fd39a;--s-accent-ink:#5fe0b0;--s-accent-2:#9dbdff;--s-bg:#0f141b;--s-card:#161d26;--s-line:#26303b;
+  --s-text:#e6ebf1;--s-muted:#a9b4c0;--s-zebra:#1a222c;--s-arrow:#cfd8e3;--s-ok-bg:#0f3a2a;--s-ok:#7ee3b8;--s-watch-bg:#3a2a0c;--s-watch:#f0c070;--s-alert-bg:#3d1717;--s-alert:#ff9a9a;--s-shadow:0 6px 16px rgba(0,0,0,.5)}
+body.summary{--bg:var(--s-bg);--surface:var(--s-card);--border:var(--s-line);--text:var(--s-text);--text-muted:var(--s-muted);--accent:var(--s-accent-ink);--font-body:Inter,system-ui,sans-serif;--font-display:"Barlow Condensed","Arial Narrow",sans-serif;
+  margin:0;background:var(--s-bg);color:var(--s-text);font:400 15px/1.5 Inter,system-ui,sans-serif}
+body.summary *{box-sizing:border-box}
+body.summary .ps-inner,body.summary .ps-story{max-width:1200px;margin:0 auto;padding-left:24px;padding-right:24px}
+/* hero */
+body.summary .ps-hero{background-color:var(--s-ink-hero);background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 1px,transparent 1px 56px),linear-gradient(115deg,transparent 50%,rgba(25,179,122,.16) 100%);color:var(--s-hero-ink);padding:40px 0 0}
+body.summary .ps-eyebrow{margin:0 0 8px;font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-accent)}
+body.summary .ps-hero h1{font:700 64px/1 "Barlow Condensed",sans-serif;letter-spacing:.01em;text-transform:uppercase;margin:0;color:var(--s-hero-ink)}
+body.summary .ps-badge{display:inline-block;margin:14px 0 0;font:600 11px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--s-hero-muted);color:var(--s-hero-ink);border-radius:999px;padding:5px 12px}
+body.summary .ps-pitch{margin:14px 0 0;color:var(--s-hero-muted);font-size:17px;max-width:760px}
+body.summary .ps-record{display:grid;grid-template-columns:repeat(4,1fr);margin-top:28px;border-top:1px solid rgba(255,255,255,.14)}
+body.summary .ps-rec{padding:18px 0 20px 20px;border-left:1px solid rgba(255,255,255,.14)}
+body.summary .ps-rec:first-child{border-left:0;padding-left:0}
+body.summary .ps-rec .n{font:700 64px/1 "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums;color:var(--s-hero-ink)}
+body.summary .ps-rec .l{margin-top:4px;font:600 12px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-hero-muted)}
+/* sticky tab bar */
+body.summary .ps-tabs{position:sticky;top:0;z-index:20;background:var(--s-ink-hero);border-top:1px solid rgba(255,255,255,.1);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+body.summary .ps-tabs .ps-inner{display:flex;gap:4px;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
+body.summary .ps-tabs a{display:block;padding:15px 14px 12px;font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-hero-muted);text-decoration:none;border-bottom:3px solid transparent}
+body.summary .ps-tabs a:hover{color:var(--s-hero-ink)}
+body.summary .ps-tabs a.on{color:var(--s-hero-ink);border-bottom-color:var(--s-accent)}
+/* sections */
+body.summary .ps-story{padding-top:56px;padding-bottom:40px}
+body.summary .ps-sec{margin:0 0 64px;padding:0;border:0;scroll-margin-top:60px;break-inside:avoid}
+body.summary .ps-sh{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-left:4px solid var(--s-accent);padding-left:14px;margin-bottom:14px}
+body.summary .ps-kicker{margin:0 0 4px;font:600 12px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-muted)}
+body.summary .ps-sec h2{font:700 36px/1.05 "Barlow Condensed",sans-serif;letter-spacing:.01em;text-transform:uppercase;margin:0;color:var(--s-text)}
+body.summary .ps-see{flex:none;margin-top:4px;font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-accent-ink);text-decoration:none;white-space:nowrap}
+body.summary .ps-see:hover{text-decoration:underline}
+body.summary .ps-line{margin:0 0 16px;color:var(--s-muted)}
+body.summary .ps-sec .vproduct{margin:0}
+
+/* Every tab in the Data products summary's look (ADR-033, ADR-035): each numbered section holds one card, chart or table; the section title is the
+   card's question or the chart's title, so the card's own question line and the chart's own title are kept for screen readers and the page check but not shown twice */
+body.summary .ps-sec .vcard,body.summary .ps-sec section.chart{margin:0}
+body.summary .ps-sec .vcard-question,body.summary .ps-sec>section.chart>h3:first-child{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+body.summary .ps-tabs{top:0}
+body.summary main{padding-top:32px}
+body.summary .lens-toggle,body.summary .demo-path{margin-top:24px}
+body.summary .lens-scope>.ps-sec:first-of-type,body.summary .lens-scope>.vgoals+.ps-sec{margin-top:32px}
+@media (max-width:719px){body.summary .ps-hero h1{font-size:44px}body.summary .ps-sec h2{font-size:28px}}
+/* a table with seven or more columns scrolls inside its section between the phone layout (stacked rows) and a wide screen */
+@media (min-width:701px) and (max-width:1100px){body.summary .ps-sec table[data-wide]{display:block;overflow-x:auto}}
+/* the full-screen slides keep the site's own type, so their tables fit a phone as before */
+body.summary dialog.viewer{--font-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font:400 1rem/1.55 var(--font-body)}
+@media print{body.summary .ps-tabs{display:none}body.summary .ps-hero{padding:16px 0 12px}body.summary .ps-sec{break-inside:auto;margin-bottom:24px}}
+/* the five-minute overview (ADR-034): the summary page's stat cards, five across on a wide screen */
+body.summary .g-takeaways{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+body.summary a.g-take{display:block;text-decoration:none;color:var(--s-text)}
+body.summary a.g-take:hover{box-shadow:var(--s-shadow)}
+body.summary a.g-take .n{font-size:56px}
+body.summary .g-more{font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-accent-ink)}
+</style>
 </head>
-<body>
+<body class="summary">
 <a class="skip" href="#main">Skip to the content</a>
 <div class="notice" id="notice" role="note">
   <div class="notice-inner">
@@ -48,11 +108,7 @@
     </div>
   </div>
 </header>
-<div class="page-head">
-  <h1>Counting flag football&#39;s fans</h1>
-  <p class="page-question">What this project is and how to read it.</p>
-  
-</div>
+<header class='ps-hero'><div class='ps-inner'><p class='ps-eyebrow'>About</p><h1>Counting flag football&#x27;s fans</h1><span class='ps-badge'>Synthetic data</span><p class='ps-pitch'>What this project is and how to read it.</p></div></header><nav class='ps-tabs' aria-label='Sections'><div class='ps-inner'><a href='#s-headline' class=on>Headline</a><a href='#s-a-five-minute-tour'>Tour</a></div></nav>
 <main id="main">
 
 <p>Flag football registers children. This project asks a different question: <i>how many fans does that create, how engaged and valuable are they, and how many can we actually contact?</i>
@@ -60,7 +116,7 @@ It is a governed data platform built end to end on <b>synthetic</b> data (the re
 <div class="flow"><span>sources</span> <i>&rarr;</i> <span>contracts</span> <i>&rarr;</i> <span>raw</span> <i>&rarr;</i> <span>staging</span> <i>&rarr;</i> <span>identity</span> <i>&rarr;</i> <span>households</span> <i>&rarr;</i> <span>fan models</span> <i>&rarr;</i> <span>shares</span> <i>&rarr;</i> <span>this site</span></div>
 <p class="note">Five sources (a league CSV, a club API, a federation workbook, school headcounts and a fan feed) are contracted, loaded as-is, cleaned in SQL, resolved to people and households,
 linked to fan accounts under a restricted-zone policy, shared by audience with small numbers suppressed, and published as versioned snapshots.</p>
-<h2>Headline</h2>
+<section class='ps-sec' id='s-headline'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>1 · Headline</p><h2>Headline</h2></div></header>
 <table><colgroup><col class='c-flex'><col class='c-name'></colgroup><tbody>
 <tr><td class='c-flex'>Fan accounts the programme added (incremental estimate, with interval)</td><td class='c-name'>1,264 (897 to 1,630); the naive count says 2,019</td></tr>
 <tr><td class='c-flex'>Addressable audience, 2025-12 (households a guardian has opted in)</td><td class='c-name'>3,182 of 11,787 registered households</td></tr>
@@ -68,14 +124,14 @@ linked to fan accounts under a restricted-zone policy, shared by audience with s
 <tr><td class='c-flex'>Unique registered participants, 2025</td><td class='c-name'>7,430 (identity range 7,405 to 7,437)</td></tr>
 <tr><td class='c-flex'>Fan engagement uplift after a first registration (matched, households that already followed the NFL)</td><td class='c-name'>+20.0% (naive companion +21.3%; truth +20.5%)</td></tr>
 </tbody></table>
-<h2>A five-minute tour</h2>
+</section><section class='ps-sec' id='s-a-five-minute-tour'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>2 · Tour</p><h2>A five-minute tour</h2></div></header>
 <ol class="tour">
 <li><a href="acquisition.html">Fan acquisition</a>: how many fans flag football created, and why the naive count is too big.</li>
 <li><a href="audience.html">Audience &amp; consent</a>: how many fans can be contacted, where consent is captured, and the gap. Governance sets the size of the marketable audience.</li>
 <li><a href="participation.html">Participation</a>: the original question, how many people play, and who stays.</li>
 <li><a href="trust.html">Data trust &amp; governance</a>: identity resolution (why the household count is right), contracts, who sees what, what changed after publishing.</li>
 </ol>
-<p class="note">Decisions and their reasons are in the ADRs; the counting rules are in the methodology memos. Both are linked from <a href="trust.html">Data trust &amp; governance</a>.</p>
+<p class="note">Decisions and their reasons are in the ADRs; the counting rules are in the methodology memos. Both are linked from <a href="trust.html">Data trust &amp; governance</a>.</p></section>
 </main>
 <footer class="site-footer">
   <div class="footer-inner">
