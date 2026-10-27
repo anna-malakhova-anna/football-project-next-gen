@@ -16,7 +16,7 @@ The story is one business question, in order: **acquisition, then audience, then
 | 1 | **Overview page**: the data is synthetic and why; the headline table (incremental fans, addressable audience, consent gap) | What is this, and what is the headline? | 0:45 |
 | 2 | **Fan acquisition page**: the first chart (incremental vs naive vs truth), then the funnel by fan status; UNLINKED means unknown | How many fans did flag football create, and why is the easy count wrong? | 1:30 |
 | 3 | **Audience & consent page**: audience over time, the consent gap, capture by capture point, the market quadrants | How many can we actually contact, and where do we look next? | 1:00 |
-| 4 | **Data trust & governance page**: identity (threshold sweep, sibling merges), who sees what, restatement log | Why should I trust these numbers? | 0:45 |
+| 4 | **Identity and governance page**: identity (threshold sweep, sibling merges), who sees what, restatement log | Why should I trust these numbers? | 0:45 |
 
 <!-- Anna: talking points -->
 

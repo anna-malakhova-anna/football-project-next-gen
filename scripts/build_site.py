@@ -51,7 +51,7 @@ PAGE_HEAD = {
     "value": ("Fan value and activeness", "How engaged and valuable are flag families?"),
     "audience": ("Audience and consent", "How many can we reach, and what are we missing?"),
     "participation": ("Participation", "How many play, and how sure are we?"),
-    "trust": ("Data trust and governance", "Why can these numbers be trusted?"),
+    "trust": ("Identity and governance", "Why can these numbers be trusted?"),
     "product": ("Data products", "Given these business goals, what data products would you build, in what order, for whom, under what privacy rules, and how would you know they are working?"),
     **P5.PAGE_HEAD,
     **G.PAGE_HEAD,
@@ -65,11 +65,10 @@ APPENDIX = [("appendix", "Appendix"), ("glossary", "Glossary")]          # a str
 
 
 NAV_GROUPS = [
-    ("High-level analysis", [("participation.html", "Participation", "participation"), ("sure.html", "How sure", "sure"), ("acquisition.html", "Acquisition", "acquisition"), ("audience.html", "Audience", "audience")]),
+    ("High-level analysis", [("participation.html", "Participation", "participation"), ("acquisition.html", "Acquisition", "acquisition"), ("audience.html", "Audience", "audience"), ("markets.html", "Club markets", "markets")]),
     ("Data products", [("product.html", "Data products", "product")]),
     ("Global outlook", [("global.html", "Global outlook", "global")]),
-    ("Data quality", [("quality.html", "Data quality", "quality"), ("markets.html", "Club markets", "markets")]),
-    ("Privacy", [("privacy.html", "Privacy by design", "privacy"), ("trust.html", "Trust and governance", "trust")]),
+    ("Trust and governance", [("quality.html", "Data quality", "quality"), ("sure.html", "How sure", "sure"), ("privacy.html", "Privacy by design", "privacy"), ("trust.html", "Identity and governance", "trust")]),
     ("About", [("index.html", "Overview", "index"), ("trust.html#documents", "Methodology", "methodology"), ("glossary.html", "Glossary", "glossary")]),
 ]
 
@@ -175,9 +174,9 @@ linked to fan accounts under a restricted-zone policy, shared by audience with s
 <li><a href="acquisition.html">Fan acquisition</a>: how many fans flag football created, and why the naive count is too big.</li>
 <li><a href="audience.html">Audience &amp; consent</a>: how many fans can be contacted, where consent is captured, and the gap. Governance sets the size of the marketable audience.</li>
 <li><a href="participation.html">Participation</a>: the original question, how many people play, and who stays.</li>
-<li><a href="trust.html">Data trust &amp; governance</a>: identity resolution (why the household count is right), contracts, who sees what, what changed after publishing.</li>
+<li><a href="trust.html">Identity and governance</a>: identity resolution (why the household count is right), contracts, who sees what, what changed after publishing.</li>
 </ol>
-<p class="note">Decisions and their reasons are in the ADRs; the counting rules are in the methodology memos. Both are linked from <a href="trust.html">Data trust &amp; governance</a>.</p>""")
+<p class="note">Decisions and their reasons are in the ADRs; the counting rules are in the methodology memos. Both are linked from <a href="trust.html">Identity and governance</a>.</p>""")
     built["acquisition"] = ("Fan acquisition", f"<p class='note'><b>{g3_frame(facts)}</b></p><p class='note'><b>Fans created by flag: about {fmt_cell(facts['incremental'])} fan accounts. Counting every new sign-up and scaling it up for unseen families says {fmt_cell(facts['naive_scaled'])}, about {facts['naive_scaled'] / facts['incremental']:.1f} times too many, because many of those families would have become fans anyway.</b> The first chart is the answer; the rest show where it comes from. Funnel and status describe households linked to a fan account; "
                             "identity resolution is why the denominator is right (a child in several leagues is one household member, not several).</p>" + "".join(blocks["acquisition"]))
     built["value"] = ("Fan value & activeness", f"<p class='note'><b>{g3_frame(facts)}</b></p><p class='note'><b>Registering a child raises a linked family's fan engagement by about a fifth, and the effect follows the NFL season. New fans from flag football are worth nearly as much as other new fans, but stay active for less time.</b> Estimates describe households linked to a fan account, under a restricted-zone policy (ADR-009). Nothing household-level is shown; money is synthetic currency.</p>"
