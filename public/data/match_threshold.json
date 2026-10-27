@@ -1,0 +1,1 @@
+{"name": "match_threshold", "title": "The final matcher's chosen thresholds", "source": "reference.match_thresholds", "kind": "governance", "columns": ["t_auto", "t_review", "auto_label"], "rows": [{"t_auto": 0.997, "t_review": 0.85, "auto_label": "chosen threshold (0.997)"}]}

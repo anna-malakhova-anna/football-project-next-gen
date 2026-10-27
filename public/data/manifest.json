@@ -98,9 +98,15 @@
   },
   {
    "name": "error_categories",
-   "source": "evaluation.eval_errors",
+   "source": "evaluation.eval_error_categories",
    "kind": "evaluation",
-   "rows": 13
+   "rows": 15
+  },
+  {
+   "name": "match_threshold",
+   "source": "reference.match_thresholds",
+   "kind": "governance",
+   "rows": 1
   },
   {
    "name": "identity_truth_check",
