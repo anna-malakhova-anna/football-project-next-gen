@@ -17,7 +17,7 @@ import yaml
 from scripts import site_tables
 
 COPY_PATH = Path(__file__).resolve().parent.parent / "site_src" / "copy" / "charts.yml"
-PLACEHOLDER = re.compile(r"\{(?:([A-Z][0-9])\.)?([a-z0-9_]+)\}")
+PLACEHOLDER = re.compile(r"\{(?:([A-Z][0-9]{1,2})\.)?([a-z0-9_]+)\}")
 _state: dict = {"copy": {}, "insights": {}}
 
 

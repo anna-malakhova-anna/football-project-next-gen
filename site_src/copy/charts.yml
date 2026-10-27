@@ -689,7 +689,6 @@ summary:
 page_sections:
   status: final    # approved by Anna 2026-10-27 (ADR-035)
   badge: Synthetic data
-  index: {headline: Headline, a-five-minute-tour: Tour}
   participation: {participation_trend: Players, country: Countries, girls: Girls, retention_km: Who stays, retention_sex: By sex, cohorts: Cohorts, naive_vs_censored: Teen test}
   acquisition: {acq_estimates: Fans added, drive: The drive, funnel_status: Fan status, funnel_rates: Funnel, acq_event_study: Market launches}
   value: {fan_estimates: Engagement, event_study: Around signup, event_study_effect: By month, rfm: Segments, fan_survival: Staying active, fan_ltv: Value, uplift_events: Events, uplift_spend: Spend,
@@ -703,3 +702,80 @@ page_sections:
   sure: {U1: Range, U2: Girls' trend, U3: Methods, U4: Fix early}
   markets: {M1: My market, M2: Real growth, M3: Reach, M4: Unseen, M5: Two views}
   privacy: {P3: Fields, P1: Agreements, P2: Purposes, P4: Deletion, P5: Analyst share, share-policy-check: Policy check}
+
+# The landing page (index.html): a five-minute overview of the three phases and of trust and governance. {name} is a value from the results build
+# (participants, incremental, ...); {X1.field} is an insight value, as in every card headline. Nothing here is typed as a number.
+landing:
+  status: draft
+  record:
+    - {value: '{incremental}', label: Fan accounts added by flag}
+    - {value: '{participants}', label: 'Children who played in {latest_year}'}
+    - {value: '{D1.n_products}', label: Data products designed}
+    - {value: '{G1.n_readable} of {G1.n_markets}', label: Program markets we can read}
+  intro: >-
+    Flag football registers children. This project asks what that does for the NFL: how many fans it creates, how many families can be reached,
+    and what to build next, at home and abroad. It is a governed data platform built end to end on made-up data, because the real data would be
+    children's personal records. Every claim is graded against the generator's answer key.
+  tour_kicker: In five minutes
+  tour_title: Three phases, and the trust behind them
+  tour_line: Three phases, each building on the last, with trust and governance running through all of them.
+  phases:
+    - id: analysis
+      tab: Analysis
+      kicker: 'Phase 1 to 4 · High-level analysis'
+      title: How many fans does flag football create?
+      line: Count the players, link their families to fan accounts, and measure what registering a child changes.
+      takeaways:
+        - '**About {incremental} fan accounts** were added by the programme. Counting every new sign-up says {naive_scaled}, far too many, because many families would have become fans anyway.'
+        - '**{participants} children played in {latest_year}**, up from {first_participants} in {first_year}. Matching leaves a range of {low} to {high}.'
+        - '**Only {contactable} of {registered} registered families can be contacted.** Linking families to fan accounts is the bigger limit, not consent.'
+        - '**Registering a child raises a linked family''s fan engagement by about {did_pct}**, measured against similar families who did not register.'
+        - '**Girls are {U2.girls_share_pct} of youth players**, and they stay as long as boys. Younger entrants stay much longer than teenagers.'
+      links:
+        - {href: participation.html, label: Participation}
+        - {href: acquisition.html, label: Acquisition}
+        - {href: audience.html, label: Audience}
+        - {href: markets.html, label: Club markets}
+    - id: products
+      tab: Data products
+      kicker: 'Phase 6 · Data products'
+      title: What would we build, in what order, and for whom?
+      line: Turn the business goals into a small portfolio of data products, each with an owner, a label and health measures.
+      takeaways:
+        - '**{D1.n_goals} business goals become {D1.n_products} data products.** Each goal has one product that drives it; two more keep the data clean and joined.'
+        - '**Intake comes first** (priority {D4.priority_dp1}), because every other product depends on it. US growth follows (priority {D4.priority_dp4}).'
+        - '**{D10.n_met} of {D10.n_gates} gates are met.** The next one waiting is {D10.blocking_gate_plain}.'
+        - '**Children are protected by age.** {D6.n_unverified_rules} of the {D6.n_rule_rows} age rules are still assumptions for a privacy lead to check.'
+        - '**{D7.n_kpis} health measures watch the portfolio**, so a product that stops working is noticed and fixed or retired.'
+      links:
+        - {href: product.html, label: Data products}
+        - {href: product-summary.html, label: One-page summary}
+    - id: global
+      tab: Global outlook
+      kicker: 'Phase 7 · Global outlook'
+      title: What can we read in the program markets abroad?
+      line: Find the signal in messy data from the {G0.n_markets} markets where NFL clubs hold rights, and plan for the ones that send nothing.
+      takeaways:
+        - '**We can read {G1.n_readable} of the {G1.n_markets} markets.** {G1.n_proxy_only} only report club activity, and {G1.n_dark} send nothing at all.'
+        - '**None shows a change we can tell from noise.** A market would have to move about {G2.mdc_pct} before we could say so.'
+        - '**A guess for a market with no data would mostly be wrong:** {G3.n_inside} of {G3.n_markets} were right in our test. Those markets get a plan, not a number.'
+        - '**{G4.close_markets} are {G4.clubs_needed_text} filing away** from being readable.'
+        - '**{G5.n_now} markets are in the first lane:** ask them for data now.'
+      links:
+        - {href: global.html, label: Global outlook}
+    - id: trust
+      tab: Trust and governance
+      kicker: 'Every phase · Trust and governance'
+      title: Why can these numbers be trusted?
+      line: 'Trust is built into every phase, not added at the end: each number says how sure it is, each source is graded, and children''s data is protected by design.'
+      takeaways:
+        - '**Matching is graded against an answer key.** At the chosen threshold, {fs_clusters} predicted children wrongly hold two children of one family, {fs_twin_clusters} of them twins.'
+        - '**Each source is graded for each use.** Only {Q1.n_ready_activate} of {Q1.n_sources} sources are ready for contacting families, though {Q1.n_ready_count} can count players.'
+        - '**{P1.pct_provenance_full} of consent records show exactly what the family agreed to.** Without that proof, a family is never contacted.'
+        - '**Each audience sees only its own share**, with listed columns and counts under 10 hidden. Nothing linked to a family reaches marketing.'
+        - '**Every change after publishing is logged and explained**, so a number never moves silently.'
+      links:
+        - {href: quality.html, label: Data quality}
+        - {href: sure.html, label: How sure}
+        - {href: privacy.html, label: Privacy by design}
+        - {href: trust.html, label: Identity and governance}

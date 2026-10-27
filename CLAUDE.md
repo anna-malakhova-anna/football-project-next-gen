@@ -4,7 +4,7 @@ Governed participation and fan-acquisition data platform built on **synthetic** 
 Phases 1 to 7 are built. Python generates and loads; dbt on DuckDB does everything else; `scripts/build_site.py` renders the results site (datasets in `site_data.py` and `site_p5_data.py`, the Global outlook tab in `site_global.py`, checks in `site_rules.py`, chart specs in `site_charts.py`, tables and labels in `site_render.py`).
 
 **Where the intent lives.** The phase specs (`phase-*-spec.md`), `rework-fan-acquisition-spec.md` and handovers are local-only and git-ignored, so a fresh clone does not have them.
-In the repo, the record of what was decided and why is `docs/decisions/ADR-*.md` (001 to 037), then `README.md`, `docs/product/README.md` and `fix-list.md`.
+In the repo, the record of what was decided and why is `docs/decisions/ADR-*.md` (001 to 038), then `README.md`, `docs/product/README.md` and `fix-list.md`.
 If a spec file is present locally, it wins over this summary for the phase it covers.
 
 ## Build and test

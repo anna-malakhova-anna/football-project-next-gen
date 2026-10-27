@@ -1,18 +1,122 @@
-# Glossary terms (Phase 5.1, section 5.3): each plain term on the site, one line, and what analysts call it. Plain labels for rules, uses, checks and grades are generated from the seeds, below these.
-terms:
-  - {term: "Made-up data", definition: "Every number on this site comes from data generated for this project. No real child is in it.", technical: "synthetic data"}
-  - {term: "Use", definition: "What the data will be used for: counting players, splitting them by age and gender, placing them on the map, following them year to year, or contacting families.", technical: "purpose"}
-  - {term: "Grade", definition: "How good the data is for one use. A means ready to use, B usable with care, C use with caution, D not fit for this use.", technical: "purpose score band (A at 95 or more, B at 85, C at 70)"}
-  - {term: "Normal wobble", definition: "The amount a score usually moves from one year to the next. A point outside it is a real change.", technical: "control limits (P-chart; an individuals chart is proposed)"}
-  - {term: "Range", definition: "The lowest and highest the true number could reasonably be.", technical: "interval, lower and upper bound"}
-  - {term: "Hidden to protect privacy (fewer than 10)", definition: "A count under 10 is never shown, because it could point at a few children. A second number may be hidden too, so the first cannot be worked out by subtraction.", technical: "small-cell suppression, primary and secondary (k_min = 10)"}
-  - {term: "What they agreed to", definition: "A record of which consent form a family signed, when, and for what. Without it, a family cannot be contacted for marketing.", technical: "consent provenance"}
-  - {term: "Matching people", definition: "Working out that two registrations belong to the same child, without joining two different children.", technical: "identity resolution"}
-  - {term: "League that sent no data", definition: "A league we know exists that sent no registration file this season. Its players are in none of the counts.", technical: "dark organization"}
-  - {term: "Market", definition: "A group of nearby ZIP code areas made up for this project. It is not any club's real territory.", technical: "club market (ZIP3 approximation, ADR-016)"}
-  - {term: "Players in a market", definition: "Players counted for a market. A ZIP code area shared by two markets is split between them, so these counts are rounded to the nearest 10.", technical: "allocated participants"}
-  - {term: "Family", definition: "The adults who answer for one or more registered children, counted once.", technical: "household"}
-  - {term: "Fixable data problem", definition: "A family or player lost because a record is missing or unusable. A league can fix it.", technical: "data-quality loss"}
-  - {term: "Family's choice or never asked", definition: "A family lost because they said no, withdrew, or were never asked the right question. We do not try to win these back.", technical: "privacy loss (consent)"}
-  - {term: "Unique record", definition: "A record that no other record shares on birth year, ZIP code area, sex and country. The more records are unique, the easier it is to pick one child out.", technical: "unique participant-year, k-anonymity"}
-  - {term: "Pseudonymized", definition: "Names and contact details are replaced by codes. This is not the same as anonymous.", technical: "pseudonymization (ADR-006)"}
+# Glossary terms, grouped by domain (Phase 5.1 section 5.3; regrouped in ADR-038). Each term is a plain word used on the site, one or two short sentences,
+# and what analysts call it. The plain names for uses, quality checks and grades come from the seeds and are listed under the data-quality domain;
+# every problem we check follows them, collapsed. A domain's `id` is its anchor and its colour on the page.
+domains:
+  - id: reading
+    name: Reading this site
+    line: How the numbers on every page are made and shown.
+    terms:
+      - {term: "Made-up data", definition: "Every number on this site comes from data generated for this project. No real child is in it.", technical: "synthetic data"}
+      - {term: "Answer key", definition: "The true values the generator knows and the methods do not. Results are graded against it; a real project has no key.", technical: "ground truth (evaluation schema)"}
+      - {term: "Range", definition: "The lowest and highest the true number could reasonably be.", technical: "interval, lower and upper bound"}
+      - {term: "Hidden to protect privacy (fewer than 10)", definition: "A count under 10 is never shown, because it could point at a few children. A second number may be hidden too, so the first cannot be worked out by subtraction.", technical: "small-cell suppression, primary and secondary (k_min = 10)"}
+      - {term: "Club lens and privacy lens", definition: "Two ways to read the same card: what a club should do, or what a privacy lead should check. The numbers do not change.", technical: "audience lens (annotations only)"}
+      - {term: "Planning scenario", definition: "A labelled plan for a market with no data. It is never a measurement, and it is never added to or ranked with measured numbers.", technical: "scenario (ADR-025)"}
+
+  - id: counting
+    name: Counting players
+    line: Who plays, how many, and who stays.
+    terms:
+      - {term: "Matching people", definition: "Working out that two registrations belong to the same child, without joining two different children.", technical: "identity resolution"}
+      - {term: "Family", definition: "The adults who answer for one or more registered children, counted once.", technical: "household"}
+      - {term: "Identity range", definition: "How far the player count could move if matching had joined or split records differently.", technical: "identity bounds (low, point, high)"}
+      - {term: "Attributed", definition: "Each child counted once, in the country of their latest registration, so countries add up to the total.", technical: "attributed view"}
+      - {term: "Present", definition: "A child counted in every country they played in. These counts overlap and must never be added up.", technical: "presence view"}
+      - {term: "League that sent no data", definition: "A league we know exists that sent no registration file this season. Its players are in none of the counts.", technical: "dark organization"}
+      - {term: "Coverage", definition: "How many more players there could be if the leagues that sent nothing had sent their files.", technical: "coverage interval"}
+      - {term: "Entry year group", definition: "All the players who first registered in the same year, followed together over time.", technical: "cohort"}
+      - {term: "Still playing", definition: "The share of players who register again after their first season, year by year.", technical: "retention (Kaplan-Meier survival)"}
+      - {term: "No longer observed", definition: "A player who turned 18, or whose records simply end with the data. They are not counted as having quit.", technical: "censored"}
+
+  - id: fans
+    name: Fans and families
+    line: What flag football does for the NFL's fan base.
+    terms:
+      - {term: "Fan account", definition: "A fan's account with the NFL, whose activity shows how engaged the fan is. Every account holder is an adult.", technical: "fan account (fan feed)"}
+      - {term: "Linked family", definition: "A registered family matched to a fan account by email or phone. An unlinked family is unknown, not a non-fan.", technical: "household linkage"}
+      - {term: "Existing fan, net-new fan, lapsed", definition: "A family that was already a fan before registering a child, one that became a fan after, and one that had stopped and may come back.", technical: "fan status"}
+      - {term: "Fans created by flag", definition: "The fan accounts the programme added, beyond those that would have appeared anyway.", technical: "incremental estimate"}
+      - {term: "Naive count", definition: "Counting every new sign-up as created by flag football. It is too big, because many families would have signed up anyway.", technical: "naive estimate"}
+      - {term: "Similar families", definition: "Families who did not register a child but looked the same beforehand, used to see what registering changes.", technical: "matched comparison (difference-in-differences)"}
+      - {term: "Engagement uplift", definition: "How much more active a linked family becomes as a fan after registering a child.", technical: "treatment effect on fan events"}
+      - {term: "Before-and-after chart", definition: "A chart that lines up families on the month they registered, to show what changes around that moment.", technical: "event study"}
+      - {term: "Active, contactable, paying", definition: "The steps from fan to someone who uses their account, can be messaged, and spends money.", technical: "fan funnel (active, contactable, monetized)"}
+      - {term: "Fan segments", definition: "Groups of fans by how recently, how often and how much they engage, from Champions to Hibernating.", technical: "RFM segments"}
+      - {term: "Value of a fan", definition: "A modelled estimate of what a fan account is worth over its life, in made-up currency.", technical: "lifetime value (LTV)"}
+      - {term: "Families we can contact", definition: "Registered families where a guardian has said yes to messages. Only they can be contacted.", technical: "addressable audience (contactable households)"}
+      - {term: "Consent gap", definition: "Active families who have not said yes to messages, so cannot be contacted.", technical: "consent gap"}
+      - {term: "Market quadrant", definition: "Where a market sits on two questions: is flag football strong there, and is the fan base strong? Acquisition white space means many players and fewer fans.", technical: "market quadrant"}
+
+  - id: matching
+    name: Matching and its errors
+    line: How the matcher is checked, and what a mistake means.
+    terms:
+      - {term: "False merge", definition: "Two different children joined as one. Joining siblings or twins mixes two children's data, so it is a privacy incident.", technical: "false positive"}
+      - {term: "Missed match", definition: "One child's records left apart, so the child is counted twice.", technical: "false negative"}
+      - {term: "Precision", definition: "Of the records joined, the share that truly belong together.", technical: "pairwise precision"}
+      - {term: "Recall", definition: "Of the records that belong together, the share that were joined.", technical: "pairwise recall"}
+      - {term: "Chosen threshold", definition: "How sure the matcher must be before it joins records on its own. It was chosen once, before the charts that show it.", technical: "automatic-merge threshold (T_auto)"}
+      - {term: "Sent for review", definition: "Pairs the matcher is fairly but not fully sure of. A person, the data steward, decides.", technical: "probable band (T_review to T_auto)"}
+      - {term: "Wrongly merged person", definition: "One predicted child who is really two children. Counted once, however many records were joined.", technical: "cluster"}
+      - {term: "Wrong record pair", definition: "Two records joined that should not be. One wrongly merged person can make several wrong pairs.", technical: "record pair"}
+      - {term: "Household guard", definition: "A rule that never joins two records from the same league and season with different first names, because they are most likely siblings or twins.", technical: "sibling and twin guard (hard override)"}
+
+  - id: quality
+    name: Data quality
+    line: How good each source is, for each use. The uses, checks and grades listed at the end come from the project's own reference tables.
+    terms:
+      - {term: "Use", definition: "What the data will be used for: counting players, splitting them by age and gender, placing them on the map, following them year to year, or contacting families.", technical: "purpose"}
+      - {term: "Grade", definition: "How good the data is for one use. A means ready to use, B usable with care, C use with caution, D not fit for this use.", technical: "purpose score band (A at 95 or more, B at 85, C at 70)"}
+      - {term: "Normal wobble", definition: "The amount a score usually moves from one year to the next. A point outside it is a real change.", technical: "control limits (P-chart; an individuals chart is proposed)"}
+      - {term: "Fixable data problem", definition: "A family or player lost because a record is missing or unusable. A league can fix it.", technical: "data-quality loss"}
+      - {term: "Market", definition: "A group of nearby ZIP code areas made up for this project. It is not any club's real territory.", technical: "club market (ZIP3 approximation, ADR-016)"}
+      - {term: "Players in a market", definition: "Players counted for a market. A ZIP code area shared by two markets is split between them, so these counts are rounded to the nearest 10.", technical: "allocated participants"}
+
+  - id: privacy
+    name: Privacy and consent
+    line: How children's data is protected, and what families agreed to.
+    terms:
+      - {term: "What they agreed to", definition: "A record of which consent form a family signed, when, and for what. Without it, a family cannot be contacted for marketing.", technical: "consent provenance"}
+      - {term: "Said yes to messages", definition: "A guardian's recorded agreement to be contacted. A form that only collects an email address is not a yes.", technical: "marketing opt-in"}
+      - {term: "Family's choice or never asked", definition: "A family lost because they said no, withdrew, or were never asked the right question. We do not try to win these back.", technical: "privacy loss (consent)"}
+      - {term: "Unique record", definition: "A record that no other record shares on birth year, ZIP code area, sex and country. The more records are unique, the easier it is to pick one child out.", technical: "unique participant-year, k-anonymity"}
+      - {term: "Pseudonymized", definition: "Names and contact details are replaced by codes. This is not the same as anonymous.", technical: "pseudonymization (ADR-006)"}
+      - {term: "Deleted at 18", definition: "A child's records are removed when they age out, and the numbers that depend on them are checked to still hold.", technical: "age-out deletion (retention job)"}
+
+  - id: governance
+    name: Governance
+    line: The rules that keep data trustworthy from source to page.
+    terms:
+      - {term: "Data contract", definition: "A written promise from a source about what its file contains. Every file is checked against it before it is used.", technical: "data contract"}
+      - {term: "Share", definition: "The set of columns one audience may see, listed by name. Nothing reaches an audience except through its share.", technical: "audience share (share_* models, column policy)"}
+      - {term: "Correction after publishing", definition: "A published number that changed later, logged with its reason. A number never moves silently.", technical: "restatement"}
+      - {term: "Where a number comes from", definition: "The chain of steps and tables a number passes through, from source file to page.", technical: "lineage"}
+      - {term: "Onboarding playbook", definition: "The steps every new source goes through, from first contact to regular delivery.", technical: "source onboarding playbook"}
+
+  - id: products
+    name: Data products
+    line: What we would build, in what order, and how we know it works.
+    terms:
+      - {term: "Data product", definition: "A dataset built for named users, with one owner, a label, health measures and a plan to retire it.", technical: "data product (products/DP*/product.yml)"}
+      - {term: "Driver, enabler, utility", definition: "A driver moves a goal directly; an enabler makes other products possible; a utility keeps things running.", technical: "product role per goal"}
+      - {term: "Product label", definition: "A product's one-page card: what it is, its version, its quality, its owner and its rules.", technical: "product label"}
+      - {term: "Port", definition: "The only door through which one product may read another. Reading anything else is a boundary break.", technical: "output port"}
+      - {term: "Priority score", definition: "Value to the goals, plus how feasible it is today, plus how ready the data is, minus the privacy risk.", technical: "priority = value + feasibility + readiness − privacy risk"}
+      - {term: "Gate", definition: "Something that must be true before a product moves to its next stage.", technical: "roadmap gate"}
+      - {term: "Now, Next, Later", definition: "The lanes of the plan: what to do now, what follows, and what waits.", technical: "roadmap lanes"}
+      - {term: "Health measure", definition: "A number that shows whether a product is doing its job, watched over time.", technical: "KPI (product health)"}
+
+  - id: global
+    name: Global outlook
+    line: Reading the markets abroad where NFL clubs hold rights.
+    terms:
+      - {term: "Program market", definition: "A country where an NFL club holds marketing rights through the Global Markets Program.", technical: "GMP market"}
+      - {term: "Measured", definition: "Player data arrived this season and its counting grade is C or better, so we can read it.", technical: "market status MEASURED (ADR-025)"}
+      - {term: "Partial", definition: "Some player data exists, but not enough to read: its counting grade is D, no file arrived this season, or it sends counts only.", technical: "market status PARTIAL"}
+      - {term: "Club activity only", definition: "No player data, but clubs report activity in the market, such as fan events and games. It is never counted as players.", technical: "market status PROXY_ONLY"}
+      - {term: "Sends nothing", definition: "No player data and no club activity reported.", technical: "market status DARK"}
+      - {term: "Counting grade", definition: "The data-quality grade for the counting use, A to D. It decides whether a market can be read.", technical: "COUNT purpose grade"}
+      - {term: "Direction", definition: "Whether a market is growing, flat or shrinking, comparing only leagues that reported in both seasons.", technical: "like-for-like growth label"}
+      - {term: "Change we can tell from noise", definition: "The smallest one-season change that is bigger than normal year-to-year wobble.", technical: "minimum detectable change"}
+      - {term: "Minimum return", definition: "The least a federation can send: counts by region, age band and sex, with no record for any child.", technical: "minimum return template (aggregate only)"}
+      - {term: "Assumed privacy rules", definition: "The privacy law we assume applies in a market. It is a design assumption for a privacy lead to check, not a legal finding.", technical: "legal regime (unverified)"}

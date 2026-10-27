@@ -21,6 +21,7 @@ Layout (each module imports only from the ones above it):
 from __future__ import annotations
 
 import datetime as dt
+import functools
 import json
 import os
 import re
@@ -155,28 +156,7 @@ def build_pages(data: dict, chart_defs: dict, facts: dict, labels: dict) -> dict
 
     flow = " <i>&rarr;</i> ".join(f"<span>{esc(s)}</span>" for s in ["sources", "contracts", "raw", "staging", "identity", "households", "fan models", "shares", "this site"])
     latest = facts["latest_year"]
-    built["index"] = ("Overview", f"""
-<p>Flag football registers children. This project asks a different question: <i>how many fans does that create, how engaged and valuable are they, and how many can we actually contact?</i>
-It is a governed data platform built end to end on <b>synthetic</b> data (the real equivalent would be minors' personal data), and every claim is graded against the generator's answer key.</p>
-<div class="flow">{flow}</div>
-<p class="note">Five sources (a league CSV, a club API, a federation workbook, school headcounts and a fan feed) are contracted, loaded as-is, cleaned in SQL, resolved to people and households,
-linked to fan accounts under a restricted-zone policy, shared by audience with small numbers suppressed, and published as versioned snapshots.</p>
-<h2>Headline</h2>
-<table><tbody>
-<tr><td>Fan accounts the programme added (incremental estimate, with interval)</td><td>{fmt_cell(facts['incremental'])} ({fmt_cell(facts['inc_low'])} to {fmt_cell(facts['inc_high'])}); the naive count says {fmt_cell(facts['naive_scaled'])}</td></tr>
-<tr><td>Addressable audience, {facts['audience_month']} (households a guardian has opted in)</td><td>{fmt_cell(facts['contactable'])} of {fmt_cell(facts['registered'])} registered households</td></tr>
-<tr><td>Consent gap (active households with no opt-in)</td><td>{fmt_cell(facts['gap'])}, about {facts['gap_share']:.0%} of active households</td></tr>
-<tr><td>Unique registered participants, {latest}</td><td>{fmt_cell(facts['participants'])} (identity range {fmt_cell(facts['low'])} to {fmt_cell(facts['high'])})</td></tr>
-<tr><td>Fan engagement uplift after a first registration (matched, households that already followed the NFL)</td><td>{facts['did_pct']:+.1%} (naive companion {facts['naive_pct']:+.1%}; truth {facts['truth_pct']:+.1%})</td></tr>
-</tbody></table>
-<h2>A five-minute tour</h2>
-<ol class="tour">
-<li><a href="acquisition.html">Fan acquisition</a>: how many fans flag football created, and why the naive count is too big.</li>
-<li><a href="audience.html">Audience &amp; consent</a>: how many fans can be contacted, where consent is captured, and the gap. Governance sets the size of the marketable audience.</li>
-<li><a href="participation.html">Participation</a>: the original question, how many people play, and who stays.</li>
-<li><a href="trust.html">Identity and governance</a>: identity resolution (why the household count is right), contracts, who sees what, what changed after publishing.</li>
-</ol>
-<p class="note">Decisions and their reasons are in the ADRs; the counting rules are in the methodology memos. Both are linked from <a href="trust.html">Identity and governance</a>.</p>""")
+    built["index"] = ("Overview", landing(facts, flow))      # the five-minute overview of the site (ADR-038)
     built["acquisition"] = ("Fan acquisition", f"<p class='note'><b>{g3_frame(facts)}</b></p><p class='note'><b>Fans created by flag: about {fmt_cell(facts['incremental'])} fan accounts. Counting every new sign-up and scaling it up for unseen families says {fmt_cell(facts['naive_scaled'])}, about {facts['naive_scaled'] / facts['incremental']:.1f} times too many, because many of those families would have become fans anyway.</b> The first chart is the answer; the rest show where it comes from. Funnel and status describe households linked to a fan account; "
                             "identity resolution is why the denominator is right (a child in several leagues is one household member, not several).</p>" + "".join(blocks["acquisition"]))
     built["value"] = ("Fan value & activeness", f"<p class='note'><b>{g3_frame(facts)}</b></p><p class='note'><b>Registering a child raises a linked family's fan engagement by about a fifth, and the effect follows the NFL season. New fans from flag football are worth nearly as much as other new fans, but stay active for less time.</b> Estimates describe households linked to a fan account, under a restricted-zone policy (ADR-009). Nothing household-level is shown; money is synthetic currency.</p>"
@@ -217,7 +197,7 @@ The {fmt_cell(idr['fs_ap_clusters'])} in the first table is the final matcher wi
 <li><code>docs/playbook/onboard-a-source.md</code>: how a source is onboarded, with the logs for the two Phase 4 sources</li>
 <li><code>docs/access_policy.md</code>, <code>docs/metrics.md</code>, <code>docs/data_dictionary.md</code></li></ul>""")
     built["glossary"] = ("Glossary", glossary_body(data))
-    built = {slug: (title, *sectionize(slug, body, labels)) for slug, (title, body) in built.items()}       # the summary look on every tab (ADR-035)
+    built = {slug: (title, *sectionize(slug, body, labels)) if slug not in ("index", "glossary") else (title, body[0], body[1]) for slug, (title, body) in built.items()}       # the summary look on every tab (ADR-035)
     built.update(phase5_pages(blocks, data, labels))
     return built
 
@@ -232,16 +212,28 @@ def lens_scope(inner: str, default: str, demo: str, demo_slide: str = "") -> str
     return f'{path}{toggle}<div class="lens-scope" data-lens-active="{default}">{inner}</div>'
 
 
-def glossary_body(data: dict) -> str:
-    """The glossary: hand-written terms (site_src/copy/glossary.yml), then the uses, checks and grades from the seeds, then every problem we check (in a collapsed section: codes live there)."""
+def glossary_body(data: dict) -> tuple[str, list[tuple[str, str]]]:
+    """The glossary (ADR-038): one section per domain, each with its own colour. A term is a card: the plain word, what it means, and what analysts call it.
+    The data-quality domain also lists the uses, checks and grades from the seeds, then every problem we check (collapsed: codes live there)."""
     import yaml
-    terms = yaml.safe_load((SRC / "copy" / "glossary.yml").read_text(encoding="utf-8"))["terms"]
-    dl = "".join(f"<dt>{esc(t['term'])}</dt><dd>{esc(t['definition'])} <span class='tech'>Analysts call this: {esc(t['technical'])}.</span></dd>" for t in terms)
-    seeds = "".join(f"<dt>{esc(r['term'])} <span class='tech'>({esc(r['kind'].lower())})</span></dt><dd>{esc(r['meaning'])} <span class='tech'>Analysts call this: {esc(r['technical'])}.</span></dd>"
-                    for r in data["glossary_checks"]["rows"])
-    rules = "".join(f"<tr><td>{esc(r['problem'])}</td><td>{esc(r['what_to_do'])}</td><td><code>{esc(r['technical'])}</code></td></tr>" for r in data["glossary_rules"]["rows"])
-    return (f"<p class='note intro'><b>Plain words first. Each term has the name analysts use for it, so the two can be matched.</b></p><dl class='glossary'>{dl}{seeds}</dl>"
-            f"<details><summary>Every problem we check ({len(data['glossary_rules']['rows'])})</summary><table><thead><tr><th>Problem</th><th>What to do</th><th>Code</th></tr></thead><tbody>{rules}</tbody></table></details>")
+    domains = yaml.safe_load((SRC / "copy" / "glossary.yml").read_text(encoding="utf-8"))["domains"]
+
+    def card(term, meaning, tech):
+        return (f"<div class='gterm'><dt>{esc(term)}</dt><dd><span class='gdef'>{esc(meaning)}</span>"
+                f"<span class='gtech'><span class='gtech-l'>Analysts call this</span> {esc(tech)}</span></dd></div>")
+    out, tabs = ["<p class='note intro'><b>Plain words first, grouped by domain. Each term also gives the name analysts use for it, so the two can be matched.</b></p>"], []
+    for i, d in enumerate(domains, 1):
+        cards = "".join(card(t["term"], t["definition"], t["technical"]) for t in d["terms"])
+        extra = ""
+        if d["id"] == "quality":
+            seeds = "".join(card(f"{r['term']}", r["meaning"], f"{r['kind'].lower()}: {r['technical']}") for r in data["glossary_checks"]["rows"])
+            rules = "".join(f"<tr><td>{esc(r['problem'])}</td><td>{esc(r['what_to_do'])}</td><td><code>{esc(r['technical'])}</code></td></tr>" for r in data["glossary_rules"]["rows"])
+            extra = (f"<h3 class='gsub'>Uses, quality checks and grades</h3><dl class='gterms'>{seeds}</dl>"
+                     f"<details><summary>Every problem we check ({len(data['glossary_rules']['rows'])})</summary><table><thead><tr><th>Problem</th><th>What to do</th><th>Code</th></tr></thead><tbody>{rules}</tbody></table></details>")
+        out.append(f"<section class='ps-sec gdom gd-{esc(d['id'])}' id='g-{esc(d['id'])}'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>{i} · {len(d['terms'])} terms</p>"
+                   f"<h2>{esc(d['name'])}</h2></div></header><p class='ps-line'>{esc(d['line'])}</p><dl class='gterms'>{cards}</dl>{extra}</section>")
+        tabs.append((f"g-{d['id']}", d["name"]))
+    return "".join(out), tabs
 
 
 SUMMARY_FRAME_CSS = site_summary.CSS[:site_summary.CSS.index("/* standings tables */")]     # colours, type, banner, section bar and sections: not the summary's restyled tables, roadmap or personas
@@ -255,7 +247,7 @@ body.summary .ps-tabs{top:0}
 body.summary main{padding-top:32px}
 body.summary .lens-toggle,body.summary .demo-path{margin-top:24px}
 body.summary .lens-scope>.ps-sec:first-of-type,body.summary .lens-scope>.vgoals+.ps-sec{margin-top:32px}
-@media (max-width:719px){body.summary .ps-hero h1{font-size:44px}body.summary .ps-sec h2{font-size:28px}}
+@media (max-width:719px){body.summary .ps-hero h1{font-size:44px}body.summary .ps-sec h2{font-size:28px}body.summary .ps-record{grid-template-columns:repeat(2,minmax(0,1fr))}body.summary .ps-rec .n{font-size:44px}body.summary .ps-rec:nth-child(odd){border-left:0;padding-left:0}}
 /* a table with seven or more columns scrolls inside its section between the phone layout (stacked rows) and a wide screen */
 @media (min-width:701px) and (max-width:1100px){body.summary .ps-sec table[data-wide]{display:block;overflow-x:auto}}
 /* the full-screen slides keep the site's own type, so their tables fit a phone as before */
@@ -267,6 +259,32 @@ body.summary a.g-take{display:block;text-decoration:none;color:var(--s-text)}
 body.summary a.g-take:hover{box-shadow:var(--s-shadow)}
 body.summary a.g-take .n{font-size:56px}
 body.summary .g-more{font:600 12px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--s-accent-ink)}
+/* the landing page (ADR-038): takeaways as cards with a green edge (trust and governance in blue: it runs through every phase), and page links as pills */
+body.summary #s-tour{margin-bottom:24px}
+body.summary .l-takes{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:10px;max-width:none}
+body.summary .l-takes li{background:var(--s-card);border:1px solid var(--s-line);border-left:4px solid var(--s-accent);border-radius:4px;padding:12px 16px;line-height:1.5}
+body.summary .l-takes b{color:var(--s-text)}
+body.summary .l-trust .ps-sh{border-left-color:var(--s-accent-2)}
+body.summary .l-trust .l-takes li{border-left-color:var(--s-accent-2)}
+body.summary .l-links{display:flex;flex-wrap:wrap;gap:8px}
+body.summary a.l-go{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:1px solid var(--s-accent-ink);border-radius:999px;color:var(--s-accent-ink);text-decoration:none;font-weight:600}
+body.summary a.l-go:hover{background:var(--s-accent-ink);color:#fff}
+/* the glossary (ADR-038): each domain has its own colour on the section edge, the term name and the card edge; the analysts' name is a small grey code tag */
+body.summary .gdom{--gd:var(--s-accent)}
+body.summary .gd-reading{--gd:#5B6B7C}body.summary .gd-counting{--gd:#2F6B4F}body.summary .gd-fans{--gd:#D9622B}body.summary .gd-matching{--gd:#3D7CC9}
+body.summary .gd-quality{--gd:#A8893F}body.summary .gd-privacy{--gd:#7D4E8E}body.summary .gd-governance{--gd:#1F4E79}body.summary .gd-products{--gd:#13856A}body.summary .gd-global{--gd:#B5475D}
+@media (prefers-color-scheme:dark){html:not([data-theme="light"]) body.summary .gdom{--gd-text:color-mix(in srgb,var(--gd) 55%,#ffffff)}}
+html[data-theme="dark"] body.summary .gdom{--gd-text:color-mix(in srgb,var(--gd) 55%,#ffffff)}
+body.summary .gdom .ps-sh{border-left-color:var(--gd)}
+body.summary .gterms{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin:0 0 16px}
+body.summary .gterm{background:var(--s-card);border:1px solid var(--s-line);border-top:3px solid var(--gd);border-radius:4px;padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+body.summary .gterm dt{font:700 20px/1.15 "Barlow Condensed",sans-serif;letter-spacing:.01em;color:var(--gd-text,var(--gd));margin:0}
+body.summary .gterm dd{margin:0;display:flex;flex-direction:column;gap:8px;flex:1}
+body.summary .gdef{color:var(--s-text);line-height:1.5}
+body.summary .gtech{margin-top:auto;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--s-muted)}
+body.summary .gtech-l{display:block;font:600 11px/1.2 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+body.summary .gsub{font:700 20px/1.2 "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.02em;margin:24px 0 10px;color:var(--s-text)}
+@media (max-width:719px){body.summary .gterms{grid-template-columns:1fr}body.summary .gtech-l{font-size:12px}}
 """
 
 
@@ -285,11 +303,64 @@ def global_hero(pg: dict) -> str:
     return summary_hero(site_cards.fill(pg["hero_eyebrow"], None, None), pg["hero_title"], pg["hero_badge"], site_cards.fill(pg["intro_template"], None, pg.get("fallback_intro")), tabs, record)
 
 
-def page_hero(slug: str, tabs: list[tuple[str, str]], labels: dict) -> str:
-    """Every other tab's banner (ADR-035): its menu group as the eyebrow, its title, the synthetic-data badge and its one-sentence question. No headline numbers."""
+def page_hero(slug: str, tabs: list[tuple[str, str]], labels: dict, record: str = "") -> str:
+    """Every other tab's banner (ADR-035): its menu group as the eyebrow, its title, the synthetic-data badge and its one-sentence question.
+    Only the landing page carries headline numbers (ADR-038)."""
     title, question = PAGE_HEAD[slug]
     group = next((g for g, items in NAV_GROUPS if any(sl == slug for _h, _l, sl in items)), None)
-    return summary_hero(group if group and group != title else "Flag Football Project", title, labels["badge"], question, tabs)
+    return summary_hero(group if group and group != title else "Flag Football Project", title, labels["badge"], question, tabs, record)
+
+
+FACT = re.compile(r"\{([a-z][a-z0-9_]*)\}")
+
+
+@functools.lru_cache(maxsize=1)
+def load_landing() -> dict:
+    import yaml
+    landing_copy = yaml.safe_load((SRC / "copy" / "charts.yml").read_text(encoding="utf-8"))["landing"]
+    if landing_copy.get("status") == "draft":
+        print("WARNING: the landing page copy (`landing` in site_src/copy/charts.yml) is still `status: draft`; Anna reviews it before the final build.", file=sys.stderr)
+    return landing_copy
+
+
+def landing_fill(template: str, facts: dict) -> str:
+    """{name} takes a value from the results build, formatted for reading (never recomputed); {X1.field} an insight value, as in every card headline."""
+    idr = facts["idr"]
+    values = {k: fmt_cell(facts[k]) for k in ("incremental", "naive_scaled", "participants", "first_participants", "contactable", "registered", "low", "high")}
+    values.update({"latest_year": str(facts["latest_year"]), "first_year": str(facts["first_year"]), "did_pct": f"{round(facts['did_pct'] * 100):.0f}%",
+                   "fs_clusters": fmt_cell(idr["fs_clusters"]), "fs_twin_clusters": fmt_cell(idr["fs_twin_clusters"])})
+
+    def sub(m):
+        if m.group(1) not in values:
+            raise SystemExit(f"SITE BUILD REFUSED: the landing copy names {{{m.group(1)}}}, which is not a results value")
+        return values[m.group(1)]
+    return site_cards.fill(FACT.sub(sub, template), None, None)
+
+
+def _md(text: str) -> str:
+    return re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", esc(text))
+
+
+def landing_record(facts: dict) -> str:
+    return "".join(f"<div class='ps-rec'><div class='n'>{esc(landing_fill(r['value'], facts))}</div><div class='l'>{esc(landing_fill(r['label'], facts))}</div></div>" for r in load_landing()["record"])
+
+
+def landing(facts: dict, flow: str) -> tuple[str, list[tuple[str, str]]]:
+    """The landing page (ADR-038): what the project is, then a five-minute tour of the three phases and of trust and governance, 3 to 5 takeaways each,
+    every number filled from the build. Returns the body and its section bar."""
+    c = load_landing()
+    out = [f"<p class='note intro'>{esc(c['intro'])}</p><div class='flow'>{flow}</div>",
+           f"<section class='ps-sec' id='s-tour'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>{esc(c['tour_kicker'])}</p>"
+           f"<h2>{esc(c['tour_title'])}</h2></div></header><p class='ps-line'>{esc(c['tour_line'])}</p></section>"]
+    tabs = []
+    for ph in c["phases"]:
+        takes = "".join(f"<li>{_md(landing_fill(t, facts))}</li>" for t in ph["takeaways"])
+        links = "".join(f"<a class='l-go' href='{esc(lk['href'])}'>{esc(lk['label'])} &rarr;</a>" for lk in ph["links"])
+        out.append(f"<section class='ps-sec l-phase l-{esc(ph['id'])}' id='s-{esc(ph['id'])}'><header class='ps-sh'><div class='ps-sht'><p class='ps-kicker'>{esc(ph['kicker'])}</p>"
+                   f"<h2>{esc(ph['title'])}</h2></div></header><p class='ps-line'>{esc(landing_fill(ph['line'], facts))}</p><ul class='l-takes'>{takes}</ul>"
+                   f"<nav class='l-links' aria-label='{esc(ph['tab'])} pages'>{links}</nav></section>")
+        tabs.append((f"s-{ph['id']}", ph["tab"]))
+    return "".join(out), tabs
 
 
 def load_page_sections() -> dict:
@@ -492,7 +563,7 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     shutil.copyfile(ROOT / G.GEO_SOURCE, out / G.GEO_URL)
     labels = load_page_sections()
     for slug, (_title, body, tabs) in build_pages(data, chart_defs, facts, labels).items():      # every tab in the summary look (ADR-033, ADR-035)
-        hero = global_hero(site_cards.load_pages()["global"]) if slug == "global" else page_hero(slug, tabs, labels)
+        hero = global_hero(site_cards.load_pages()["global"]) if slug == "global" else page_hero(slug, tabs, labels, landing_record(facts) if slug == "index" else "")
         (out / f"{slug}.html").write_text(render_page(slug, body, stamp, version, hero=hero, body_class="summary", extra_css=(site_summary.CSS if slug == "global" else SUMMARY_FRAME_CSS) + SUMMARY_CSS_EXTRA), encoding="utf-8")
     (out / f"{site_summary.SLUG}.html").write_text(site_summary.render(data, version)[0], encoding="utf-8")      # the one-page summary of the Data product tab
     problems = check_brand_boundary(out, local_logo=LOCAL_LOGO.exists())
