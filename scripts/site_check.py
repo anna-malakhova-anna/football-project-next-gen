@@ -305,6 +305,45 @@ def load_insights() -> set[str]:
     return out
 
 
+PHONE = (390, 844)
+PHONE_JS = r"""() => {
+  const W = innerWidth, out = [];
+  const hidden = e => e.closest('dialog, details:not([open]) > :not(summary)') || getComputedStyle(e).visibility === 'hidden';
+  if (document.documentElement.scrollWidth > W + 1) out.push('the page is ' + (document.documentElement.scrollWidth - W) + 'px wider than a phone');
+  for (const e of document.querySelectorAll('button, summary, [role=button], .demo-go, .vexpand, .ps-tabs a, .nav-trigger')) {
+    const r = e.getBoundingClientRect(); if (!r.width || hidden(e)) continue;
+    if (r.height < 40) out.push('a control is ' + Math.round(r.height) + 'px tall (min 40): "' + e.textContent.trim().slice(0, 40) + '"');
+  }
+  for (const e of document.querySelectorAll('main p, main li, main td, main th, main dd, main dt, main span:not(:has(*))')) {
+    const r = e.getBoundingClientRect(); if (!r.width || r.width < 2 || !e.textContent.trim() || hidden(e) || e.closest('.vanalyst, h3, svg')) continue;
+    const fs = parseFloat(getComputedStyle(e).fontSize); if (fs < 12) out.push('text is ' + fs + 'px (min 12): "' + e.textContent.trim().slice(0, 40) + '"');
+  }
+  for (const svg of document.querySelectorAll('main svg')) {
+    if (hidden(svg)) continue;
+    for (const t of svg.querySelectorAll('text')) { const r = t.getBoundingClientRect(); if (r.width && (r.right > W + 1 || r.left < -1)) { out.push('chart text runs off the screen: "' + t.textContent.slice(0, 40) + '"'); break; } }
+  }
+  return [...new Set(out)];
+}"""
+
+
+def check_phone(page, base: str, slug: str) -> list[str]:
+    """Every page at phone width (ADR-037): no sideways scroll, controls tall enough to tap, reading text at least 12px, chart text on screen.
+    Charts draw as they scroll into view, so the page is scrolled through first."""
+    page.set_viewport_size({"width": PHONE[0], "height": PHONE[1]})
+    page.goto(f"{base}/{slug}.html")
+    page.wait_for_load_state("networkidle")
+    height = page.evaluate("document.body.scrollHeight")
+    for y in range(0, height, PHONE[1] - 100):
+        page.evaluate(f"window.scrollTo(0, {y})")
+        page.wait_for_timeout(100)
+    page.wait_for_timeout(1200)
+    return [f"{slug}@phone: {f}" for f in page.evaluate(PHONE_JS)]
+
+
+def all_pages() -> list[str]:
+    return sorted(p.stem for p in SITE.glob("*.html"))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pages", nargs="*")
@@ -322,6 +361,9 @@ def main() -> int:
             page.on("pageerror", lambda e: errors.append(str(e)))
             for slug in pages:
                 fails += check_page(page, base, slug, insights)
+            phone = browser.new_page(is_mobile=True, has_touch=True, viewport={"width": PHONE[0], "height": PHONE[1]})
+            for slug in (all_pages() if not args.pages else pages):     # every page, not only the card pages
+                fails += check_phone(phone, base, slug)
             fails += [f"script error: {e}" for e in errors]
             browser.close()
     finally:
@@ -331,7 +373,7 @@ def main() -> int:
         for f in sorted(set(fails)):
             print("  " + f)
         return 1
-    print(f"site check OK: {len(pages)} pages ({', '.join(pages)}): layout, content and viewer")
+    print(f"site check OK: {len(pages)} pages ({', '.join(pages)}): layout, content and viewer; {len(all_pages()) if not args.pages else len(pages)} pages at phone width")
     return 0
 
 

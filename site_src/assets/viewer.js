@@ -5,7 +5,8 @@
   function store(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* blocked */ } }
   function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function config() { return window.cffVegaConfig ? window.cffVegaConfig() : {}; }
-  function embed(box, spec) { if (window.vegaEmbed && box) { window.vegaEmbed(box, spec, { actions: false, renderer: "svg", config: config() }); } }
+  function phone(spec, compact) { return window.cffPhoneSpec ? window.cffPhoneSpec(spec, compact) : spec; }
+  function embed(box, spec, compact) { if (window.vegaEmbed && box) { window.vegaEmbed(box, phone(spec, compact), { actions: false, renderer: "svg", config: config() }); } }
 
   // a grid of small charts (one Vega chart per cell, so the grid can wrap: 3 columns wide, 1 on a phone)
   function renderMulti(box, items, small) {
@@ -33,7 +34,7 @@
     if (spec && box && !box.dataset.done) {
       box.dataset.done = "1";
       var obj = JSON.parse(spec.textContent);
-      if (obj.multi) { renderMulti(box, obj.multi, true); } else { embed(box, obj); }
+      if (obj.multi) { renderMulti(box, obj.multi, true); } else { embed(box, obj, true); }     // a thumbnail keeps its fixed height: labels are shortened, not wrapped
     }
   }
   if ("IntersectionObserver" in window) {
