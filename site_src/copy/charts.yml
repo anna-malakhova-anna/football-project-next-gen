@@ -558,6 +558,7 @@ pages:
     fallback_intro: "Three goals become five data products. This tab shows the method using this project's own build, on made-up data."
     demo_text: "Goals to products, the method, the first build, children's privacy, and whether it works."
     demo_slide: "D1-1"
+    summary_text: "The whole tab on one page, ready to read, print or share."
 
 # The one-page summary of the Data product tab (public/product-summary.html and docs/product/one-pager.pdf): a vertical story, one section per tab component.
 # Headlines are the tab's own sentences; the one plain sentence under each is new draft copy for Anna. {placeholders} are filled at build time from the product-tab exports (scripts/site_summary.py).

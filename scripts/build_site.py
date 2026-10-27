@@ -202,13 +202,16 @@ The {fmt_cell(idr['fs_ap_clusters'])} in the first table is the final matcher wi
     return built
 
 
-def lens_scope(inner: str, default: str, demo: str, demo_slide: str = "") -> str:
+def lens_scope(inner: str, default: str, demo: str, demo_slide: str = "", extra: str = "") -> str:
     """Page-level Club lens / Privacy lens toggle. It only shows and hides precomputed annotations and panels (CSS attribute selectors); it never filters or computes."""
     toggle = ('<div class="lens-toggle" role="group" aria-label="Choose a lens"><span class="note">Lens</span>'
               f'<button type="button" data-set-lens="club" aria-pressed="{"true" if default == "club" else "false"}">Club lens</button>'
               f'<button type="button" data-set-lens="privacy" aria-pressed="{"true" if default == "privacy" else "false"}">Privacy lens</button></div>')
     go = f' <a class="demo-go" href="#view={esc(demo_slide)}">Open the detailed walkthrough \u2192</a>' if demo_slide else ""
     path = f'<aside class="demo-path"><span><b>Detailed walkthrough.</b> {esc(demo)}</span>{go}</aside>' if demo else ""      # a page may have no slide tour (Global outlook: ADR-034)
+    if extra:       # a second box beside the walkthrough, in the same style (the Data products tab's one-page summary)
+        path = f'<div class="demo-paths">{path}{extra}</div>'
+
     return f'{path}{toggle}<div class="lens-scope" data-lens-active="{default}">{inner}</div>'
 
 
@@ -246,6 +249,7 @@ body.summary .ps-sec .vcard-question,body.summary .ps-one>section.chart>h3:first
 body.summary .ps-tabs{top:0}
 body.summary main{padding-top:32px}
 body.summary .lens-toggle,body.summary .demo-path{margin-top:24px}
+body.summary .demo-paths{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}body.summary .demo-paths .demo-path{flex:1 1 320px;margin:0;max-width:none}
 body.summary .lens-scope>.ps-sec:first-of-type,body.summary .lens-scope>.vgoals+.ps-sec{margin-top:32px}
 @media (max-width:719px){body.summary .ps-hero h1{font-size:44px}body.summary .ps-sec h2{font-size:28px}body.summary .ps-record{grid-template-columns:repeat(2,minmax(0,1fr))}body.summary .ps-rec .n{font-size:44px}body.summary .ps-rec:nth-child(odd){border-left:0;padding-left:0}}
 /* a table with seven or more columns scrolls inside its section between the phone layout (stacked rows) and a wide screen */
@@ -466,9 +470,10 @@ def phase5_pages(blocks: dict, data: dict, labels: dict) -> dict:
             continue
         intro = f"<p class='note intro'><b>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</b></p>"
         if slug == "product":
-            intro += f"<p class='note'><a class='summary-link' href='{site_summary.SLUG}.html'>One-page summary &rarr;</a></p>"
+            extra = (f'<aside class="demo-path"><span><b>One-page summary.</b> {esc(pg["summary_text"])}</span>'
+                     f' <a class="demo-go" href="{site_summary.SLUG}.html">Open the one-page summary \u2192</a></aside>')
         inner, tabs = sectionize(slug, inner, labels)
-        out[slug] = (title, intro + lens_scope(inner, default, pg["demo_text"], pg["demo_slide"]), tabs)
+        out[slug] = (title, intro + lens_scope(inner, default, pg["demo_text"], pg["demo_slide"], extra if slug == "product" else ""), tabs)
     return out
 
 
