@@ -273,3 +273,11 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
   .vthumb-html .vlabels .vlabel-head h4, .vthumb-html .vlabels .vlabel-grade { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .vthumb-html:has(.vlabels) { padding: 8px 10px; }
 }
+
+/* Phase 7: the key to counting grades A to D on the map and tile cards (ADR-042), in the tiles' own colours */
+.glegend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 4px 0 10px; font-size: .8125rem; color: var(--text-muted); }
+.glk { display: inline-flex; align-items: center; gap: 6px; } .glk b { color: var(--text); font-weight: 600; }
+.gsw { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; font-style: normal; font-weight: 700; font-size: .75rem; flex: none; }
+.gsw.g-A { background: #2166ac; color: #fff; } .gsw.g-B { background: #92c5de; color: #0b1726; } .gsw.g-C { background: #f4a582; color: #0b1726; } .gsw.g-D { background: #b2182b; color: #fff; }
+.gsw.g-hidden { background: var(--bg); border: 2px solid var(--slate-400, #8A96A3); } .gsw.g-none { background: transparent; border: 2px dashed var(--slate-400, #8A96A3); }
+.gl-note { padding: 2px 8px; border-left: 3px solid #2166ac; color: var(--text); font-weight: 500; }

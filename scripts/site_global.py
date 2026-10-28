@@ -36,6 +36,11 @@ DATASETS = [
         select country_code, country_name, region, status, {STATUS_LABEL} as status_label, {STATUS_ORDER} as status_order,
                coalesce(counting_grade, '') as grade, {DIRECTION_LABEL} as direction_label, clubs_with_rights, regime_name
         from m order by status_order, country_name""", SHARE_MARKETS, "share_exec", "The 22 program markets: what we can read in each (latest season)"),
+    _D("gmp_grade_bands", """
+        with bar as (select min_score from reference.dq_grade_bands where grade = (select value from reference.p7_params where param = 'measured_min_grade'))
+        select g.grade, g.plain_label, cast(round(g.min_score) as integer) as min_score, g.min_score >= bar.min_score as readable
+        from reference.dq_grade_bands g cross join bar order by g.min_score desc""", ["reference.dq_grade_bands", "reference.p7_params"], "governance",
+       "What each counting grade means, its lowest score, and whether a market with that grade is readable"),
     _D("gmp_map", f"""
         with m as ({_union(SHARE_MARKETS)})
         select m.country_name, p.iso_numeric, p.continent, p.label_lon, p.label_lat, {STATUS_LABEL} as status_label,
@@ -126,6 +131,19 @@ def render_markets(rows, compact=False) -> str:
                          f"<span class='mname'>{e(t['country_name'])}</span>{detail}</div>")
         out.append(f"<div class='vstate'><h4>{e(label)} ({len(tiles)})</h4><div class='vstate-row'>{''.join(cells)}</div></div>")
     return f"<div class='vtiles-single'><div class='vtiles{' vtiles-compact' if compact else ''}'>{''.join(out)}</div></div>"
+
+
+def render_grade_legend(bands) -> str:
+    """The key to grades A to D (ADR-042): each grade's colour, plain meaning and lowest score from dq_grade_bands, which grades make a market readable,
+    then the two no-data states. Used on the map and tile cards."""
+    grades = "".join(f"<span class='glk'><i class='gsw g-{e(b['grade'])}'>{e(b['grade'])}</i><span><b>{e(b['plain_label'])}</b>"
+                     + (f" {b['min_score']}+" if b["min_score"] else "") + "</span></span>" for b in bands)
+    readable = [b["grade"] for b in bands if b["readable"]]
+    span = f"{readable[0]} to {readable[-1]}" if len(readable) > 1 else (readable[0] if readable else "")
+    note = f"<span class='gl-note'>Counting grade {e(span)}: we can read the market.</span>" if span else ""
+    nodata = ("<span class='glk'><i class='gsw g-hidden'></i>Clubs report activity, no player data</span>"
+              "<span class='glk'><i class='gsw g-none'></i>Nothing arrives</span>")
+    return f"<div class='glegend' aria-label='Key to the grades'>{grades}{note}{nodata}</div>"
 
 
 LANES = [("NOW", "Now"), ("NEXT", "Next"), ("LATER", "Later"), ("MAINTAIN", "Keep")]
@@ -275,12 +293,13 @@ def _lane_text() -> dict:
 def charts():
     """-> {id: chart def} for the Global outlook page: one card per question of the Phase 7 spec."""
     C = {}
-    C["g0_map"] = dict(page="global", title="Where do NFL clubs hold rights?", datasets=["gmp_map"],
-        card=dict(id="G0", datasets=["gmp_map"], wide=True, thumb=_map_spec(thumb=True), open_slide=1,
+    C["g0_map"] = dict(page="global", title="Where do NFL clubs hold rights?", datasets=["gmp_map", "gmp_grade_bands"],
+        card=dict(id="G0", datasets=["gmp_map"], wide=True, pre_html=lambda d: render_grade_legend(d["gmp_grade_bands"]["rows"]), thumb=_map_spec(thumb=True), open_slide=1,
                   slides=[dict(title=view, key=view.upper().replace(" ", "_").replace("-", "_"), spec=_map_spec(view)) for view, _ in VIEWS]))
-    C["g1_markets"] = dict(page="global", title="Which markets can we read?", datasets=["gmp_markets"],
-        card=dict(id="G1", datasets=["gmp_markets"], thumb_html=lambda d: render_markets(d["gmp_markets"]["rows"], True), open_slide=1,
-                  slides=[dict(title="All 22 markets", key="ALL", html=lambda d: render_markets(d["gmp_markets"]["rows"]))]))
+    C["g1_markets"] = dict(page="global", title="Which markets can we read?", datasets=["gmp_markets", "gmp_grade_bands"],
+        card=dict(id="G1", datasets=["gmp_markets"], pre_html=lambda d: render_grade_legend(d["gmp_grade_bands"]["rows"]),
+                  thumb_html=lambda d: render_markets(d["gmp_markets"]["rows"], True), open_slide=1,
+                  slides=[dict(title="All 22 markets", key="ALL", html=lambda d: render_grade_legend(d["gmp_grade_bands"]["rows"]) + render_markets(d["gmp_markets"]["rows"]))]))
     C["g2_growth"] = dict(page="global", title="Is any market growing?", datasets=["gmp_growth"],
         card=dict(id="G2", datasets=["gmp_growth"], thumb=_growth_spec(True), open_slide=1, slides=[dict(title="Markets with data", key="GROWTH", spec=_growth_spec(False))]))
     C["g3_guess"] = dict(page="global", title="What would a number for a dark market have said?", datasets=["gmp_eval", "gmp_eval_summary"], evaluation=True,
