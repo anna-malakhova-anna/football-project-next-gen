@@ -264,7 +264,7 @@ def _funnel_spec(slide_no, thumb):
             "layer": [
                 {"mark": {"type": "bar", "clip": True, "height": {"band": 0.7}, "stroke": "#ffffff", "strokeWidth": 1}, "encoding": {"y": y,
                     "x": {"field": "x0", "type": "quantitative", "title": None if thumb else "Players or families", "axis": {"format": ",d", "tickCount": 4 if thumb else 8}}, "x2": {"field": "x1"},
-                    "color": {"field": "part", "type": "nominal", "title": None, "scale": {"domain": ["Still reachable", "Fixable data problem", "Family's choice or never asked"], "range": ["#3D7CC9", "#D9622B", "#7D4E8E"]},
+                    "color": {"field": "part", "type": "nominal", "title": None, "scale": {"domain": ["Still reachable", "Fixable data problem", "Said no or withdrew"], "range": ["#3D7CC9", "#D9622B", "#7D4E8E"]},
                               "legend": {"orient": "top", "labelLimit": 400, "labelFontSize": 11 if thumb else 13, "symbolType": "square"}},
                     "tooltip": [{"field": "step_name", "title": "Step"}, {"field": "part", "title": "Part"}, {"field": "amount_label", "title": "Amount"}]}},
                 {"mark": {"type": "text", "color": "#ffffff", "fontSize": 11 if thumb else 13, "fontWeight": "bold", "clip": True}, "encoding": {"y": y, "x": {"field": "x_mid", "type": "quantitative"}, "text": {"field": "bar_label", "type": "nominal"}}}]}

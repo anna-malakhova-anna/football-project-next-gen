@@ -271,7 +271,7 @@ def charts():
             doesnt="A global total: the \"present\" view must never be summed, since children who played in two countries would be counted twice. Small country counts are hidden rather than shown.",
         ),
         "girls": dict(
-            shows="In plain terms: flag football is moving steadily towards gender parity.",
+            shows="In plain terms: flag football is moving steadily towards gender parity. This share is of all youth players, including those with no sex recorded; among players whose sex is recorded it is slightly higher, the figure on the landing page and the Data products scorecard.",
             doesnt="Why the share is moving. It uses sex as recorded at registration, not gender identity. Children with no recorded sex stay in the denominator, so the share is slightly understated. The axis is zoomed in, which makes the rise look steeper than it is.",
         ),
         "retention_km": dict(

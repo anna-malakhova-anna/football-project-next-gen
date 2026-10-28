@@ -72,7 +72,12 @@ def resolve_quality(spec: dict, con) -> dict:
         return {"kind": "worst_grade", "value": worst[0], "detail": f"worst of {len(rows)} sources"}
     if agg == "grade_distribution":
         dist = {g: sum(1 for r in rows if r[0] == g) for g in GRADE_ORDER}
-        return {"kind": "grade_distribution", "value": dist, "detail": f"{len(rows)} markets graded"}
+        # the market scorecard also grades two catch-all groups beside the club markets: players in no club market, and players outside the US
+        groups = con.execute(f"select count(*) filter (where club_market_id in ('NO_CLUB_MARKET', 'OUTSIDE_US')) from quality.{model} where {' and '.join(where)} and score is not null", args).fetchone()[0] \
+            if model == "dq_scorecard_market" else 0
+        detail = (f"{len(rows) - groups} club markets plus {groups} other groups graded: players in no club market and players outside the US" if groups
+                  else f"{len(rows)} markets graded")
+        return {"kind": "grade_distribution", "value": dist, "detail": detail}
     raise ValueError(f"unknown aggregate {agg}")
 
 

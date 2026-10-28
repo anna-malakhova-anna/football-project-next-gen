@@ -78,7 +78,7 @@ domains:
     terms:
       - {term: "What they agreed to", definition: "A record of which consent form a family signed, when, and for what. Without it, a family cannot be contacted for marketing.", technical: "consent provenance"}
       - {term: "Said yes to messages", definition: "A guardian's recorded agreement to be contacted. A form that only collects an email address is not a yes.", technical: "marketing opt-in"}
-      - {term: "Family's choice or never asked", definition: "A family lost because they said no, withdrew, or were never asked the right question. We do not try to win these back.", technical: "privacy loss (consent)"}
+      - {term: "Said no or withdrew", definition: "A family that declined club marketing or later withdrew its consent. That is the family's decision, and we do not try to win these back. A form that never asked is a fixable data problem instead.", technical: "privacy loss (consent: declined, revoked)"}
       - {term: "Unique record", definition: "A record that no other record shares on birth year, ZIP code area, sex and country. The more records are unique, the easier it is to pick one child out.", technical: "unique participant-year, k-anonymity"}
       - {term: "Pseudonymized", definition: "Names and contact details are replaced by codes. This is not the same as anonymous.", technical: "pseudonymization (ADR-006)"}
       - {term: "Deleted at 18", definition: "A child's records are removed when they age out, and the numbers that depend on them are checked to still hold.", technical: "age-out deletion (retention job)"}

@@ -286,14 +286,16 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
    The bold labels are green accents. The card notes on the page are unchanged. */
 .vslide { position: relative; }
 .vslide-notes { position: relative; }
-.vnotes-bar { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 40px; padding: 6px 12px; border: 1px solid var(--border);
-  border-radius: 6px; background: var(--surface); color: var(--text-muted); font: inherit; font-size: .875rem; cursor: pointer; }
-.vnotes-bar:hover, .vnotes-bar:focus-visible { border-color: var(--notes-accent); }
-.vn-arrow { color: var(--notes-accent); font-size: .75rem; transition: transform .2s ease; }
+.vnotes-bar { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 14px; border: 1px solid var(--btn-edge, #111722); border-radius: 6px;
+  background: var(--btn-bg, #111722); color: var(--btn-ink, #fff); font: 600 .8125rem/1.2 var(--font-body); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
+.vnotes-bar:hover, .vnotes-bar:focus-visible { filter: brightness(1.4); }
+.vnotes-bar:active, .vnotes-bar[aria-expanded="true"] { background: var(--btn-on, #666d80); border-color: var(--btn-on-edge, #444b5c); filter: none; }   /* the site's button style: grey while open */
+.vslide-notes { display: flex; justify-content: center; }
+.vn-arrow { font-size: .6875rem; transition: transform .2s ease; }
 dialog.viewer { --notes-accent: #2F6B4F; }
 :root[data-theme="dark"] dialog.viewer { --notes-accent: #6FCF97; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) dialog.viewer { --notes-accent: #6FCF97; } }
-.vnotes-bar b, .vslide-text .vnote > b:first-child { color: var(--notes-accent); font-weight: 700; }
+.vslide-text .vnote > b:first-child { color: var(--notes-accent); font-weight: 700; }
 .vslide-notes .vslide-text { position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); z-index: 5; max-height: 55vh; overflow: auto; padding: 14px 18px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-float, 0 6px 16px rgba(11,23,38,.18));
   transform: translateY(16px); opacity: 0; visibility: hidden; transition: transform .2s ease, opacity .2s ease, visibility 0s linear .2s; }

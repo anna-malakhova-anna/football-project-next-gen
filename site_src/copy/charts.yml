@@ -106,7 +106,7 @@ charts:
     fallback_headline: "Growth can be real or better reporting. Read the shaded range."
     slide_headline_templates: {}
     question: "Is growth real, or just better reporting?"
-    means_club: "Each chart shows players since the market's first year, with that year set to 100. The shaded range shows how many players there could be if the leagues that sent no data had sent it."
+    means_club: "Each chart shows players since the market's first year, with that year set to 100. The shaded range shows how many players there could be if the leagues that sent no data had sent it. The line counts only players from leagues that sent a file, so the range can sit wholly above it."
     means_privacy: "Markets with fewer than 10 players are not drawn, so a very small market cannot be picked out."
     action_club: "Where the range widens, ask the leagues that stopped sending data to send it again."
     action_privacy: "No action. Check that small markets stay hidden."
@@ -643,7 +643,7 @@ summary:
     privacy: {see: "#view=D6-1", kicker: "How do we protect kids?", h2: "Minors are guardian-only. We count families, never kids.", line: "{pct_u13_club_consent}% of families with a child under 13 agreed to club contact."}
     working: {see: "#view=D7-1", kicker: "Is it working?", h2: "Fans created by flag: about {fans_created} ({fans_lo}–{fans_hi}).", line: "One row per goal, then the health of each product."}
     gaps: {see: "#view=D10-1", kicker: "Where are the gaps, and what did they change?", h2: "{n_gaps} gaps found. {n_changed} of them changed the roadmap.", line: "Each gap shows its evidence and the card it moved."}
-    learned: {see: "#view=D9-1", kicker: "What did the data teach us?", h2: "Five things we only learned by building it.", line: "We started with consent to contact. The real problem was thin, messy data."}
+    learned: {see: "#view=D9-1", kicker: "What did the data teach us?", h2: "Five things we only learned by building it.", line: "We started with consent to contact. The real problem was thin, messy data. Both limits are real, for different channels: for the NFL, reaching families through fan accounts, linking them is the limit; for clubs, reaching families through registration data, guardian consent for club marketing is the limit, because most consent forms never name it."}
   label_limits:
     DP1: "Limited by league files that arrive late or incomplete."
     DP2: "Limited by a second identity chain that is not merged yet."
@@ -737,9 +737,9 @@ landing:
       takeaways:
         - '**About {incremental} fan accounts** were added by the programme. Counting every new sign-up says {naive_scaled}, far too many, because many families would have become fans anyway.'
         - '**{participants} children played in {latest_year}**, up from {first_participants} in {first_year}. Matching leaves a range of {low} to {high}.'
-        - '**Only {contactable} of {registered} registered families can be contacted.** Linking families to fan accounts is the bigger limit, not consent.'
+        - '**Only {contactable} of {registered} registered families can be contacted.** For the NFL, reaching families through fan accounts, linking is the limit: {linked_pct} are linked, and {contactable_of_linked_pct} of those can be contacted. For clubs, reaching families through registration data, guardian consent for club marketing is the limit: only {P2.n_versions_ok} of {P2.n_versions} consent forms name it.'
         - '**Registering a child raises a linked family''s fan engagement by about {did_pct}**, measured against similar families who did not register.'
-        - '**Girls are {U2.girls_share_pct} of youth players**, and they stay as long as boys. Younger entrants stay much longer than teenagers.'
+        - '**Girls are {U2.girls_share_pct} of youth players whose sex is recorded**, and they stay as long as boys. Younger entrants stay much longer than teenagers.'
       links:
         - {href: participation.html, label: Participation}
         - {href: acquisition.html, label: Acquisition}
@@ -755,7 +755,7 @@ landing:
         - '**Intake comes first** (priority {D4.priority_dp1}), because every other product depends on it. US growth follows (priority {D4.priority_dp4}).'
         - '**{D10.n_met} of {D10.n_gates} gates are met.** The next one waiting is {D10.blocking_gate_plain}.'
         - '**Children are protected by age.** {D6.n_unverified_rules} of the {D6.n_rule_rows} age rules are still assumptions for a privacy lead to check.'
-        - '**{D7.n_kpis} health measures watch the portfolio**, so a product that stops working is noticed and fixed or retired.'
+        - '**{D7.n_kpis} goal measures track the three goals** ({D7.n_not_measurable} cannot be measured, by design), and each product has its own health panel, so one that stops working is noticed and fixed or retired.'
       links:
         - {href: product.html, label: Data products}
         - {href: product-summary.html, label: One-page summary}

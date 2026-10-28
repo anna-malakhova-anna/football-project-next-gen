@@ -173,7 +173,7 @@ DATASETS = [
                case p.purpose when 'COUNT' then m.grade_count when 'SEGMENT' then m.grade_segment when 'GEO' then m.grade_geo when 'RETAIN' then m.grade_retain else m.grade_activate end as grade,
                case when m.club_market_id is null then 'No data yet' when m.suppressed <> 'NONE' then 'fewer than ' || {K_MIN} || ' players'
                     else 'about ' || format('{{:,}}', cast(round(m.participants_allocated, -1) as bigint)) || ' players' end as players_text,
-               case when m.club_market_id is null then '' when coalesce(m.orgs_known, 0) = 0 then 'No leagues known yet'
+               case when m.club_market_id is null then '' when coalesce(m.orgs_known, 0) = 0 then 'Players placed here by ZIP code; no league is assigned to this market yet'
                     else cast(cast(m.orgs_reporting as bigint) as varchar) || ' of ' || cast(cast(m.orgs_known as bigint) as varchar) || ' leagues reporting' end as leagues_text
         from mk cross join p left join m on m.club_market_id = mk.club_market_id
         order by p.purpose_order, state_order, market_no, mk.club_market_id""", ["share_club.share_club__market_year", "reference.club_market_map", "reference.dq_purposes", "reference.privacy_params"], "share_club",
@@ -204,7 +204,7 @@ DATASETS = [
         seg as (
             select f.slide_no, f.slide_title, f.display_no, f.step_name, f.plain_unit, 'Still reachable' as part, 1 as part_order, 0.0 as x0, f.r as x1, f.r as amount, big.top from f join big using (slide_no)
             union all select f.slide_no, f.slide_title, f.display_no, f.step_name, f.plain_unit, 'Fixable data problem', 2, f.r, f.r + f.dq, f.dq, big.top from f join big using (slide_no) where f.dq > 0
-            union all select f.slide_no, f.slide_title, f.display_no, f.step_name, f.plain_unit, 'Family''s choice or never asked', 3, f.r + f.dq, f.r + f.dq + f.pr, f.pr, big.top from f join big using (slide_no) where f.pr > 0)
+            union all select f.slide_no, f.slide_title, f.display_no, f.step_name, f.plain_unit, 'Said no or withdrew', 3, f.r + f.dq, f.r + f.dq + f.pr, f.pr, big.top from f join big using (slide_no) where f.pr > 0)
         select slide_no, slide_title, display_no, step_name, part, part_order, x0, x1, (x0 + x1) / 2 as x_mid,
                case when amount < {K_MIN} then 'fewer than ' || {K_MIN} else 'about ' || format('{{:,}}', cast(amount as bigint)) end as amount_label,
                case when amount >= 0.04 * top then format('{{:,}}', cast(amount as bigint)) else '' end as bar_label, plain_unit as unit
@@ -236,7 +236,9 @@ DATASETS = [
                'about ' || format('{{:,}}', cast(round(t.participants_allocated, -1) as bigint)) || ' players' as players_text,
                case when t.participants_allocated_interval_high > t.participants_allocated_interval_low
                     then 'between ' || format('{{:,}}', cast(round(t.participants_allocated_interval_low, -1) as bigint)) || ' and ' || format('{{:,}}', cast(round(t.participants_allocated_interval_high, -1) as bigint)) || ' once leagues that sent no data are allowed for' else '' end as range_text,
-               cast(cast(t.orgs_reporting as bigint) as varchar) || ' of ' || cast(cast(t.orgs_known as bigint) as varchar) || ' leagues reporting' as leagues_text,
+               -- a market can hold players allocated by ZIP3 weight while every league of those ZIP codes belongs to the neighbouring market (ADR-016): say so, not "0 of 0"
+               case when coalesce(t.orgs_known, 0) = 0 then 'Players placed here by ZIP code; no league is assigned to this market yet'
+                    else cast(cast(t.orgs_reporting as bigint) as varchar) || ' of ' || cast(cast(t.orgs_known as bigint) as varchar) || ' leagues reporting' end as leagues_text,
                case when f.reachable is null or f.families is null then 'fewer than ' || {K_MIN} || ' families' else 'about ' || format('{{:,}}', cast(round(f.reachable, -1) as bigint)) || ' of about ' || format('{{:,}}', cast(round(f.families, -1) as bigint)) || ' families can be contacted by the club' end as reach_text,
                case when f.known_consent is null or f.families is null then 'fewer than ' || {K_MIN} || ' families' else 'about ' || format('{{:,}}', cast(round(f.known_consent, -1) as bigint)) || ' of about ' || format('{{:,}}', cast(round(f.families, -1) as bigint)) || ' families have a consent record we can read' end as consent_text,
                'The club receives counts only, and the smallest count shown is {{K_MIN_TEXT}}.' as receives_text

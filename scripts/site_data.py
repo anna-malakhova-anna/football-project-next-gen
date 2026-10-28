@@ -162,6 +162,12 @@ DATASETS = [
         union all select month, 'Active', audience_active from share_exec.share_exec__addressable_audience where household_group is null and audience_active is not null
         union all select month, 'Consent gap (active, no opt-in)', consent_gap_households from share_exec.share_exec__addressable_audience where household_group is null and consent_gap_households is not null
         order by 2, 1""", ["share_exec.share_exec__addressable_audience"], "share_exec", "Addressable audience and consent gap over time"),
+    _D("reach_limits", """
+        select cast(round(100.0 * audience_linked / nullif(audience_registered, 0)) as integer) as linked_pct,
+               cast(round(100.0 * audience_contactable / nullif(audience_linked, 0)) as integer) as contactable_of_linked_pct
+        from share_exec.share_exec__addressable_audience
+        where household_group is null and month = (select max(month) from share_exec.share_exec__addressable_audience)""",
+       ["share_exec.share_exec__addressable_audience"], "share_exec", "What limits reach through fan accounts: the share of registered families linked, and the share of linked families contactable"),
     _D("audience_latest", """
         select coalesce(household_group, 'ALL') as household_group, audience_registered, audience_linked, audience_contactable, audience_contactable_email, audience_contactable_sms,
                audience_contactable_push, audience_active, consent_gap_households, consent_gap_share_of_active, consent_gap_value

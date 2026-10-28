@@ -90,6 +90,16 @@ COLUMN_LABELS = {
 COLUMN_LABELS.update(P5.COLUMN_LABELS)
 COLUMN_LABELS.update({k: v for k, v in G.COLUMN_LABELS.items() if k not in COLUMN_LABELS})
 VALUE_LABELS.update(P5.VALUE_LABELS)
+# columns whose values are already percents (0 to 100), not fractions: they print as they are, so a small value is never multiplied by 100 (4.1 -> "4.1%", not "410.0%")
+PERCENT_UNIT_COLUMNS = {"share_pct", "pct_unique", "pct_rows_below_k_warn", "pct_rows_below_k_min", "participant_count_error_pct", "girls_pct", "bound_low_pct", "bound_high_pct",
+                        "bar_fill_pct", "target_marker_pct", "pct_unique_standard", "pct_unique_v0"}
+
+
+def is_year_column(col: str) -> bool:
+    """A year or season column (participation_year, first_year, season_year, year, season ...): printed without a thousands separator."""
+    return col in ("year", "season", "latest_season") or col.endswith("_year") or col.startswith("season")
+
+
 ID_COLUMNS = {"participation_year", "entry_year", "years_since_entry", "years_since_launch", "months_since_event", "months_since_origin", "horizon_months", "step"}
 RATE_COLUMNS = P5.RATE_COLUMNS | {"girls_share_of_youth", "km_survival", "km_survival_ci_low", "km_survival_ci_high", "cohort_retention_pct", "cohort_retention_among_eligible_pct", "household_link_rate",
                 "survival", "rate", "rfm_share", "fan_survival", "fan_survival_ci_low", "fan_survival_ci_high", "consent_gap_share_of_active", "consent_opt_in_rate", "conversion"}
@@ -123,9 +133,15 @@ def fmt_cell(v, col: str = "") -> str:
         return "yes" if v else "no"
     if isinstance(v, decimal.Decimal) and v == v.to_integral_value():      # exact money sums come back as decimals: whole amounts read as counts
         v = int(v)
+    if col in PERCENT_UNIT_COLUMNS and isinstance(v, (int, float)):      # already a percent (0 to 100): never scaled, whatever its size
+        return f"{v:.1f}%"
     if col in RATE_COLUMNS or col.endswith("_pct"):
         if isinstance(v, (int, float)) and abs(v) <= 5:
             return f"{v:.1%}"
+    if is_year_column(col) and isinstance(v, (int, float)):               # a year or season is an identifier: never "2,024"
+        return str(int(v))
+    if "_per_1" in col and isinstance(v, (int, float)):                   # rates per 100 or per 1,000: one precision for the whole column
+        return f"{v:,.1f}"
     if isinstance(v, float):
         return f"{v:.4f}" if abs(v) < 10 else f"{v:,.1f}"
     if isinstance(v, int):

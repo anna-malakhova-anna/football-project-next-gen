@@ -116,7 +116,7 @@ def values(data: dict, n_personas: int) -> tuple[dict, list[dict]]:
     gaps = rows_of(data, "roadmap_gap_links")
     put("n_gaps", f"{len(gaps)}", "roadmap_gap_links", "row count", len(gaps))
     put("n_changed", f"{sum(1 for g in gaps if g['status'] == 'CHANGED')}", "roadmap_gap_links", "rows with status CHANGED", sum(1 for g in gaps if g["status"] == "CHANGED"))
-    put("n_products", f"{len(rows_of(data, 'product_specs'))}", "product_specs", "row count", len(rows_of(data, "product_specs")))
+    put("n_products", f"{len(sp.products())}", "product_specs", "the portfolio the tab draws (DP1 to DP5; DP6 is the Global outlook's own product)", len(sp.products()))
     bands = {b["grade"]: b["min_score"] for b in rows_of(data, "dq_grade_bands")}
     for grade in ("A", "B", "C"):
         put(f"band_{grade.lower()}", f"{int(need(bands.get(grade), 'grade band ' + grade))}", "dq_grade_bands", f"min_score ({grade})", bands[grade])

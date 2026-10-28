@@ -163,8 +163,12 @@ def build_pages(data: dict, chart_defs: dict, facts: dict, labels: dict) -> dict
                       + "".join(blocks["value"]) + "<h2>Why the matched engagement estimate is where it is</h2>" + value_explanation(facts) + table_html(data["fan_diagnostics"]))
     built["audience"] = ("Audience & consent", f"<p class='note'><b>Only {fmt_cell(facts['contactable'])} of {fmt_cell(facts['registered'])} registered households can be contacted. The bigger constraint is linking families to fan accounts, not consent: once linked, most families say yes.</b> Governance determines the size of the marketable audience: only a guardian's recorded opt-in makes a household contactable. "
                          "Counts only; nobody here is a list, and no linked household reaches marketing or media (ADR-009).</p>"
+                         + f"<p class='note'><b>Two limits, two channels.</b> For the NFL, reaching families through fan accounts, linking is the limit: {facts['linked_pct']}% of registered families are linked, and {facts['contactable_of_linked_pct']}% of those can be contacted. "
+                         + esc(site_cards.fill("For clubs, reaching families through registration data, guardian consent for club marketing is the limit: only {P2.n_versions_ok} of {P2.n_versions} consent forms name it.", None, None)) + "</p>"
                          + "".join(blocks["audience"]) + "<h2>Latest month by household group</h2>" + table_html(data["audience_latest"])
                          + "<h2>Markets per quadrant</h2>" + table_html(data["quadrant_counts"])
+                         + ("<p class='note'>Markets with too few participant households are rolled up into one row per quadrant and not drawn on the chart, so they count in Markets but not in Markets shown ("
+                            + "; ".join(f"{fmt_cell(n)} rolled up in {esc(q)}" for q, n in facts["quadrant_rolled"]) + ").</p>" if facts["quadrant_rolled"] else "")
                          + "<h2>Who can be linked</h2>" + table_html(data["link_rate"]))
     built["participation"] = ("Participation", f"<p class='note'><b>{fmt_cell(facts['participants'])} unique children played in {latest}, up from {fmt_cell(facts['first_participants'])} in {facts['first_year']}. Younger entrants stay much longer than teenagers, and boys and girls stay at the same rate.</b> The original question, condensed: how many people play, with the band that identity resolution leaves, and who stays. Retention is Kaplan-Meier from the first season, computed in SQL: "
                               "a player who turns 18, or whose follow-up ends with the data, is censored, not counted as gone.</p>" + "".join(blocks["participation"]))
@@ -332,6 +336,7 @@ def landing_fill(template: str, facts: dict) -> str:
     idr = facts["idr"]
     values = {k: fmt_cell(facts[k]) for k in ("incremental", "naive_scaled", "participants", "first_participants", "contactable", "registered", "low", "high")}
     values.update({"latest_year": str(facts["latest_year"]), "first_year": str(facts["first_year"]), "did_pct": f"{round(facts['did_pct'] * 100):.0f}%",
+                   "linked_pct": f"{facts['linked_pct']}%", "contactable_of_linked_pct": f"{facts['contactable_of_linked_pct']}%",
                    "fs_clusters": fmt_cell(idr["fs_clusters"]), "fs_twin_clusters": fmt_cell(idr["fs_twin_clusters"])})
 
     def sub(m):
@@ -552,6 +557,10 @@ def build(db: Path = DB, out: Path = OUT) -> dict:
     facts["idr"] = {"fs_clusters": mc[("fs", "AUTO")]["sibling_twin_merges"], "fs_twin_clusters": mc[("fs", "AUTO")]["twin_merges"], "fs_ap_clusters": mc[("fs", "AUTO_PLUS_PROBABLE")]["sibling_twin_merges"],
                     "fs_twin_pairs": ec.get(("fs", "TWIN"), 0), "fs_sibling_pairs": ec.get(("fs", "SIBLING"), 0),
                     "naive_clusters": mc[("fs_naive", "AUTO")]["sibling_twin_merges"], "naive_twin_pairs": ec.get(("fs_naive", "TWIN"), 0), "naive_sibling_pairs": ec.get(("fs_naive", "SIBLING"), 0)}
+    reach = rows("reach_limits")[0]
+    facts.update({"linked_pct": reach["linked_pct"], "contactable_of_linked_pct": reach["contactable_of_linked_pct"]})
+    rolled = [(r["quadrant"], r["markets"] - r["markets_shown"]) for r in rows("quadrant_counts") if r["markets"] != r["markets_shown"]]
+    facts["quadrant_rolled"] = rolled
     diag = {r["measure"]: r["value"] for r in rows("fan_diagnostics")}
     facts.update({"fandom_treated": diag["fandom_matched_treated"], "fandom_comparison": diag["fandom_matched_comparison"]})
     site_cards.configure(data["chart_insights_club"]["rows"] + data["chart_insights_privacy"]["rows"] + data["chart_insights_eval"]["rows"] + data["chart_insights_exec_global"]["rows"])
