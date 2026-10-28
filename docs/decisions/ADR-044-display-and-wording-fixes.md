@@ -22,3 +22,8 @@
 - **Percents over 100%:** one, a +215.8% restatement change on Identity and governance, which is a real increase.
 - **Years with commas:** none.
 - **Headline figures:** consistent. Some appear in rounded forms by design: "about 1,260" fan accounts on Acquisition and Value; the one-page summary's 7,400 players and about 1,300 fans.
+
+## Follow-up, 2026-10-28
+- **Live check:** every page on the live site matched the committed `public/` byte for byte, so the fixes above were deployed site-wide. Screens still showing "410.0%" or "7.3650" were cached copies.
+- **Share (%):** a percent column whose header already says "(%)" prints the number alone ("4.1"), so the unit appears once.
+- **Market panel, privacy note:** it said families "never asked" are not contacted by design. Never-asked families are in the fixable (orange) part, so the note now names only families who said no or withdrew.

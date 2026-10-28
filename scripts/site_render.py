@@ -134,7 +134,7 @@ def fmt_cell(v, col: str = "") -> str:
     if isinstance(v, decimal.Decimal) and v == v.to_integral_value():      # exact money sums come back as decimals: whole amounts read as counts
         v = int(v)
     if col in PERCENT_UNIT_COLUMNS and isinstance(v, (int, float)):      # already a percent (0 to 100): never scaled, whatever its size
-        return f"{v:.1f}%"
+        return f"{v:.1f}" if COLUMN_LABELS.get(col, "").endswith("(%)") else f"{v:.1f}%"   # a "(%)" header carries the unit once
     if col in RATE_COLUMNS or col.endswith("_pct"):
         if isinstance(v, (int, float)) and abs(v) <= 5:
             return f"{v:.1%}"

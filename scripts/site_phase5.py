@@ -237,7 +237,7 @@ def render_pair(pair, grades) -> str:
             f"<p>{e(pair['leagues_text'])}.</p>{lines}<p>{e(pair['reach_text'][0].upper() + pair['reach_text'][1:])}.</p></div>")
     priv = (f"<div class='lenspanel'><h4>Privacy lens · {e(pair['plain_name'])}</h4><p>{e(pair['receives_text'])}</p>"
             f"<p><b>What never leaves the league:</b> names, birth dates and contact details.</p><p>{e(pair['consent_text'][0].upper() + pair['consent_text'][1:])}.</p>"
-            f"<p class='note'>Families who said no, or were never asked, are not contacted. That is the design working.</p></div>")
+            f"<p class='note'>Families who said no or withdrew are not contacted. That is the design working. Families never asked can still be asked.</p></div>")
     return f"<div class='lenspair'>{club}{priv}</div>"
 
 
