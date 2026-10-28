@@ -1,0 +1,1 @@
+{"name": "reach_limits", "title": "What limits reach through fan accounts: the share of registered families linked, and the share of linked families contactable", "source": "share_exec.share_exec__addressable_audience", "kind": "share_exec", "columns": ["linked_pct", "contactable_of_linked_pct"], "rows": [{"linked_pct": 36, "contactable_of_linked_pct": 75}]}

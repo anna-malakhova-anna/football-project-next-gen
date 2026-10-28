@@ -199,6 +199,12 @@
    "rows": 290
   },
   {
+   "name": "reach_limits",
+   "source": "share_exec.share_exec__addressable_audience",
+   "kind": "share_exec",
+   "rows": 1
+  },
+  {
    "name": "audience_latest",
    "source": "share_exec.share_exec__addressable_audience",
    "kind": "share_exec",

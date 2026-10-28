@@ -95,7 +95,8 @@
       var notes = document.createElement("div"); notes.className = "vslide-notes";
       var bar = document.createElement("button"); bar.type = "button"; bar.className = "vnotes-bar"; bar.setAttribute("aria-controls", text.id);
       bar.setAttribute("aria-expanded", dlg.dataset.notes === "open" ? "true" : "false");
-      bar.innerHTML = '<span class="vn-arrow" aria-hidden="true">&#9650;</span><span><b>What this means</b> · <b>What to do</b> · <b>Be careful</b></span>';
+      bar.innerHTML = 'What this means <span class="vn-arrow" aria-hidden="true">&#9650;</span>';
+      bar.setAttribute("aria-label", "What this means, what to do, be careful: show or hide");
       bar.addEventListener("click", function () {
         var open = dlg.dataset.notes !== "open";
         dlg.dataset.notes = open ? "open" : "closed";
