@@ -457,6 +457,12 @@
    "rows": 22
   },
   {
+   "name": "gmp_grade_bands",
+   "source": "reference.dq_grade_bands, reference.p7_params",
+   "kind": "governance",
+   "rows": 4
+  },
+  {
    "name": "gmp_map",
    "source": "reference.gmp_map_points, share_exec.share_exec__gmp_markets_canada, share_exec.share_exec__gmp_markets_eu_uk, share_exec.share_exec__gmp_markets_other",
    "kind": "share_exec",
