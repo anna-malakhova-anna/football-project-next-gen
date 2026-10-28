@@ -94,8 +94,6 @@ ol.tour li { margin: 8px 0; }
 
 /* Phase 5: lens toggle (show/hide precomputed panels only), demo-path box, fix-list card */
 .lens-toggle { display: flex; gap: 8px; align-items: center; margin: 16px 0; }
-.lens-toggle button { font: inherit; padding: 4px 14px; border: 1px solid var(--border); border-radius: var(--r-chip); background: var(--surface); color: var(--text); cursor: pointer; }
-.lens-toggle button[aria-pressed="true"] { background: var(--series-turf); color: #fff; border-color: var(--series-turf); }
 .lens-scope[data-lens-active="club"] .lens-privacy, .lens-scope[data-lens-active="privacy"] .lens-club { display: none; }
 .lens-notes .lens { border-left: 3px solid var(--series-sand); padding-left: 8px; }
 .demo-path { border: 1px dashed var(--border); border-radius: var(--r-card); padding: 8px 12px; margin: 12px 0; font-size: .875rem; color: var(--text-muted); max-width: 72ch; }
@@ -127,14 +125,16 @@ ol.tour li { margin: 8px 0; }
   .topbar.open .nav-menu a { padding: 10px 8px 10px 16px; min-height: 44px; }
 }
 .demo-path { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
-/* action buttons in a box: full width, bold capitals; black for the main action, slate with a dark edge for a secondary one; reversed in dark mode */
-.demo-path { --btn-bg: #000000; --btn-ink: #ffffff; --btn-edge: #000000; --btn-alt-bg: #666d80; --btn-alt-ink: #ffffff; --btn-alt-edge: #1b1f2a; }
-:root[data-theme="dark"] .demo-path { --btn-bg: #ffffff; --btn-ink: #0b1726; --btn-edge: #ffffff; --btn-alt-bg: #4a5163; --btn-alt-ink: #ffffff; --btn-alt-edge: #c5cbd6; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .demo-path { --btn-bg: #ffffff; --btn-ink: #0b1726; --btn-edge: #ffffff; --btn-alt-bg: #4a5163; --btn-alt-ink: #ffffff; --btn-alt-edge: #c5cbd6; } }
-.demo-path .demo-go { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; padding: 8px 16px; border: 2px solid var(--btn-edge); border-radius: 6px;
-  background: var(--btn-bg); color: var(--btn-ink); font: 700 1.0625rem/1.2 var(--font-body); letter-spacing: .02em; text-transform: uppercase; text-decoration: none; text-align: center; }
-.demo-path .demo-go:hover, .demo-path .demo-go:focus-visible { filter: brightness(1.25); }
-.demo-path .demo-go-alt { background: var(--btn-alt-bg); color: var(--btn-alt-ink); border-color: var(--btn-alt-edge); }
+/* every clickable button that used to be green (ADR-040): one compact dark style; grey while pressed, and grey for the selected option of a toggle */
+:root { --btn-bg: #111722; --btn-ink: #ffffff; --btn-edge: #111722; --btn-on: #666d80; --btn-on-edge: #444b5c; }
+:root[data-theme="dark"] { --btn-bg: #111722; --btn-edge: #7d8899; --btn-on: #666d80; --btn-on-edge: #a9b3c1; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --btn-bg: #111722; --btn-edge: #7d8899; --btn-on: #666d80; --btn-on-edge: #a9b3c1; } }
+.demo-path .demo-go, .lens-toggle button, .vseg button, a.l-go {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 14px; border: 1px solid var(--btn-edge); border-radius: 6px;
+  background: var(--btn-bg); color: var(--btn-ink); font: 600 .875rem/1.25 var(--font-body); text-decoration: none; text-transform: none; letter-spacing: 0; cursor: pointer; white-space: nowrap; }
+.demo-path .demo-go:hover, .lens-toggle button:hover, .vseg button:hover, a.l-go:hover { filter: brightness(1.4); }
+.demo-path .demo-go:active, .lens-toggle button:active, .vseg button:active, a.l-go:active,
+.lens-toggle button[aria-pressed="true"], .vseg button[aria-pressed="true"] { background: var(--btn-on); border-color: var(--btn-on-edge); color: #ffffff; filter: none; }
 .glossary dt { font-weight: 500; margin-top: 12px; }
 .glossary dd { margin: 2px 0 0; }
 .glossary .tech { color: var(--text-muted); font-size: .875rem; }
@@ -179,7 +179,7 @@ code { overflow-wrap: break-word; } .note, main p, main li { overflow-wrap: brea
   .notice button { min-height: 40px; padding: 0 14px; }
   .menu-btn { min-height: 44px; }
   main button, .vexpand, .lens-toggle button { min-height: 44px; }
-  .demo-path .demo-go { min-height: 48px; font-size: .9375rem; }
+  .demo-path .demo-go, a.l-go { min-height: 44px; white-space: normal; }
   main summary, .site-footer summary { padding: 11px 0; }
   body .vrcard { min-height: 44px; }
   body .mtile .mname, body .vtiles-compact .mtile .mname { font-size: .8125rem; }

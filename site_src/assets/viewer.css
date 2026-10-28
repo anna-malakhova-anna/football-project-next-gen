@@ -80,8 +80,7 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 
 /* tile map */
 .vseg { display: flex; flex-wrap: wrap; gap: 6px; }
-.vseg button { font: inherit; font-size: .875rem; padding: 4px 12px; border: 1px solid var(--border); border-radius: var(--r-chip); background: var(--surface); color: var(--text); cursor: pointer; }
-.vseg button[aria-pressed="true"] { background: var(--series-turf); color: #fff; border-color: var(--series-turf); }
+/* .vseg buttons share the site's dark button style (site.css, ADR-040) */
 .vtiles-host .vtiles { display: none; }
 .vtiles-host[data-active="COUNT"] .vtiles[data-use="COUNT"], .vtiles-host[data-active="SEGMENT"] .vtiles[data-use="SEGMENT"], .vtiles-host[data-active="GEO"] .vtiles[data-use="GEO"],
 .vtiles-host[data-active="RETAIN"] .vtiles[data-use="RETAIN"], .vtiles-host[data-active="ACTIVATE"] .vtiles[data-use="ACTIVATE"] { display: block; }

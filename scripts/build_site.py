@@ -249,7 +249,7 @@ body.summary .ps-sec .vcard-question,body.summary .ps-one>section.chart>h3:first
 body.summary .ps-tabs{top:0}
 body.summary main{padding-top:32px}
 body.summary .lens-toggle,body.summary .demo-path{margin-top:24px}
-body.summary .demo-paths{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}body.summary .demo-paths .demo-path{flex:1 1 320px;margin:0;max-width:none;flex-direction:column;align-items:stretch;justify-content:space-between}
+body.summary .demo-paths{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}body.summary .demo-paths .demo-path{flex:1 1 320px;margin:0;max-width:none;flex-direction:column;align-items:flex-start;justify-content:space-between}
 body.summary .lens-scope>.ps-sec:first-of-type,body.summary .lens-scope>.vgoals+.ps-sec{margin-top:32px}
 @media (max-width:719px){body.summary .ps-hero h1{font-size:44px}body.summary .ps-sec h2{font-size:28px}body.summary .ps-record{grid-template-columns:repeat(2,minmax(0,1fr))}body.summary .ps-rec .n{font-size:44px}body.summary .ps-rec:nth-child(odd){border-left:0;padding-left:0}}
 /* a table with seven or more columns scrolls inside its section between the phone layout (stacked rows) and a wide screen */
@@ -273,8 +273,6 @@ body.summary .l-takes b{color:var(--s-text)}
 body.summary .l-trust .ps-sh{border-left-color:var(--s-accent-2)}
 body.summary .l-trust .l-takes li{border-left-color:var(--s-accent-2)}
 body.summary .l-links{display:flex;flex-wrap:wrap;gap:8px}
-body.summary a.l-go{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:1px solid var(--s-accent-ink);border-radius:999px;color:var(--s-accent-ink);text-decoration:none;font-weight:600}
-body.summary a.l-go:hover{background:var(--s-accent-ink);color:#fff}
 /* the glossary (ADR-038): each domain has its own colour on the section edge, the term name and the card edge; the analysts' name is a small grey code tag */
 body.summary .gdom{--gd:var(--s-accent)}
 body.summary .gd-reading{--gd:#5B6B7C}body.summary .gd-counting{--gd:#2F6B4F}body.summary .gd-fans{--gd:#D9622B}body.summary .gd-matching{--gd:#3D7CC9}
@@ -468,13 +466,13 @@ def phase5_pages(blocks: dict, data: dict, labels: dict) -> dict:
         pg = pages[slug]
         if slug == "global":       # the summary look: the banner carries the intro, the sections carry the cards (ADR-033)
             dp3 = (f'<aside class="demo-path"><span><b>{esc(pg["product_link_label"])}</b> {esc(site_cards.fill(pg["product_link_text"], None, None))}</span>'
-                   f' <a class="demo-go demo-go-alt" href="product.html">{esc(pg["product_link_button"])}\u00a0\u2192</a></aside>')      # the story G1 -> DP3 -> Global outlook
+                   f' <a class="demo-go" href="product.html">{esc(pg["product_link_button"])}\u00a0\u2192</a></aside>')      # the story G1 -> DP3 -> Global outlook
             out[slug] = (title, dp3 + global_overview(pg) + lens_scope(global_sections(blocks[slug], pg, site_cards.load_copy()), "club", pg["demo_text"], pg["demo_slide"]), None)
             continue
         intro = f"<p class='note intro'><b>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</b></p>"
         if slug == "product":
             extra = (f'<aside class="demo-path"><span><b>One-page summary.</b> {esc(pg["summary_text"])}</span>'
-                     f' <a class="demo-go demo-go-alt" href="{site_summary.SLUG}.html">Open the one-page summary\u00a0\u2192</a></aside>')
+                     f' <a class="demo-go" href="{site_summary.SLUG}.html">Open the one-page summary\u00a0\u2192</a></aside>')
         inner, tabs = sectionize(slug, inner, labels)
         out[slug] = (title, intro + lens_scope(inner, default, pg["demo_text"], pg["demo_slide"], extra if slug == "product" else ""), tabs)
     return out
