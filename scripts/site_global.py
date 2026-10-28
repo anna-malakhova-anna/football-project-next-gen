@@ -68,7 +68,7 @@ DATASETS = [
        "SYNTHETIC EVALUATION: the planning scenario's range against the answer key's true players, markets with no data"),
     _D("gmp_eval_summary", """
         select case market_group when 'ALL' then 'All markets with no data' when 'WITH_COMPARABLES' then 'Moved with their neighbours' else 'Moved against their neighbours' end as market_group_label,
-               markets, truth_in_range, truth_above_range, truth_below_range, direction_wrong, proxy_direction_known, proxy_direction_right
+               markets, truth_in_range, truth_above_range, truth_below_range, direction_graded, direction_wrong, proxy_direction_known, proxy_direction_right
         from evaluation.eval_gmp_scenario_summary
         order by case market_group when 'ALL' then 0 when 'WITH_COMPARABLES' then 1 else 2 end""", ["evaluation.eval_gmp_scenario_summary"], "evaluation",
        "SYNTHETIC EVALUATION: how often the planning scenario was right"),
@@ -103,7 +103,7 @@ COLUMN_LABELS = {
     "growth_percent": "Growth (%)", "change_needed": "Change needed (%)", "change_needed_down": "Change needed, down (%)", "growth_text": "Growth",
     "true_participants": "True players (answer key)", "scenario_low": "Guess, low", "scenario_high": "Guess, high", "truth_label": "Truth", "built_as": "Answer key built as",
     "market_group_label": "Markets", "truth_in_range": "Truth inside the guess", "truth_above_range": "Truth above", "truth_below_range": "Truth below",
-    "direction_wrong": "Direction wrong", "proxy_direction_known": "Club activity known", "proxy_direction_right": "Club activity right",
+    "direction_graded": "Direction graded", "direction_wrong": "Direction wrong", "proxy_direction_known": "Club activity known", "proxy_direction_right": "Club activity right",
     "counting_score": "Counting score", "counting_grade": "Counting grade", "clubs_filed": "Clubs that sent a file", "clubs_known": "Clubs known", "clubs_text": "Clubs that sent a file",
     "measured_bar": "Bar for Measured", "lane_label": "Lane", "lane_order": "Order", "action": "What to do", "gate_text": "Progress", "gate_label": "Milestone",
     "progress_percent": "Progress (%)", "priority_rank": "Priority rank", "score_text": "Score", "stage_order": "Step", "stage": "Stage", "state_label": "State",

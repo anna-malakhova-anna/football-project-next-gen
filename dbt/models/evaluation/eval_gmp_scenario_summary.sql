@@ -19,8 +19,10 @@ select
     round(avg(truth_in_range::int), 4)                                      as coverage,
     count(*) filter (where truth_vs_range = 'BELOW')                        as truth_below_range,
     count(*) filter (where truth_vs_range = 'ABOVE')                        as truth_above_range,
+    count(direction_match)                                                  as direction_graded,
     count(*) filter (where not direction_match)                             as direction_wrong,
-    round(avg((not direction_match)::int), 4)                               as direction_error,
+    round(avg((not direction_match)::int), 4)                               as direction_error,      -- over graded markets only; NULL when none (ADR-045)
+    round(max(minimum_detectable_change), 6)                                as minimum_detectable_change,
     count(proxy_match)                                                      as proxy_direction_known,
     count(*) filter (where proxy_match)                                     as proxy_direction_right,
     count(*) filter (where comparables_differ)                              as comparables_differ_from_generator

@@ -484,7 +484,7 @@ charts:
     fallback_headline: A guess for markets with no data was mostly wrong.
     slide_headline_templates: {}
     question: What would a number for a dark market have said?
-    means_club: Each bar is the range we would have guessed from similar markets. A short tick means the guess rests on one market, so it is one number. The dot is the true number in our made-up test world, dark blue inside the range, red above it, light red below it. For every market, the guess said there was no change we can tell. In the test world every market really moved up or down. So the guessed direction was wrong in {n_direction_wrong} of {n_markets}.
+    means_club: Each bar is the range we would have guessed from similar markets. A short tick means the guess rests on one market, so it is one number. The dot is the true number in our made-up test world, dark blue inside the range, red above it, light red below it. {direction_result}.
     means_privacy: The guess uses no data from the market itself. That is exactly why it cannot be trusted.
     action_club: Do not quote a number for a market that sends no data. Ask it for one season of counts instead.
     action_privacy: No action. The test uses made-up data only.

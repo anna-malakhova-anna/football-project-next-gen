@@ -39,7 +39,7 @@
    - The site's banners reset the summary's print sizing.
    - A banner number never wraps away from its unit.
 
-## Open: for Anna to decide
+## Open: for Anna to decide (settled by ADR-045: option A)
 How the guess's direction is graded. Today a scenario that says "no change we can tell" is scored against a ±3% truth label, so it can never be right in this test world. There are two fairer gradings:
 - **Option A:** score only markets whose true move exceeds the same noise floor.
 - **Option B:** grade the scenario's direction as "not stated" when it says FLAT.

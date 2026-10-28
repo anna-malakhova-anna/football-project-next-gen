@@ -42,6 +42,15 @@ rows_ as (
     union all select 'G3', 'both', 'n_inside', cast(truth_in_range as varchar), truth_in_range * 1.0 from gmp
     union all select 'G3', 'both', 'n_above', cast(truth_above_range as varchar), truth_above_range * 1.0 from gmp
     union all select 'G3', 'both', 'n_direction_wrong', cast(direction_wrong as varchar), direction_wrong * 1.0 from gmp
+    union all select 'G3', 'both', 'n_direction_graded', cast(direction_graded as varchar), direction_graded * 1.0 from gmp
+    -- a whole clause, so the card's sentence is true whatever the count (ADR-045: direction graded only beyond the minimum detectable change)
+    union all select 'G3', 'both', 'direction_result',
+           'We grade the guessed direction only where the true number moved by more than '
+           || cast(round(minimum_detectable_change * 100)::int as varchar) || '%, the smallest change the method can tell from noise. '
+           || case when direction_graded = 0 then 'No market moved that much, so the direction could not be graded'
+                   else 'That was ' || cast(direction_graded as varchar) || ' of ' || cast(markets as varchar)
+                        || ' markets, and the direction was wrong in ' || cast(direction_wrong as varchar) || ' of them' end,
+           direction_graded * 1.0 from gmp
     union all select 'G3', 'both', 'n_proxy_known', cast(proxy_direction_known as varchar), proxy_direction_known * 1.0 from gmp
     union all select 'G3', 'both', 'n_proxy_right', cast(proxy_direction_right as varchar), proxy_direction_right * 1.0 from gmp
 )

@@ -195,7 +195,8 @@ models:
     description: >
       GROUND TRUTH (evaluation only, synthetic; Phase 7, ADR-025). Per program market with no participation source: the planning scenario's range and
       direction against the true latest-season participants and direction, the club proxy direction against the truth, and whether dbt's comparables
-      differ from the generator's. The answer key's against-the-comparables share is an assumption.
+      differ from the generator's. The answer key's against-the-comparables share is an assumption. Direction is graded only where the true move exceeds
+      the minimum detectable change (ADR-045); elsewhere direction_match is NULL.
     columns:
       - name: country_code
         data_tests: [unique, not_null]
@@ -203,7 +204,7 @@ models:
     description: >
       GROUND TRUTH (evaluation only, synthetic; Phase 7, ADR-025 section 6). Coverage, direction error and proxy agreement of the planning scenario, for all
       markets with no participation source and split by whether the answer key set them against their comparables. NO pass threshold: reported as it
-      comes out, as the evidence for or against publishing a number for a dark market.
+      comes out, as the evidence for or against publishing a number for a dark market. Direction error is over graded markets only (ADR-045).
     columns:
       - name: market_group
         data_tests:
