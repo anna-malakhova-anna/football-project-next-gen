@@ -207,7 +207,7 @@ def lens_scope(inner: str, default: str, demo: str, demo_slide: str = "", extra:
     toggle = ('<div class="lens-toggle" role="group" aria-label="Choose a lens"><span class="note">Lens</span>'
               f'<button type="button" data-set-lens="club" aria-pressed="{"true" if default == "club" else "false"}">Club lens</button>'
               f'<button type="button" data-set-lens="privacy" aria-pressed="{"true" if default == "privacy" else "false"}">Privacy lens</button></div>')
-    go = f' <a class="demo-go" href="#view={esc(demo_slide)}">Open the detailed walkthrough \u2192</a>' if demo_slide else ""
+    go = f' <a class="demo-go" href="#view={esc(demo_slide)}">Open the detailed walkthrough\u00a0\u2192</a>' if demo_slide else ""
     path = f'<aside class="demo-path"><span><b>Detailed walkthrough.</b> {esc(demo)}</span>{go}</aside>' if demo else ""      # a page may have no slide tour (Global outlook: ADR-034)
     if extra:       # a second box beside the walkthrough, in the same style (the Data products tab's one-page summary)
         path = f'<div class="demo-paths">{path}{extra}</div>'
@@ -249,7 +249,7 @@ body.summary .ps-sec .vcard-question,body.summary .ps-one>section.chart>h3:first
 body.summary .ps-tabs{top:0}
 body.summary main{padding-top:32px}
 body.summary .lens-toggle,body.summary .demo-path{margin-top:24px}
-body.summary .demo-paths{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}body.summary .demo-paths .demo-path{flex:1 1 320px;margin:0;max-width:none}
+body.summary .demo-paths{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}body.summary .demo-paths .demo-path{flex:1 1 320px;margin:0;max-width:none;flex-direction:column;align-items:stretch;justify-content:space-between}
 body.summary .lens-scope>.ps-sec:first-of-type,body.summary .lens-scope>.vgoals+.ps-sec{margin-top:32px}
 @media (max-width:719px){body.summary .ps-hero h1{font-size:44px}body.summary .ps-sec h2{font-size:28px}body.summary .ps-record{grid-template-columns:repeat(2,minmax(0,1fr))}body.summary .ps-rec .n{font-size:44px}body.summary .ps-rec:nth-child(odd){border-left:0;padding-left:0}}
 /* a table with seven or more columns scrolls inside its section between the phone layout (stacked rows) and a wide screen */
@@ -468,13 +468,13 @@ def phase5_pages(blocks: dict, data: dict, labels: dict) -> dict:
         pg = pages[slug]
         if slug == "global":       # the summary look: the banner carries the intro, the sections carry the cards (ADR-033)
             dp3 = (f'<aside class="demo-path"><span><b>{esc(pg["product_link_label"])}</b> {esc(site_cards.fill(pg["product_link_text"], None, None))}</span>'
-                   f' <a class="demo-go" href="product.html">{esc(pg["product_link_button"])} \u2192</a></aside>')      # the story G1 -> DP3 -> Global outlook
+                   f' <a class="demo-go demo-go-alt" href="product.html">{esc(pg["product_link_button"])}\u00a0\u2192</a></aside>')      # the story G1 -> DP3 -> Global outlook
             out[slug] = (title, dp3 + global_overview(pg) + lens_scope(global_sections(blocks[slug], pg, site_cards.load_copy()), "club", pg["demo_text"], pg["demo_slide"]), None)
             continue
         intro = f"<p class='note intro'><b>{esc(site_cards.fill(pg['intro_template'], None, pg.get('fallback_intro')))}</b></p>"
         if slug == "product":
             extra = (f'<aside class="demo-path"><span><b>One-page summary.</b> {esc(pg["summary_text"])}</span>'
-                     f' <a class="demo-go" href="{site_summary.SLUG}.html">Open the one-page summary \u2192</a></aside>')
+                     f' <a class="demo-go demo-go-alt" href="{site_summary.SLUG}.html">Open the one-page summary\u00a0\u2192</a></aside>')
         inner, tabs = sectionize(slug, inner, labels)
         out[slug] = (title, intro + lens_scope(inner, default, pg["demo_text"], pg["demo_slide"], extra if slug == "product" else ""), tabs)
     return out

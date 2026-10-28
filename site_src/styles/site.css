@@ -127,7 +127,14 @@ ol.tour li { margin: 8px 0; }
   .topbar.open .nav-menu a { padding: 10px 8px 10px 16px; min-height: 44px; }
 }
 .demo-path { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
-.demo-path .demo-go { display: inline-block; padding: 4px 14px; border-radius: var(--r-chip); background: var(--series-turf); color: #fff; text-decoration: none; white-space: nowrap; }
+/* action buttons in a box: full width, bold capitals; black for the main action, slate with a dark edge for a secondary one; reversed in dark mode */
+.demo-path { --btn-bg: #000000; --btn-ink: #ffffff; --btn-edge: #000000; --btn-alt-bg: #666d80; --btn-alt-ink: #ffffff; --btn-alt-edge: #1b1f2a; }
+:root[data-theme="dark"] .demo-path { --btn-bg: #ffffff; --btn-ink: #0b1726; --btn-edge: #ffffff; --btn-alt-bg: #4a5163; --btn-alt-ink: #ffffff; --btn-alt-edge: #c5cbd6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .demo-path { --btn-bg: #ffffff; --btn-ink: #0b1726; --btn-edge: #ffffff; --btn-alt-bg: #4a5163; --btn-alt-ink: #ffffff; --btn-alt-edge: #c5cbd6; } }
+.demo-path .demo-go { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; padding: 8px 16px; border: 2px solid var(--btn-edge); border-radius: 6px;
+  background: var(--btn-bg); color: var(--btn-ink); font: 700 1.0625rem/1.2 var(--font-body); letter-spacing: .02em; text-transform: uppercase; text-decoration: none; text-align: center; }
+.demo-path .demo-go:hover, .demo-path .demo-go:focus-visible { filter: brightness(1.25); }
+.demo-path .demo-go-alt { background: var(--btn-alt-bg); color: var(--btn-alt-ink); border-color: var(--btn-alt-edge); }
 .glossary dt { font-weight: 500; margin-top: 12px; }
 .glossary dd { margin: 2px 0 0; }
 .glossary .tech { color: var(--text-muted); font-size: .875rem; }
@@ -172,7 +179,7 @@ code { overflow-wrap: break-word; } .note, main p, main li { overflow-wrap: brea
   .notice button { min-height: 40px; padding: 0 14px; }
   .menu-btn { min-height: 44px; }
   main button, .vexpand, .lens-toggle button { min-height: 44px; }
-  .demo-path .demo-go { display: inline-flex; align-items: center; min-height: 44px; }
+  .demo-path .demo-go { min-height: 48px; font-size: .9375rem; }
   main summary, .site-footer summary { padding: 11px 0; }
   body .vrcard { min-height: 44px; }
   body .mtile .mname, body .vtiles-compact .mtile .mname { font-size: .8125rem; }
