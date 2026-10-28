@@ -223,3 +223,31 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 .vsteps code { font-size: .75rem; color: var(--text-muted); }
 /* Phase 7: a wide card takes the whole row (the Global outlook map, card G0) */
 .vgrid > .vcard[data-wide] { grid-column: 1 / -1; }
+
+/* Phase 7: the market board as a roadmap (card G5, ADR-041). Arrow-headed lane headers, one card per market; the lanes stack on a phone */
+.groad { --gr1: #1F4E79; --gr2: #3D7CC9; --gr3: #8DB6E3; --gr4: #5B6B7C; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: start; }
+.gr-head { position: relative; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 26px 8px 12px; color: #fff; background: var(--lane);
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 10px 50%); }
+.gr-col:first-child .gr-head { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%); }
+.gr-now { --lane: var(--gr1); } .gr-next { --lane: var(--gr2); } .gr-later { --lane: var(--gr3); } .gr-maintain { --lane: var(--gr4); }
+.gr-later .gr-head { color: #0b1726; }
+.gr-step { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.22); font-weight: 700; font-size: .8125rem; flex: none; }
+.gr-lane { font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.gr-n { margin-left: auto; font-weight: 700; }
+.gr-sub { margin: 6px 2px 8px; font-size: .8125rem; color: var(--text-muted); }
+.gr-cards { display: grid; gap: 8px; }
+.gr-card { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--lane); border-radius: 6px; padding: 8px 10px; }
+.gr-name { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.gr-status { margin-left: auto; font-size: .75rem; font-weight: 500; color: var(--text-muted); white-space: nowrap; }
+.gr-act { margin: 4px 0 6px; font-size: .8125rem; color: var(--text); }
+.gr-gate { display: flex; justify-content: space-between; gap: 6px; font-size: .75rem; color: var(--text-muted); } .gr-gate b { color: var(--text); font-weight: 600; white-space: nowrap; }
+.gr-bar { display: block; height: 6px; margin-top: 4px; border-radius: 3px; background: var(--border); overflow: hidden; } .gr-bar > span { display: block; height: 100%; background: var(--lane); }
+.gr-bar-wait { background: repeating-linear-gradient(90deg, var(--border) 0 6px, transparent 6px 10px); }
+.sd { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; font-style: normal; }
+.sd-measured { background: #2166AC; } .sd-partial { background: #B2182B; } .sd-proxy { background: #8A9BB0; } .sd-dark { background: transparent; border: 1.5px dashed var(--slate-400, #8A96A3); }
+.gr-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 2px 0; font-size: .8125rem; color: var(--text-muted); } .gr-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.groad-compact .gr-head { min-height: 32px; padding: 4px 22px 4px 10px; font-size: .8125rem; } .groad-compact .gr-step { width: 18px; height: 18px; }
+.groad-compact .gr-cards { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.gr-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font-size: .75rem; }
+@media (max-width: 800px) { .groad { grid-template-columns: minmax(0, 1fr); } .gr-head, .gr-col:first-child .gr-head { clip-path: none; border-radius: 6px; } }
+@media (max-width: 800px) { .groad-compact { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
