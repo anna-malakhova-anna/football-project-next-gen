@@ -281,3 +281,21 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 .gsw.g-A { background: #2166ac; color: #fff; } .gsw.g-B { background: #92c5de; color: #0b1726; } .gsw.g-C { background: #f4a582; color: #0b1726; } .gsw.g-D { background: #b2182b; color: #fff; }
 .gsw.g-hidden { background: var(--bg); border: 2px solid var(--slate-400, #8A96A3); } .gsw.g-none { background: transparent; border: 2px dashed var(--slate-400, #8A96A3); }
 .gl-note { padding: 2px 8px; border-left: 3px solid #2166ac; color: var(--text); font-weight: 500; }
+
+/* The slide notes (ADR-043): folded behind a bar at the foot of each slide; the bar's arrow shows they open upward, and they slide up over the chart.
+   The bold labels are green accents. The card notes on the page are unchanged. */
+.vslide { position: relative; }
+.vslide-notes { position: relative; }
+.vnotes-bar { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 40px; padding: 6px 12px; border: 1px solid var(--border);
+  border-radius: 6px; background: var(--surface); color: var(--text-muted); font: inherit; font-size: .875rem; cursor: pointer; }
+.vnotes-bar:hover, .vnotes-bar:focus-visible { border-color: var(--notes-accent); }
+.vn-arrow { color: var(--notes-accent); font-size: .75rem; transition: transform .2s ease; }
+dialog.viewer { --notes-accent: #2F6B4F; }
+:root[data-theme="dark"] dialog.viewer { --notes-accent: #6FCF97; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) dialog.viewer { --notes-accent: #6FCF97; } }
+.vnotes-bar b, .vslide-text .vnote > b:first-child { color: var(--notes-accent); font-weight: 700; }
+.vslide-notes .vslide-text { position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); z-index: 5; max-height: 55vh; overflow: auto; padding: 14px 18px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-float, 0 6px 16px rgba(11,23,38,.18));
+  transform: translateY(16px); opacity: 0; visibility: hidden; transition: transform .2s ease, opacity .2s ease, visibility 0s linear .2s; }
+dialog.viewer[data-notes="open"] .vslide-notes .vslide-text { transform: none; opacity: 1; visibility: visible; transition: transform .2s ease, opacity .2s ease; }
+dialog.viewer[data-notes="open"] .vn-arrow { transform: rotate(180deg); }

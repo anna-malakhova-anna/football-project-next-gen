@@ -89,9 +89,20 @@
       sub.textContent = s.card.querySelector(".vcard-question").textContent + " · " + s.title;
       var top = document.createElement("div"); top.appendChild(h2); top.appendChild(sub);
       var chart = document.createElement("div"); chart.className = "vslide-chart"; chart.setAttribute("role", "img"); chart.setAttribute("aria-label", h2.textContent + " " + s.title);
-      var text = document.createElement("div"); text.className = "vslide-text";
+      var text = document.createElement("div"); text.className = "vslide-text"; text.id = "notes-" + s.id;
       text.innerHTML = s.card.querySelector(".vcard-notes").innerHTML;
-      sec.appendChild(top); sec.appendChild(chart); sec.appendChild(text);
+      // the notes start folded behind a bar at the foot of the slide and slide up over the chart when it is clicked; the choice holds across slides (ADR-043)
+      var notes = document.createElement("div"); notes.className = "vslide-notes";
+      var bar = document.createElement("button"); bar.type = "button"; bar.className = "vnotes-bar"; bar.setAttribute("aria-controls", text.id);
+      bar.setAttribute("aria-expanded", dlg.dataset.notes === "open" ? "true" : "false");
+      bar.innerHTML = '<span class="vn-arrow" aria-hidden="true">&#9650;</span><span><b>What this means</b> · <b>What to do</b> · <b>Be careful</b></span>';
+      bar.addEventListener("click", function () {
+        var open = dlg.dataset.notes !== "open";
+        dlg.dataset.notes = open ? "open" : "closed";
+        dlg.querySelectorAll(".vnotes-bar").forEach(function (x) { x.setAttribute("aria-expanded", open ? "true" : "false"); });
+      });
+      notes.appendChild(text); notes.appendChild(bar);
+      sec.appendChild(top); sec.appendChild(chart); sec.appendChild(notes);
       scroller.appendChild(sec); secs.push({ el: sec, chart: chart, done: false });
       if (s.cardId !== lastCard) {
         var g = document.createElement("div"); g.className = "vrail-group"; g.textContent = s.card.querySelector(".vcard-question").textContent; rail.appendChild(g); lastCard = s.cardId;
