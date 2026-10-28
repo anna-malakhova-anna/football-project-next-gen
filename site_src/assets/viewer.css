@@ -251,3 +251,25 @@ dialog.viewer[data-lens-active="club"] .lens-privacy, dialog.viewer[data-lens-ac
 .gr-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font-size: .75rem; }
 @media (max-width: 800px) { .groad { grid-template-columns: minmax(0, 1fr); } .gr-head, .gr-col:first-child .gr-head { clip-path: none; border-radius: 6px; } }
 @media (max-width: 800px) { .groad-compact { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* D5 product labels, card thumbnail: an aligned grid of equal cards (5 across on a wide card, 3 on a tablet); on a phone one column with each product's
+   name and live grade only, so all five fit the fixed-height box. The full labels are in the slides */
+.vthumb-html .vlabels { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; padding: 0; align-items: stretch; }
+.vthumb-html .vlabels .vlabel { margin: 0; max-width: none; height: 100%; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; border-radius: 6px; }
+.vthumb-html .vlabels .vlabel-head h4 { font-size: .875rem; line-height: 1.25; margin: 0; }
+.vthumb-html .vlabels .vlabel-head .note, .vthumb-html .vlabels .vlabel-grade, .vthumb-html .vlabels .vlabel > .note { margin: 0; font-size: .75rem; line-height: 1.35; }
+.vthumb-html .vlabels .vlabel > .note { margin-top: auto; color: var(--text-muted); }
+.vthumb-html .vlabels .vq { font-size: .6875rem; padding: 0 6px; margin-right: 4px; }
+@media (max-width: 1100px) {      /* tablet and phone: name and live grade only */
+  .vthumb-html .vlabels { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .vthumb-html .vlabels .vlabel-head .note, .vthumb-html .vlabels .vlabel > .note { display: none; }
+}
+@media (max-width: 800px) {       /* phone: one row per product, each line kept to one line */
+  .vthumb-html .vlabels { grid-template-columns: minmax(0, 1fr); }
+  .vthumb-html .vlabels { gap: 4px; }
+  .vthumb-html .vlabels .vlabel { padding: 4px 8px; gap: 0; }
+  .vthumb-html .vlabels .vlabel-head h4 { font-size: .8125rem; }
+  .vthumb-html .vlabels .vq { display: none; }
+  .vthumb-html .vlabels .vlabel-head h4, .vthumb-html .vlabels .vlabel-grade { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vthumb-html:has(.vlabels) { padding: 8px 10px; }
+}
