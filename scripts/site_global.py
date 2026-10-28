@@ -71,7 +71,8 @@ DATASETS = [
         with t as ({_union(SHARE_TREND)}),
              bar as (select min_score from reference.dq_grade_bands where grade = (select value from reference.p7_params where param = 'measured_min_grade'))
         select t.country_name, t.season_year, t.counting_score, t.counting_grade, t.clubs_filed, t.clubs_known,
-               cast(t.clubs_filed as varchar) || ' of ' || cast(t.clubs_known as varchar) as clubs_text, bar.min_score as measured_bar
+               cast(t.clubs_filed as varchar) || ' of ' || cast(t.clubs_known as varchar) as clubs_text, bar.min_score as measured_bar,
+               case when t.counting_score >= bar.min_score then 'At or above the bar' else 'Below the bar' end as bar_side
         from t cross join bar order by t.country_name, t.season_year""", SHARE_TREND + ["reference.dq_grade_bands", "reference.p7_params"], "share_exec",
        "Counting score per market and season, with the bar a market must clear to read Measured"),
     _D("gmp_board", f"""
@@ -127,27 +128,35 @@ def render_markets(rows, compact=False) -> str:
     return f"<div class='vtiles-single'><div class='vtiles{' vtiles-compact' if compact else ''}'>{''.join(out)}</div></div>"
 
 
-def render_board(rows, compact=False) -> str:
-    """The market board: one lane per heading, one tile per market with its next action and milestone progress (drafts)."""
-    lanes: dict = {}
-    for r in sorted(rows, key=lambda r: (r["lane_order"], r["priority_rank"])):
-        lanes.setdefault(r["lane_label"], []).append(r)
-    out = []
-    for label, tiles in lanes.items():
-        cells = []
-        for t in tiles:
-            detail = "" if compact else f"<span class='mdetail'>{e(t['action'])}</span><span class='mdetail'>{e(t['gate_label'])}: {e(t['gate_text'])}</span>"
-            cells.append(f"<div class='mtile g-hidden' title='{e(t['country_name'])}: {e(t['action'])}'><span class='mname'>{e(t['country_name'])}</span>{detail}</div>")
-        out.append(f"<div class='vstate'><h4>{e(label)} ({len(tiles)})</h4><div class='vstate-row'>{''.join(cells)}</div></div>")
-    return f"<div class='vtiles-single'><div class='vtiles{' vtiles-compact' if compact else ''}'>{''.join(out)}</div></div>"
+LANES = [("NOW", "Now"), ("NEXT", "Next"), ("LATER", "Later"), ("MAINTAIN", "Keep")]
+STATUS_DOT = {"Measured": "sd-measured", "Partial": "sd-partial", "Clubs report activity": "sd-proxy", "Nothing arrives": "sd-dark"}
 
 
-def render_lanes(rows) -> str:
-    """The board's thumbnail: one line per lane, the markets in priority order (drafts)."""
-    lanes: dict = {}
+def render_roadmap(rows, lane_text: dict, compact=False) -> str:
+    """The market board as a roadmap (ADR-041): Now, Next and Later as arrow-headed columns, then the markets to keep. Each card names the market, its
+    status (the map's colours), the next action and its milestone with a progress bar. The thumbnail shows names only. Values come from the board share."""
+    by_lane: dict = {}
     for r in sorted(rows, key=lambda r: (r["lane_order"], r["priority_rank"])):
-        lanes.setdefault(r["lane_label"], []).append(r["country_name"])
-    return "<div class='vlanes'>" + "".join(f"<p class='vnote'><b>{e(label)}:</b> {e(', '.join(names))}</p>" for label, names in lanes.items()) + "</div>"
+        by_lane.setdefault(r["lane"], []).append(r)
+    cols = []
+    for step, (lane, label) in enumerate(LANES, 1):
+        tiles = by_lane.get(lane, [])
+        if compact:
+            cards = "".join(f"<span class='gr-chip'><i class='sd {STATUS_DOT.get(t['status_label'], 'sd-dark')}'></i>{e(t['country_name'])}</span>" for t in tiles)
+        else:
+            cards = ""
+            for t in tiles:
+                pct = t["progress_percent"]
+                bar = (f"<span class='gr-bar' role='img' aria-label='{e(t['gate_text'])}'><span style='width:{max(0.0, min(100.0, float(pct))):.0f}%'></span></span>" if pct is not None
+                       else "<span class='gr-bar gr-bar-wait'></span>")
+                cards += (f"<div class='gr-card'><div class='gr-name'><i class='sd {STATUS_DOT.get(t['status_label'], 'sd-dark')}'></i>{e(t['country_name'])}"
+                          f"<span class='gr-status'>{e(t['status_label'])}</span></div><p class='gr-act'>{e(t['action'])}</p>"
+                          f"<div class='gr-gate'><span>{e(t['gate_label'])}</span><b>{e(t['gate_text'])}</b></div>{bar}</div>")
+        head = (f"<div class='gr-head'><span class='gr-step'>{step if lane != 'MAINTAIN' else '&#10003;'}</span><span class='gr-lane'>{e(label)}</span>"
+                f"<span class='gr-n'>{len(tiles)}</span></div>" + ("" if compact else f"<p class='gr-sub'>{e(lane_text.get(lane, ''))}</p>"))
+        cols.append(f"<div class='gr-col gr-{lane.lower()}'>{head}<div class='gr-cards'>{cards}</div></div>")
+    legend = "" if compact else ("<p class='gr-legend'>" + "".join(f"<span><i class='sd {c}'></i>{e(k)}</span>" for k, c in STATUS_DOT.items()) + "</p>")
+    return f"<div class='groad{' groad-compact' if compact else ''}'>{''.join(cols)}</div>{legend}"
 
 
 def render_walkthrough(rows, market: str) -> str:
@@ -229,16 +238,38 @@ def _eval_spec(thumb):
                               "tooltip": [{"field": "country_name", "title": "Market"}, {"field": "true_participants", "title": "True players"}, {"field": "truth_label", "title": "Truth"}]}}]}
 
 
-def _trend_spec(thumb):
-    return {"data": _src("gmp_trend"), "width": "container", "height": 200 if thumb else "container", "autosize": {"type": "fit", "contains": "padding"},
+def _trend_panel(name, small):
+    """One market's counting score by season (ADR-041): one small chart per market, so no market's line can hide behind another's (Japan's and the UK's
+    scores are identical in 2024 and 2025). Points are blue at or above the bar a market must clear to be read, red below it."""
+    safe = name.replace("'", "\\'")
+    x = {"field": "season_year", "type": "ordinal", "title": None, "axis": {"labelAngle": 0, "labelFontSize": 9 if small else 12, "labelOverlap": True}}
+    y = {"field": "counting_score", "type": "quantitative", "title": None, "scale": {"domain": [50, 100]}, "axis": {"tickCount": 3 if small else 6, "labelFontSize": 9 if small else 12}}
+    return {"data": _src("gmp_trend"), "width": "container", "height": 64 if small else 170, "autosize": {"type": "fit-x", "contains": "padding"}, "padding": 2,      # a fixed height: "container" height mis-sized grid cells
+            "transform": [{"filter": f"datum.country_name === '{safe}'"}],
             "layer": [
-                {"mark": {"type": "line", "point": True}, "encoding": {
-                    "x": {"field": "season_year", "type": "ordinal", "title": None, "axis": {"labelAngle": 0}},
-                    "y": {"field": "counting_score", "type": "quantitative", "title": None if thumb else "Counting score", "scale": {"domain": [50, 100]}},
-                    "color": {"field": "country_name", "type": "nominal", "title": None, "legend": None if thumb else {"orient": "bottom"}},
-                    "tooltip": [{"field": "country_name", "title": "Market"}, {"field": "season_year", "title": "Season"}, {"field": "counting_grade", "title": "Grade"},
-                                {"field": "clubs_text", "title": "Clubs that sent a file"}]}},
-                {"mark": {"type": "rule", "strokeDash": [4, 3], "color": "#1B2733"}, "encoding": {"y": {"field": "measured_bar", "type": "quantitative"}}}]}
+                {"mark": {"type": "rule", "strokeDash": [4, 3], "color": "#1B2733"}, "encoding": {"y": {"field": "measured_bar", "type": "quantitative", "scale": {"domain": [50, 100]}}}},
+                {"mark": {"type": "line", "color": "#8A96A3", "strokeWidth": 2}, "encoding": {"x": x, "y": y}},
+                {"mark": {"type": "point", "filled": True, "size": 40 if small else 90, "opacity": 1},
+                 "encoding": {"x": x, "y": y,
+                              "color": {"field": "bar_side", "type": "nominal", "legend": None, "scale": {"domain": ["At or above the bar", "Below the bar"], "range": ["#2166AC", "#B2182B"]}},
+                              "tooltip": [{"field": "country_name", "title": "Market"}, {"field": "season_year", "title": "Season"}, {"field": "counting_score", "title": "Counting score"},
+                                          {"field": "counting_grade", "title": "Grade"}, {"field": "clubs_text", "title": "Clubs that sent a file"}]}}]}
+
+
+def _trend_order(d):
+    """The markets close to readable (Partial) first, then the readable ones (Measured), by name."""
+    status = {r["country_name"]: r["status_label"] for r in d["gmp_markets"]["rows"]}
+    names = sorted({r["country_name"] for r in d["gmp_trend"]["rows"]}, key=lambda n: (status.get(n) != "Partial", n))
+    return names
+
+
+def _lane_text() -> dict:
+    """What each lane means, from the page copy (`pages.global.board_lanes` in site_src/copy/charts.yml; read here, not through site_cards, which sits above this module)."""
+    from pathlib import Path
+
+    import yaml
+    copy = Path(__file__).resolve().parent.parent / "site_src" / "copy" / "charts.yml"
+    return yaml.safe_load(copy.read_text(encoding="utf-8"))["pages"]["global"]["board_lanes"]
 
 
 def charts():
@@ -255,10 +286,11 @@ def charts():
     C["g3_guess"] = dict(page="global", title="What would a number for a dark market have said?", datasets=["gmp_eval", "gmp_eval_summary"], evaluation=True,
         card=dict(id="G3", datasets=["gmp_eval", "gmp_eval_summary"], thumb=_eval_spec(True), open_slide=1, slides=[dict(title="Guess against truth", key="EVAL", spec=_eval_spec(False))]))
     C["g4_quality"] = dict(page="global", title="How do we make a market readable?", datasets=["gmp_trend"],
-        card=dict(id="G4", datasets=["gmp_trend"], thumb=_trend_spec(True), open_slide=1, slides=[dict(title="Counting score by season", key="TREND", spec=_trend_spec(False))]))
+        card=dict(id="G4", datasets=["gmp_trend", "gmp_markets"], thumb_multi=lambda d: [dict(title=n, spec=_trend_panel(n, True)) for n in _trend_order(d)[:6]], open_slide=1,
+                  slides=lambda d: [dict(title="Counting score by season", key="TREND", multi=[dict(title=n, spec=_trend_panel(n, False)) for n in _trend_order(d)])]))
     C["g5_next"] = dict(page="global", title="What do we do next, and how?", datasets=["gmp_board", "gmp_walkthrough"],
-        card=dict(id="G5", datasets=["gmp_board", "gmp_walkthrough"], thumb_html=lambda d: render_lanes(d["gmp_board"]["rows"]), open_slide=1,
-                  slides=[dict(title="The market board", key="BOARD", html=lambda d: render_board(d["gmp_board"]["rows"])),
+        card=dict(id="G5", datasets=["gmp_board", "gmp_walkthrough"], thumb_html=lambda d: render_roadmap(d["gmp_board"]["rows"], {}, True), open_slide=1,
+                  slides=[dict(title="The market board", key="BOARD", html=lambda d: render_roadmap(d["gmp_board"]["rows"], _lane_text())),
                           dict(title="Canada, step by step", key="CANADA", html=lambda d: render_walkthrough(d["gmp_walkthrough"]["rows"], "Canada")),
                           dict(title="Italy, step by step", key="ITALY", html=lambda d: render_walkthrough(d["gmp_walkthrough"]["rows"], "Italy"))]))
     return C

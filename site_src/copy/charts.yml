@@ -500,7 +500,7 @@ charts:
     fallback_headline: Some markets would be readable if more of their clubs sent a file.
     slide_headline_templates: {}
     question: How do we make a market readable?
-    means_club: Each line is one market's counting score by season. The dashed line is the bar a market must clear to be read. Scores drop when clubs do not send a file.
+    means_club: Each small chart is one market's counting score by season, the markets close to readable first. The dashed line is the bar a market must clear to be read; a red point is below it. Scores drop when clubs do not send a file.
     means_privacy: Each federation gets its own report card with its top fixes. It never sees another market's data.
     action_club: Ask the federations below the bar to get their missing clubs to send a file.
     action_privacy: Send each report card only to its own federation.
@@ -574,6 +574,11 @@ pages:
     product_link_label: DP3's view of the program markets.
     product_link_text: "Goal G1, growing the NFL's presence abroad, is driven by data product DP3. This tab applies DP3's player counts and the quality grades to the {G0.n_markets} markets where NFL clubs hold rights, including those that send no data. In the code it is its own product, DP6."
     product_link_button: See G1 and DP3 on Data products
+    board_lanes:
+      NOW: Ask these markets for data now.
+      NEXT: Start once the first lane is moving.
+      LATER: Wait, and watch what their clubs report.
+      MAINTAIN: Readable today. Keep the files coming.
     record:
       - {value: '{G0.n_markets}', label: Markets}
       - {value: '{G1.n_readable}', label: Markets we can read}

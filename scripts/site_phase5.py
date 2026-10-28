@@ -246,7 +246,7 @@ def _growth_panel(name, small):
     xe = {"field": "participation_year", "type": "ordinal", "title": None, "axis": {"labelAngle": 0, "labelFontSize": 9 if small else 12, "labelOverlap": True}}
     ye = {"field": "growth_index", "type": "quantitative", "title": None, "scale": {"zero": False}, "axis": {"tickCount": 3 if small else 5, "format": "d", "labelFontSize": 9 if small else 12}}
     ylo = {"field": "index_low", "type": "quantitative", "scale": {"zero": False}}
-    return {"data": _src("market_growth"), "width": "container", "height": "container", "autosize": {"type": "fit", "contains": "padding"}, "padding": 2,
+    return {"data": _src("market_growth"), "width": "container", "height": 64 if small else 170, "autosize": {"type": "fit-x", "contains": "padding"}, "padding": 2,      # a fixed height: "container" height flattened left-column panels
             "transform": [{"filter": f"datum.plain_name === '{safe}'"}],
             "layer": [
                 {"mark": {"type": "area", "opacity": 0.25, "clip": True, "color": "#3D7CC9"}, "encoding": {"x": xe, "y": ylo, "y2": {"field": "index_high"}}},

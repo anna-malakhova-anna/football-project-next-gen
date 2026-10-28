@@ -11,12 +11,15 @@
   // a grid of small charts (one Vega chart per cell, so the grid can wrap: 3 columns wide, 1 on a phone)
   function renderMulti(box, items, small) {
     box.classList.add("vmulti"); if (small) { box.classList.add("vmulti-small"); }
-    items.forEach(function (it) {
+    // every cell is in the grid before any chart is drawn: a chart sized while the grid was still filling took a wrong height (left column flattened)
+    var cells = items.map(function (it) {
       var cell = document.createElement("div"); cell.className = "vmulti-cell";
       var t = document.createElement("div"); t.className = "vmulti-title"; t.textContent = it.title;
       var c = document.createElement("div"); c.className = "vmulti-chart";
-      cell.appendChild(t); cell.appendChild(c); box.appendChild(cell); embed(c, it.spec);
+      cell.appendChild(t); cell.appendChild(c); box.appendChild(cell);
+      return [c, it.spec];
     });
+    (window.requestAnimationFrame || function (f) { return setTimeout(f, 16); })(function () { cells.forEach(function (x) { embed(x[0], x[1]); }); });
   }
 
   // ---- collect slides, in page order
