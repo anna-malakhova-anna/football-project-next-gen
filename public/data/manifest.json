@@ -442,7 +442,7 @@
    "name": "chart_insights_eval",
    "source": "evaluation.eval_chart_insights",
    "kind": "evaluation",
-   "rows": 9
+   "rows": 11
   },
   {
    "name": "analyst_k",
