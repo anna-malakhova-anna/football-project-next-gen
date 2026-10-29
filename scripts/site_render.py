@@ -20,6 +20,7 @@ FAN_GROUP = {"EXISTING_FAN": "Existing fans", "NET_NEW_FLAG_PROMPT": "Net-new, p
 SOURCE_NAMES = {"US_LEAGUE": "US league", "CA_CLUB": "Canadian club", "INTL_FED": "International federation", "SCHOOL_AGGREGATES": "School and recreation programs",
                 "FAN_ENGAGEMENT": "Fan app and ticketing"}
 VALUE_LABELS = {
+    "retention_km_sex": {"segment_value": {"F": "Female", "M": "Male"}},
     "fan_status_mix": {"fan_status": FAN_STATUS}, "funnel_rates": {"fan_status": FAN_STATUS},
     "fan_rfm_latest": {"fan_group": FAN_GROUP}, "fan_survival": {"fan_group": FAN_GROUP}, "fan_ltv": {"fan_group": FAN_GROUP}, "audience_latest": {"household_group": FAN_GROUP},
     "fan_vs_truth": {"estimator": {"NAIVE_EXISTING": "Naive comparison (existing fans)", "NAIVE": "Naive, all linked accounts (analyst detail)", "DID_ADDITIVE": "Matched before/after"}},

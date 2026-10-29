@@ -63,6 +63,7 @@
       background: null, font: css("--font-body", "sans-serif"),
       range: { category: [css("--series-turf", "#2F6B4F"), css("--series-sky", "#3D7CC9"), css("--series-pylon", "#D9622B"), css("--series-plum", "#7D4E8E"), css("--series-sand", "#B8A06A")] },
       axis: { labelColor: muted, titleColor: text, domainColor: grid, gridColor: grid, tickColor: grid },
+      header: { labelColor: text, titleColor: text },     // small-multiple panel titles follow the theme too
       // on a phone a legend sits under the chart in one column, so a row of long labels never runs off the screen (layout only: nothing is computed)
       legend: narrow ? { labelColor: muted, titleColor: text, orient: "bottom", direction: "vertical", columns: 1, labelLimit: Math.max(160, window.innerWidth - 80) } : { labelColor: muted, titleColor: text }, view: { stroke: null }
     };
@@ -101,6 +102,8 @@
         } else { walk(v, k); }
       });
     })(copy);
+    // small multiples (a facet with columns) drop to two columns sized to the screen (layout only)
+    if (copy.facet && copy.columns && copy.spec && typeof copy.spec.width === "number") { copy.columns = 2; copy.spec.width = Math.max(110, Math.floor((w - 130) / 2)); }
     // wrapped labels need taller rows: three lines per category (a chart with side labels simply gets taller on a phone)
     if (sideLabels && !compact && !copy.facet && !copy.hconcat && !copy.vconcat && !copy.concat && !copy.repeat) { copy.height = { step: 42 }; }
     return copy;

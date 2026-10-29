@@ -79,22 +79,32 @@ def charts():
             {"data": _src("sibling_merges_by_threshold"), "mark": {"type": "line", "interpolate": "step-after", "point": True},
              "encoding": {"x": {"field": "threshold", **thr_x, "title": "Match probability threshold"},
                           "y": {"field": "sibling_or_twin_false_merges", "type": "quantitative", "title": "False merges (clusters)"}}}] + thr_layers(0)[1:]})
+    # One small panel per entry age band on a shared scale (8 bands in one plot repeated the 5 series colours and their intervals washed together):
+    # one strong colour, and the panels are compared by height, not hue. Layout only: the dataset and its numbers are unchanged.
+    km_x = {"field": "years_since_entry", "type": "ordinal", "title": "Years since entry", "axis": {"labelAngle": 0}}     # whole years only
+    km_y = {"field": "km_survival", "type": "quantitative", "scale": {"domain": [0, 1]}, "axis": {"format": "%", "title": "Still registered", "tickCount": 5}}
     C["retention_km"] = dict(
         page="participation", title="Retention by entry age band (Kaplan-Meier, with 95% intervals)", datasets=["retention_km_age"],
-        spec={"data": _src("retention_km_age"), "width": "container", "height": 320, "layer": [
-            {"mark": {"type": "area", "opacity": 0.12}, "encoding": {"x": {"field": "years_since_entry", "type": "quantitative", "title": "Years since entry", "axis": {"tickMinStep": 1}},
-             "y": {"field": "km_survival_ci_low", "type": "quantitative", "scale": {"domain": [0, 1]}, "axis": {"format": "%", "title": "Still registered"}},
-             "y2": {"field": "km_survival_ci_high"}, "color": {"field": "segment_value", "type": "nominal", "title": "Entry age", "sort": AGE_ORDER, "scale": {"domain": AGE_ORDER}}}},
-            {"mark": {"type": "line", "point": True}, "encoding": {"x": {"field": "years_since_entry", "type": "quantitative"},
-             "y": {"field": "km_survival", "type": "quantitative"}, "color": {"field": "segment_value", "type": "nominal", "sort": AGE_ORDER, "scale": {"domain": AGE_ORDER}}}}]})
+        spec={"data": _src("retention_km_age"), "columns": 4,
+              "facet": {"field": "segment_value", "type": "ordinal", "sort": AGE_ORDER, "title": "Entry age", "header": {"labelFontSize": 13, "labelFontWeight": 600, "titleFontSize": 13}},
+              "spec": {"width": 220, "height": 140, "layer": [
+                  {"mark": {"type": "area", "opacity": 0.22, "color": "#3D7CC9"}, "encoding": {"x": km_x, "y": {**km_y, "field": "km_survival_ci_low"}, "y2": {"field": "km_survival_ci_high"}}},
+                  {"mark": {"type": "line", "point": True, "color": "#3D7CC9", "strokeWidth": 2},
+                   "encoding": {"x": km_x, "y": km_y, "tooltip": [{"field": "segment_value", "title": "Entry age"}, {"field": "years_since_entry", "title": "Years since entry"},
+                                                                  {"field": "km_survival", "title": "Still registered", "format": ".0%"}]}}]}})
+    # Two series that nearly coincide: two contrasting colours, and the second line dashed so it shows where it lies on the first. The legend is
+    # drawn from the lines (solid symbols), not from the pale interval bands.
+    sex_color = {"field": "segment_value", "type": "nominal", "title": "Sex", "scale": {"domain": ["Female", "Male"], "range": ["#D9622B", "#3D7CC9"]}}
     C["retention_sex"] = dict(
         page="participation", title="Retention by sex", datasets=["retention_km_sex"],
-        spec={"data": _src("retention_km_sex"), "width": "container", "height": 260, "layer": [
-            {"mark": {"type": "area", "opacity": 0.15}, "encoding": {"x": {"field": "years_since_entry", "type": "quantitative", "title": "Years since entry", "axis": {"tickMinStep": 1}},
-             "y": {"field": "km_survival_ci_low", "type": "quantitative", "scale": {"domain": [0, 1]}, "axis": {"format": "%", "title": "Still registered"}},
-             "y2": {"field": "km_survival_ci_high"}, "color": {"field": "segment_value", "type": "nominal", "title": "Sex"}}},
-            {"mark": {"type": "line", "point": True}, "encoding": {"x": {"field": "years_since_entry", "type": "quantitative"},
-             "y": {"field": "km_survival", "type": "quantitative"}, "color": {"field": "segment_value", "type": "nominal"}}}]})
+        spec={"data": _src("retention_km_sex"), "width": "container", "height": 260, "resolve": {"legend": {"color": "independent"}}, "layer": [
+            {"mark": {"type": "area", "opacity": 0.15}, "encoding": {"x": km_x, "y": {**km_y, "field": "km_survival_ci_low"}, "y2": {"field": "km_survival_ci_high"},
+                                                                      "color": {**sex_color, "legend": None}}},
+            {"mark": {"type": "line", "point": True, "strokeWidth": 2.5},
+             "encoding": {"x": km_x, "y": km_y, "color": {**sex_color, "legend": {"orient": "bottom", "symbolType": "stroke", "symbolStrokeWidth": 3}},
+                          "strokeDash": {"field": "segment_value", "type": "nominal", "legend": None, "scale": {"domain": ["Female", "Male"], "range": [[1, 0], [6, 4]]}},
+                          "tooltip": [{"field": "segment_value", "title": "Sex"}, {"field": "years_since_entry", "title": "Years since entry"},
+                                      {"field": "km_survival", "title": "Still registered", "format": ".0%"}]}}]})
     C["cohorts"] = dict(
         page="participation", title="Cohort triangle: share of each entry cohort still registered", datasets=["retention_cohorts"],
         spec={"data": _src("retention_cohorts"), "width": "container", "height": 220, "mark": "rect",
