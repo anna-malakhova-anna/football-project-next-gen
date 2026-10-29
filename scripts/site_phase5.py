@@ -228,6 +228,19 @@ def render_tiles(rows, use, compact=False) -> str:
     return f"<div class='vtiles{' vtiles-compact' if compact else ''}' data-use='{use}'>{''.join(out)}</div>"
 
 
+def render_grade_key(bands, rows) -> str:
+    """The key to the market grades A to D (as on the Global outlook, ADR-042): each grade's colour, plain meaning and lowest score from dq_grade_bands,
+    then the tile states with no grade that occur. The grade belongs to the use chosen above the tiles."""
+    from html import escape as e
+    grades = "".join(f"<span class='glk'><i class='gsw g-{e(b['grade'])}'>{e(b['grade'])}</i><span><b>{e(b['plain_label'])}</b>"
+                     + (f" {int(b['min_score'])}+" if b["min_score"] else f" below {int(min(x['min_score'] for x in bands if x['min_score']))}") + "</span></span>" for b in bands)
+    states = {r["status"] for r in rows}
+    hidden = "<span class='glk'><i class='gsw g-hidden'></i>Too few players to show</span>" if "Hidden" in states else ""
+    none = "<span class='glk'><i class='gsw g-none'></i>No data yet</span>" if "No data yet" in states else ""
+    return (f"<div class='glegend' aria-label='Key to the grades'>{grades}<span class='gl-note'>Quality score out of 100, for the chosen use.</span>"
+            f"{hidden}{none}</div>")
+
+
 def render_pair(pair, grades) -> str:
     """The same market through two lenses, side by side: what the club sees and what the privacy lead sees. Counts only; the club receives no name, birth date or contact detail."""
     from html import escape as e
@@ -289,7 +302,7 @@ def market_cards():
 
     def pre(d):
         btns = "".join(f"<button type='button' data-seg='{u}' aria-pressed='{'true' if u == 'COUNT' else 'false'}'>{label}</button>" for u, label in uses)
-        return f"<div class='vseg' role='group' aria-label='Choose a use'>{btns}</div>"
+        return f"<div class='vseg' role='group' aria-label='Choose a use'>{btns}</div>" + render_grade_key(d["dq_grade_bands"]["rows"], d["market_tiles"]["rows"])
 
     def thumb_tiles(d):
         rows = d["market_tiles"]["rows"]
@@ -326,9 +339,9 @@ def market_cards():
         return [dict(title=r["plain_name"], key="PAIR", html=(lambda n: lambda dd: pair_html(dd, n))(r["slide_no"])) for r in d["market_pairs"]["rows"]]
 
     C = {}
-    C["m1_tiles"] = dict(page="markets", title="How's my market?", datasets=["market_tiles"],
+    C["m1_tiles"] = dict(page="markets", title="How's my market?", datasets=["market_tiles", "dq_grade_bands"],
         card=dict(id="M1", datasets=["market_tiles"], thumb_html=thumb_tiles, pre_html=pre, open_slide=1,
-                  slides=lambda d: [dict(title=label, key=u, html=(lambda u: lambda dd: render_tiles(dd["market_tiles"]["rows"], u))(u)) for u, label in uses]))
+                  slides=lambda d: [dict(title=label, key=u, html=(lambda u: lambda dd: render_grade_key(dd["dq_grade_bands"]["rows"], dd["market_tiles"]["rows"]) + render_tiles(dd["market_tiles"]["rows"], u))(u)) for u, label in uses]))
     C["m2_growth"] = dict(page="markets", title="Is growth real, or just better reporting?", datasets=["market_growth"],
         card=dict(id="M2", datasets=["market_growth"], thumb_multi=growth_thumb, open_slide=1, slides=growth_slides))
     C["m3_funnel"] = dict(page="markets", title="Why can't I reach more families?", datasets=["market_funnel"],
